@@ -346,9 +346,173 @@ name,category,city,area,address,phone,email,website,facebook,instagram,rating,re
 
 ---
 
+## 7.8 محرك شراء العملاء، الرصيد، والملكية الحصرية والمشتركة (Phase 5 — Production-Grade Claim, Credits & Shared / Exclusive Leads Engine)
+
+يقع المحرك في `src/lib/claims/` ويعمل بشكل ذري وحتمي بالكامل (100% Atomic, Concurrency-Safe, Deterministic & Auditable — بدون أي ذكاء اصطناعي أو خصم رصيد خارج المعاملات الذرية):
+
+1. **نموذج الملكية والوصول (`SHARED` مقابل `EXCLUSIVE` — `src/lib/claims/pricing.ts`):**
+   - **العميل الحصري (`EXCLUSIVE`):**
+     - `maxPurchasers = 1` إجبارياً.
+     - بمجرد شرائه من مطور واحد يصبح `currentPurchasers = 1` و`availableForClaim = false` و`status = CLAIMED_FULL` فوراً، ويُمنع أي مطور آخر من شرائه (`409 LEAD_EXCLUSIVE_ALREADY_CLAIMED`).
+   - **العميل المشترك (`SHARED`):**
+     - يقبل الشراء حتى السقف المحدد `maxPurchasers` (افتراضياً `3` من `CreditPricingConfig.defaultSharedMaxPurchasers`).
+     - عند وصول `currentPurchasers == maxPurchasers` يصبح `availableForClaim = false` و`status = CLAIMED_FULL` تلقائياً (`409 LEAD_SHARED_MAX_PURCHASERS_REACHED`).
+   - **منع الشراء المكرر لنفس المطور:**
+     - لا يمكن لنفس المطور شراء نفس العميل مرتين (`409 LEAD_ALREADY_CLAIMED_BY_DEVELOPER`)، مع فرض فهرس فريد جزئي في قاعدة البيانات (`lead_claims_active_lead_developer_unique_idx` على `(leadId, developerId) WHERE status = 'ACTIVE'`).
+
+2. **محرك التسعير الحتمي (`Deterministic Credit Pricing Engine` — `calculateLeadCreditCost`):**
+   - تُدار تكلفة النقاط من جدول `CreditPricingConfig` مع حفظ الإصدار (`pricingVersion`: `v1`, `v2`, ...) ولقطة تفاصيل السعر في كل عملية شراء (`LeadClaim.priceBreakdown`):
+     - `SHARED`: **5 نقاط** (`sharedLeadCreditCost = 5`)
+     - `EXCLUSIVE`: **15 نقطة** (`exclusiveLeadCreditCost = 15`)
+     - علاوة فرصة `HOT` (`score >= 70`): **+5 نقاط** (`hotOpportunityBonus = 5`)
+     - علاوة فرصة `PREMIUM` (`score >= 85`): **+10 نقاط** (`premiumOpportunityBonus = 10` — تحل محل علاوة `HOT` ولا تتراكم معها)
+     - علاوة جودة ممتازة (`qualityStatus = EXCELLENT` أو `qualityScore >= 85`): **+5 نقاط** (`highQualityBonus = 5`)
+     - علاوة عميل طازج وموثق (`freshnessStatus = FRESH` و`verificationStatus = VERIFIED`): **+5 نقاط** (`freshVerifiedBonus = 5`)
+
+3. **سجل حركات الرصيد غير القابل للتعديل ومطابقة الأرصدة (`Immutable Credit Ledger & Balance Reconciliation` — `src/lib/claims/credit-service.ts`):**
+   - جدول حساب الرصيد `DeveloperCreditAccount` (`balance`, `totalPurchased`, `totalGranted`, `totalSpent`, `totalRefunded`, `totalExpired`, `reservedCredits`) محمي بقيود PostgreSQL `CHECK (balance >= 0)`.
+   - جدول الحركات غير القابل للتعديل `CreditTransaction` (`PURCHASE`, `GRANT`, `CLAIM`, `REFUND`, `ADJUSTMENT`, `EXPIRATION`) يسجل لكل عملية: `amount`, `balanceBefore`, `balanceAfter`, `referenceType`, `referenceId`, `idempotencyKey`, `reason`, `metadata`, `createdBy`.
+   - **القاعدة الثابتة (`Ledger Invariant`):** `DeveloperCreditAccount.balance == SUM(CreditTransaction.amount)` دائماً، ويتم التحقق منها آلياً عبر `reconcileCreditAccount` و`reconcileAllCreditAccounts`.
+
+4. **بوابات التحقق المسبقة قبل الشراء (`Pre-Claim Gates — Phases 1–4 Enforcement`):**
+   - التحقق من حالة حساب المطور (`DEVELOPER_INACTIVE`, `DEVELOPER_SUSPENDED`, `PROFILE_NOT_FOUND`) وحدود الباقة (`PLAN_LIMIT_REACHED`, `LEAD_ACCESS_DENIED`).
+   - التحقق من بوابات الجودة والحداثة للمرحلة الثالثة (`LEAD_INVALID`, `LEAD_STALE`, `LEAD_UNVERIFIED`, `LEAD_QUALITY_BELOW_THRESHOLD`, `LEAD_OPPORTUNITY_BELOW_THRESHOLD`).
+   - التحقق الإلزامي من أهلية المطابقة للمرحلة الرابعة (`MATCH_NOT_ELIGIBLE` عند `eligible = false`، و`MATCH_STRENGTH_BELOW_THRESHOLD` عند انخفاض `matchStrength` عن الحد الأدنى).
+
+5. **الذرية، الأقفال المتشائمة، ومنع سباقات التزامن (`Transactions, Locking & Idempotency` — `src/lib/claims/locks.ts` و`service.ts`):**
+   - تنفيذ عملية الشراء بالكامل داخل معاملة قاعدة بيانات واحدة (`prisma.$transaction`) مع أقفال صفوف PostgreSQL (`SELECT ... FOR UPDATE`) بترتيب ثابت (`Lead` أولاً ثم `DeveloperCreditAccount` لمنع الـ Deadlocks) بالإضافة إلى حارس تسلسلي على مستوى العملية.
+   - دعم كامل لمفتاح عدم التكرار (`Idempotency-Key`): إعادة إرسال نفس الطلب بنفس المفتاح تعيد نفس سجل الشراء وبيانات الاتصال دون خصم الرصيد مرة أخرى، بينما إعادة استخدام نفس المفتاح لعميل مختلف تُرفض بـ `409 IDEMPOTENCY_CONFLICT`.
+
+6. **الاسترداد، إبطال العميل بعد الشراء، وانتهاء الصلاحية (`Refunds, Post-Claim Invalidation & Expiration` — `src/lib/claims/refund-service.ts`):**
+   - استرداد ذري للرصيد (`refundClaim`) يعيد النقاط إلى حساب المطور، ينشئ حركة `REFUND`، يحول حالة الشراء إلى `REFUNDED`، يسحب صلاحية الوصول لبيانات الاتصال (`accessGranted = false`)، ويعيد تحديث عداد المشترين (`currentPurchasers`).
+   - حماية ضد الاسترداد المزدوج (`409 CLAIM_ALREADY_REFUNDED`).
+   - معالجة تلقائية عند تحويل العميل بعد شرائه إلى `INVALID` أو `DUPLICATE` أو `CLOSED` (`handleLeadInvalidationAfterClaim`) مع استرداد تلقائي كامل للمطورين المتأثرين.
+   - دعم انتهاء صلاحية المطالبات (`expireStaleClaims`) وتعديل الرصيد الإداري الموثق (`adjustDeveloperCreditsByAdmin`).
+
+7. **واجهات برمجة التطبيقات لعمليات الشراء والرصيد (`Phase 5 Claim & Credits APIs`):**
+   - `POST /api/leads/:id/claim` — شراء عميل وفتح بيانات الاتصال الكاملة بشكل ذري (يدعم ترويسة `Idempotency-Key`).
+   - `GET /api/developer/claims` و`GET /api/developer/claims/:claimId` — عرض سجل مشتريات المطور وتفاصيل كل عملية شراء وحركة الرصيد المرتبطة بها.
+   - `GET /api/developer/credits` — عرض الرصيد الحالي، كشف حساب النقاط (`CreditTransaction` Ledger)، وحالة مطابقة الرصيد (`reconciliation`).
+   - `POST /api/admin/claims/:claimId/refund` — استرداد نقاط عملية شراء بواسطة مدير النظام (Admin).
+   - `POST /api/admin/developers/:developerId/credits/adjust` — إضافة/خصم/منح نقاط لحساب مطور مع سجل تدقيق كامل (Admin).
+   - `GET /api/admin/claims` و`GET /api/admin/credits` — مراقبة جميع عمليات الشراء وحسابات النقاط ومطابقة السجل العام (Admin).
+
+---
+
+## 7.9 محرك المتابعة والتقييم والنتائج البيعية (Phase 6 — Production-Grade Feedback & Outcome Engine)
+
+يقع المحرك في `src/lib/feedback/` ويعمل بشكل حتمي، معزول لكل مطور، وغير مدمّر لبيانات المصدر الموثوقة (100% Deterministic, Developer-Isolated, Non-Destructive & Auditable):
+
+1. **الفصل المعماري الثلاثي (`Global Lead Status` vs `Developer LeadEngagement` vs `Structured LeadFeedback`):**
+   - **حالة العميل العامة (`Lead.status` و`Lead.saleabilityStatus`):** تحدد صلاحية العميل للبيع في السوق العام وتدار حصرياً عبر محرك الجودة والادارة (Phase 3 / Admin).
+   - **دورة حياة المتابعة الخاصة بالمطور (`LeadEngagement` — زوج `(leadId, developerId)`):** تعكس مرحلة متابعة كل مطور على حدة (`CLAIMED -> CONTACTED -> REPLIED -> INTERESTED -> MEETING -> PROPOSAL_SENT -> NEGOTIATION -> WON / LOST / NOT_INTERESTED / INVALID`). في العملاء المشتركين (`SHARED`)، يمكن للمطور (أ) إغلاق الصفقة `WON` بينما يسجل المطور (ب) `LOST` والمطور (ج) `CONTACTED` دون أي تداخل.
+   - **التقييمات المهيكلة (`LeadFeedback`):** ملاحظات وتقييمات مستقلة (`CONTACT`, `BUSINESS`, `SALES`, `LEAD_QUALITY`) مع درجة تقييم (`1–5`) وأكواد أسباب قياسية (`reasonCode`) يمكن تسجيلها في أي وقت دون إجبار المطور على تغيير مرحلة المتابعة.
+
+2. **آلة الحالة الحتمية وقفل الحالات النهائية (`Deterministic State Machine & Terminal Locking` — `src/lib/feedback/state-machine.ts`):**
+   - تتحقق من صلاحية كل انتقال بين الحالات (`ALLOWED_ENGAGEMENT_TRANSITIONS`) وترفض الانتقالات غير المنطقية (مثل `CLAIMED -> WON` مباشرةً) بكود `INVALID_STATUS_TRANSITION`، مع السماح بالانتقال إلى `INVALID` من أي حالة متابعة بيعية نشطة.
+   - الحالات النهائية (`WON`, `LOST`, `NOT_INTERESTED`, `INVALID`) تُقفل تلقائياً (`isTerminal = true`, `closedAt = now`) وتمنع أي انتقال لاحق بواسطة المطور (`TERMINAL_STATUS`).
+   - **التصحيح الإداري الموثق (`Admin Status Correction`):** يمكن لمدير النظام فقط (`POST /api/admin/engagements/:id/correct-status`) تصحيح الحالة الخاطئة مع إلزامية ذكر سبب التصحيح (`reason`) وتسجيل العملية في `LeadStatusHistory` (`isAdminCorrection = true`, `actorType = 'ADMIN'`) وسجل التدقيق `AuditLog`.
+
+3. **قواعد التحقق من النتائج والتسلسل الزمني (`Outcome Validation & Chronological Timestamps`):**
+   - عند تسجيل `LOST` يجب تحديد `reasonCode` من قائمة الأسباب القياسية (`PRICE`, `COMPETITOR`, `NO_BUDGET`, `NO_RESPONSE`, `TIMING`, `WRONG_CONTACT`, `WRONG_BUSINESS`, `DUPLICATE`, `BUSINESS_CLOSED`, `NOT_INTERESTED`, `SERVICE_MISMATCH`, `OTHER` مع إلزامية `note` عند اختيار `OTHER`).
+   - عند تسجيل `INVALID` يجب تحديد `reasonCode` من القائمة القياسية (`WRONG_PHONE`, `WRONG_EMAIL`, `BUSINESS_CLOSED`, `BUSINESS_NOT_FOUND`, `DUPLICATE`, `WRONG_CATEGORY`, `WRONG_LOCATION`, `FAKE_BUSINESS`, `ALREADY_CLIENT`, `OTHER` مع إلزامية `note` عند اختيار `OTHER`).
+   - التحقق الصارم من التسلسل الزمني (`contactedAt >= claimedAt`، `repliedAt >= firstContactedAt`، `wonAt >= meetingAt/proposalSentAt`) ومنع التواريخ المستقبلية (`INVALID_TIMESTAMP`).
+
+4. **التكامل غير المدمّر مع محرك الجودة (`Non-Destructive Phase 3 Quality Integration` — `src/lib/feedback/quality-integration.ts`):**
+   - بلاغات المطورين لا تقوم أبداً بمسح أو استبدال بيانات العميل الأساسية (`lead.phone`, `lead.email`, `lead.businessStatus`, `lead.phoneValidationStatus`) بشكل مباشر.
+   - بدلاً من ذلك، تُصدر إشارات إعادة تحقق مهيكلة (`PHONE_REQUIRES_REVERIFICATION`, `BUSINESS_STATUS_REQUIRES_VERIFICATION`, `EMAIL_REQUIRES_REVERIFICATION`, `WEBSITE_REQUIRES_REVERIFICATION`, `CATEGORY_REQUIRES_REVERIFICATION`, `LOCATION_REQUIRES_REVERIFICATION`, `IDENTITY_REQUIRES_REVERIFICATION`) وتنشئ سجل `LeadVerification` بحالة `NEEDS_REVERIFICATION`.
+   - **أوزان الثقة الحتمية (`Source Confidence Weighting`):** بلاغ مطور واحد يُسجل بثقة `MEDIUM` (`SINGLE_DEVELOPER_REPORT`)، وعند تطابق بلاغين أو أكثر من مطورين مختلفين على نفس العميل والسبب يرتفع مستوى الثقة تلقائياً إلى `HIGH` (`MULTIPLE_DEVELOPER_REPORTS`).
+
+5. **تتبع محاولات التواصل والحماية من إساءة الاستخدام (`Contact Attempts & Abuse Protection` — `src/lib/feedback/abuse-protection.ts`):**
+   - تسجيل كل محاولة تواصل في جدول `ContactAttempt` (`PHONE`, `WHATSAPP`, `EMAIL`, `SMS`, `SOCIAL`, `OTHER`) مع النتيجة (`NO_ANSWER`, `ANSWERED`, `INVALID_NUMBER`, `MESSAGE_SENT`, `REPLIED`, `BOUNCED`, `BLOCKED`, `OTHER`) وإطلاق إشارة إعادة التحقق عند تسجيل `INVALID_NUMBER` أو `BOUNCED`.
+   - منع التكرار (`Idempotency-Key` + `DUPLICATE_EVENT` خلال نافذة 5 دقائق)، حدود المعدل (`RATE_LIMITED`)، وأعلام الرقابة التشغيلية (`RAPID_STATUS_CHANGES`, `FREQUENT_INVALID_REPORTS`, `SUSPICIOUS_FEEDBACK_VOLUME`, `INVALID_SEQUENCE`, `ADMIN_REVIEW_REQUIRED`).
+
+6. **واجهات برمجة التطبيقات للمتابعة والتقييم (`Phase 6 Feedback & Outcome APIs`):**
+   - `GET / POST / PATCH /api/leads/:id/engagement/status` (والتوافق الكامل مع `PATCH /api/leads/:id/status`) — عرض وتحديث حالة المتابعة والنتيجة البيعية.
+   - `GET / POST /api/leads/:id/feedback` — عرض وإرسال التقييمات المهيكلة.
+   - `GET / POST /api/leads/:id/contact-attempts` — عرض وتسجيل محاولات التواصل عبر القنوات المختلفة.
+   - `GET /api/developer/engagements` و`GET /api/developer/engagements/:id` و`GET /api/developer/engagements/:id/timeline` — إدارة متابعات المطور والجدول الزمني الموحد.
+   - `GET /api/admin/engagements` و`POST /api/admin/engagements/:id/correct-status` — مراقبة متابعات المطورين والتصحيح الإداري للحالات النهائية (Admin).
+
+---
+
+## 7.10 محرك التحليلات التنفيذية وحلقة تحسين البيانات الحتمية (Phase 7 — Production-Grade Analytics + Deterministic Data Flywheel)
+
+يقع المحرك في `src/lib/analytics/` ويعمل بشكل حتمي 100%، قابل للتفسير، ومُراجع بشرياً دون أي نماذج ذكاء اصطناعي أو تعديل تلقائي للقواعد (`100% Deterministic, Version-Aware, Zero Double-Counting & Human-Reviewed`):
+
+1. **قاموس المؤشرات المركزي وانضباط المقامات (`Centralized Metric Dictionary & Denominator Discipline` — `src/lib/analytics/metric-dictionary.ts`):**
+   - يعرّف القاموس المركزي (`METRIC_DICTIONARY`) جميع المؤشرات عبر الطبقات الست (`Layer 1: Inventory`, `Layer 2: Quality`, `Layer 3: Opportunity`, `Layer 4: Matching`, `Layer 5: Sales Funnel`, `Layer 6: Economics`) مع تحديد صريح للبسط (`numerator`)، المقام (`denominator`)، الوحدة (`unit`)، إصدار المعادلة (`metricVersion`)، والحد الأدنى لحجم العينة (`minimumSampleSize`).
+   - كل معدل يُرجع كائناً موحداً (`RateMetricResult`) يحتوي على (`numerator`, `denominator`, `value`, `percentage`, `displayValue`, `status`, `metricVersion`, `dateRange`, `filters`).
+   - **منع القسمة على صفر والعينات الصغيرة:** عند كون المقام `0` يُرجع المحرك `status = 'INSUFFICIENT_DATA'` و`value = null`، وعند كون المقام أقل من `minimumSampleSize` يُرجع `status = 'INSUFFICIENT_SAMPLE'`.
+   - **فصل قمع المبيعات المرحلي عن الإجمالي (`Stage-to-Stage vs Overall Funnel`):** يحسب `calculateCentralizedFunnelMetrics` كلاً من معدلات التحويل المرحلية (`contacted/claimed`, `replied/contacted`, `interested/replied`, `meetings/interested`, `won/meetings`) ومعدلات التحويل الإجمالية (`won/claimed`, `won/contacted`, `won/completed`, `meetings/replied`).
+
+2. **الإسناد أحادي المصدر ومنع الازدواج الحسابي (`Single-Origin Attribution & Zero Double-Counting` — `src/lib/analytics/helpers.ts`):**
+   - يفصل المحرك بين **المصدر الأصلي للفرصة (`Primary Origin Source`)** ومصادر الإثراء الثانوية (`Secondary Enrichment Sources` في `sourceList`) ومصادر التحقق (`LeadVerification.source`).
+   - يتم إسناد كل فرصة موحدة (`isCanonical = true`) وإيرادات الشراء المحققة (`attributedRevenueEgp`) إلى مصدرها الأصلي فقط، مما يضمن تطابق مجموع الفرص والإيرادات عبر المصادر والقطاعات والمدن والمطورين (`Sum(Sources) == Sum(Niches) == Sum(Locations) == Sum(Developers) == Total Canonical / Total Attributed Revenue`).
+   - في حالة استرداد النقاط (`REFUNDED`) يتم خصم النقاط المستردة من صافي الاستهلاك (`netCreditsConsumed`) وإلغاء الإيراد المسند للمطالبة المستردة بالكامل.
+
+3. **أداء القواعد وحلقة التحسين بالمراجعة البشرية (`Deterministic Rule Performance & Human-Reviewed Data Flywheel` — `src/lib/analytics/service.ts`):**
+   - يقيم المحرك أداء قواعد التقييم (`ScoringRule`)، قواعد المطابقة (`MatchingRule`)، وقواعد الجودة (`Quality Rules`) عبر مقارنة المجموعة التي انطبقت عليها القاعدة (`withRule`) بخط الأساس (`withoutRule`) وحساب الفارق الإحصائي (`winRateLiftAbsolute`, `contactRateLiftAbsolute`, `invalidRateDeltaAbsolute`).
+   - القواعد التي تقل عينتها عن الحد الأدنى (`sampleSize < minimumSampleSize`) تُوسم بـ `INSUFFICIENT_SAMPLE` ولا تُرشح للمراجعة.
+   - القواعد المستوفية لحجم العينة والتي تُظهر انحرافاً سلبياً تُدرج في جدول `RuleReviewCandidate` بحالة `OPEN` ليقوم مدير النظام بمراجعتها (`APPROVED`, `REJECTED`, `DEFERRED`, `UNDER_REVIEW`) مع تسجيل القرار في `AuditLog` — **ولا يتم أبداً تعديل أي أوزان أو قواعد إنتاجية تلقائياً**.
+
+4. **التنبيهات التشخيصية الحتمية ولقطات المؤشرات اليومية (`Deterministic Anomaly Flags & DailyMetricSnapshot`):**
+   - يرصد المحرك الانحرافات التشغيلية وفق عتبات صريحة (`SOURCE_INVALID_RATE_HIGH`, `SOURCE_DUPLICATE_RATE_HIGH`, `SCORE_BAND_UNDERPERFORMING`, `QUALITY_BAND_UNDERPERFORMING`, `MATCH_RULE_UNDERPERFORMING`, `DEVELOPER_FEEDBACK_SPIKE`, `CLAIM_FAILURE_SPIKE`, `REFUND_RATE_SPIKE`).
+   - يدعم حفظ لقطات يومية للمؤشرات في جدول `DailyMetricSnapshot` لتتبع الاتجاهات التاريخية بسرعة وكفاءة.
+
+5. **واجهات برمجة التطبيقات ولوحات التحكم للتحليلات (`Phase 7 Analytics APIs & Dashboards`):**
+   - `GET / POST /api/admin/analytics/overview` — اللوحة التنفيذية عبر الطبقات الست وحفظ اللقطات اليومية.
+   - `GET /api/admin/analytics/leads` و`/sources` و`/niches` و`/locations` و`/services` و`/developers` و`/rules` و`/data-quality` و`/funnel`.
+   - `GET / POST /api/admin/analytics/rule-review` و`POST /api/admin/analytics/rule-review/:id/decision` — إدارة طابور المراجعة البشرية للقواعد.
+   - `GET /api/admin/analytics/export` (أو `?format=csv`) — تصدير CSV آمن للمديرين فقط مع إزالة أي بيانات سرية ومنع حقن المعادلات.
+   - `GET /api/developer/analytics` — تحليلات المطور المعزولة بصرامة لحسابه فقط (ترفض الوصول لبيانات أي مطور آخر بكود `403`).
+   - لوحة تحكم الإدارة التفاعلية في `/admin/analytics` ولوحة تحليلات المطور في `/dashboard/analytics`.
+
+---
+
+## 7.11 محرك الاستيعاب ومعمارية المجمّعات والإمداد المستمر للفرص (Phase 8 — Production-Grade Ingestion + Collector Architecture + Continuous Lead Supply)
+
+يقع المحرك في `src/lib/collectors/` ويعمل بشكل حتمي 100%، قابل للاستئناف، ومحصّن أمنياً وتشغيلياً دون أي نماذج ذكاء اصطناعي أو استخراج عشوائي غير منضبط (`100% Deterministic, Idempotent, Resumable, SSRF/CSV-Hardened & Source-Policy Compliant`):
+
+1. **معمارية المجمّعات المعيارية وسجل الإصدارات (`Collector Architecture & Registry` — `src/lib/collectors/adapters.ts`, `src/lib/collectors/registry.ts`):**
+   - فصل تام بين المحولات الخارجية (`Adapter`: جلب البيانات الخام من المصدر فقط) والمجمّعات المعيارية (`Collector`: تحويل البيانات الخام إلى عقد الاستيعاب الموحد `INGESTION_CONTRACT_V1`).
+   - تسجيل مركزي في `CollectorRegistry` لستة مجمّعات قياسية مؤرخة الإصدار:
+     - `ManualCollector` (`manual-v1`) — إدخال يدوي مباشر.
+     - `CsvCollector` (`csv-v1`) — استيراد ملفات CSV/جداول بيانات مع حماية كاملة من حقن المعادلات (`=`, `+`, `-`, `@`) وحدود حجم صارمة.
+     - `OpenDataCollector` (`open-data-v1`) — مجموعات البيانات المفتوحة والبيانات المهيكلة المصرّح بها.
+     - `DirectoryCollector` (`directory-v1`) — أدلة الأعمال المصرية والتصنيفات القطاعية.
+     - `WebsiteCollector` (`website-v1`) — فحص المواقع العامة المصرّح بها مع حماية SSRF صارمة (`validateSafeExternalUrl` + `safeExternalFetch`).
+     - `GoogleBusinessCollector` (`google-business-v1`) — محول Google Business / Places المعتمد الذي يتحقق من مفاتيح الربط الرسمي ويعيد حالة `NOT_CONFIGURED` بأمان عند عدم ضبط المفاتيح دون تزييف نتائج حية.
+
+2. **عقد الاستيعاب الموحد وبصمة المحتوى الحتمية (`Unified Contract & SHA-256 Checksum` — `src/lib/collectors/contract.ts`):**
+   - التحقق الصارم عبر `IngestionContractRecordSchema` وحساب بصمة محتوى حتمية `SHA-256` (`calculateIngestionChecksum`) على الحقول الجوهرية المطبّعة لتسريع التخطي الآمن (`UNCHANGED_SKIPPED`) عند إعادة التشغيل دون تكرار العمليات المكلفة.
+
+3. **المنسق المركزي، عدم التكرار، والاستئناف بعد الأعطال (`Idempotent & Resumable Orchestrator` — `src/lib/collectors/orchestrator.ts`):**
+   - يربط `runIngestionPipeline` دورة حياة السجل بالكامل عبر المراحل المتسلسلة: `Validation -> Normalization -> Checksum Fast-Path -> Deduplication & Provenance (Phase 2) -> Quality & Verification (Phase 3) -> Opportunity Scoring (Phase 1) -> Developer Matching Invalidation (Phase 4)`.
+   - يدعم مفاتيح عدم التكرار (`idempotencyKey`)، أقفال التزامن لكل مصدر ولكل هوية عميل (`acquireSourceJobLock`, `withIdentityConcurrencyLock`)، حفظ نقاط التوقف المرحلية (`CheckpointState`)، الإيقاف التعاوني الآمن (`cancelIngestionJob`)، والاستئناف التلقائي من آخر نقطة توقف (`resumeIngestionJob`).
+
+4. **المرونة التشغيلية، قاطع الدائرة، وطابور السجلات المتعثرة (`Resilience, Circuit Breaker & Dead-Letter Queue` — `src/lib/collectors/resilience.ts`):**
+   - تصنيف حتمي للأخطاء (`RETRYABLE` مقابل `NON_RETRYABLE`) مع إعادة محاولة أسية محدودة (`computeExponentialBackoffMs`) ومحدد معدل لكل مصدر (`SourceRateLimiter`).
+   - قاطع دائرة (`Circuit Breaker`: `CLOSED -> OPEN -> HALF_OPEN -> CLOSED`) يعزل المصادر المتعطلة تلقائياً بعد تكرار الفشل لمنع استنزاف الموارد، مع عزل تام بين المصادر المتوازية (`runMultipleSourcesIsolated`).
+   - تحويل السجلات التي تفشل نهائياً إلى جدول `DeadLetterRecord` مع دعم إعادة المحاولة الانتقائية (`RETRY -> RETRIED_RESOLVED`) أو الوسم كغير صالح نهائياً (`MARK_INVALID -> PERMANENTLY_INVALID`).
+
+5. **مراقبة صحة المصادر والإمداد المستمر للمخزون (`Source Health & Continuous Supply Replenishment` — `src/lib/collectors/health-and-supply.ts`):**
+   - حساب حتمي لصحة المصدر (`HEALTHY`, `DEGRADED`, `FAILING`, `DISABLED`, `NOT_CONFIGURED`, `RATE_LIMITED`) وإصدار تنبيهات تشغيلية مبكرة (`evaluateOperationalAlerts`).
+   - محرك تخطيط الإمداد المستمر (`evaluateInventoryReplenishment`) يقارن المخزون المتاح للبيع (`AVAILABLE`) في كل تقاطع (`Niche × City`) مع الحدود الدنيا المستهدفة (`DEFAULT_INVENTORY_TARGETS`) ويحدد فجوات التغطية والمصادر المؤهلة لسد الفجوة حسب أولوية الجدولة.
+   - تكامل كامل مع تحليلات المصادر (Phase 7) لعرض قمع الاستيعاب (`rawFetched -> accepted -> created -> merged -> rejected -> deadLetter -> saleable`) واقتصاديات تكلفة المصدر (`costPerRawRecord`, `costPerSaleableLead`, `costPerClaimedLead`, `costPerWonLead` أو `INSUFFICIENT_DATA` عند عدم توفر بيانات تكلفة).
+
+6. **التوثيق الهندسي التفصيلي للمرحلة الثامنة (`Phase 8 Documentation`):**
+   - [معمارية الاستيعاب (`docs/ingestion.md`)](docs/ingestion.md)
+   - [معمارية المجمّعات والمحولات (`docs/collectors.md`)](docs/collectors.md)
+   - [إدارة المصادر والإمداد المستمر (`docs/source-management.md`)](docs/source-management.md)
+   - [دليل التشغيل والطوارئ للاستيعاب (`docs/ingestion-runbook.md`)](docs/ingestion-runbook.md)
+   - [تتبع النسب ودورة حياة البيانات (`docs/data-lineage.md`)](docs/data-lineage.md)
+
+---
+
 ## 8. تشغيل الاختبارات وفحص الأنواع (Testing & Verification)
 
-لتشغيل حزمة الاختبارات الكاملة (تغطي محرك التقييم الحتمي Phase 1، محرك منع التكرار وتوحيد الكيانات Phase 2، محرك جودة البيانات والحداثة والتحقق Phase 3، ومحرك المطابقة الحتمي بين العملاء والمطورين Phase 4):
+لتشغيل حزمة الاختبارات الكاملة (تغطي محرك التقييم الحتمي Phase 1، محرك منع التكرار وتوحيد الكيانات Phase 2، محرك جودة البيانات والحداثة والتحقق Phase 3، محرك المطابقة الحتمي بين العملاء والمطورين Phase 4، محرك الشراء والرصيد والملكية الحصرية والمشتركة Phase 5، محرك المتابعة والتقييم والنتائج البيعية Phase 6، محرك التحليلات التنفيذية وحلقة تحسين البيانات الحتمية Phase 7، ومحرك الاستيعاب والمجمّعات والإمداد المستمر Phase 8):
 ```bash
 npm test
 ```
@@ -365,9 +529,41 @@ npm run build
 
 ---
 
-## 9. النشر في بيئة الإنتاج (Deployment)
+## 9. النشر في بيئة الإنتاج والجاهزية التشغيلية (Phase 9 & Phase 10 — Production Hardening, Deployment & Launch)
 
-1. قم بإنشاء قاعدة بيانات PostgreSQL في بيئة الاستضافة (مثل Supabase أو Neon أو RDS أو Railway).
-2. اضبط `USE_EXTERNAL_PG="true"` وضع رابط الاتصال في `DATABASE_URL`.
-3. اضبط قيمة عشوائية قوية لـ `AUTH_SECRET`.
-4. نفذ `npm run build` ثم `npm start`.
+تم تحصين المنصة بالكامل للإنتاج عبر المرحلتين التاسعة والعاشرة (`src/lib/security/`, `src/lib/observability/`, `src/lib/production/`) بدون أي اعتماد على الذكاء الاصطناعي أو النماذج اللغوية (`NO AI / NO ML / NO LLM`):
+
+1. **فصل البيئات والتحقق الصارم من الإعدادات (`src/lib/production/env-validator.ts`)**:
+   - فصل كامل بين `development`، `test`، `staging`، و`production`.
+   - فحص `validateEnvironmentConfiguration` يرفض التشغيل في الإنتاج عند غياب أو ضعف `AUTH_SECRET`، أو استخدام `localhost`، أو تفعيل `ALLOW_PRODUCTION_SEED`، أو استخدام مفاتيح دفع تجريبية، مع إخفاء جميع القيم السرية (`<REDACTED>`).
+2. **سلامة الترحيل، النسخ الاحتياطي، والاستعادة (`src/lib/production/database-ops.ts`, `src/lib/production/backup-restore.ts`)**:
+   - مصنف أمان ترحيل قاعدة البيانات (`classifySqlMigrationSafety`) يميز بين الترحيلات الآمنة (`SAFE`) والخطرة (`DANGEROUS`).
+   - حظر تشغيل بيانات البذور التجريبية في الإنتاج (`SEED_BLOCKED_IN_PRODUCTION`).
+   - توليد نسخ احتياطية منطقية موثقة ببصمة `SHA-256` (`createLogicalBackupSnapshot`) والتحقق من استعادتها وسلامة القيود التسعة الحرجة في بيئة معزولة (`executeStagingRestoreVerification`).
+3. **بوابة جودة البيانات، الجدولة الآمنة، وأعلام الميزات (`src/lib/production/data-quality-gate.ts`, `src/lib/production/scheduler.ts`, `src/lib/production/feature-flags.ts`)**:
+   - فحص غير تدميري لـ 14 معياراً لجودة البيانات قبل الإطلاق (`runProductionDataQualityGate`).
+   - جدولة مهام خلفية محكومة بأقفال حصرية وحدود دفعات صارمة (`executeScheduledWorkerJob`).
+   - أعلام ميزات على الخادم قابلة للتدقيق (`setFeatureFlagOverride`).
+4. **أمان المدفوعات والـ Webhooks وضوابط الخصوصية (`src/lib/payment/provider.ts`, `src/app/api/webhooks/payment/route.ts`, `src/lib/production/privacy-controls.ts`)**:
+   - التحقق من توقيع `HMAC-SHA256` للـ Webhooks (`POST /api/webhooks/payment`) مع ضمان عدم تكرار منح الرصيد (`Idempotency`) ومعالجة الأحداث المعاد ترتيبها بأمان.
+   - تصدير البيانات الشخصية للمطور (`GET /api/developer/profile?export=true`) والحذف المحكوم للحساب مع إخفاء الهوية (`DELETE /api/developer/profile`) مع الحفاظ على السجلات المالية والتدقيقية غير القابلة للتعديل.
+5. **نقاط فحص الصحة واختبارات الدخان وبوابة الإطلاق (`GET /api/health`, `GET /api/health/live`, `GET /api/health/ready`, `src/lib/production/smoke-and-launch-gate.ts`)**:
+   - اختبارات دخان آلية غير تدميرية (`runProductionSmokeTests`) وتقييم شامل لبوابة الإطلاق (`evaluateProductionLaunchGate`).
+
+### الفهرس الكامل لوثائق الإنتاج والتشغيل (`docs/production/`)
+- [دليل النشر (`docs/production/deployment.md`)](docs/production/deployment.md)
+- [إعدادات وفصل البيئات (`docs/production/environment.md`)](docs/production/environment.md)
+- [قاعدة البيانات والترحيل الآمن (`docs/production/database.md`)](docs/production/database.md)
+- [استراتيجية النسخ الاحتياطي (`docs/production/backups.md`)](docs/production/backups.md)
+- [إجراءات الاستعادة والتعافي من الكوارث (`docs/production/restore.md`)](docs/production/restore.md)
+- [خطة التراجع (`docs/production/rollback.md`)](docs/production/rollback.md)
+- [المراقبة والرصد (`docs/production/monitoring.md`)](docs/production/monitoring.md)
+- [التنبيهات الحرجة (`docs/production/alerts.md`)](docs/production/alerts.md)
+- [الاستجابة للحوادث والأمن (`docs/production/incident-response.md`)](docs/production/incident-response.md)
+- [المهام الخلفية والجدولة (`docs/production/workers.md`)](docs/production/workers.md)
+- [جاهزية المجمّعات وسلامة الإمداد (`docs/production/collectors.md`)](docs/production/collectors.md)
+- [المدفوعات والـ Webhooks (`docs/production/payments.md`)](docs/production/payments.md)
+- [الأمان والصلاحيات والخصوصية (`docs/production/security.md`)](docs/production/security.md)
+- [دليل استكشاف الأخطاء وإصلاحها (`docs/production/troubleshooting.md`)](docs/production/troubleshooting.md)
+- [قائمة التحقق من الإصدار والإطلاق (`docs/production/release-checklist.md`)](docs/production/release-checklist.md)
+

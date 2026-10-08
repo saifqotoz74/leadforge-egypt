@@ -4,6 +4,11 @@ import { prisma } from '@/lib/db';
 import { evaluateLeadFreshness, DEFAULT_FRESHNESS_THRESHOLDS } from '@/lib/freshness';
 import { evaluateDeveloperLeadMatch } from '@/lib/matching-engine';
 import { getActiveMatchingConfigAndRules } from '@/lib/matching/service';
+import {
+  calculateLeadCreditCost,
+  resolveEffectiveAccessType,
+  resolveLeadAccessPolicy,
+} from '@/lib/claims/pricing';
 
 export async function GET(
   req: NextRequest,
@@ -19,13 +24,18 @@ export async function GET(
         claims: {
           where: { userId: user.id },
           include: {
+            engagement: true,
+            contactAttempts: {
+              orderBy: [{ attemptedAt: 'desc' }, { id: 'desc' }],
+            },
             statusHistories: {
-              orderBy: { createdAt: 'desc' },
+              orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
             },
           },
         },
         feedbacks: {
           where: { userId: user.id },
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         },
         scores: {
           orderBy: { calculatedAt: 'desc' },
@@ -35,12 +45,13 @@ export async function GET(
     });
 
     if (!lead) {
-      return NextResponse.json({ error: 'الفرصة غير موجودة.' }, { status: 404 });
+      return NextResponse.json({ error: 'الفرصة غير موجودة.', code: 'LEAD_NOT_FOUND' }, { status: 404 });
     }
 
-    const [freshnessRow, matchingCtx] = await Promise.all([
+    const [freshnessRow, matchingCtx, pricingConfigRow] = await Promise.all([
       prisma.freshnessConfig.findUnique({ where: { id: 'default' } }),
       getActiveMatchingConfigAndRules(),
+      prisma.creditPricingConfig.findUnique({ where: { id: 'default' } }),
     ]);
     const thresholds = freshnessRow || DEFAULT_FRESHNESS_THRESHOLDS;
     const { config: matchingConfig, rules: matchingRules } = matchingCtx;
@@ -111,7 +122,20 @@ export async function GET(
 
     const myClaim = lead.claims[0] || null;
     const myFeedback = lead.feedbacks[0] || null;
-    const isUnlocked = Boolean(myClaim) || user.role === 'ADMIN';
+    const hasActiveClaim = Boolean(
+      myClaim && myClaim.status === 'ACTIVE' && myClaim.accessGranted !== false
+    );
+    const isUnlocked = hasActiveClaim || user.role === 'ADMIN';
+
+    const effectiveAccessType = resolveEffectiveAccessType(lead);
+    const pricing = calculateLeadCreditCost(lead, pricingConfigRow);
+    const accessPolicy = resolveLeadAccessPolicy(
+      {
+        ...lead,
+        saleabilityStatus: dynamicSaleabilityStatus,
+      },
+      pricingConfigRow
+    );
 
     return NextResponse.json({
       lead: {
@@ -121,7 +145,7 @@ export async function GET(
         governorate: lead.governorate,
         city: lead.city,
         area: lead.area,
-        address: lead.address,
+        address: isUnlocked ? lead.address : null,
         phone: isUnlocked
           ? lead.phone
           : lead.phone
@@ -154,6 +178,7 @@ export async function GET(
         isVerified: lead.isVerified,
         isRecentlyActive: lead.isRecentlyActive,
         score: lead.score,
+        opportunityScore: lead.score,
         temperature: lead.temperature,
         classification: lead.temperature,
         scoringVersion: lead.scoringVersion,
@@ -175,9 +200,15 @@ export async function GET(
         qualificationRules: lead.qualificationRules,
         websiteAnalysis: lead.websiteAnalysis,
         leadType: lead.leadType,
-        exclusive: lead.exclusive,
-        maxPurchasers: lead.maxPurchasers,
+        accessType: effectiveAccessType,
+        exclusive: lead.exclusive || effectiveAccessType === 'EXCLUSIVE',
+        creditCost: pricing.creditCost,
+        creditCostReason: pricing.creditCostReason,
+        pricingExplanation: pricing.explanation,
+        maxPurchasers: accessPolicy.maxPurchasers,
         currentPurchasers: lead.currentPurchasers,
+        availableForClaim: accessPolicy.availableForClaim,
+        accessPolicy,
         source: lead.source,
         sourceList: lead.sourceList,
         lastVerifiedAt: lead.lastVerifiedAt,
@@ -186,9 +217,12 @@ export async function GET(
         createdAt: lead.createdAt,
         freshness,
         matchEvaluation,
-        isClaimedByMe: Boolean(myClaim),
+        isClaimedByMe: hasActiveClaim,
         myClaim,
+        myEngagement: myClaim?.engagement ?? null,
         myFeedback,
+        myFeedbacks: lead.feedbacks,
+        myContactAttempts: myClaim?.contactAttempts ?? [],
         scoreHistory: lead.scores,
       },
     });

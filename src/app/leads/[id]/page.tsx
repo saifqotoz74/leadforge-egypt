@@ -154,17 +154,154 @@ interface LeadDetailData {
       id: string;
       previousStatus?: string | null;
       newStatus: string;
+      reasonCode?: string | null;
+      note?: string | null;
       notes?: string | null;
+      actorType?: string;
       createdAt: string;
     }[];
+  } | null;
+  myEngagement?: {
+    id: string;
+    currentStatus: string;
+    finalOutcome?: string | null;
+    outcomeReasonCode?: string | null;
+    outcomeReasonNote?: string | null;
+    estimatedProjectValue?: number | null;
+    currency?: string;
+    wonReason?: string | null;
+    lostReasonCode?: string | null;
+    invalidReasonCode?: string | null;
+    claimedAt: string;
+    firstContactedAt?: string | null;
+    lastContactedAt?: string | null;
   } | null;
   myFeedback?: {
     id: string;
     useful: boolean;
     reason?: string | null;
+    category?: string;
+    reasonCode?: string | null;
+    rating?: number | null;
+    confidence?: string;
     comment?: string | null;
   } | null;
+  myFeedbacks?: {
+    id: string;
+    useful: boolean;
+    category: string;
+    reasonCode?: string | null;
+    rating?: number | null;
+    confidence: string;
+    comment?: string | null;
+    createdAt: string;
+  }[];
+  myContactAttempts?: {
+    id: string;
+    channel: string;
+    result: string;
+    note?: string | null;
+    attemptedAt: string;
+  }[];
 }
+
+const ALLOWED_UI_TRANSITIONS: Record<string, string[]> = {
+  CLAIMED: ['CONTACTED', 'INVALID', 'NOT_INTERESTED'],
+  CONTACTED: ['REPLIED', 'NOT_INTERESTED', 'LOST', 'INVALID'],
+  REPLIED: ['INTERESTED', 'NOT_INTERESTED', 'LOST', 'INVALID'],
+  INTERESTED: ['MEETING', 'PROPOSAL_SENT', 'NEGOTIATION', 'WON', 'LOST', 'NOT_INTERESTED', 'INVALID'],
+  MEETING: ['PROPOSAL_SENT', 'NEGOTIATION', 'WON', 'LOST', 'INVALID'],
+  PROPOSAL_SENT: ['NEGOTIATION', 'WON', 'LOST', 'INVALID'],
+  NEGOTIATION: ['WON', 'LOST', 'INVALID'],
+  WON: [],
+  LOST: [],
+  NOT_INTERESTED: [],
+  INVALID: [],
+};
+
+const LOST_REASONS_LIST = [
+  'PRICE',
+  'COMPETITOR',
+  'NO_BUDGET',
+  'NO_RESPONSE',
+  'TIMING',
+  'WRONG_CONTACT',
+  'WRONG_BUSINESS',
+  'DUPLICATE',
+  'BUSINESS_CLOSED',
+  'NOT_INTERESTED',
+  'SERVICE_MISMATCH',
+  'OTHER',
+];
+
+const INVALID_REASONS_LIST = [
+  'WRONG_PHONE',
+  'WRONG_EMAIL',
+  'BUSINESS_CLOSED',
+  'BUSINESS_NOT_FOUND',
+  'DUPLICATE',
+  'WRONG_CATEGORY',
+  'WRONG_LOCATION',
+  'FAKE_BUSINESS',
+  'ALREADY_CLIENT',
+  'OTHER',
+];
+
+const STRUCTURED_FEEDBACK_OPTIONS: Record<string, string[]> = {
+  CONTACT: [
+    'CONTACT_SUCCESSFUL',
+    'PHONE_ANSWERED',
+    'PHONE_NO_ANSWER',
+    'PHONE_UNREACHABLE',
+    'PHONE_INVALID',
+    'WHATSAPP_ACTIVE',
+    'WHATSAPP_INACTIVE',
+    'EMAIL_VALID',
+    'EMAIL_UNRESPONSIVE',
+    'EMAIL_INVALID',
+    'EMAIL_BOUNCED',
+  ],
+  BUSINESS: [
+    'BUSINESS_OPEN',
+    'BUSINESS_CLOSED',
+    'BUSINESS_DUPLICATE',
+    'BUSINESS_MOVED',
+    'BUSINESS_WRONG_CATEGORY',
+    'BUSINESS_WRONG_LOCATION',
+    'WRONG_CATEGORY',
+    'WRONG_LOCATION',
+    'ALREADY_HAS_GOOD_WEBSITE',
+    'NO_WEBSITE_CONFIRMED',
+  ],
+  SALES: [
+    'INTERESTED',
+    'HIGH_INTEREST',
+    'MEETING_BOOKED',
+    'REQUESTED_QUOTE',
+    'NOT_INTERESTED',
+    'ALREADY_WORKING_WITH_DEVELOPER',
+    'BUDGET_TOO_LOW',
+    'BUDGET_TOO_HIGH',
+    'TIMING_NOT_RIGHT',
+    'LOW_BUDGET',
+    'PRICE_OBJECTION',
+    'COMPETITOR_CHOSEN',
+    'DECISION_DELAYED',
+    'NOT_DECISION_MAKER',
+    'NEED_FOLLOW_UP',
+  ],
+  LEAD_QUALITY: [
+    'GREAT_LEAD',
+    'GOOD_LEAD',
+    'HIGH_QUALITY_LEAD',
+    'POOR_LEAD',
+    'LOW_QUALITY_LEAD',
+    'INVALID_LEAD',
+    'INCOMPLETE_CONTACT_INFO',
+    'MISLEADING_DESCRIPTION',
+    'DUPLICATE_LEAD',
+  ],
+};
 
 export default function LeadDetailPage() {
   const params = useParams();
@@ -178,14 +315,25 @@ export default function LeadDetailPage() {
   );
 
   // Status tracking state
-  const [pipelineStatus, setPipelineStatus] = useState('NEW');
+  const [pipelineStatus, setPipelineStatus] = useState('CLAIMED');
+  const [outcomeReasonCode, setOutcomeReasonCode] = useState('PRICE');
+  const [estimatedProjectValue, setEstimatedProjectValue] = useState('');
+  const [wonReason, setWonReason] = useState('');
   const [notes, setNotes] = useState('');
   const [nextFollowUpAt, setNextFollowUpAt] = useState('');
   const [savingStatus, setSavingStatus] = useState(false);
 
-  // Feedback state
+  // Contact Attempt state
+  const [contactChannel, setContactChannel] = useState('PHONE');
+  const [contactResult, setContactResult] = useState('ANSWERED');
+  const [contactNote, setContactNote] = useState('');
+  const [savingContact, setSavingContact] = useState(false);
+
+  // Structured Feedback state
   const [useful, setUseful] = useState<boolean | null>(null);
-  const [feedbackReason, setFeedbackReason] = useState('WRONG_PHONE');
+  const [feedbackCategory, setFeedbackCategory] = useState('CONTACT');
+  const [feedbackReason, setFeedbackReason] = useState('PHONE_ANSWERED');
+  const [feedbackRating, setFeedbackRating] = useState<number>(5);
   const [feedbackComment, setFeedbackComment] = useState('');
   const [savingFeedback, setSavingFeedback] = useState(false);
 
@@ -197,8 +345,12 @@ export default function LeadDetailPage() {
         const data = await res.json();
         const l: LeadDetailData = data.lead;
         setLead(l);
+        const currentEngStatus =
+          l.myEngagement?.currentStatus ||
+          (l.myClaim?.pipelineStatus === 'NEW' ? 'CLAIMED' : l.myClaim?.pipelineStatus || 'CLAIMED');
+        const nextAllowed = ALLOWED_UI_TRANSITIONS[currentEngStatus] || [];
+        setPipelineStatus(nextAllowed[0] || currentEngStatus);
         if (l.myClaim) {
-          setPipelineStatus(l.myClaim.pipelineStatus);
           setNotes(l.myClaim.notes || '');
           setNextFollowUpAt(
             l.myClaim.nextFollowUpAt ? l.myClaim.nextFollowUpAt.slice(0, 10) : ''
@@ -206,7 +358,11 @@ export default function LeadDetailPage() {
         }
         if (l.myFeedback) {
           setUseful(l.myFeedback.useful);
-          if (l.myFeedback.reason) setFeedbackReason(l.myFeedback.reason);
+          if (l.myFeedback.category) setFeedbackCategory(l.myFeedback.category);
+          if (l.myFeedback.reasonCode || l.myFeedback.reason) {
+            setFeedbackReason(l.myFeedback.reasonCode || l.myFeedback.reason || 'PHONE_ANSWERED');
+          }
+          if (l.myFeedback.rating) setFeedbackRating(l.myFeedback.rating);
           setFeedbackComment(l.myFeedback.comment || '');
         }
       }
@@ -252,12 +408,22 @@ export default function LeadDetailPage() {
     setSavingStatus(true);
     setActionMsg(null);
     try {
-      const res = await fetch(`/api/leads/${leadId}/status`, {
-        method: 'PATCH',
+      const res = await fetch(`/api/leads/${leadId}/engagement/status`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: pipelineStatus,
-          notes,
+          reasonCode:
+            pipelineStatus === 'LOST' || pipelineStatus === 'INVALID'
+              ? outcomeReasonCode
+              : undefined,
+          estimatedProjectValue:
+            pipelineStatus === 'WON' && estimatedProjectValue.trim() !== ''
+              ? Number(estimatedProjectValue)
+              : undefined,
+          currency: 'EGP',
+          wonReason: pipelineStatus === 'WON' ? wonReason || notes : undefined,
+          note: notes,
           nextFollowUpAt: nextFollowUpAt || null,
         }),
       });
@@ -265,7 +431,7 @@ export default function LeadDetailPage() {
       if (!res.ok) {
         setActionMsg({ type: 'error', text: data.error || 'تعذر تحديث الحالة.' });
       } else {
-        setActionMsg({ type: 'success', text: 'تم حفظ حالة المتابعة والملاحظات بنجاح.' });
+        setActionMsg({ type: 'success', text: 'تم تحديث مرحلة الصفقة وحفظ السجل بنجاح.' });
         await loadLead();
       }
     } finally {
@@ -273,9 +439,35 @@ export default function LeadDetailPage() {
     }
   }
 
+  async function handleRecordContactAttempt(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingContact(true);
+    setActionMsg(null);
+    try {
+      const res = await fetch(`/api/leads/${leadId}/contact-attempts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel: contactChannel,
+          result: contactResult,
+          note: contactNote,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setActionMsg({ type: 'error', text: data.error || 'تعذر تسجيل محاولة التواصل.' });
+      } else {
+        setContactNote('');
+        setActionMsg({ type: 'success', text: 'تم تسجيل محاولة التواصل بنجاح.' });
+        await loadLead();
+      }
+    } finally {
+      setSavingContact(false);
+    }
+  }
+
   async function handleSaveFeedback(e: React.FormEvent) {
     e.preventDefault();
-    if (useful === null) return;
     setSavingFeedback(true);
     setActionMsg(null);
     try {
@@ -283,8 +475,10 @@ export default function LeadDetailPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          useful,
-          reason: useful ? null : feedbackReason,
+          category: feedbackCategory,
+          reasonCode: feedbackReason,
+          rating: feedbackRating,
+          useful: useful ?? feedbackRating >= 4,
           comment: feedbackComment,
         }),
       });
@@ -292,7 +486,7 @@ export default function LeadDetailPage() {
       if (!res.ok) {
         setActionMsg({ type: 'error', text: data.error || 'تعذر حفظ التقييم.' });
       } else {
-        setActionMsg({ type: 'success', text: 'شكرًا لك! تم تسجيل تقييمك لجودة هذه الفرصة.' });
+        setActionMsg({ type: 'success', text: 'شكرًا لك! تم تسجيل التقييم المنظم لجودة هذه الفرصة.' });
         await loadLead();
       }
     } finally {
@@ -776,152 +970,462 @@ export default function LeadDetailPage() {
             </div>
           </div>
 
-          {/* Pipeline Status Tracking & Feedback Section (Visible when claimed) */}
+          {/* Phase 6 Engagement Lifecycle, Contact Attempts, Structured Feedback & Timeline (Visible when claimed) */}
           {lead.isClaimedByMe && (
-            <div className="grid gap-6 lg:grid-cols-12">
-              {/* Status Tracking Form (Section 13) */}
-              <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-extrabold text-slate-900">
-                  تتبع حالة التواصل والصفقة (Lead Status Tracking)
-                </h2>
-                <p className="mt-1 text-xs text-slate-500">
-                  حدث مرحلة التفاوض مع العميل وسجل ملاحظاتك وموعد المتابعة القادم.
-                </p>
-
-                <form onSubmit={handleSaveStatus} className="mt-4 space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-6">
+              <div className="grid gap-6 lg:grid-cols-12">
+                {/* Engagement Status State Machine & Outcome Form */}
+                <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700">
-                        حالة الصفقة الحالية
-                      </label>
+                      <h2 className="text-base font-extrabold text-slate-900">
+                        تتبع مرحلة التعاقد والنتيجة (Phase 6 Engagement State Machine)
+                      </h2>
+                      <p className="mt-1 text-xs text-slate-500">
+                        انتقالات قياسية محكومة (State Machine) خاصة بحسابك فقط دون التأثير على المطورين الآخرين.
+                      </p>
+                    </div>
+                    {(() => {
+                      const cur =
+                        lead.myEngagement?.currentStatus ||
+                        (lead.myClaim?.pipelineStatus === 'NEW'
+                          ? 'CLAIMED'
+                          : lead.myClaim?.pipelineStatus || 'CLAIMED');
+                      const info = PIPELINE_STATUS_LABELS[cur] || PIPELINE_STATUS_LABELS.CLAIMED;
+                      return (
+                        <span
+                          className={`rounded-full border px-3 py-1 text-xs font-extrabold ${info.badgeClass}`}
+                        >
+                          الحالة الحالية: {info.labelAr} ({cur})
+                        </span>
+                      );
+                    })()}
+                  </div>
+
+                  {(() => {
+                    const currentEngStatus =
+                      lead.myEngagement?.currentStatus ||
+                      (lead.myClaim?.pipelineStatus === 'NEW'
+                        ? 'CLAIMED'
+                        : lead.myClaim?.pipelineStatus || 'CLAIMED');
+                    const allowedNext = ALLOWED_UI_TRANSITIONS[currentEngStatus] || [];
+                    const isTerminal = ['WON', 'LOST', 'NOT_INTERESTED', 'INVALID'].includes(
+                      currentEngStatus
+                    );
+
+                    if (isTerminal) {
+                      return (
+                        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs space-y-2">
+                          <div className="font-extrabold text-slate-900">
+                            تم إغلاق هذه الفرصة في حالة نهائية ({currentEngStatus})
+                          </div>
+                          {lead.myEngagement?.estimatedProjectValue ? (
+                            <div className="text-emerald-700 font-bold">
+                              قيمة المشروع التقديرية:{' '}
+                              {lead.myEngagement.estimatedProjectValue.toLocaleString()}{' '}
+                              {lead.myEngagement.currency || 'EGP'}
+                            </div>
+                          ) : null}
+                          {lead.myEngagement?.outcomeReasonCode ? (
+                            <div className="text-slate-700">
+                              كود السبب: <strong>{lead.myEngagement.outcomeReasonCode}</strong>
+                            </div>
+                          ) : null}
+                          {lead.myEngagement?.outcomeReasonNote ? (
+                            <div className="text-slate-600">
+                              ملاحظات الإغلاق: {lead.myEngagement.outcomeReasonNote}
+                            </div>
+                          ) : null}
+                          <p className="text-[11px] text-slate-500">
+                            الحالات النهائية مقفلة ضد التغيير المباشر لضمان سلامة التقارير. لتصحيح خطأ غير مقصود، يمكن لمدير النظام استخدام Admin Status Correction.
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <form onSubmit={handleSaveStatus} className="mt-4 space-y-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700">
+                              الانتقال إلى المرحلة التالية (Allowed Next States)
+                            </label>
+                            <select
+                              value={pipelineStatus}
+                              onChange={(e) => {
+                                const nextVal = e.target.value;
+                                setPipelineStatus(nextVal);
+                                if (nextVal === 'LOST') setOutcomeReasonCode('PRICE');
+                                if (nextVal === 'INVALID') setOutcomeReasonCode('WRONG_PHONE');
+                              }}
+                              className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-bold"
+                            >
+                              {allowedNext.map((key) => {
+                                const info = PIPELINE_STATUS_LABELS[key] || { labelAr: key };
+                                return (
+                                  <option key={key} value={key}>
+                                    {info.labelAr} ({key})
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700">
+                              موعد المتابعة القادم (Next Follow-Up)
+                            </label>
+                            <input
+                              type="date"
+                              value={nextFollowUpAt}
+                              onChange={(e) => setNextFollowUpAt(e.target.value)}
+                              className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold"
+                            />
+                          </div>
+                        </div>
+
+                        {pipelineStatus === 'WON' && (
+                          <div className="grid gap-4 rounded-xl border border-emerald-200 bg-emerald-50/50 p-3.5 sm:grid-cols-2">
+                            <div>
+                              <label className="block text-xs font-bold text-emerald-900">
+                                قيمة المشروع المتفق عليها (ج.م - اختياري)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={estimatedProjectValue}
+                                onChange={(e) => setEstimatedProjectValue(e.target.value)}
+                                placeholder="مثال: 18000"
+                                className="mt-1 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-bold"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-emerald-900">
+                                ملخص الفوز بالصفقة (Won Reason)
+                              </label>
+                              <input
+                                type="text"
+                                value={wonReason}
+                                onChange={(e) => setWonReason(e.target.value)}
+                                placeholder="مثال: التعاقد على تطوير موقع حجز متكامل..."
+                                className="mt-1 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-bold"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {pipelineStatus === 'LOST' && (
+                          <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-3.5">
+                            <label className="block text-xs font-bold text-rose-900">
+                              سبب خسارة الصفقة (LOST Reason Code — إلزامي)
+                            </label>
+                            <select
+                              value={outcomeReasonCode}
+                              onChange={(e) => setOutcomeReasonCode(e.target.value)}
+                              className="mt-1.5 w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-bold"
+                            >
+                              {LOST_REASONS_LIST.map((code) => (
+                                <option key={code} value={code}>
+                                  {code}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {pipelineStatus === 'INVALID' && (
+                          <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3.5">
+                            <label className="block text-xs font-bold text-amber-900">
+                              سبب عدم صلاحية الفرصة (INVALID Reason Code — يرسل إشارة تحقق لمحرك الجودة)
+                            </label>
+                            <select
+                              value={outcomeReasonCode}
+                              onChange={(e) => setOutcomeReasonCode(e.target.value)}
+                              className="mt-1.5 w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-xs font-bold"
+                            >
+                              {INVALID_REASONS_LIST.map((code) => (
+                                <option key={code} value={code}>
+                                  {FEEDBACK_REASON_LABELS[code]
+                                    ? `${FEEDBACK_REASON_LABELS[code]} (${code})`
+                                    : code}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700">
+                            ملاحظات المرحلة / تفاصيل العرض (Notes)
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="سجل تفاصيل المكالمة، السعر المقترح، أو سبب الإغلاق..."
+                            className="mt-1.5 w-full rounded-xl border border-slate-300 p-3 text-xs font-semibold"
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={savingStatus || allowedNext.length === 0}
+                          className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-extrabold text-white hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          <Save className="h-4 w-4" />
+                          <span>
+                            {savingStatus ? 'جاري الحفظ...' : `تأكيد الانتقال إلى ${pipelineStatus}`}
+                          </span>
+                        </button>
+                      </form>
+                    );
+                  })()}
+
+                  {/* Contact Attempt Logger */}
+                  <div className="mt-6 border-t border-slate-100 pt-5">
+                    <h3 className="text-sm font-extrabold text-slate-900">
+                      تسجيل محاولة تواصل (Contact Attempt Log)
+                    </h3>
+                    <form
+                      onSubmit={handleRecordContactAttempt}
+                      className="mt-3 grid gap-3 sm:grid-cols-4"
+                    >
                       <select
-                        value={pipelineStatus}
-                        onChange={(e) => setPipelineStatus(e.target.value)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-bold"
+                        value={contactChannel}
+                        onChange={(e) => setContactChannel(e.target.value)}
+                        className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
                       >
-                        {Object.entries(PIPELINE_STATUS_LABELS).map(([key, info]) => (
-                          <option key={key} value={key}>
-                            {info.labelAr} ({key})
-                          </option>
-                        ))}
+                        <option value="PHONE">هاتف (PHONE)</option>
+                        <option value="WHATSAPP">واتساب (WHATSAPP)</option>
+                        <option value="EMAIL">بريد (EMAIL)</option>
+                        <option value="SMS">رسالة (SMS)</option>
+                        <option value="SOCIAL">سوشيال (SOCIAL)</option>
+                        <option value="OTHER">أخرى (OTHER)</option>
                       </select>
-                    </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700">
-                        موعد المتابعة القادم (Next Follow-Up)
-                      </label>
+                      <select
+                        value={contactResult}
+                        onChange={(e) => setContactResult(e.target.value)}
+                        className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
+                      >
+                        <option value="ANSWERED">تم الرد (ANSWERED)</option>
+                        <option value="NO_ANSWER">لا يوجد رد (NO_ANSWER)</option>
+                        <option value="MESSAGE_SENT">تم إرسال رسالة (MESSAGE_SENT)</option>
+                        <option value="REPLIED">تفاعل بالرد (REPLIED)</option>
+                        <option value="INVALID_NUMBER">رقم غير صحيح (INVALID_NUMBER)</option>
+                        <option value="BOUNCED">ارتداد البريد (BOUNCED)</option>
+                        <option value="BLOCKED">محظور (BLOCKED)</option>
+                        <option value="OTHER">أخرى (OTHER)</option>
+                      </select>
+
                       <input
-                        type="date"
-                        value={nextFollowUpAt}
-                        onChange={(e) => setNextFollowUpAt(e.target.value)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold"
+                        type="text"
+                        value={contactNote}
+                        onChange={(e) => setContactNote(e.target.value)}
+                        placeholder="ملاحظة سريعة عن المحاولة..."
+                        className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold"
                       />
+
+                      <button
+                        type="submit"
+                        disabled={savingContact}
+                        className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-extrabold text-white hover:bg-slate-800 disabled:opacity-50"
+                      >
+                        {savingContact ? 'جاري الحفظ...' : '+ تسجيل المحاولة'}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+
+                {/* Structured Feedback Form */}
+                <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-base font-extrabold text-slate-900">
+                    التقييم المنظم لجودة الفرصة (Structured Lead Feedback)
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    أرسل إشارات جودة مصنفة (CONTACT / BUSINESS / SALES / LEAD_QUALITY) لتحسين التحقق.
+                  </p>
+
+                  <form onSubmit={handleSaveFeedback} className="mt-4 space-y-3.5">
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setUseful(true)}
+                        className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-xs font-extrabold transition ${
+                          useful === true
+                            ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
+                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                        <span>مفيدة (Useful)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setUseful(false)}
+                        className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-xs font-extrabold transition ${
+                          useful === false
+                            ? 'border-rose-600 bg-rose-50 text-rose-800'
+                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                        <span>تحتاج مراجعة (Issue)</span>
+                      </button>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700">
-                      ملاحظات التواصل والعرض الفني (Notes)
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="سجل تفاصيل المكالمة، السعر المقترح، أو متطلبات العميل..."
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 p-3 text-xs font-semibold"
-                    />
-                  </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700">
+                          فئة التقييم (Category)
+                        </label>
+                        <select
+                          value={feedbackCategory}
+                          onChange={(e) => {
+                            const cat = e.target.value;
+                            setFeedbackCategory(cat);
+                            const firstCode = STRUCTURED_FEEDBACK_OPTIONS[cat]?.[0] || 'OTHER';
+                            setFeedbackReason(firstCode);
+                          }}
+                          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
+                        >
+                          <option value="CONTACT">بيانات التواصل (CONTACT)</option>
+                          <option value="BUSINESS">حالة النشاط (BUSINESS)</option>
+                          <option value="SALES">المبيعات والميزانية (SALES)</option>
+                          <option value="LEAD_QUALITY">جودة الفرصة (LEAD_QUALITY)</option>
+                        </select>
+                      </div>
 
-                  <button
-                    type="submit"
-                    disabled={savingStatus}
-                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-extrabold text-white hover:bg-emerald-700 disabled:opacity-50"
-                  >
-                    <Save className="h-4 w-4" />
-                    <span>{savingStatus ? 'جاري الحفظ...' : 'حفظ تحديثات المتابعة'}</span>
-                  </button>
-                </form>
-              </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700">
+                          التقييم الرقمي (Rating 1-5)
+                        </label>
+                        <select
+                          value={feedbackRating}
+                          onChange={(e) => setFeedbackRating(Number(e.target.value))}
+                          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
+                        >
+                          <option value={5}>5 / 5 — ممتازة</option>
+                          <option value={4}>4 / 5 — جيدة جدًا</option>
+                          <option value={3}>3 / 5 — متوسطة</option>
+                          <option value={2}>2 / 5 — ضعيفة</option>
+                          <option value={1}>1 / 5 — غير صالحة</option>
+                        </select>
+                      </div>
+                    </div>
 
-              {/* Feedback System Form (Section 14) */}
-              <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-extrabold text-slate-900">
-                  تقييم جودة الفرصة (Was this lead useful?)
-                </h2>
-                <p className="mt-1 text-xs text-slate-500">
-                  يساعدنا تقييمك في تحسين دقة قواعد التحقق واستبعاد البيانات غير الصالحة.
-                </p>
-
-                <form onSubmit={handleSaveFeedback} className="mt-4 space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setUseful(true)}
-                      className={`flex items-center justify-center gap-2 rounded-xl border py-3 text-xs font-extrabold transition ${
-                        useful === true
-                          ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <ThumbsUp className="h-4 w-4" />
-                      <span>نعم، مفيدة (Yes)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setUseful(false)}
-                      className={`flex items-center justify-center gap-2 rounded-xl border py-3 text-xs font-extrabold transition ${
-                        useful === false
-                          ? 'border-rose-600 bg-rose-50 text-rose-800'
-                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <ThumbsDown className="h-4 w-4" />
-                      <span>لا، غير مفيدة (No)</span>
-                    </button>
-                  </div>
-
-                  {useful === false && (
                     <div>
                       <label className="block text-xs font-bold text-slate-700">
-                        اختر السبب (Select reason):
+                        رمز السبب المعياري (Structured Reason Code)
                       </label>
                       <select
                         value={feedbackReason}
                         onChange={(e) => setFeedbackReason(e.target.value)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-bold"
+                        className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
                       >
-                        {Object.entries(FEEDBACK_REASON_LABELS).map(([key, label]) => (
-                          <option key={key} value={key}>
-                            {label} ({key})
+                        {(STRUCTURED_FEEDBACK_OPTIONS[feedbackCategory] || []).map((code) => (
+                          <option key={code} value={code}>
+                            {code}
                           </option>
                         ))}
+                        <option value="OTHER">OTHER</option>
                       </select>
                     </div>
-                  )}
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700">
-                      تعليق إضافي (اختياري)
-                    </label>
-                    <input
-                      type="text"
-                      value={feedbackComment}
-                      onChange={(e) => setFeedbackComment(e.target.value)}
-                      placeholder="أي ملاحظات حول صحة رقم الهاتف أو حالة النشاط..."
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold"
-                    />
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700">
+                        ملاحظات إضافية (Comment)
+                      </label>
+                      <input
+                        type="text"
+                        value={feedbackComment}
+                        onChange={(e) => setFeedbackComment(e.target.value)}
+                        placeholder="تفاصيل إضافية حول التواصل أو حالة العميل..."
+                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={savingFeedback}
+                      className="w-full rounded-xl bg-slate-900 py-2.5 text-xs font-extrabold text-white hover:bg-slate-800 disabled:opacity-50"
+                    >
+                      {savingFeedback ? 'جاري إرسال التقييم...' : 'إرسال التقييم المنظم'}
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Engagement History & Activity Timeline */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-sm font-extrabold text-slate-900">
+                  سجل النشاط والانتقالات ومرات التواصل (Developer Engagement Timeline)
+                </h3>
+                <div className="mt-4 grid gap-4 md:grid-cols-3 text-xs">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                    <div className="font-extrabold text-slate-800 mb-2">
+                      انتقالات الحالة ({lead.myClaim?.statusHistories?.length || 0})
+                    </div>
+                    <div className="space-y-1.5 max-h-44 overflow-y-auto">
+                      {(lead.myClaim?.statusHistories || []).map((h) => (
+                        <div
+                          key={h.id}
+                          className="rounded-lg bg-white p-2 border border-slate-200 text-[11px]"
+                        >
+                          <div className="font-mono font-bold text-slate-800" dir="ltr">
+                            {h.previousStatus || 'INITIAL'} → {h.newStatus}
+                          </div>
+                          {h.reasonCode && (
+                            <div className="text-emerald-700 font-bold">Reason: {h.reasonCode}</div>
+                          )}
+                          {(h.note || h.notes) && (
+                            <div className="text-slate-600">{h.note || h.notes}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={useful === null || savingFeedback}
-                    className="w-full rounded-xl bg-slate-900 py-2.5 text-xs font-extrabold text-white hover:bg-slate-800 disabled:opacity-50"
-                  >
-                    {savingFeedback ? 'جاري إرسال التقييم...' : 'إرسال التقييم'}
-                  </button>
-                </form>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                    <div className="font-extrabold text-slate-800 mb-2">
+                      محاولات التواصل ({lead.myContactAttempts?.length || 0})
+                    </div>
+                    <div className="space-y-1.5 max-h-44 overflow-y-auto">
+                      {(lead.myContactAttempts || []).map((a) => (
+                        <div
+                          key={a.id}
+                          className="rounded-lg bg-white p-2 border border-slate-200 text-[11px]"
+                        >
+                          <div className="font-mono font-bold text-indigo-700" dir="ltr">
+                            {a.channel} — {a.result}
+                          </div>
+                          {a.note && <div className="text-slate-600">{a.note}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                    <div className="font-extrabold text-slate-800 mb-2">
+                      سجل التقييمات ({lead.myFeedbacks?.length || 0})
+                    </div>
+                    <div className="space-y-1.5 max-h-44 overflow-y-auto">
+                      {(lead.myFeedbacks || []).map((f) => (
+                        <div
+                          key={f.id}
+                          className="rounded-lg bg-white p-2 border border-slate-200 text-[11px]"
+                        >
+                          <div className="font-mono font-bold text-teal-800" dir="ltr">
+                            [{f.category}] {f.reasonCode} ({f.confidence})
+                          </div>
+                          {f.rating && <div className="text-amber-600 font-bold">★ {f.rating}/5</div>}
+                          {f.comment && <div className="text-slate-600">{f.comment}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

@@ -50,3 +50,12 @@ export function checkRateLimit(config: RateLimitConfig): RateLimitResult {
 export function resetRateLimits() {
   rateLimitStore.clear();
 }
+
+export function getClientIp(headers: Headers): string {
+  const forwarded = headers.get('x-forwarded-for');
+  if (forwarded) {
+    return forwarded.split(',')[0].trim() || '127.0.0.1';
+  }
+  return headers.get('x-real-ip')?.trim() || '127.0.0.1';
+}
+

@@ -9,6 +9,7 @@ import {
 } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { createAuditLog } from '@/lib/audit';
+import { applySecurityHeaders, recordSecuritySignal } from '@/lib/security';
 
 const loginSchema = z.object({
   email: z.string().email('البريد الإلكتروني غير صالح'),
@@ -18,15 +19,24 @@ const loginSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     if (!verifyCsrfOrigin(req)) {
-      return NextResponse.json({ error: 'طلب غير مصرح به (CSRF).' }, { status: 403 });
+      return applySecurityHeaders(
+        NextResponse.json({ error: 'طلب غير مصرح به (CSRF).', code: 'FORBIDDEN' }, { status: 403 })
+      );
     }
 
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
     const rl = checkRateLimit({ key: `login:${ip}`, limit: 20, windowMs: 60_000 });
     if (!rl.allowed) {
-      return NextResponse.json(
-        { error: 'تم تجاوز الحد المسموح به لمحاولات تسجيل الدخول. يرجى المحاولة بعد دقيقة.' },
-        { status: 429 }
+      await recordSecuritySignal({
+        signalType: 'REPEATED_AUTH_FAILURES',
+        ipAddress: ip,
+        details: { reason: 'RATE_LIMITED' },
+      });
+      return applySecurityHeaders(
+        NextResponse.json(
+          { error: 'تم تجاوز الحد المسموح به لمحاولات تسجيل الدخول. يرجى المحاولة بعد دقيقة.', code: 'RATE_LIMITED' },
+          { status: 429 }
+        )
       );
     }
 
@@ -34,9 +44,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsed = loginSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message || 'بيانات الدخول غير صالحة' },
-        { status: 400 }
+      return applySecurityHeaders(
+        NextResponse.json(
+          { error: parsed.error.issues[0]?.message || 'بيانات الدخول غير صالحة', code: 'VALIDATION_ERROR' },
+          { status: 400 }
+        )
       );
     }
 
@@ -48,24 +60,47 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' },
-        { status: 401 }
+      await recordSecuritySignal({
+        signalType: 'REPEATED_AUTH_FAILURES',
+        ipAddress: ip,
+        details: { reason: 'UNKNOWN_USER' },
+      });
+      return applySecurityHeaders(
+        NextResponse.json(
+          { error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.', code: 'UNAUTHORIZED' },
+          { status: 401 }
+        )
       );
     }
 
     if (user.status === 'SUSPENDED') {
-      return NextResponse.json(
-        { error: 'تم إيقاف هذا الحساب من قِبل إدارة المنصة.' },
-        { status: 403 }
+      await recordSecuritySignal({
+        signalType: 'REPEATED_AUTH_FAILURES',
+        userId: user.id,
+        ipAddress: ip,
+        details: { reason: 'SUSPENDED_ACCOUNT' },
+      });
+      return applySecurityHeaders(
+        NextResponse.json(
+          { error: 'تم إيقاف هذا الحساب من قِبل إدارة المنصة.', code: 'FORBIDDEN' },
+          { status: 403 }
+        )
       );
     }
 
     const validPassword = await verifyPassword(password, user.passwordHash);
     if (!validPassword) {
-      return NextResponse.json(
-        { error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' },
-        { status: 401 }
+      await recordSecuritySignal({
+        signalType: 'REPEATED_AUTH_FAILURES',
+        userId: user.id,
+        ipAddress: ip,
+        details: { reason: 'INVALID_PASSWORD' },
+      });
+      return applySecurityHeaders(
+        NextResponse.json(
+          { error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.', code: 'UNAUTHORIZED' },
+          { status: 401 }
+        )
       );
     }
 

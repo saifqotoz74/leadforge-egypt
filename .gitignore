@@ -3,11 +3,8 @@ node_modules
 out
 build
 .env
-.env.*
-!.env.example
 .pgdata
 .pgdata-test*
 *.tsbuildinfo
 next-env.d.ts
 coverage
-

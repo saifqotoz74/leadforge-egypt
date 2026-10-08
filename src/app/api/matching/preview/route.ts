@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthError, requireAuth, verifyCsrfOrigin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { recordSecuritySignal } from '@/lib/security';
 import {
   evaluateMatch,
   generateAdminMatchDebugReport,
@@ -24,12 +26,32 @@ export async function POST(req: NextRequest) {
   try {
     if (!verifyCsrfOrigin(req)) {
       return NextResponse.json(
-        { error: 'طلب غير مصرح به (CSRF).' },
+        { error: 'طلب غير مصرح به (CSRF).', code: 'FORBIDDEN' },
         { status: 403 }
       );
     }
 
     const user = await requireAuth(req);
+    const ipAddress = getClientIp(req.headers);
+
+    const rl = checkRateLimit({
+      key: `matching-preview:${user.id}`,
+      limit: 60,
+      windowMs: 60_000,
+    });
+    if (!rl.allowed) {
+      await recordSecuritySignal({
+        signalType: 'EXCESSIVE_PREVIEW_REQUESTS',
+        userId: user.id,
+        ipAddress,
+        details: { route: '/api/matching/preview' },
+      });
+      return NextResponse.json(
+        { error: 'تم تجاوز الحد المسموح به لمعاينة المطابقة.', code: 'RATE_LIMITED' },
+        { status: 429 }
+      );
+    }
+
     let body: Record<string, unknown> = {};
     try {
       body = await req.json();

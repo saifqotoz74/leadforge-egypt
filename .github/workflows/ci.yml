@@ -1,0 +1,56 @@
+name: LeadForge Egypt — Production CI Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-and-build:
+    name: Typecheck, Test Suites (MVP–Phase 10) & Production Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      NODE_ENV: test
+      USE_EXTERNAL_PG: 'false'
+      DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/leadforge_ci?schema=public'
+      AUTH_SECRET: 'ci-verification-ephemeral-hmac-secret-key-at-least-32-bytes'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 1. Clean dependency installation
+        run: npm ci
+
+      - name: 2. Generate Prisma Client
+        run: npm run db:generate
+
+      - name: 3. TypeScript & Lint verification
+        run: npm run typecheck
+
+      - name: 4. Unit & Deterministic Engine Tests (Scoring, Deduplication, Quality, Matching)
+        run: npx vitest run tests/unit-engines.test.ts tests/phase1-scoring.test.ts tests/phase2-deduplication.test.ts tests/phase3-quality.test.ts tests/phase4-matching.test.ts
+
+      - name: 5. Financial, Claims, Feedback, Analytics & Ingestion Tests (Phases 5–8)
+        run: npx vitest run tests/phase5-claims-credits.test.ts tests/phase6-feedback-outcomes.test.ts tests/phase7-analytics-flywheel.test.ts tests/phase8-ingestion-collectors.test.ts
+
+      - name: 6. Security, Authorization, API/DB Integration & Production Launch Tests (Phases 9–10)
+        run: npx vitest run tests/integration-api-db.test.ts tests/phase9-security-performance-reliability.test.ts tests/phase10-production-launch.test.ts
+
+      - name: 7. Reproducible Production Build Verification
+        env:
+          NODE_ENV: production
+        run: npm run build

@@ -5,8 +5,10 @@ import {
   getDuplicateCandidateEvidence,
   confirmAdminDuplicateMerge,
   rejectAdminDuplicateCandidate,
+  MergeServiceError,
 } from '@/lib/deduplication';
 import { createAuditLog } from '@/lib/audit';
+import { getSafeClientErrorMessage } from '@/lib/security/error-taxonomy';
 
 export const dynamic = 'force-dynamic';
 
@@ -130,8 +132,17 @@ export async function POST(
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.statusCode });
     }
+    if (err instanceof MergeServiceError) {
+      return NextResponse.json(
+        { error: getSafeClientErrorMessage(err, 'تعذر معالجة طلب مراجعة التكرار.'), code: err.code },
+        { status: err.statusCode }
+      );
+    }
     if (err instanceof Error) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
+      return NextResponse.json(
+        { error: getSafeClientErrorMessage(err, 'تعذر معالجة طلب مراجعة التكرار.') },
+        { status: 400 }
+      );
     }
     return NextResponse.json(
       { error: 'تعذر معالجة طلب مراجعة التكرار.' },

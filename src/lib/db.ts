@@ -3,6 +3,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { PrismaPGlite } from 'pglite-prisma-adapter';
 import fs from 'fs';
 import path from 'path';
+import { globalAppCache } from './observability/cache';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -55,6 +56,7 @@ export function setPrismaClientForTesting(testClient: PrismaClient, testPglite?:
   globalForPrisma.prisma = testClient;
   globalForPrisma.pglite = testPglite;
   globalForPrisma.schemaInitialized = true;
+  globalAppCache.clear();
 }
 
 export const PHASE1_SCHEMA_UPGRADE_SQL = `
@@ -608,9 +610,781 @@ CREATE INDEX IF NOT EXISTS "MatchSnapshot_calculatedAt_idx" ON "MatchSnapshot"("
 CREATE INDEX IF NOT EXISTS "MatchSnapshot_isStale_idx" ON "MatchSnapshot"("isStale");
 `;
 
+export const PHASE5_SCHEMA_UPGRADE_SQL = `
+DO $$ BEGIN
+  CREATE TYPE "ClaimStatus" AS ENUM (
+    'PENDING',
+    'ACTIVE',
+    'REFUNDED',
+    'EXPIRED',
+    'FAILED',
+    'CANCELLED'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "CreditTransactionType" AS ENUM (
+    'PURCHASE',
+    'CLAIM',
+    'REFUND',
+    'BONUS',
+    'ADMIN_ADJUSTMENT',
+    'EXPIRATION',
+    'CORRECTION'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "accessType" "LeadOwnershipType" NOT NULL DEFAULT 'SHARED';
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "creditCost" INTEGER;
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "creditCostReason" TEXT;
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "availableForClaim" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "claimWindowEndsAt" TIMESTAMP(3);
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "exclusiveClaimedAt" TIMESTAMP(3);
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "exclusiveClaimedById" TEXT;
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "requiresMatching" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "minClaimQualityScore" INTEGER;
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "minClaimOpportunityScore" INTEGER;
+
+CREATE INDEX IF NOT EXISTS "Lead_availableForClaim_status_saleabilityStatus_idx" ON "Lead"("availableForClaim", "status", "saleabilityStatus");
+CREATE INDEX IF NOT EXISTS "Lead_accessType_availableForClaim_idx" ON "Lead"("accessType", "availableForClaim");
+CREATE INDEX IF NOT EXISTS "Lead_exclusiveClaimedById_idx" ON "Lead"("exclusiveClaimedById");
+
+DO $$ BEGIN
+  ALTER TABLE "Lead" ADD CONSTRAINT "Lead_purchasers_check"
+    CHECK ("currentPurchasers" >= 0 AND "maxPurchasers" >= 1 AND "currentPurchasers" <= "maxPurchasers");
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "developerId" TEXT;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "status" "ClaimStatus" NOT NULL DEFAULT 'ACTIVE';
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "accessType" "LeadOwnershipType" NOT NULL DEFAULT 'SHARED';
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "creditsCharged" INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "creditsRefunded" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "creditCostReason" TEXT NOT NULL DEFAULT 'SHARED_LEAD';
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "pricingExplanation" JSONB;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "matchStrengthAtClaim" INTEGER;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "accessGranted" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "accessGrantedAt" TIMESTAMP(3);
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "refundedAt" TIMESTAMP(3);
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "refundReason" TEXT;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "refundedBy" TEXT;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "expiresAt" TIMESTAMP(3);
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "failureReason" TEXT;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "failureCode" TEXT;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "idempotencyKey" TEXT;
+ALTER TABLE "LeadClaim" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+CREATE UNIQUE INDEX IF NOT EXISTS "LeadClaim_userId_idempotencyKey_key" ON "LeadClaim"("userId", "idempotencyKey");
+CREATE INDEX IF NOT EXISTS "LeadClaim_developerId_idx" ON "LeadClaim"("developerId");
+CREATE INDEX IF NOT EXISTS "LeadClaim_status_idx" ON "LeadClaim"("status");
+CREATE INDEX IF NOT EXISTS "LeadClaim_leadId_status_idx" ON "LeadClaim"("leadId", "status");
+CREATE INDEX IF NOT EXISTS "LeadClaim_userId_status_idx" ON "LeadClaim"("userId", "status");
+CREATE INDEX IF NOT EXISTS "LeadClaim_claimedAt_idx" ON "LeadClaim"("claimedAt");
+CREATE UNIQUE INDEX IF NOT EXISTS "LeadClaim_exclusive_active_leadId_key" ON "LeadClaim"("leadId") WHERE "status" = 'ACTIVE' AND "accessType" = 'EXCLUSIVE';
+
+DO $$ BEGIN
+  ALTER TABLE "LeadClaim" ADD CONSTRAINT "LeadClaim_credits_check"
+    CHECK ("creditsCharged" >= 0 AND "creditsRefunded" >= 0 AND "creditsRefunded" <= "creditsCharged");
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+CREATE TABLE IF NOT EXISTS "DeveloperCreditAccount" (
+  "id" TEXT NOT NULL,
+  "developerId" TEXT NOT NULL,
+  "balance" INTEGER NOT NULL DEFAULT 0,
+  "reservedBalance" INTEGER NOT NULL DEFAULT 0,
+  "lifetimePurchased" INTEGER NOT NULL DEFAULT 0,
+  "lifetimeBonus" INTEGER NOT NULL DEFAULT 0,
+  "lifetimeSpent" INTEGER NOT NULL DEFAULT 0,
+  "lifetimeRefunded" INTEGER NOT NULL DEFAULT 0,
+  "lifetimeExpired" INTEGER NOT NULL DEFAULT 0,
+  "totalGranted" INTEGER NOT NULL DEFAULT 0,
+  "totalSpent" INTEGER NOT NULL DEFAULT 0,
+  "totalRefunded" INTEGER NOT NULL DEFAULT 0,
+  "version" INTEGER NOT NULL DEFAULT 1,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "DeveloperCreditAccount_pkey" PRIMARY KEY ("id")
+);
+
+ALTER TABLE "DeveloperCreditAccount" ADD COLUMN IF NOT EXISTS "reservedBalance" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "DeveloperCreditAccount" ADD COLUMN IF NOT EXISTS "lifetimePurchased" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "DeveloperCreditAccount" ADD COLUMN IF NOT EXISTS "lifetimeBonus" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "DeveloperCreditAccount" ADD COLUMN IF NOT EXISTS "lifetimeSpent" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "DeveloperCreditAccount" ADD COLUMN IF NOT EXISTS "lifetimeRefunded" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "DeveloperCreditAccount" ADD COLUMN IF NOT EXISTS "lifetimeExpired" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "DeveloperCreditAccount" ADD COLUMN IF NOT EXISTS "totalGranted" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "DeveloperCreditAccount" ADD COLUMN IF NOT EXISTS "totalSpent" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "DeveloperCreditAccount" ADD COLUMN IF NOT EXISTS "totalRefunded" INTEGER NOT NULL DEFAULT 0;
+
+CREATE UNIQUE INDEX IF NOT EXISTS "DeveloperCreditAccount_developerId_key" ON "DeveloperCreditAccount"("developerId");
+CREATE INDEX IF NOT EXISTS "DeveloperCreditAccount_developerId_idx" ON "DeveloperCreditAccount"("developerId");
+CREATE INDEX IF NOT EXISTS "DeveloperCreditAccount_balance_idx" ON "DeveloperCreditAccount"("balance");
+
+DO $$ BEGIN
+  ALTER TABLE "DeveloperCreditAccount" ADD CONSTRAINT "DeveloperCreditAccount_developerId_fkey"
+    FOREIGN KEY ("developerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "DeveloperCreditAccount" ADD CONSTRAINT "DeveloperCreditAccount_balance_non_negative"
+    CHECK ("balance" >= 0 AND "reservedBalance" >= 0 AND "lifetimePurchased" >= 0 AND "lifetimeBonus" >= 0 AND "lifetimeSpent" >= 0 AND "lifetimeRefunded" >= 0 AND "lifetimeExpired" >= 0);
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+CREATE TABLE IF NOT EXISTS "CreditTransaction" (
+  "id" TEXT NOT NULL,
+  "accountId" TEXT NOT NULL,
+  "developerId" TEXT NOT NULL,
+  "type" "CreditTransactionType" NOT NULL,
+  "amount" INTEGER NOT NULL,
+  "balanceBefore" INTEGER NOT NULL,
+  "balanceAfter" INTEGER NOT NULL,
+  "referenceType" TEXT,
+  "referenceId" TEXT,
+  "claimId" TEXT,
+  "leadId" TEXT,
+  "reason" TEXT NOT NULL DEFAULT '',
+  "actorId" TEXT,
+  "metadata" JSONB,
+  "idempotencyKey" TEXT,
+  "performedById" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "CreditTransaction_pkey" PRIMARY KEY ("id")
+);
+
+ALTER TABLE "CreditTransaction" ADD COLUMN IF NOT EXISTS "claimId" TEXT;
+ALTER TABLE "CreditTransaction" ADD COLUMN IF NOT EXISTS "leadId" TEXT;
+ALTER TABLE "CreditTransaction" ADD COLUMN IF NOT EXISTS "actorId" TEXT;
+ALTER TABLE "CreditTransaction" ADD COLUMN IF NOT EXISTS "performedById" TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS "CreditTransaction_developerId_idempotencyKey_key" ON "CreditTransaction"("developerId", "idempotencyKey");
+CREATE INDEX IF NOT EXISTS "CreditTransaction_accountId_idx" ON "CreditTransaction"("accountId");
+CREATE INDEX IF NOT EXISTS "CreditTransaction_developerId_createdAt_idx" ON "CreditTransaction"("developerId", "createdAt");
+CREATE INDEX IF NOT EXISTS "CreditTransaction_type_idx" ON "CreditTransaction"("type");
+CREATE INDEX IF NOT EXISTS "CreditTransaction_claimId_idx" ON "CreditTransaction"("claimId");
+CREATE INDEX IF NOT EXISTS "CreditTransaction_leadId_idx" ON "CreditTransaction"("leadId");
+CREATE INDEX IF NOT EXISTS "CreditTransaction_referenceType_referenceId_idx" ON "CreditTransaction"("referenceType", "referenceId");
+
+DO $$ BEGIN
+  ALTER TABLE "CreditTransaction" ADD CONSTRAINT "CreditTransaction_accountId_fkey"
+    FOREIGN KEY ("accountId") REFERENCES "DeveloperCreditAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "CreditTransaction" ADD CONSTRAINT "CreditTransaction_developerId_fkey"
+    FOREIGN KEY ("developerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "CreditTransaction" ADD CONSTRAINT "CreditTransaction_claimId_fkey"
+    FOREIGN KEY ("claimId") REFERENCES "LeadClaim"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "CreditTransaction" ADD CONSTRAINT "CreditTransaction_ledger_math_check"
+    CHECK ("balanceBefore" >= 0 AND "balanceAfter" >= 0 AND ("balanceBefore" + "amount" = "balanceAfter"));
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+CREATE TABLE IF NOT EXISTS "CreditPricingConfig" (
+  "id" TEXT NOT NULL DEFAULT 'default',
+  "version" TEXT NOT NULL DEFAULT 'v1',
+  "sharedLeadBaseCost" INTEGER NOT NULL DEFAULT 5,
+  "exclusiveLeadBaseCost" INTEGER NOT NULL DEFAULT 25,
+  "sharedBaseCost" INTEGER NOT NULL DEFAULT 5,
+  "exclusiveBaseCost" INTEGER NOT NULL DEFAULT 25,
+  "highOpportunityCostBonus" INTEGER NOT NULL DEFAULT 0,
+  "highOpportunityThreshold" INTEGER NOT NULL DEFAULT 80,
+  "highQualityCostBonus" INTEGER NOT NULL DEFAULT 0,
+  "highQualityThreshold" INTEGER NOT NULL DEFAULT 85,
+  "highBudgetCostBonus" INTEGER NOT NULL DEFAULT 0,
+  "highBudgetThresholdEgp" INTEGER NOT NULL DEFAULT 500000,
+  "freshLeadBonus" INTEGER NOT NULL DEFAULT 0,
+  "minCreditCost" INTEGER NOT NULL DEFAULT 1,
+  "maxCreditCost" INTEGER NOT NULL DEFAULT 100,
+  "defaultClaimExpirationDays" INTEGER NOT NULL DEFAULT 90,
+  "autoRefundOnInvalidLead" BOOLEAN NOT NULL DEFAULT true,
+  "autoRefundOnDuplicateLead" BOOLEAN NOT NULL DEFAULT true,
+  "autoRefundOnClosedWithinHours" INTEGER NOT NULL DEFAULT 24,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "CreditPricingConfig_pkey" PRIMARY KEY ("id")
+);
+
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "version" TEXT NOT NULL DEFAULT 'v1';
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "sharedLeadBaseCost" INTEGER NOT NULL DEFAULT 5;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "exclusiveLeadBaseCost" INTEGER NOT NULL DEFAULT 25;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "sharedBaseCost" INTEGER NOT NULL DEFAULT 5;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "exclusiveBaseCost" INTEGER NOT NULL DEFAULT 25;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "highOpportunityCostBonus" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "highOpportunityThreshold" INTEGER NOT NULL DEFAULT 80;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "highQualityCostBonus" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "highQualityThreshold" INTEGER NOT NULL DEFAULT 85;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "highBudgetCostBonus" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "highBudgetThresholdEgp" INTEGER NOT NULL DEFAULT 500000;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "freshLeadBonus" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "minCreditCost" INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "maxCreditCost" INTEGER NOT NULL DEFAULT 100;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "defaultClaimExpirationDays" INTEGER NOT NULL DEFAULT 90;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "autoRefundOnInvalidLead" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "autoRefundOnDuplicateLead" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "CreditPricingConfig" ADD COLUMN IF NOT EXISTS "autoRefundOnClosedWithinHours" INTEGER NOT NULL DEFAULT 24;
+`;
+
+export const PHASE6_SCHEMA_UPGRADE_SQL = `
+DO $$ BEGIN
+  ALTER TYPE "PipelineStatus" ADD VALUE IF NOT EXISTS 'CLAIMED';
+  ALTER TYPE "PipelineStatus" ADD VALUE IF NOT EXISTS 'PROPOSAL_SENT';
+  ALTER TYPE "PipelineStatus" ADD VALUE IF NOT EXISTS 'NEGOTIATION';
+EXCEPTION
+  WHEN others THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "EngagementStatus" AS ENUM (
+    'CLAIMED',
+    'CONTACTED',
+    'REPLIED',
+    'INTERESTED',
+    'MEETING',
+    'PROPOSAL_SENT',
+    'NEGOTIATION',
+    'WON',
+    'LOST',
+    'NOT_INTERESTED',
+    'INVALID'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "FeedbackCategory" AS ENUM (
+    'CONTACT',
+    'BUSINESS',
+    'SALES',
+    'LEAD_QUALITY'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "ContactChannel" AS ENUM (
+    'PHONE',
+    'WHATSAPP',
+    'EMAIL',
+    'SMS',
+    'SOCIAL',
+    'OTHER'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "ContactAttemptResult" AS ENUM (
+    'NO_ANSWER',
+    'ANSWERED',
+    'INVALID_NUMBER',
+    'MESSAGE_SENT',
+    'REPLIED',
+    'BOUNCED',
+    'BLOCKED',
+    'OTHER'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+CREATE TABLE IF NOT EXISTS "LeadEngagement" (
+  "id" TEXT NOT NULL,
+  "leadId" TEXT NOT NULL,
+  "developerId" TEXT NOT NULL,
+  "claimId" TEXT NOT NULL,
+  "currentStatus" "EngagementStatus" NOT NULL DEFAULT 'CLAIMED',
+  "claimedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "firstContactedAt" TIMESTAMP(3),
+  "lastContactedAt" TIMESTAMP(3),
+  "firstRepliedAt" TIMESTAMP(3),
+  "interestedAt" TIMESTAMP(3),
+  "meetingAt" TIMESTAMP(3),
+  "proposalSentAt" TIMESTAMP(3),
+  "negotiationAt" TIMESTAMP(3),
+  "wonAt" TIMESTAMP(3),
+  "lostAt" TIMESTAMP(3),
+  "invalidatedAt" TIMESTAMP(3),
+  "invalidAt" TIMESTAMP(3),
+  "notInterestedAt" TIMESTAMP(3),
+  "closedAt" TIMESTAMP(3),
+  "finalOutcome" "EngagementStatus",
+  "outcomeReasonCode" TEXT,
+  "outcomeReasonNote" TEXT,
+  "estimatedProjectValue" INTEGER,
+  "currency" TEXT NOT NULL DEFAULT 'EGP',
+  "wonReason" TEXT,
+  "lostReasonCode" TEXT,
+  "lostReasonNote" TEXT,
+  "invalidReasonCode" TEXT,
+  "invalidReasonNote" TEXT,
+  "outcomeNote" TEXT,
+  "outcomeMetadata" JSONB,
+  "isTerminal" BOOLEAN NOT NULL DEFAULT false,
+  "flags" TEXT[] DEFAULT ARRAY[]::TEXT[],
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "LeadEngagement_pkey" PRIMARY KEY ("id")
+);
+
+ALTER TABLE "LeadEngagement" ADD COLUMN IF NOT EXISTS "invalidAt" TIMESTAMP(3);
+ALTER TABLE "LeadEngagement" ADD COLUMN IF NOT EXISTS "notInterestedAt" TIMESTAMP(3);
+ALTER TABLE "LeadEngagement" ADD COLUMN IF NOT EXISTS "finalOutcome" "EngagementStatus";
+ALTER TABLE "LeadEngagement" ADD COLUMN IF NOT EXISTS "outcomeReasonCode" TEXT;
+ALTER TABLE "LeadEngagement" ADD COLUMN IF NOT EXISTS "outcomeReasonNote" TEXT;
+ALTER TABLE "LeadEngagement" ADD COLUMN IF NOT EXISTS "lostReasonNote" TEXT;
+ALTER TABLE "LeadEngagement" ADD COLUMN IF NOT EXISTS "invalidReasonNote" TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS "LeadEngagement_claimId_key" ON "LeadEngagement"("claimId");
+CREATE UNIQUE INDEX IF NOT EXISTS "LeadEngagement_leadId_developerId_key" ON "LeadEngagement"("leadId", "developerId");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_leadId_idx" ON "LeadEngagement"("leadId");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_developerId_idx" ON "LeadEngagement"("developerId");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_claimId_idx" ON "LeadEngagement"("claimId");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_currentStatus_idx" ON "LeadEngagement"("currentStatus");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_createdAt_idx" ON "LeadEngagement"("createdAt");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_developerId_currentStatus_idx" ON "LeadEngagement"("developerId", "currentStatus");
+
+DO $$ BEGIN
+  ALTER TABLE "LeadEngagement" ADD CONSTRAINT "LeadEngagement_leadId_fkey"
+    FOREIGN KEY ("leadId") REFERENCES "Lead"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "LeadEngagement" ADD CONSTRAINT "LeadEngagement_developerId_fkey"
+    FOREIGN KEY ("developerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "LeadEngagement" ADD CONSTRAINT "LeadEngagement_claimId_fkey"
+    FOREIGN KEY ("claimId") REFERENCES "LeadClaim"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DROP INDEX IF EXISTS "LeadFeedback_leadId_userId_key";
+DROP INDEX IF EXISTS "LeadFeedback_claimId_key";
+
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "developerId" TEXT;
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "engagementId" TEXT;
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "type" TEXT NOT NULL DEFAULT 'FEEDBACK';
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "category" "FeedbackCategory";
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "reasonCode" TEXT;
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "rating" INTEGER;
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "note" TEXT;
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "confidence" TEXT NOT NULL DEFAULT 'MEDIUM';
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "flags" TEXT[] DEFAULT ARRAY[]::TEXT[];
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "metadata" JSONB;
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "idempotencyKey" TEXT;
+ALTER TABLE "LeadFeedback" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+CREATE UNIQUE INDEX IF NOT EXISTS "LeadFeedback_userId_idempotencyKey_key" ON "LeadFeedback"("userId", "idempotencyKey");
+CREATE INDEX IF NOT EXISTS "LeadFeedback_userId_idx" ON "LeadFeedback"("userId");
+CREATE INDEX IF NOT EXISTS "LeadFeedback_developerId_idx" ON "LeadFeedback"("developerId");
+CREATE INDEX IF NOT EXISTS "LeadFeedback_claimId_idx" ON "LeadFeedback"("claimId");
+CREATE INDEX IF NOT EXISTS "LeadFeedback_engagementId_idx" ON "LeadFeedback"("engagementId");
+CREATE INDEX IF NOT EXISTS "LeadFeedback_category_idx" ON "LeadFeedback"("category");
+CREATE INDEX IF NOT EXISTS "LeadFeedback_reasonCode_idx" ON "LeadFeedback"("reasonCode");
+CREATE INDEX IF NOT EXISTS "LeadFeedback_createdAt_idx" ON "LeadFeedback"("createdAt");
+
+DO $$ BEGIN
+  ALTER TABLE "LeadFeedback" ADD CONSTRAINT "LeadFeedback_engagementId_fkey"
+    FOREIGN KEY ("engagementId") REFERENCES "LeadEngagement"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE "LeadStatusHistory" ADD COLUMN IF NOT EXISTS "engagementId" TEXT;
+ALTER TABLE "LeadStatusHistory" ADD COLUMN IF NOT EXISTS "developerId" TEXT;
+ALTER TABLE "LeadStatusHistory" ADD COLUMN IF NOT EXISTS "reasonCode" TEXT;
+ALTER TABLE "LeadStatusHistory" ADD COLUMN IF NOT EXISTS "note" TEXT;
+ALTER TABLE "LeadStatusHistory" ADD COLUMN IF NOT EXISTS "metadata" JSONB;
+ALTER TABLE "LeadStatusHistory" ADD COLUMN IF NOT EXISTS "actorType" TEXT NOT NULL DEFAULT 'DEVELOPER';
+ALTER TABLE "LeadStatusHistory" ADD COLUMN IF NOT EXISTS "actorId" TEXT;
+ALTER TABLE "LeadStatusHistory" ADD COLUMN IF NOT EXISTS "isAdminCorrection" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "LeadStatusHistory" ADD COLUMN IF NOT EXISTS "idempotencyKey" TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS "LeadStatusHistory_userId_idempotencyKey_key" ON "LeadStatusHistory"("userId", "idempotencyKey");
+CREATE INDEX IF NOT EXISTS "LeadStatusHistory_engagementId_idx" ON "LeadStatusHistory"("engagementId");
+CREATE INDEX IF NOT EXISTS "LeadStatusHistory_developerId_idx" ON "LeadStatusHistory"("developerId");
+CREATE INDEX IF NOT EXISTS "LeadStatusHistory_createdAt_idx" ON "LeadStatusHistory"("createdAt");
+CREATE INDEX IF NOT EXISTS "LeadStatusHistory_engagementId_createdAt_idx" ON "LeadStatusHistory"("engagementId", "createdAt");
+
+DO $$ BEGIN
+  ALTER TABLE "LeadStatusHistory" ADD CONSTRAINT "LeadStatusHistory_engagementId_fkey"
+    FOREIGN KEY ("engagementId") REFERENCES "LeadEngagement"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+CREATE TABLE IF NOT EXISTS "ContactAttempt" (
+  "id" TEXT NOT NULL,
+  "engagementId" TEXT NOT NULL,
+  "leadId" TEXT NOT NULL,
+  "developerId" TEXT NOT NULL,
+  "claimId" TEXT NOT NULL,
+  "channel" "ContactChannel" NOT NULL,
+  "result" "ContactAttemptResult" NOT NULL,
+  "attemptedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "note" TEXT,
+  "metadata" JSONB,
+  "idempotencyKey" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "ContactAttempt_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "ContactAttempt_developerId_idempotencyKey_key" ON "ContactAttempt"("developerId", "idempotencyKey");
+CREATE INDEX IF NOT EXISTS "ContactAttempt_engagementId_idx" ON "ContactAttempt"("engagementId");
+CREATE INDEX IF NOT EXISTS "ContactAttempt_leadId_idx" ON "ContactAttempt"("leadId");
+CREATE INDEX IF NOT EXISTS "ContactAttempt_developerId_idx" ON "ContactAttempt"("developerId");
+CREATE INDEX IF NOT EXISTS "ContactAttempt_claimId_idx" ON "ContactAttempt"("claimId");
+CREATE INDEX IF NOT EXISTS "ContactAttempt_channel_idx" ON "ContactAttempt"("channel");
+CREATE INDEX IF NOT EXISTS "ContactAttempt_result_idx" ON "ContactAttempt"("result");
+CREATE INDEX IF NOT EXISTS "ContactAttempt_attemptedAt_idx" ON "ContactAttempt"("attemptedAt");
+CREATE INDEX IF NOT EXISTS "ContactAttempt_engagementId_attemptedAt_idx" ON "ContactAttempt"("engagementId", "attemptedAt");
+
+DO $$ BEGIN
+  ALTER TABLE "ContactAttempt" ADD CONSTRAINT "ContactAttempt_engagementId_fkey"
+    FOREIGN KEY ("engagementId") REFERENCES "LeadEngagement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "ContactAttempt" ADD CONSTRAINT "ContactAttempt_leadId_fkey"
+    FOREIGN KEY ("leadId") REFERENCES "Lead"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "ContactAttempt" ADD CONSTRAINT "ContactAttempt_developerId_fkey"
+    FOREIGN KEY ("developerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "ContactAttempt" ADD CONSTRAINT "ContactAttempt_claimId_fkey"
+    FOREIGN KEY ("claimId") REFERENCES "LeadClaim"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+`;
+
+export const PHASE7_SCHEMA_UPGRADE_SQL = `
+DO $$ BEGIN
+  CREATE TYPE "RuleReviewType" AS ENUM (
+    'SCORING',
+    'MATCHING',
+    'QUALITY'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "RuleReviewStatus" AS ENUM (
+    'OPEN',
+    'UNDER_REVIEW',
+    'APPROVED',
+    'REJECTED',
+    'DEFERRED'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+CREATE INDEX IF NOT EXISTS "LeadEngagement_claimedAt_idx" ON "LeadEngagement"("claimedAt");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_firstContactedAt_idx" ON "LeadEngagement"("firstContactedAt");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_meetingAt_idx" ON "LeadEngagement"("meetingAt");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_wonAt_idx" ON "LeadEngagement"("wonAt");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_lostAt_idx" ON "LeadEngagement"("lostAt");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_invalidAt_idx" ON "LeadEngagement"("invalidAt");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_finalOutcome_idx" ON "LeadEngagement"("finalOutcome");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_lostReasonCode_idx" ON "LeadEngagement"("lostReasonCode");
+CREATE INDEX IF NOT EXISTS "LeadEngagement_invalidReasonCode_idx" ON "LeadEngagement"("invalidReasonCode");
+
+CREATE TABLE IF NOT EXISTS "RuleReviewCandidate" (
+  "id" TEXT NOT NULL,
+  "ruleType" "RuleReviewType" NOT NULL,
+  "ruleKey" TEXT NOT NULL,
+  "ruleName" TEXT NOT NULL DEFAULT '',
+  "ruleVersion" TEXT NOT NULL DEFAULT 'v1',
+  "metric" TEXT NOT NULL,
+  "metricVersion" TEXT NOT NULL DEFAULT 'WIN_RATE_V1',
+  "baselineValue" DOUBLE PRECISION NOT NULL,
+  "observedValue" DOUBLE PRECISION NOT NULL,
+  "absoluteDifference" DOUBLE PRECISION NOT NULL DEFAULT 0,
+  "relativeDifference" DOUBLE PRECISION,
+  "sampleSize" INTEGER NOT NULL,
+  "minimumSampleSize" INTEGER NOT NULL DEFAULT 50,
+  "triggeredNumerator" INTEGER NOT NULL DEFAULT 0,
+  "triggeredDenominator" INTEGER NOT NULL DEFAULT 0,
+  "baselineNumerator" INTEGER NOT NULL DEFAULT 0,
+  "baselineDenominator" INTEGER NOT NULL DEFAULT 0,
+  "evidenceWindow" TEXT NOT NULL,
+  "evidenceDetails" JSONB,
+  "recommendation" TEXT,
+  "status" "RuleReviewStatus" NOT NULL DEFAULT 'OPEN',
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "reviewedAt" TIMESTAMP(3),
+  "reviewedBy" TEXT,
+  "decision" TEXT,
+  "notes" TEXT,
+  CONSTRAINT "RuleReviewCandidate_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX IF NOT EXISTS "RuleReviewCandidate_status_idx" ON "RuleReviewCandidate"("status");
+CREATE INDEX IF NOT EXISTS "RuleReviewCandidate_ruleType_idx" ON "RuleReviewCandidate"("ruleType");
+CREATE INDEX IF NOT EXISTS "RuleReviewCandidate_ruleKey_idx" ON "RuleReviewCandidate"("ruleKey");
+CREATE INDEX IF NOT EXISTS "RuleReviewCandidate_ruleVersion_idx" ON "RuleReviewCandidate"("ruleVersion");
+CREATE INDEX IF NOT EXISTS "RuleReviewCandidate_ruleType_ruleKey_ruleVersion_idx" ON "RuleReviewCandidate"("ruleType", "ruleKey", "ruleVersion");
+CREATE INDEX IF NOT EXISTS "RuleReviewCandidate_createdAt_idx" ON "RuleReviewCandidate"("createdAt");
+CREATE INDEX IF NOT EXISTS "RuleReviewCandidate_reviewedAt_idx" ON "RuleReviewCandidate"("reviewedAt");
+
+DO $$ BEGIN
+  ALTER TABLE "RuleReviewCandidate" ADD CONSTRAINT "RuleReviewCandidate_reviewedBy_fkey"
+    FOREIGN KEY ("reviewedBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+CREATE TABLE IF NOT EXISTS "DailyMetricSnapshot" (
+  "id" TEXT NOT NULL,
+  "date" TIMESTAMP(3) NOT NULL,
+  "dateKey" TEXT NOT NULL,
+  "metric" TEXT NOT NULL,
+  "dimension" TEXT NOT NULL DEFAULT 'GLOBAL',
+  "dimensionValue" TEXT NOT NULL DEFAULT 'ALL',
+  "value" DOUBLE PRECISION,
+  "numerator" INTEGER NOT NULL DEFAULT 0,
+  "denominator" INTEGER NOT NULL DEFAULT 0,
+  "status" TEXT NOT NULL DEFAULT 'VALID',
+  "version" TEXT NOT NULL DEFAULT 'V1',
+  "metadata" JSONB,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "DailyMetricSnapshot_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "DailyMetricSnapshot_dateKey_metric_dimension_dimensionValue_version_key"
+  ON "DailyMetricSnapshot"("dateKey", "metric", "dimension", "dimensionValue", "version");
+CREATE INDEX IF NOT EXISTS "DailyMetricSnapshot_date_idx" ON "DailyMetricSnapshot"("date");
+CREATE INDEX IF NOT EXISTS "DailyMetricSnapshot_dateKey_idx" ON "DailyMetricSnapshot"("dateKey");
+CREATE INDEX IF NOT EXISTS "DailyMetricSnapshot_metric_idx" ON "DailyMetricSnapshot"("metric");
+CREATE INDEX IF NOT EXISTS "DailyMetricSnapshot_dimension_dimensionValue_idx" ON "DailyMetricSnapshot"("dimension", "dimensionValue");
+CREATE INDEX IF NOT EXISTS "DailyMetricSnapshot_metric_dimension_date_idx" ON "DailyMetricSnapshot"("metric", "dimension", "date");
+CREATE INDEX IF NOT EXISTS "DailyMetricSnapshot_version_idx" ON "DailyMetricSnapshot"("version");
+CREATE INDEX IF NOT EXISTS "DailyMetricSnapshot_createdAt_idx" ON "DailyMetricSnapshot"("createdAt");
+`;
+
+export const PHASE8_SCHEMA_UPGRADE_SQL = `
+DO $$ BEGIN
+  ALTER TYPE "ImportRecordStatus" ADD VALUE IF NOT EXISTS 'DISCOVERED';
+  ALTER TYPE "ImportRecordStatus" ADD VALUE IF NOT EXISTS 'FETCHED';
+  ALTER TYPE "ImportRecordStatus" ADD VALUE IF NOT EXISTS 'VALIDATED';
+  ALTER TYPE "ImportRecordStatus" ADD VALUE IF NOT EXISTS 'NORMALIZED';
+  ALTER TYPE "ImportRecordStatus" ADD VALUE IF NOT EXISTS 'PROCESSED';
+  ALTER TYPE "ImportRecordStatus" ADD VALUE IF NOT EXISTS 'FAILED';
+  ALTER TYPE "ImportRecordStatus" ADD VALUE IF NOT EXISTS 'SKIPPED';
+  ALTER TYPE "ImportRecordStatus" ADD VALUE IF NOT EXISTS 'DEAD_LETTER';
+EXCEPTION
+  WHEN others THEN null;
+END $$;
+
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "enabled" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "collectorKey" TEXT NOT NULL DEFAULT 'manual';
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "collectorVersion" TEXT NOT NULL DEFAULT 'manual-v1';
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "contractVersion" TEXT NOT NULL DEFAULT 'INGESTION_CONTRACT_V1';
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "configurationStatus" TEXT NOT NULL DEFAULT 'CONFIGURED';
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "healthStatus" TEXT NOT NULL DEFAULT 'HEALTHY';
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "circuitState" TEXT NOT NULL DEFAULT 'CLOSED';
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "circuitOpenedAt" TIMESTAMP(3);
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "consecutiveFailures" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "totalSuccessCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "totalFailureCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "averageDurationMs" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "scheduleCron" TEXT;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "scheduleIntervalMinutes" INTEGER;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "nextRunAt" TIMESTAMP(3);
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "lastSuccessAt" TIMESTAMP(3);
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "lastFailureAt" TIMESTAMP(3);
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "lastVerifiedAt" TIMESTAMP(3);
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "firstSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "lastSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "priority" INTEGER NOT NULL DEFAULT 50;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "acquisitionCostPerRunEgp" DOUBLE PRECISION;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "acquisitionCostPerRecordEgp" DOUBLE PRECISION;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "maxRecordsPerRun" INTEGER NOT NULL DEFAULT 1000;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "batchSize" INTEGER NOT NULL DEFAULT 100;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "requestsPerMinute" INTEGER NOT NULL DEFAULT 60;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "maxConcurrentRequests" INTEGER NOT NULL DEFAULT 2;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "timeoutMs" INTEGER NOT NULL DEFAULT 10000;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "maxRetries" INTEGER NOT NULL DEFAULT 3;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "baseRetryDelayMs" INTEGER NOT NULL DEFAULT 1000;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "maxRetryDelayMs" INTEGER NOT NULL DEFAULT 16000;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "retentionDaysRaw" INTEGER NOT NULL DEFAULT 30;
+ALTER TABLE "LeadSource" ADD COLUMN IF NOT EXISTS "activeJobId" TEXT;
+
+CREATE INDEX IF NOT EXISTS "LeadSource_type_idx" ON "LeadSource"("type");
+CREATE INDEX IF NOT EXISTS "LeadSource_healthStatus_idx" ON "LeadSource"("healthStatus");
+CREATE INDEX IF NOT EXISTS "LeadSource_nextRunAt_idx" ON "LeadSource"("nextRunAt");
+CREATE INDEX IF NOT EXISTS "LeadSource_isActive_nextRunAt_idx" ON "LeadSource"("isActive", "nextRunAt");
+CREATE INDEX IF NOT EXISTS "LeadSource_priority_idx" ON "LeadSource"("priority");
+
+ALTER TABLE "SourceRecord" ADD COLUMN IF NOT EXISTS "collectorVersion" TEXT NOT NULL DEFAULT 'manual-v1';
+ALTER TABLE "SourceRecord" ADD COLUMN IF NOT EXISTS "contractVersion" TEXT NOT NULL DEFAULT 'INGESTION_CONTRACT_V1';
+ALTER TABLE "SourceRecord" ADD COLUMN IF NOT EXISTS "checksum" TEXT;
+ALTER TABLE "SourceRecord" ADD COLUMN IF NOT EXISTS "errorCode" TEXT;
+ALTER TABLE "SourceRecord" ADD COLUMN IF NOT EXISTS "errorMessage" TEXT;
+ALTER TABLE "SourceRecord" ADD COLUMN IF NOT EXISTS "rawPayloadRetained" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "SourceRecord" ADD COLUMN IF NOT EXISTS "retentionExpiresAt" TIMESTAMP(3);
+ALTER TABLE "SourceRecord" ADD COLUMN IF NOT EXISTS "fetchedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "SourceRecord" ADD COLUMN IF NOT EXISTS "lastVerifiedAt" TIMESTAMP(3);
+
+CREATE INDEX IF NOT EXISTS "SourceRecord_importJobId_idx" ON "SourceRecord"("importJobId");
+CREATE INDEX IF NOT EXISTS "SourceRecord_checksum_idx" ON "SourceRecord"("checksum");
+CREATE INDEX IF NOT EXISTS "SourceRecord_lastSeenAt_idx" ON "SourceRecord"("lastSeenAt");
+
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "collectorVersion" TEXT NOT NULL DEFAULT 'manual-v1';
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "contractVersion" TEXT NOT NULL DEFAULT 'INGESTION_CONTRACT_V1';
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "triggerType" TEXT NOT NULL DEFAULT 'MANUAL';
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "durationMs" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "discoveredCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "fetchedCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "normalizedCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "insertedCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "updatedCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "possibleDuplicateCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "conflictCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "failedCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "skippedCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "saleableCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "retryCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "deadLetterCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "errorCode" TEXT;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "errorSummary" TEXT;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "checkpoint" JSONB;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "configurationSnapshot" JSONB;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "cancelRequested" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "cancelledAt" TIMESTAMP(3);
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "cancelledBy" TEXT;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "idempotencyKey" TEXT;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "backfillStartDate" TIMESTAMP(3);
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "backfillEndDate" TIMESTAMP(3);
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "acquisitionCostEgp" DOUBLE PRECISION;
+ALTER TABLE "ImportJob" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+CREATE INDEX IF NOT EXISTS "ImportJob_sourceId_idx" ON "ImportJob"("sourceId");
+CREATE INDEX IF NOT EXISTS "ImportJob_status_idx" ON "ImportJob"("status");
+CREATE INDEX IF NOT EXISTS "ImportJob_sourceId_status_idx" ON "ImportJob"("sourceId", "status");
+CREATE INDEX IF NOT EXISTS "ImportJob_idempotencyKey_idx" ON "ImportJob"("idempotencyKey");
+
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "sourceId" TEXT;
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "sourceType" "SourceType" NOT NULL DEFAULT 'MANUAL';
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "externalId" TEXT;
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "collectorVersion" TEXT NOT NULL DEFAULT 'manual-v1';
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "normalizedData" JSONB;
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "checksum" TEXT;
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "lifecycleStage" TEXT NOT NULL DEFAULT 'PROCESSED';
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "errorCode" TEXT;
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "retryCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "sourceRecordId" TEXT;
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "fetchedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "retentionExpiresAt" TIMESTAMP(3);
+ALTER TABLE "ImportRecord" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+CREATE INDEX IF NOT EXISTS "ImportRecord_externalId_idx" ON "ImportRecord"("externalId");
+CREATE INDEX IF NOT EXISTS "ImportRecord_sourceType_externalId_idx" ON "ImportRecord"("sourceType", "externalId");
+CREATE INDEX IF NOT EXISTS "ImportRecord_checksum_idx" ON "ImportRecord"("checksum");
+CREATE INDEX IF NOT EXISTS "ImportRecord_leadId_idx" ON "ImportRecord"("leadId");
+
+CREATE TABLE IF NOT EXISTS "DeadLetterRecord" (
+  "id" TEXT NOT NULL,
+  "sourceId" TEXT,
+  "sourceName" TEXT NOT NULL,
+  "sourceType" "SourceType" NOT NULL DEFAULT 'MANUAL',
+  "externalId" TEXT,
+  "importJobId" TEXT,
+  "importRecordId" TEXT,
+  "collectorVersion" TEXT NOT NULL DEFAULT 'manual-v1',
+  "failureReason" TEXT NOT NULL,
+  "errorCode" TEXT NOT NULL DEFAULT 'RETRY_EXHAUSTED',
+  "lastError" TEXT NOT NULL,
+  "retryCount" INTEGER NOT NULL DEFAULT 0,
+  "maxRetries" INTEGER NOT NULL DEFAULT 3,
+  "status" TEXT NOT NULL DEFAULT 'DEAD_LETTER',
+  "rawPayload" JSONB,
+  "normalizedPayload" JSONB,
+  "checksum" TEXT,
+  "resolvedAt" TIMESTAMP(3),
+  "resolvedBy" TEXT,
+  "resolutionNotes" TEXT,
+  "resolvedLeadId" TEXT,
+  "retentionExpiresAt" TIMESTAMP(3),
+  "firstFailedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "lastFailedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "DeadLetterRecord_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX IF NOT EXISTS "DeadLetterRecord_status_idx" ON "DeadLetterRecord"("status");
+CREATE INDEX IF NOT EXISTS "DeadLetterRecord_sourceId_idx" ON "DeadLetterRecord"("sourceId");
+CREATE INDEX IF NOT EXISTS "DeadLetterRecord_sourceType_externalId_idx" ON "DeadLetterRecord"("sourceType", "externalId");
+CREATE INDEX IF NOT EXISTS "DeadLetterRecord_importJobId_idx" ON "DeadLetterRecord"("importJobId");
+CREATE INDEX IF NOT EXISTS "DeadLetterRecord_errorCode_idx" ON "DeadLetterRecord"("errorCode");
+CREATE INDEX IF NOT EXISTS "DeadLetterRecord_createdAt_idx" ON "DeadLetterRecord"("createdAt");
+
+DO $$ BEGIN
+  ALTER TABLE "DeadLetterRecord" ADD CONSTRAINT "DeadLetterRecord_sourceId_fkey"
+    FOREIGN KEY ("sourceId") REFERENCES "LeadSource"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "DeadLetterRecord" ADD CONSTRAINT "DeadLetterRecord_importJobId_fkey"
+    FOREIGN KEY ("importJobId") REFERENCES "ImportJob"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+`;
+
 /**
  * Ensures the PostgreSQL schema is applied to the active PGlite instance if tables do not exist yet,
- * and applies incremental Phase 1, Phase 2, Phase 3 & Phase 4 schema upgrades if tables already exist.
+ * and applies incremental Phase 1–8 schema upgrades if tables already exist.
  */
 export async function ensureDbReady(): Promise<void> {
   if (globalForPrisma.schemaInitialized) return;
@@ -628,6 +1402,10 @@ export async function ensureDbReady(): Promise<void> {
         await activePg.exec(PHASE2_SCHEMA_UPGRADE_SQL);
         await activePg.exec(PHASE3_SCHEMA_UPGRADE_SQL);
         await activePg.exec(PHASE4_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(PHASE5_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(PHASE6_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
       }
       globalForPrisma.schemaInitialized = true;
     } catch {
@@ -635,6 +1413,10 @@ export async function ensureDbReady(): Promise<void> {
       if (fs.existsSync(migrationPath) && activePg) {
         const sql = fs.readFileSync(migrationPath, 'utf-8');
         await activePg.exec(sql);
+        await activePg.exec(PHASE5_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(PHASE6_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
         globalForPrisma.schemaInitialized = true;
       }
     } finally {
@@ -658,6 +1440,10 @@ export async function createInMemoryTestDb(): Promise<{
   const migrationPath = path.resolve(process.cwd(), 'prisma/migrations/0001_init/migration.sql');
   const sql = fs.readFileSync(migrationPath, 'utf-8');
   await memPg.exec(sql);
+  await memPg.exec(PHASE5_SCHEMA_UPGRADE_SQL);
+  await memPg.exec(PHASE6_SCHEMA_UPGRADE_SQL);
+  await memPg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
+  await memPg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
 
   const adapter = new PrismaPGlite(memPg) as unknown as Prisma.PrismaClientOptions['adapter'];
   const testPrisma = new PrismaClient({ adapter });
@@ -671,3 +1457,5 @@ export async function createInMemoryTestDb(): Promise<{
     },
   };
 }
+
+

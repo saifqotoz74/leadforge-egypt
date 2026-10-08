@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AuthError, requireAdmin } from '@/lib/auth';
+import { AuthError, requireAdmin, verifyCsrfOrigin } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
 import { verifyLeadsBatch } from '@/lib/quality';
 import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
+    if (!verifyCsrfOrigin(req)) {
+      return NextResponse.json(
+        { error: 'طلب غير مصرح به (CSRF).', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+    }
     const admin = await requireAdmin(req);
 
     const rl = checkRateLimit({

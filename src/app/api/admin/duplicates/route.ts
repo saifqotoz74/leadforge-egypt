@@ -13,6 +13,7 @@ import {
   getRecentMergeLogs,
 } from '@/lib/deduplication';
 import { createAuditLog } from '@/lib/audit';
+import { getSafeClientErrorMessage } from '@/lib/security/error-taxonomy';
 
 export const dynamic = 'force-dynamic';
 
@@ -229,12 +230,15 @@ export async function POST(req: NextRequest) {
     }
     if (err instanceof MergeServiceError) {
       return NextResponse.json(
-        { error: err.message, code: err.code },
+        { error: getSafeClientErrorMessage(err, 'تعذر تنفيذ عملية مراجعة التكرار.'), code: err.code },
         { status: err.statusCode }
       );
     }
     if (err instanceof Error) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
+      return NextResponse.json(
+        { error: getSafeClientErrorMessage(err, 'تعذر تنفيذ عملية مراجعة التكرار.') },
+        { status: 400 }
+      );
     }
     return NextResponse.json(
       { error: 'تعذر تنفيذ عملية مراجعة التكرار.' },

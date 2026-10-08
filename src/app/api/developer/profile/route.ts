@@ -44,6 +44,23 @@ const profileUpdateSchema = z.object({
 export async function GET(req: NextRequest) {
   try {
     const user = await requireAuth(req);
+    const { searchParams } = new URL(req.url);
+
+    const requestedOwnerId =
+      searchParams.get('developerId')?.trim() || searchParams.get('userId')?.trim();
+    if (requestedOwnerId && requestedOwnerId !== user.id && user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'غير مصرح لك بالوصول إلى ملف مطور آخر.', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+    }
+
+    if (searchParams.get('export') === 'true') {
+      const { exportDeveloperPersonalData } = await import('@/lib/production/privacy-controls');
+      const exportBundle = await exportDeveloperPersonalData(user.id, prisma);
+      return NextResponse.json(exportBundle);
+    }
+
     return NextResponse.json({
       user: {
         id: user.id,
@@ -68,7 +85,22 @@ export async function PATCH(req: NextRequest) {
     }
 
     const user = await requireAuth(req);
+    const { searchParams } = new URL(req.url);
     const body = await req.json();
+
+    const requestedOwnerId =
+      searchParams.get('developerId')?.trim() ||
+      searchParams.get('userId')?.trim() ||
+      (typeof body?.userId === 'string' ? body.userId.trim() : '') ||
+      (typeof body?.developerId === 'string' ? body.developerId.trim() : '');
+
+    if (requestedOwnerId && requestedOwnerId !== user.id && user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'غير مصرح لك بتعديل ملف مطور آخر.', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+    }
+
     const parsed = profileUpdateSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -99,13 +131,6 @@ export async function PATCH(req: NextRequest) {
       data.allLocationsMode ?? user.developerProfile?.allLocationsMode ?? false;
     const allNichesMode =
       data.allNichesMode ?? user.developerProfile?.allNichesMode ?? false;
-    const isComplete =
-      services.length > 0 &&
-      (allLocationsMode ||
-        locations.length > 0 ||
-        (data.supportedCities?.length ?? 0) > 0 ||
-        (data.supportedGovernorates?.length ?? 0) > 0) &&
-      (allNichesMode || niches.length > 0);
 
     const updatedProfile = await prisma.developerProfile.upsert({
       where: { userId: user.id },
@@ -200,5 +225,51 @@ export async function PATCH(req: NextRequest) {
     }
     console.error('PATCH /api/developer/profile error:', err);
     return NextResponse.json({ error: 'تعذر تحديث ملف المطور.' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    if (!verifyCsrfOrigin(req)) {
+      return NextResponse.json({ error: 'طلب غير مصرح به (CSRF).' }, { status: 403 });
+    }
+
+    const user = await requireAuth(req);
+    const { searchParams } = new URL(req.url);
+    const body = await req.json().catch(() => ({}));
+
+    const requestedOwnerId =
+      searchParams.get('developerId')?.trim() ||
+      searchParams.get('userId')?.trim() ||
+      (typeof body?.userId === 'string' ? body.userId.trim() : '');
+
+    if (requestedOwnerId && requestedOwnerId !== user.id && user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'غير مصرح لك بحذف حساب مطور آخر.', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+    }
+
+    const { anonymizeAndDeleteDeveloperAccount } = await import(
+      '@/lib/production/privacy-controls'
+    );
+    const result = await anonymizeAndDeleteDeveloperAccount(
+      {
+        userId: user.id,
+        actorId: user.id,
+        reason: typeof body?.reason === 'string' ? body.reason : 'User requested account deletion',
+      },
+      prisma
+    );
+
+    return NextResponse.json({
+      success: true,
+      ...result,
+    });
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.statusCode });
+    }
+    return NextResponse.json({ error: 'تعذر إتمام طلب حذف الحساب.' }, { status: 500 });
   }
 }

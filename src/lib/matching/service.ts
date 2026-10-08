@@ -176,7 +176,10 @@ export function mapDbLeadToMatchable(lead: Record<string, unknown>): MatchableLe
   if (Array.isArray(lead.claimedDeveloperIds)) {
     claimedDeveloperIds = lead.claimedDeveloperIds.map(String);
   } else if (Array.isArray(lead.claims)) {
-    claimedDeveloperIds = (lead.claims as Array<{ userId?: string }>)
+    claimedDeveloperIds = (
+      lead.claims as Array<{ userId?: string; status?: string; accessGranted?: boolean }>
+    )
+      .filter((c) => (!c?.status || c.status === 'ACTIVE') && c?.accessGranted !== false)
       .map((c) => (c?.userId ? String(c.userId) : ''))
       .filter(Boolean);
   }
@@ -409,7 +412,12 @@ export async function getMatchesForLeadFromDb(
 ) {
   const leadRecord = await prisma.lead.findUnique({
     where: { id: leadId },
-    include: { claims: { select: { userId: true } } },
+    include: {
+      claims: {
+        where: { status: 'ACTIVE', accessGranted: true },
+        select: { userId: true, status: true, accessGranted: true },
+      },
+    },
   });
   if (!leadRecord) {
     return null;
@@ -426,6 +434,7 @@ export async function getMatchesForLeadFromDb(
         select: {
           claims: {
             where: {
+              status: 'ACTIVE',
               pipelineStatus: { in: ['NEW', 'CONTACTED', 'REPLIED', 'INTERESTED', 'MEETING'] },
             },
           },
@@ -509,6 +518,7 @@ export async function getMatchesForDeveloperFromDb(
         select: {
           claims: {
             where: {
+              status: 'ACTIVE',
               pipelineStatus: { in: ['NEW', 'CONTACTED', 'REPLIED', 'INTERESTED', 'MEETING'] },
             },
           },
@@ -545,7 +555,12 @@ export async function getMatchesForDeveloperFromDb(
 
   const leads = await prisma.lead.findMany({
     where: dbWhere,
-    include: { claims: { select: { userId: true } } },
+    include: {
+      claims: {
+        where: { status: 'ACTIVE', accessGranted: true },
+        select: { userId: true, status: true, accessGranted: true },
+      },
+    },
     orderBy: [{ score: 'desc' }, { id: 'asc' }],
     take: 250,
   });
@@ -688,15 +703,21 @@ export async function getMatchesForDeveloperFromDb(
     },
     matchVersion: ranked.matchVersion,
     totalEligible: filteredEligible.length,
-    matches: paginatedEligible.map((item) => ({
-      lead: item.lead,
-      match: item.match,
-    })),
+    matches: paginatedEligible.map((item) => {
+      const { claimedDeveloperIds: _omit, ...publicLead } = item.lead;
+      return {
+        lead: publicLead,
+        match: item.match,
+      };
+    }),
     rejectedMatches: options?.includeRejected
-      ? ranked.rejectedLeads.map((item) => ({
-          lead: item.lead,
-          match: item.match,
-        }))
+      ? ranked.rejectedLeads.map((item) => {
+          const { claimedDeveloperIds: _omit, ...publicLead } = item.lead;
+          return {
+            lead: publicLead,
+            match: item.match,
+          };
+        })
       : undefined,
     diagnostics: ranked.diagnostics,
   };
@@ -709,7 +730,12 @@ export async function getPairMatchExplanationFromDb(
   const [leadRecord, devUser] = await Promise.all([
     prisma.lead.findUnique({
       where: { id: leadId },
-      include: { claims: { select: { userId: true } } },
+      include: {
+        claims: {
+          where: { status: 'ACTIVE', accessGranted: true },
+          select: { userId: true, status: true, accessGranted: true },
+        },
+      },
     }),
     prisma.user.findUnique({
       where: { id: developerId },
@@ -722,6 +748,7 @@ export async function getPairMatchExplanationFromDb(
           select: {
             claims: {
               where: {
+                status: 'ACTIVE',
                 pipelineStatus: { in: ['NEW', 'CONTACTED', 'REPLIED', 'INTERESTED', 'MEETING'] },
               },
             },
@@ -785,7 +812,12 @@ export async function recalculateMatchesInDb(
   const [leads, developers] = await Promise.all([
     prisma.lead.findMany({
       where: leadsWhere,
-      include: { claims: { select: { userId: true } } },
+      include: {
+        claims: {
+          where: { status: 'ACTIVE', accessGranted: true },
+          select: { userId: true, status: true, accessGranted: true },
+        },
+      },
       orderBy: { updatedAt: 'desc' },
       take: input.leadId ? 1 : batchLimit,
     }),
@@ -800,6 +832,7 @@ export async function recalculateMatchesInDb(
           select: {
             claims: {
               where: {
+                status: 'ACTIVE',
                 pipelineStatus: { in: ['NEW', 'CONTACTED', 'REPLIED', 'INTERESTED', 'MEETING'] },
               },
             },

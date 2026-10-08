@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AuthError, requireAdmin, requireAuth } from '@/lib/auth';
+import { AuthError, requireAdmin, requireAuth, verifyCsrfOrigin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import {
   evaluateLeadQuality,
@@ -39,7 +39,11 @@ export async function GET(
           select: { reason: true, createdAt: true },
         },
         claims: {
-          where: { userId: user.id },
+          where: {
+            userId: user.id,
+            status: 'ACTIVE',
+            accessGranted: true,
+          },
           select: { id: true },
           take: 1,
         },
@@ -150,6 +154,12 @@ export async function POST(
   context: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    if (!verifyCsrfOrigin(req)) {
+      return NextResponse.json(
+        { error: 'طلب غير مصرح به (CSRF).', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+    }
     await requireAdmin(req);
     const resolvedParams = await Promise.resolve(context.params);
     const leadId = resolvedParams.id;

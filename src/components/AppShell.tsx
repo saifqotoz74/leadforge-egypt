@@ -134,12 +134,14 @@ export function AppShell({
     { href: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
     { href: '/leads', label: 'اكتشف العملاء المحتملين', icon: Compass },
     { href: '/my-leads', label: 'عملائي ومتابعة الصفقات', icon: Briefcase },
+    { href: '/dashboard/analytics', label: 'تحليلات أدائي وقمع المبيعات', icon: BarChart3 },
     { href: '/subscription', label: 'الاشتراك والرصيد', icon: CreditCard },
     { href: '/settings', label: 'إعدادات المطابقة والحساب', icon: Settings },
   ];
 
   const adminNav = [
     { href: '/admin', label: 'نظرة عامة (Overview)', icon: LayoutDashboard },
+    { href: '/admin/analytics', label: 'التحليلات وحلقة البيانات (Analytics)', icon: BarChart3 },
     { href: '/admin/leads', label: 'إدارة العملاء والاستيراد', icon: Briefcase },
     { href: '/admin/quality', label: 'جودة البيانات والتحقق (Quality)', icon: CheckCheck },
     { href: '/admin/duplicates', label: 'مراجعة التكرارات والدمج', icon: ShieldCheck },

@@ -3,6 +3,7 @@ import { AuthError, requireAdmin, verifyCsrfOrigin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { unmergeLead, MergeServiceError } from '@/lib/deduplication';
 import { createAuditLog } from '@/lib/audit';
+import { getSafeClientErrorMessage } from '@/lib/security/error-taxonomy';
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,12 +53,15 @@ export async function POST(req: NextRequest) {
     }
     if (err instanceof MergeServiceError) {
       return NextResponse.json(
-        { error: err.message, code: err.code },
+        { error: getSafeClientErrorMessage(err, 'تعذر التراجع عن عملية الدمج.'), code: err.code },
         { status: err.statusCode }
       );
     }
     if (err instanceof Error) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
+      return NextResponse.json(
+        { error: getSafeClientErrorMessage(err, 'تعذر التراجع عن عملية الدمج.') },
+        { status: 400 }
+      );
     }
     return NextResponse.json(
       { error: 'تعذر التراجع عن عملية الدمج.' },

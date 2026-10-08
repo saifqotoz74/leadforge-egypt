@@ -982,10 +982,136 @@ export const SEED_BUSINESSES: RawLeadInput[] = [
   },
 ];
 
-export async function seedDatabase(prisma: PrismaClient) {
+export async function seedDatabase(
+  prisma: PrismaClient,
+  options?: { env?: Record<string, string | undefined> }
+) {
+  const { assertSeedAllowedInEnvironment } = await import('./production/database-ops');
+  assertSeedAllowedInEnvironment(options?.env ?? process.env);
+
   // Check if already seeded
   const existingUsers = await prisma.user.count();
   if (existingUsers > 0) {
+    const claimsWithoutEngagement = await prisma.leadClaim.findMany({
+      where: { engagement: null },
+    });
+    for (const c of claimsWithoutEngagement) {
+      const mappedStatus = c.pipelineStatus === 'NEW' ? 'CLAIMED' : c.pipelineStatus;
+      const isTerm = ['WON', 'LOST', 'NOT_INTERESTED', 'INVALID'].includes(mappedStatus);
+      await prisma.leadEngagement.upsert({
+        where: {
+          leadId_developerId: {
+            leadId: c.leadId,
+            developerId: c.userId,
+          },
+        },
+        update: {},
+        create: {
+          leadId: c.leadId,
+          developerId: c.userId,
+          claimId: c.id,
+          currentStatus: mappedStatus,
+          claimedAt: c.claimedAt,
+          lastContactedAt: c.lastContactedAt,
+          isTerminal: isTerm,
+          finalOutcome: isTerm ? mappedStatus : null,
+          wonAt: mappedStatus === 'WON' ? c.updatedAt : null,
+          lostAt: mappedStatus === 'LOST' ? c.updatedAt : null,
+          notInterestedAt: mappedStatus === 'NOT_INTERESTED' ? c.updatedAt : null,
+          invalidAt: mappedStatus === 'INVALID' ? c.updatedAt : null,
+          closedAt: isTerm ? c.updatedAt : null,
+        },
+      });
+    }
+
+    const smileCareLead = await prisma.lead.findFirst({
+      where: { businessName: { contains: 'مركز سمايل كير لطب وتجميل الأسنان' } },
+      include: { engagements: true },
+    });
+    if (smileCareLead && smileCareLead.engagements.length < 3) {
+      const secondDev = await prisma.user.findUnique({ where: { email: 'ahmed.web@leadforge.eg' } });
+      const thirdDev = await prisma.user.findUnique({ where: { email: 'sara.agency@leadforge.eg' } });
+      const now = new Date();
+      if (secondDev && !smileCareLead.engagements.some((e) => e.developerId === secondDev.id)) {
+        const sc2 = await prisma.leadClaim.upsert({
+          where: { leadId_userId: { leadId: smileCareLead.id, userId: secondDev.id } },
+          update: {},
+          create: {
+            leadId: smileCareLead.id,
+            userId: secondDev.id,
+            developerId: secondDev.id,
+            status: 'ACTIVE',
+            accessType: 'SHARED',
+            pipelineStatus: 'NEW',
+            creditsSpent: 1,
+            creditsCharged: 1,
+            creditsRefunded: 0,
+            creditCostReason: 'SHARED_LEAD',
+            exclusiveClaim: false,
+            accessGranted: true,
+            accessGrantedAt: now,
+            notes: 'تم الحصول على الفرصة وجارٍ التحضير للتواصل الهاتفي.',
+          },
+        });
+        await prisma.leadEngagement.upsert({
+          where: { leadId_developerId: { leadId: smileCareLead.id, developerId: secondDev.id } },
+          update: {},
+          create: {
+            leadId: smileCareLead.id,
+            developerId: secondDev.id,
+            claimId: sc2.id,
+            currentStatus: 'CLAIMED',
+            isTerminal: false,
+            claimedAt: new Date(now.getTime() - 12 * 60 * 60 * 1000),
+          },
+        });
+      }
+      if (thirdDev && !smileCareLead.engagements.some((e) => e.developerId === thirdDev.id)) {
+        const sc3 = await prisma.leadClaim.upsert({
+          where: { leadId_userId: { leadId: smileCareLead.id, userId: thirdDev.id } },
+          update: {},
+          create: {
+            leadId: smileCareLead.id,
+            userId: thirdDev.id,
+            developerId: thirdDev.id,
+            status: 'ACTIVE',
+            accessType: 'SHARED',
+            pipelineStatus: 'NOT_INTERESTED',
+            creditsSpent: 1,
+            creditsCharged: 1,
+            creditsRefunded: 0,
+            creditCostReason: 'SHARED_LEAD',
+            exclusiveClaim: false,
+            accessGranted: true,
+            accessGrantedAt: now,
+            notes: 'العميل يفضل التعامل مع مطور فردي وليس وكالة في الوقت الحالي.',
+            lastContactedAt: now,
+          },
+        });
+        await prisma.leadEngagement.upsert({
+          where: { leadId_developerId: { leadId: smileCareLead.id, developerId: thirdDev.id } },
+          update: {},
+          create: {
+            leadId: smileCareLead.id,
+            developerId: thirdDev.id,
+            claimId: sc3.id,
+            currentStatus: 'NOT_INTERESTED',
+            isTerminal: true,
+            closedAt: now,
+            claimedAt: new Date(now.getTime() - 36 * 60 * 60 * 1000),
+            firstContactedAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+            lastContactedAt: now,
+            notInterestedAt: now,
+            finalOutcome: 'NOT_INTERESTED',
+            outcomeReasonCode: 'NOT_INTERESTED',
+            outcomeReasonNote: 'العميل يفضل التعامل مع مطور فردي وليس وكالة.',
+            outcomeNote: 'العميل يفضل التعامل مع مطور فردي وليس وكالة.',
+          },
+        });
+      }
+    }
+
+    await ensurePhase7AndRefundSeedData(prisma);
     return { alreadySeeded: true };
   }
 
@@ -1387,11 +1513,16 @@ export async function seedDatabase(prisma: PrismaClient) {
       daysAgo = 105; // Stale (90+ days)
     }
     const verifiedDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+    const isExclusive = lead.exclusive || lead.leadType === 'EXCLUSIVE';
     await prisma.lead.update({
       where: { id: lead.id },
       data: {
         lastVerifiedAt: verifiedDate,
         sourceId: sourceMap[lead.source] || sourceMap['Google Business Profile Export'],
+        accessType: isExclusive ? 'EXCLUSIVE' : 'SHARED',
+        creditCost: isExclusive ? 25 : 5,
+        creditCostReason: isExclusive ? 'EXCLUSIVE_LEAD' : 'SHARED_LEAD',
+        availableForClaim: lead.status === 'AVAILABLE',
       },
     });
   }
@@ -1404,7 +1535,34 @@ export async function seedDatabase(prisma: PrismaClient) {
     });
   }
 
-  // 7. Create sample Lead Claims, Status Histories, Feedbacks, and Notifications for Primary Demo Developer
+  // 6b. Seed Phase 5 CreditPricingConfig
+  await prisma.creditPricingConfig.upsert({
+    where: { id: 'default' },
+    update: {},
+    create: {
+      id: 'default',
+      version: 'v1',
+      sharedLeadBaseCost: 5,
+      exclusiveLeadBaseCost: 25,
+      sharedBaseCost: 5,
+      exclusiveBaseCost: 25,
+      highOpportunityCostBonus: 0,
+      highOpportunityThreshold: 80,
+      highQualityCostBonus: 0,
+      highQualityThreshold: 85,
+      highBudgetCostBonus: 0,
+      highBudgetThresholdEgp: 500000,
+      freshLeadBonus: 0,
+      minCreditCost: 1,
+      maxCreditCost: 100,
+      defaultClaimExpirationDays: 90,
+      autoRefundOnInvalidLead: true,
+      autoRefundOnDuplicateLead: true,
+      autoRefundOnClosedWithinHours: 24,
+    },
+  });
+
+  // 7. Create sample Lead Claims, Status Histories, Feedbacks, Credit Accounts & Ledger Transactions
   const primaryDev = createdDevs[0];
   const sampleLeadsToClaim = allLeads.slice(0, 5);
   const sampleStatuses: ('WON' | 'MEETING' | 'INTERESTED' | 'REPLIED' | 'CONTACTED')[] = [
@@ -1415,17 +1573,62 @@ export async function seedDatabase(prisma: PrismaClient) {
     'CONTACTED',
   ];
 
+  const primaryAccount = await prisma.developerCreditAccount.create({
+    data: {
+      developerId: primaryDev.id,
+      balance: 45,
+      reservedBalance: 0,
+      lifetimePurchased: 50,
+      lifetimeBonus: 0,
+      lifetimeSpent: 5,
+      lifetimeRefunded: 0,
+      lifetimeExpired: 0,
+      totalGranted: 50,
+      totalSpent: 5,
+      totalRefunded: 0,
+      version: 6,
+    },
+  });
+
+  await prisma.creditTransaction.create({
+    data: {
+      accountId: primaryAccount.id,
+      developerId: primaryDev.id,
+      type: 'PURCHASE',
+      amount: 50,
+      balanceBefore: 0,
+      balanceAfter: 50,
+      referenceType: 'SUBSCRIPTION',
+      referenceId: primaryDev.id,
+      reason: 'Initial Pro subscription credit grant (50 credits)',
+      idempotencyKey: `seed-purchase-${primaryDev.id}`,
+      actorId: primaryDev.id,
+      performedById: primaryDev.id,
+    },
+  });
+
+  let runningBalance = 50;
   for (let idx = 0; idx < sampleLeadsToClaim.length; idx++) {
     const targetLead = sampleLeadsToClaim[idx];
     const pStatus = sampleStatuses[idx];
+    const isExcl = targetLead.exclusive || targetLead.leadType === 'EXCLUSIVE';
+    const claimAccessType = isExcl ? 'EXCLUSIVE' : 'SHARED';
 
     const claim = await prisma.leadClaim.create({
       data: {
         leadId: targetLead.id,
         userId: primaryDev.id,
+        developerId: primaryDev.id,
+        status: 'ACTIVE',
+        accessType: claimAccessType,
         pipelineStatus: pStatus,
         creditsSpent: 1,
-        exclusiveClaim: targetLead.exclusive,
+        creditsCharged: 1,
+        creditsRefunded: 0,
+        creditCostReason: isExcl ? 'EXCLUSIVE_LEAD' : 'SHARED_LEAD',
+        exclusiveClaim: isExcl,
+        accessGranted: true,
+        accessGrantedAt: now,
         notes:
           pStatus === 'WON'
             ? 'تم الاتفاق على تطوير موقع إلكتروني متكامل مع نظام حجز مواعيد بقيمة 16,500 ج.م واستلام الدفعة الأولى.'
@@ -1437,22 +1640,106 @@ export async function seedDatabase(prisma: PrismaClient) {
       },
     });
 
+    const balBefore = runningBalance;
+    runningBalance -= 1;
+    await prisma.creditTransaction.create({
+      data: {
+        accountId: primaryAccount.id,
+        developerId: primaryDev.id,
+        type: 'CLAIM',
+        amount: -1,
+        balanceBefore: balBefore,
+        balanceAfter: runningBalance,
+        referenceType: 'LEAD_CLAIM',
+        referenceId: claim.id,
+        claimId: claim.id,
+        leadId: targetLead.id,
+        reason: isExcl ? 'EXCLUSIVE_LEAD' : 'SHARED_LEAD',
+        idempotencyKey: `seed-claim-${claim.id}`,
+        actorId: primaryDev.id,
+        performedById: primaryDev.id,
+      },
+    });
+
     await prisma.lead.update({
       where: { id: targetLead.id },
       data: {
         currentPurchasers: 1,
-        status: targetLead.exclusive ? 'CLAIMED_FULL' : 'AVAILABLE',
+        status: isExcl ? 'CLAIMED_FULL' : 'AVAILABLE',
+        saleabilityStatus: isExcl ? 'CLAIMED_FULL' : 'AVAILABLE',
+        availableForClaim: !isExcl,
+        ...(isExcl
+          ? {
+              exclusiveClaimedAt: now,
+              exclusiveClaimedById: primaryDev.id,
+            }
+          : {}),
+      },
+    });
+
+    const claimedAtDate = new Date(now.getTime() - (idx + 3) * 24 * 60 * 60 * 1000);
+    const firstContactDate = new Date(now.getTime() - (idx + 2) * 24 * 60 * 60 * 1000);
+    const lastContactDate = new Date(now.getTime() - (idx + 1) * 24 * 60 * 60 * 1000);
+
+    const engagement = await prisma.leadEngagement.create({
+      data: {
+        leadId: targetLead.id,
+        developerId: primaryDev.id,
+        claimId: claim.id,
+        currentStatus: pStatus,
+        isTerminal: pStatus === 'WON',
+        closedAt: pStatus === 'WON' ? now : null,
+        claimedAt: claimedAtDate,
+        firstContactedAt: firstContactDate,
+        lastContactedAt: lastContactDate,
+        firstRepliedAt: ['REPLIED', 'INTERESTED', 'MEETING', 'WON'].includes(pStatus)
+          ? lastContactDate
+          : null,
+        interestedAt: ['INTERESTED', 'MEETING', 'WON'].includes(pStatus) ? lastContactDate : null,
+        meetingAt: ['MEETING', 'WON'].includes(pStatus) ? lastContactDate : null,
+        wonAt: pStatus === 'WON' ? now : null,
+        finalOutcome: pStatus === 'WON' ? 'WON' : null,
+        outcomeReasonCode: pStatus === 'WON' ? 'DEAL_CLOSED_WON' : null,
+        outcomeReasonNote:
+          pStatus === 'WON'
+            ? 'تم الاتفاق على تطوير موقع إلكتروني متكامل مع نظام حجز مواعيد بقيمة 16,500 ج.م.'
+            : null,
+        outcomeNote:
+          pStatus === 'WON'
+            ? 'تم الاتفاق على تطوير موقع إلكتروني متكامل مع نظام حجز مواعيد بقيمة 16,500 ج.م.'
+            : null,
+        estimatedProjectValue: pStatus === 'WON' ? 16500 : null,
+        currency: 'EGP',
+        wonReason:
+          pStatus === 'WON' ? 'موقع إلكتروني متكامل مع نظام حجز مواعيد' : null,
       },
     });
 
     await prisma.leadStatusHistory.create({
       data: {
         claimId: claim.id,
+        engagementId: engagement.id,
         leadId: targetLead.id,
         userId: primaryDev.id,
+        developerId: primaryDev.id,
         previousStatus: 'NEW',
         newStatus: pStatus,
+        actorType: 'DEVELOPER',
+        actorId: primaryDev.id,
         notes: 'تحديث حالة المتابعة مع العميل',
+      },
+    });
+
+    await prisma.contactAttempt.create({
+      data: {
+        engagementId: engagement.id,
+        claimId: claim.id,
+        leadId: targetLead.id,
+        developerId: primaryDev.id,
+        channel: idx % 2 === 0 ? 'PHONE' : 'WHATSAPP',
+        result: pStatus === 'CONTACTED' ? 'MESSAGE_SENT' : 'ANSWERED',
+        note: 'تم التواصل مع إدارة النشاط التجاري وعرض سابقة الأعمال.',
+        attemptedAt: firstContactDate,
       },
     });
 
@@ -1460,37 +1747,471 @@ export async function seedDatabase(prisma: PrismaClient) {
       data: {
         leadId: targetLead.id,
         userId: primaryDev.id,
+        developerId: primaryDev.id,
         claimId: claim.id,
+        engagementId: engagement.id,
         useful: true,
+        category: idx === 0 ? 'SALES' : 'CONTACT',
+        reasonCode: idx === 0 ? 'HIGH_INTEREST' : 'PHONE_ANSWERED',
+        rating: 5,
+        confidence: 'MEDIUM',
         comment: 'بيانات تواصل دقيقة والنشاط التجاري مهتم فعليًا بإنشاء موقع.',
+        note: 'بيانات تواصل دقيقة والنشاط التجاري مهتم فعليًا بإنشاء موقع.',
       },
     });
   }
 
-  // Also add 1 negative feedback on another developer's claim so Admin Reports show realistic feedback distribution
+  // Seed credit accounts + ledger + refunded claim for second developer
   const secondDev = createdDevs[1];
+  const secondAccount = await prisma.developerCreditAccount.create({
+    data: {
+      developerId: secondDev.id,
+      balance: 18,
+      reservedBalance: 0,
+      lifetimePurchased: 20,
+      lifetimeBonus: 0,
+      lifetimeSpent: 7,
+      lifetimeRefunded: 5,
+      lifetimeExpired: 0,
+      totalGranted: 20,
+      totalSpent: 7,
+      totalRefunded: 5,
+      version: 4,
+    },
+  });
+
+  await prisma.creditTransaction.create({
+    data: {
+      accountId: secondAccount.id,
+      developerId: secondDev.id,
+      type: 'PURCHASE',
+      amount: 20,
+      balanceBefore: 0,
+      balanceAfter: 20,
+      referenceType: 'SUBSCRIPTION',
+      referenceId: secondDev.id,
+      reason: 'Starter subscription credit grant (20 credits)',
+      idempotencyKey: `seed-purchase-${secondDev.id}`,
+      actorId: secondDev.id,
+      performedById: secondDev.id,
+    },
+  });
+
   const sixthLead = allLeads[5];
   if (sixthLead) {
     const claim2 = await prisma.leadClaim.create({
       data: {
         leadId: sixthLead.id,
         userId: secondDev.id,
-        pipelineStatus: 'NOT_INTERESTED',
-        creditsSpent: 1,
+        developerId: secondDev.id,
+        status: 'ACTIVE',
+        accessType: 'SHARED',
+        pipelineStatus: 'LOST',
+        creditsSpent: 2,
+        creditsCharged: 2,
+        creditsRefunded: 0,
+        creditCostReason: 'SHARED_LEAD',
         exclusiveClaim: false,
-        notes: 'تم التواصل ولكن صاحب النشاط أجل المشروع للشهر القادم.',
+        accessGranted: true,
+        accessGrantedAt: now,
+        notes: 'تم التواصل ولكن صاحب النشاط اعتذر بسبب الميزانية الحالية.',
         lastContactedAt: now,
       },
     });
+    await prisma.creditTransaction.create({
+      data: {
+        accountId: secondAccount.id,
+        developerId: secondDev.id,
+        type: 'CLAIM',
+        amount: -2,
+        balanceBefore: 20,
+        balanceAfter: 18,
+        referenceType: 'LEAD_CLAIM',
+        referenceId: claim2.id,
+        claimId: claim2.id,
+        leadId: sixthLead.id,
+        reason: 'SHARED_LEAD',
+        idempotencyKey: `seed-claim-${claim2.id}`,
+        actorId: secondDev.id,
+        performedById: secondDev.id,
+      },
+    });
+
+    const engagement2 = await prisma.leadEngagement.create({
+      data: {
+        leadId: sixthLead.id,
+        developerId: secondDev.id,
+        claimId: claim2.id,
+        currentStatus: 'LOST',
+        isTerminal: true,
+        closedAt: now,
+        claimedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+        firstContactedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
+        lastContactedAt: now,
+        lostAt: now,
+        finalOutcome: 'LOST',
+        outcomeReasonCode: 'PRICE',
+        outcomeReasonNote: 'ميزانية العميل أقل من تكلفة المتجر المطلوب',
+        outcomeNote: 'ميزانية العميل أقل من تكلفة المتجر المطلوب',
+        lostReasonCode: 'PRICE',
+        lostReasonNote: 'ميزانية العميل أقل من تكلفة المتجر المطلوب',
+      },
+    });
+
+    await prisma.leadStatusHistory.create({
+      data: {
+        claimId: claim2.id,
+        engagementId: engagement2.id,
+        leadId: sixthLead.id,
+        userId: secondDev.id,
+        developerId: secondDev.id,
+        previousStatus: 'CONTACTED',
+        newStatus: 'LOST',
+        reasonCode: 'PRICE',
+        note: 'ميزانية العميل أقل من تكلفة المتجر المطلوب',
+        notes: 'ميزانية العميل أقل من تكلفة المتجر المطلوب',
+        actorType: 'DEVELOPER',
+        actorId: secondDev.id,
+      },
+    });
+
+    await prisma.contactAttempt.create({
+      data: {
+        engagementId: engagement2.id,
+        claimId: claim2.id,
+        leadId: sixthLead.id,
+        developerId: secondDev.id,
+        channel: 'PHONE',
+        result: 'ANSWERED',
+        note: 'مكالمة هاتفية لمناقشة العرض المالي.',
+        attemptedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
+      },
+    });
+
     await prisma.leadFeedback.create({
       data: {
         leadId: sixthLead.id,
         userId: secondDev.id,
+        developerId: secondDev.id,
         claimId: claim2.id,
+        engagementId: engagement2.id,
         useful: false,
         reason: 'NOT_INTERESTED',
-        comment: 'العميل غير مستعد حاليًا للبدء.',
+        category: 'SALES',
+        reasonCode: 'PRICE_OBJECTION',
+        rating: 3,
+        confidence: 'MEDIUM',
+        comment: 'العميل غير مستعد حاليًا للبدء بالسعر المقترح.',
+        note: 'العميل غير مستعد حاليًا للبدء بالسعر المقترح.',
       },
+    });
+  }
+
+  // Seed a REFUNDED / INVALID claim example on seventh lead
+  const seventhLead = allLeads[6];
+  if (seventhLead) {
+    const invDate = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+    const refundedClaim = await prisma.leadClaim.create({
+      data: {
+        leadId: seventhLead.id,
+        userId: secondDev.id,
+        developerId: secondDev.id,
+        status: 'REFUNDED',
+        accessType: 'SHARED',
+        pipelineStatus: 'INVALID',
+        creditsSpent: 5,
+        creditsCharged: 5,
+        creditsRefunded: 5,
+        creditCostReason: 'SHARED_LEAD',
+        exclusiveClaim: false,
+        accessGranted: false,
+        accessGrantedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+        claimedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+        refundedAt: invDate,
+        refundReason: 'Automatic refund: phone number disconnected upon verification',
+        refundedBy: adminUser.id,
+      },
+    });
+
+    await prisma.leadEngagement.create({
+      data: {
+        leadId: seventhLead.id,
+        developerId: secondDev.id,
+        claimId: refundedClaim.id,
+        currentStatus: 'INVALID',
+        isTerminal: true,
+        closedAt: invDate,
+        claimedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+        invalidAt: invDate,
+        invalidatedAt: invDate,
+        finalOutcome: 'INVALID',
+        outcomeReasonCode: 'WRONG_PHONE',
+        outcomeReasonNote: 'Phone number disconnected upon call attempt',
+        outcomeNote: 'Phone number disconnected upon call attempt',
+        invalidReasonCode: 'WRONG_PHONE',
+        invalidReasonNote: 'Phone number disconnected upon call attempt',
+      },
+    });
+
+    await prisma.creditTransaction.create({
+      data: {
+        accountId: secondAccount.id,
+        developerId: secondDev.id,
+        type: 'CLAIM',
+        amount: -5,
+        balanceBefore: 18,
+        balanceAfter: 13,
+        referenceType: 'LEAD_CLAIM',
+        referenceId: refundedClaim.id,
+        claimId: refundedClaim.id,
+        leadId: seventhLead.id,
+        reason: 'SHARED_LEAD',
+        idempotencyKey: `seed-claim-refunded-${refundedClaim.id}`,
+        actorId: secondDev.id,
+        performedById: secondDev.id,
+      },
+    });
+
+    await prisma.creditTransaction.create({
+      data: {
+        accountId: secondAccount.id,
+        developerId: secondDev.id,
+        type: 'REFUND',
+        amount: 5,
+        balanceBefore: 13,
+        balanceAfter: 18,
+        referenceType: 'LEAD_CLAIM',
+        referenceId: refundedClaim.id,
+        claimId: refundedClaim.id,
+        leadId: seventhLead.id,
+        reason: 'Automatic refund: phone number disconnected upon verification',
+        idempotencyKey: `seed-refund-${refundedClaim.id}`,
+        actorId: adminUser.id,
+        performedById: adminUser.id,
+      },
+    });
+  }
+
+  // Seed remaining developers' credit accounts & multi-developer shared lead scenario (Section 51)
+  for (let i = 2; i < createdDevs.length; i++) {
+    const devUser = createdDevs[i];
+    const sub = await prisma.subscription.findUnique({ where: { userId: devUser.id } });
+    const bal = sub?.credits ?? 0;
+    const acc = await prisma.developerCreditAccount.create({
+      data: {
+        developerId: devUser.id,
+        balance: bal,
+        lifetimePurchased: bal,
+        totalGranted: bal,
+        version: 1,
+      },
+    });
+    if (bal > 0) {
+      await prisma.creditTransaction.create({
+        data: {
+          accountId: acc.id,
+          developerId: devUser.id,
+          type: 'PURCHASE',
+          amount: bal,
+          balanceBefore: 0,
+          balanceAfter: bal,
+          referenceType: 'SUBSCRIPTION',
+          referenceId: devUser.id,
+          reason: 'Initial subscription credit balance',
+          idempotencyKey: `seed-init-${devUser.id}`,
+        },
+      });
+    }
+  }
+
+  // Multi-developer shared lead scenario on allLeads[1] (already claimed by primaryDev with status MEETING):
+  // secondDev has CLAIMED state, thirdDev has NOT_INTERESTED state on the same shared lead.
+  const sharedMultiDevLead = allLeads[1];
+  const thirdDev = createdDevs[2];
+  if (sharedMultiDevLead && secondDev && thirdDev) {
+    const sharedClaim2 = await prisma.leadClaim.create({
+      data: {
+        leadId: sharedMultiDevLead.id,
+        userId: secondDev.id,
+        developerId: secondDev.id,
+        status: 'ACTIVE',
+        accessType: 'SHARED',
+        pipelineStatus: 'NEW',
+        creditsSpent: 1,
+        creditsCharged: 1,
+        creditsRefunded: 0,
+        creditCostReason: 'SHARED_LEAD',
+        exclusiveClaim: false,
+        accessGranted: true,
+        accessGrantedAt: now,
+        notes: 'تم الحصول على الفرصة وجارٍ التحضير للتواصل الهاتفي.',
+      },
+    });
+
+    const sharedEng2 = await prisma.leadEngagement.create({
+      data: {
+        leadId: sharedMultiDevLead.id,
+        developerId: secondDev.id,
+        claimId: sharedClaim2.id,
+        currentStatus: 'CLAIMED',
+        isTerminal: false,
+        claimedAt: new Date(now.getTime() - 12 * 60 * 60 * 1000),
+      },
+    });
+
+    await prisma.leadStatusHistory.create({
+      data: {
+        claimId: sharedClaim2.id,
+        engagementId: sharedEng2.id,
+        leadId: sharedMultiDevLead.id,
+        userId: secondDev.id,
+        developerId: secondDev.id,
+        previousStatus: null,
+        newStatus: 'NEW',
+        actorType: 'DEVELOPER',
+        actorId: secondDev.id,
+        notes: 'تم الحصول على الفرصة المشتركة',
+      },
+    });
+
+    const sharedClaim3 = await prisma.leadClaim.create({
+      data: {
+        leadId: sharedMultiDevLead.id,
+        userId: thirdDev.id,
+        developerId: thirdDev.id,
+        status: 'ACTIVE',
+        accessType: 'SHARED',
+        pipelineStatus: 'NOT_INTERESTED',
+        creditsSpent: 1,
+        creditsCharged: 1,
+        creditsRefunded: 0,
+        creditCostReason: 'SHARED_LEAD',
+        exclusiveClaim: false,
+        accessGranted: true,
+        accessGrantedAt: now,
+        notes: 'العميل يفضل التعامل مع مطور فردي وليس وكالة في الوقت الحالي.',
+        lastContactedAt: now,
+      },
+    });
+
+    const sharedEng3 = await prisma.leadEngagement.create({
+      data: {
+        leadId: sharedMultiDevLead.id,
+        developerId: thirdDev.id,
+        claimId: sharedClaim3.id,
+        currentStatus: 'NOT_INTERESTED',
+        isTerminal: true,
+        closedAt: now,
+        claimedAt: new Date(now.getTime() - 36 * 60 * 60 * 1000),
+        firstContactedAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+        lastContactedAt: now,
+        notInterestedAt: now,
+        finalOutcome: 'NOT_INTERESTED',
+        outcomeReasonCode: 'NOT_INTERESTED',
+        outcomeReasonNote: 'العميل يفضل التعامل مع مطور فردي وليس وكالة.',
+        outcomeNote: 'العميل يفضل التعامل مع مطور فردي وليس وكالة.',
+      },
+    });
+
+    await prisma.leadStatusHistory.create({
+      data: {
+        claimId: sharedClaim3.id,
+        engagementId: sharedEng3.id,
+        leadId: sharedMultiDevLead.id,
+        userId: thirdDev.id,
+        developerId: thirdDev.id,
+        previousStatus: 'CONTACTED',
+        newStatus: 'NOT_INTERESTED',
+        reasonCode: 'NOT_INTERESTED',
+        note: 'العميل يفضل التعامل مع مطور فردي وليس وكالة.',
+        notes: 'العميل يفضل التعامل مع مطور فردي وليس وكالة.',
+        actorType: 'DEVELOPER',
+        actorId: thirdDev.id,
+      },
+    });
+
+    await prisma.lead.update({
+      where: { id: sharedMultiDevLead.id },
+      data: {
+        currentPurchasers: 3,
+        status: 'CLAIMED_FULL',
+        saleabilityStatus: 'CLAIMED_FULL',
+        availableForClaim: false,
+      },
+    });
+  }
+
+  const zeroCreditDev = await prisma.user.create({
+    data: {
+      email: 'zero.credits@leadforge.eg',
+      name: 'م. كريم سامي (رصيد صفر)',
+      passwordHash: devHash,
+      role: 'DEVELOPER',
+      status: 'ACTIVE',
+      developerProfile: {
+        create: {
+          companyName: 'Kareem Web Studio',
+          phone: '01099887766',
+          services: ['Website Development'],
+          locations: ['القاهرة'],
+          niches: ['Dental', 'Restaurant'],
+          minBudget: 5000,
+          leadType: 'BOTH',
+        },
+      },
+      subscription: {
+        create: {
+          planId: createdPlans['free'],
+          status: 'ACTIVE',
+          credits: 0,
+          totalCreditsGranted: 3,
+          creditsUsed: 3,
+          currentPeriodStart: now,
+          currentPeriodEnd: periodEnd,
+        },
+      },
+      creditAccount: {
+        create: {
+          balance: 0,
+          lifetimePurchased: 3,
+          lifetimeSpent: 3,
+          totalGranted: 3,
+          totalSpent: 3,
+          version: 2,
+        },
+      },
+    },
+    include: { creditAccount: true },
+  });
+
+  if (zeroCreditDev.creditAccount) {
+    await prisma.creditTransaction.createMany({
+      data: [
+        {
+          accountId: zeroCreditDev.creditAccount.id,
+          developerId: zeroCreditDev.id,
+          type: 'PURCHASE',
+          amount: 3,
+          balanceBefore: 0,
+          balanceAfter: 3,
+          referenceType: 'SUBSCRIPTION',
+          referenceId: zeroCreditDev.id,
+          reason: 'Free tier initial credits',
+          idempotencyKey: `seed-zero-init-${zeroCreditDev.id}`,
+        },
+        {
+          accountId: zeroCreditDev.creditAccount.id,
+          developerId: zeroCreditDev.id,
+          type: 'CLAIM',
+          amount: -3,
+          balanceBefore: 3,
+          balanceAfter: 0,
+          referenceType: 'LEAD_CLAIM',
+          referenceId: zeroCreditDev.id,
+          reason: 'Prior credit usage',
+          idempotencyKey: `seed-zero-spend-${zeroCreditDev.id}`,
+        },
+      ],
     });
   }
 
@@ -1524,9 +2245,664 @@ export async function seedDatabase(prisma: PrismaClient) {
     ],
   });
 
+  // 9. Phase 7: Seed MatchSnapshots, RuleReviewCandidates & DailyMetricSnapshots
+  await ensurePhase7AndRefundSeedData(prisma);
+
   return {
     alreadySeeded: false,
     leadsCount: allLeads.length,
-    usersCount: createdDevs.length + 1,
+    usersCount: createdDevs.length + 2,
   };
 }
+
+async function ensurePhase7AndRefundSeedData(prisma: PrismaClient) {
+  const now = new Date();
+  const adminUser =
+    (await prisma.user.findUnique({
+      where: { email: DEMO_CREDENTIALS.admin.email },
+    })) ||
+    (await prisma.user.findFirst({
+      where: { role: 'ADMIN' },
+    }));
+  const primaryDev =
+    (await prisma.user.findUnique({
+      where: { email: DEMO_CREDENTIALS.developer.email },
+    })) ||
+    (await prisma.user.findFirst({
+      where: { role: 'DEVELOPER' },
+      orderBy: { createdAt: 'asc' },
+    }));
+  const secondDev =
+    (await prisma.user.findUnique({
+      where: { email: 'ahmed.web@leadforge.eg' },
+      include: { creditAccount: true },
+    })) || primaryDev;
+  const allLeads = await prisma.lead.findMany({
+    where: { isCanonical: true },
+    orderBy: { createdAt: 'asc' },
+    take: 15,
+  });
+
+  if (!adminUser || !primaryDev || !secondDev || allLeads.length === 0) {
+    return;
+  }
+
+  // Ensure at least one canonical REFUNDED / INVALID claim of 5 credits exists for Phase 6 & 7 verification
+  if (allLeads.length >= 7) {
+    const seventhLead = allLeads[6];
+    const invDate = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+    const refundedClaim = await prisma.leadClaim.upsert({
+      where: {
+        leadId_userId: { leadId: seventhLead.id, userId: secondDev.id },
+      },
+      update: {
+        status: 'REFUNDED',
+        pipelineStatus: 'INVALID',
+        creditsSpent: 5,
+        creditsCharged: 5,
+        creditsRefunded: 5,
+        refundedAt: invDate,
+        refundReason:
+          'Automatic refund: phone number disconnected upon verification',
+        refundedBy: adminUser.id,
+      },
+      create: {
+        leadId: seventhLead.id,
+        userId: secondDev.id,
+        developerId: secondDev.id,
+        status: 'REFUNDED',
+        accessType: 'SHARED',
+        pipelineStatus: 'INVALID',
+        creditsSpent: 5,
+        creditsCharged: 5,
+        creditsRefunded: 5,
+        creditCostReason: 'SHARED_LEAD',
+        exclusiveClaim: false,
+        accessGranted: false,
+        accessGrantedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+        claimedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+        refundedAt: invDate,
+        refundReason:
+          'Automatic refund: phone number disconnected upon verification',
+        refundedBy: adminUser.id,
+      },
+    });
+
+    await prisma.leadEngagement.upsert({
+      where: {
+        leadId_developerId: {
+          leadId: seventhLead.id,
+          developerId: secondDev.id,
+        },
+      },
+      update: {
+        currentStatus: 'INVALID',
+        isTerminal: true,
+        closedAt: invDate,
+        invalidAt: invDate,
+        invalidatedAt: invDate,
+        finalOutcome: 'INVALID',
+        outcomeReasonCode: 'WRONG_PHONE',
+        invalidReasonCode: 'WRONG_PHONE',
+      },
+      create: {
+        leadId: seventhLead.id,
+        developerId: secondDev.id,
+        claimId: refundedClaim.id,
+        currentStatus: 'INVALID',
+        isTerminal: true,
+        closedAt: invDate,
+        claimedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+        invalidAt: invDate,
+        invalidatedAt: invDate,
+        finalOutcome: 'INVALID',
+        outcomeReasonCode: 'WRONG_PHONE',
+        outcomeReasonNote: 'Phone number disconnected upon call attempt',
+        outcomeNote: 'Phone number disconnected upon call attempt',
+        invalidReasonCode: 'WRONG_PHONE',
+        invalidReasonNote: 'Phone number disconnected upon call attempt',
+      },
+    });
+  }
+
+  // Ensure MatchSnapshots are seeded
+  const existingMatchSnapshotCount = await prisma.matchSnapshot.count();
+  if (existingMatchSnapshotCount === 0) {
+    const matchSnapshotsData = allLeads.slice(0, 12).map((lead, idx) => ({
+      leadId: lead.id,
+      developerId: idx < 8 ? primaryDev.id : secondDev.id,
+      eligible: idx !== 11,
+      ineligibleReason: idx === 11 ? 'EXCLUDED_NICHE_MISMATCH' : null,
+      matchScore: idx === 11 ? 0 : Math.max(45, 92 - idx * 4),
+      matchStrength: idx === 11 ? 0 : Math.max(45, 92 - idx * 4),
+      finalRankScore: idx === 11 ? 0 : Math.max(50, 90 - idx * 3),
+      opportunityScore: lead.score ?? 75,
+      qualityScore: lead.qualityScore ?? 80,
+      freshnessScore: 85,
+      matchedCriteria: [
+        { ruleKey: 'EXACT_SERVICE_MATCH', key: 'EXACT_SERVICE_MATCH', points: 30 },
+        { ruleKey: 'PRIMARY_CITY_MATCH', key: 'PRIMARY_CITY_MATCH', points: 25 },
+        ...(idx % 2 === 0
+          ? [
+              {
+                ruleKey: 'PREFERRED_NICHE_MATCH',
+                key: 'PREFERRED_NICHE_MATCH',
+                points: 20,
+              },
+            ]
+          : []),
+      ],
+      unmatchedCriteria: [],
+      penalties: [],
+      warnings: [],
+      boosts: [],
+      matchVersion: 'v1',
+    }));
+
+    await prisma.matchSnapshot.createMany({
+      data: matchSnapshotsData,
+    });
+  }
+
+  // Ensure RuleReviewCandidates are seeded
+  const existingRuleCandidateCount = await prisma.ruleReviewCandidate.count();
+  if (existingRuleCandidateCount === 0) {
+    await prisma.ruleReviewCandidate.createMany({
+      data: [
+        {
+          ruleType: 'SCORING',
+          ruleKey: 'HIGH_VALUE_NICHE',
+          ruleName: 'قطاع تجاري ذو قيمة مرتفعة (High-Value Niche)',
+          ruleVersion: 'v1',
+          metric: 'WIN_RATE',
+          metricVersion: 'WIN_RATE_V1',
+          baselineValue: 0.1429,
+          observedValue: 0.25,
+          absoluteDifference: 0.1071,
+          relativeDifference: 0.7495,
+          sampleSize: 12,
+          minimumSampleSize: 5,
+          triggeredNumerator: 3,
+          triggeredDenominator: 12,
+          baselineNumerator: 2,
+          baselineDenominator: 14,
+          evidenceWindow: 'LAST_30_DAYS',
+          recommendation:
+            'Positive rule HIGH_VALUE_NICHE (+15) demonstrates +10.7% higher win rate vs baseline across 12 claims. Candidate for maintaining or +2 weight review.',
+          evidenceDetails: {
+            nicheCohort: ['Dental', 'Medical Clinic', 'Real Estate'],
+            withRuleClaims: 12,
+            withRuleWins: 3,
+          },
+          status: 'OPEN',
+        },
+        {
+          ruleType: 'MATCHING',
+          ruleKey: 'GOVERNORATE_FALLBACK_MATCH',
+          ruleName: 'مطابقة على مستوى المحافظة (Governorate Fallback)',
+          ruleVersion: 'v1',
+          metric: 'WIN_RATE',
+          metricVersion: 'WIN_RATE_V1',
+          baselineValue: 0.2,
+          observedValue: 0.0833,
+          absoluteDifference: -0.1167,
+          relativeDifference: -0.5835,
+          sampleSize: 12,
+          minimumSampleSize: 5,
+          triggeredNumerator: 1,
+          triggeredDenominator: 12,
+          baselineNumerator: 3,
+          baselineDenominator: 15,
+          evidenceWindow: 'LAST_30_DAYS',
+          recommendation:
+            'Matching rule GOVERNORATE_FALLBACK_MATCH (+12) shows lower conversion than exact city matches (-11.7% vs baseline). Flagged for Admin human review.',
+          evidenceDetails: {
+            withRuleClaims: 12,
+            withRuleWins: 1,
+          },
+          status: 'UNDER_REVIEW',
+        },
+        {
+          ruleType: 'QUALITY',
+          ruleKey: 'VERIFIED_PHONE',
+          ruleName: 'رقم هاتف متحقق منه (Verified Phone)',
+          ruleVersion: 'v1',
+          metric: 'WIN_RATE',
+          metricVersion: 'WIN_RATE_V1',
+          baselineValue: 0.0909,
+          observedValue: 0.2222,
+          absoluteDifference: 0.1313,
+          relativeDifference: 1.4444,
+          sampleSize: 18,
+          minimumSampleSize: 5,
+          triggeredNumerator: 4,
+          triggeredDenominator: 18,
+          baselineNumerator: 1,
+          baselineDenominator: 11,
+          evidenceWindow: 'LAST_30_DAYS',
+          recommendation:
+            'Verified phone leads convert at 22.2% vs 9.1% unverified baseline. Approved by Admin as a core quality gate.',
+          evidenceDetails: {
+            verifiedClaims: 18,
+            verifiedWins: 4,
+          },
+          status: 'APPROVED',
+          reviewedAt: now,
+          reviewedBy: adminUser.id,
+          decision:
+            'Approved: keep VERIFIED_PHONE as mandatory saleability requirement.',
+          notes: 'تأكيد استمرار اشتراط التحقق من الهاتف قبل عرض الفرصة للبيع.',
+        },
+      ],
+    });
+  }
+
+  // Ensure DailyMetricSnapshots are seeded
+  const seedDateKey = now.toISOString().slice(0, 10);
+  const seedSnapshotDate = new Date(`${seedDateKey}T00:00:00.000Z`);
+  const seedSnapshots = [
+    {
+      date: seedSnapshotDate,
+      dateKey: seedDateKey,
+      metric: 'TOTAL_LEADS',
+      dimension: 'GLOBAL',
+      dimensionValue: 'ALL',
+      value: allLeads.length,
+      numerator: allLeads.length,
+      denominator: 1,
+      status: 'VALID',
+      version: 'TOTAL_LEADS_V1',
+    },
+    {
+      date: seedSnapshotDate,
+      dateKey: seedDateKey,
+      metric: 'WIN_RATE',
+      dimension: 'GLOBAL',
+      dimensionValue: 'ALL',
+      value: 0.125,
+      numerator: 1,
+      denominator: 8,
+      status: 'VALID',
+      version: 'WIN_RATE_V1',
+    },
+    {
+      date: seedSnapshotDate,
+      dateKey: seedDateKey,
+      metric: 'CONTACT_RATE',
+      dimension: 'GLOBAL',
+      dimensionValue: 'ALL',
+      value: 0.875,
+      numerator: 7,
+      denominator: 8,
+      status: 'VALID',
+      version: 'CONTACT_RATE_V1',
+    },
+  ];
+
+  for (const snap of seedSnapshots) {
+    await prisma.dailyMetricSnapshot.upsert({
+      where: {
+        dateKey_metric_dimension_dimensionValue_version: {
+          dateKey: snap.dateKey,
+          metric: snap.metric,
+          dimension: snap.dimension,
+          dimensionValue: snap.dimensionValue,
+          version: snap.version,
+        },
+      },
+      update: snap,
+      create: snap,
+    });
+  }
+
+  await ensurePhase8IngestionSeedData(prisma, adminUser.id);
+}
+
+async function ensurePhase8IngestionSeedData(prisma: PrismaClient, adminId: string) {
+  const now = new Date();
+
+  const sourceConfigs: {
+    name: string;
+    type: 'GOOGLE_BUSINESS' | 'DIRECTORY' | 'OPEN_DATA' | 'CSV_IMPORT' | 'WEBSITE' | 'MANUAL';
+    collectorKey: string;
+    collectorVersion: string;
+    configurationStatus: string;
+    healthStatus: string;
+    enabled: boolean;
+    priority: number;
+    scheduleIntervalMinutes: number | null;
+    consecutiveFailures: number;
+    totalSuccessCount: number;
+    totalFailureCount: number;
+    averageDurationMs: number;
+    acquisitionCostPerRunEgp: number | null;
+    acquisitionCostPerRecordEgp: number | null;
+    description: string;
+  }[] = [
+    {
+      name: 'Egypt Open Commercial Registry Dataset',
+      type: 'OPEN_DATA',
+      collectorKey: 'open-data-v1',
+      collectorVersion: 'open-data-v1',
+      configurationStatus: 'CONFIGURED',
+      healthStatus: 'HEALTHY',
+      enabled: true,
+      priority: 10,
+      scheduleIntervalMinutes: 360,
+      consecutiveFailures: 0,
+      totalSuccessCount: 8,
+      totalFailureCount: 0,
+      averageDurationMs: 420,
+      acquisitionCostPerRunEgp: 15,
+      acquisitionCostPerRecordEgp: 0.5,
+      description: 'قواعد البيانات المفتوحة للأنشطة التجارية المسجلة في مصر',
+    },
+    {
+      name: 'Egypt Business Directory Feed',
+      type: 'DIRECTORY',
+      collectorKey: 'directory-v1',
+      collectorVersion: 'directory-v1',
+      configurationStatus: 'CONFIGURED',
+      healthStatus: 'HEALTHY',
+      enabled: true,
+      priority: 20,
+      scheduleIntervalMinutes: 720,
+      consecutiveFailures: 0,
+      totalSuccessCount: 6,
+      totalFailureCount: 1,
+      averageDurationMs: 680,
+      acquisitionCostPerRunEgp: 25,
+      acquisitionCostPerRecordEgp: 0.75,
+      description: 'دليل الشركات والأنشطة التجارية المصرية ومواقعها الإلكترونية',
+    },
+    {
+      name: 'CSV Import',
+      type: 'CSV_IMPORT',
+      collectorKey: 'csv-v1',
+      collectorVersion: 'csv-v1',
+      configurationStatus: 'CONFIGURED',
+      healthStatus: 'HEALTHY',
+      enabled: true,
+      priority: 30,
+      scheduleIntervalMinutes: null,
+      consecutiveFailures: 0,
+      totalSuccessCount: 5,
+      totalFailureCount: 0,
+      averageDurationMs: 310,
+      acquisitionCostPerRunEgp: 10,
+      acquisitionCostPerRecordEgp: 0.25,
+      description: 'استيراد ملفات CSV المجمعة بواسطة فريق إدارة البيانات',
+    },
+    {
+      name: 'Public Domain & Website Registry',
+      type: 'WEBSITE',
+      collectorKey: 'website-v1',
+      collectorVersion: 'website-v1',
+      configurationStatus: 'CONFIGURED',
+      healthStatus: 'DEGRADED',
+      enabled: true,
+      priority: 40,
+      scheduleIntervalMinutes: 1440,
+      consecutiveFailures: 1,
+      totalSuccessCount: 4,
+      totalFailureCount: 2,
+      averageDurationMs: 1450,
+      acquisitionCostPerRunEgp: 20,
+      acquisitionCostPerRecordEgp: 1.0,
+      description: 'فاحص النطاقات والمواقع الإلكترونية للشركات المحلية',
+    },
+    {
+      name: 'Google Business Profile Export',
+      type: 'GOOGLE_BUSINESS',
+      collectorKey: 'google-business-v1',
+      collectorVersion: 'google-business-v1',
+      configurationStatus: process.env.GOOGLE_PLACES_API_KEY ? 'CONFIGURED' : 'NOT_CONFIGURED',
+      healthStatus: process.env.GOOGLE_PLACES_API_KEY ? 'HEALTHY' : 'NOT_CONFIGURED',
+      enabled: true,
+      priority: 50,
+      scheduleIntervalMinutes: 1440,
+      consecutiveFailures: 0,
+      totalSuccessCount: 3,
+      totalFailureCount: 0,
+      averageDurationMs: 890,
+      acquisitionCostPerRunEgp: null,
+      acquisitionCostPerRecordEgp: null,
+      description: 'بيانات الأنشطة التجارية الموثقة من Google Business (يتطلب مفتاح API للتشغيل المباشر)',
+    },
+    {
+      name: 'Manual Entry',
+      type: 'MANUAL',
+      collectorKey: 'manual-v1',
+      collectorVersion: 'manual-v1',
+      configurationStatus: 'CONFIGURED',
+      healthStatus: 'HEALTHY',
+      enabled: true,
+      priority: 60,
+      scheduleIntervalMinutes: null,
+      consecutiveFailures: 0,
+      totalSuccessCount: 10,
+      totalFailureCount: 0,
+      averageDurationMs: 120,
+      acquisitionCostPerRunEgp: null,
+      acquisitionCostPerRecordEgp: null,
+      description: 'إدخال يدوي ومراجعة مباشرة من قِبل فريق الجودة',
+    },
+    {
+      name: 'Legacy YellowPages Archive Feed',
+      type: 'DIRECTORY',
+      collectorKey: 'directory-v1',
+      collectorVersion: 'directory-v1',
+      configurationStatus: 'CONFIGURED',
+      healthStatus: 'DISABLED',
+      enabled: false,
+      priority: 90,
+      scheduleIntervalMinutes: null,
+      consecutiveFailures: 0,
+      totalSuccessCount: 1,
+      totalFailureCount: 0,
+      averageDurationMs: 500,
+      acquisitionCostPerRunEgp: null,
+      acquisitionCostPerRecordEgp: null,
+      description: 'مصدر أرشيفي قديم متوقف عن التحديث (Disabled Source)',
+    },
+  ];
+
+  const sourceIdMap: Record<string, string> = {};
+  for (const sc of sourceConfigs) {
+    const upserted = await prisma.leadSource.upsert({
+      where: { name: sc.name },
+      update: {
+        collectorKey: sc.collectorKey,
+        collectorVersion: sc.collectorVersion,
+        contractVersion: 'INGESTION_CONTRACT_V1',
+        configurationStatus: sc.configurationStatus,
+        healthStatus: sc.healthStatus,
+        enabled: sc.enabled,
+        isActive: sc.enabled,
+        priority: sc.priority,
+        scheduleIntervalMinutes: sc.scheduleIntervalMinutes,
+        consecutiveFailures: sc.consecutiveFailures,
+        totalSuccessCount: sc.totalSuccessCount,
+        totalFailureCount: sc.totalFailureCount,
+        averageDurationMs: sc.averageDurationMs,
+        acquisitionCostPerRunEgp: sc.acquisitionCostPerRunEgp,
+        acquisitionCostPerRecordEgp: sc.acquisitionCostPerRecordEgp,
+        lastSyncAt: now,
+        lastSuccessAt: sc.totalSuccessCount > 0 ? now : null,
+      },
+      create: {
+        name: sc.name,
+        type: sc.type,
+        description: sc.description,
+        collectorKey: sc.collectorKey,
+        collectorVersion: sc.collectorVersion,
+        contractVersion: 'INGESTION_CONTRACT_V1',
+        configurationStatus: sc.configurationStatus,
+        healthStatus: sc.healthStatus,
+        enabled: sc.enabled,
+        isActive: sc.enabled,
+        priority: sc.priority,
+        scheduleIntervalMinutes: sc.scheduleIntervalMinutes,
+        consecutiveFailures: sc.consecutiveFailures,
+        totalSuccessCount: sc.totalSuccessCount,
+        totalFailureCount: sc.totalFailureCount,
+        averageDurationMs: sc.averageDurationMs,
+        acquisitionCostPerRunEgp: sc.acquisitionCostPerRunEgp,
+        acquisitionCostPerRecordEgp: sc.acquisitionCostPerRecordEgp,
+        lastSyncAt: now,
+        lastSuccessAt: sc.totalSuccessCount > 0 ? now : null,
+      },
+    });
+    sourceIdMap[sc.name] = upserted.id;
+  }
+
+  // Seed synthetic Phase 8 ImportJobs if not already seeded
+  const existingPhase8Jobs = await prisma.importJob.count({
+    where: { idempotencyKey: { startsWith: 'seed-phase8-' } },
+  });
+
+  if (existingPhase8Jobs === 0) {
+    const partialJob = await prisma.importJob.create({
+      data: {
+        userId: adminId,
+        sourceId: sourceIdMap['Public Domain & Website Registry'],
+        sourceName: 'Public Domain & Website Registry',
+        collectorVersion: 'website-v1',
+        contractVersion: 'INGESTION_CONTRACT_V1',
+        triggerType: 'MANUAL',
+        status: 'PARTIALLY_COMPLETED',
+        discoveredCount: 6,
+        fetchedCount: 6,
+        normalizedCount: 5,
+        totalRows: 6,
+        validCount: 4,
+        insertedCount: 3,
+        updatedCount: 1,
+        duplicateCount: 1,
+        invalidCount: 0,
+        failedCount: 1,
+        saleableCount: 4,
+        deadLetterCount: 1,
+        retryCount: 2,
+        durationMs: 1420,
+        errorCode: 'SOURCE_TIMEOUT',
+        errorSummary: '1 record failed after retry exhaustion due to upstream website timeout',
+        idempotencyKey: 'seed-phase8-partial-job-1',
+        acquisitionCostEgp: 26,
+        startedAt: new Date(now.getTime() - 4 * 3600_000),
+        completedAt: new Date(now.getTime() - 4 * 3600_000 + 1420),
+      },
+    });
+
+    await prisma.importJob.create({
+      data: {
+        userId: adminId,
+        sourceId: sourceIdMap['Egypt Business Directory Feed'],
+        sourceName: 'Egypt Business Directory Feed',
+        collectorVersion: 'directory-v1',
+        contractVersion: 'INGESTION_CONTRACT_V1',
+        triggerType: 'SCHEDULED',
+        status: 'FAILED',
+        discoveredCount: 5,
+        fetchedCount: 0,
+        normalizedCount: 0,
+        totalRows: 5,
+        validCount: 0,
+        duplicateCount: 0,
+        invalidCount: 0,
+        failedCount: 5,
+        deadLetterCount: 1,
+        retryCount: 3,
+        durationMs: 3200,
+        errorCode: 'RETRY_EXHAUSTED',
+        errorSummary: 'Upstream directory endpoint returned HTTP 503 across 3 retry attempts',
+        idempotencyKey: 'seed-phase8-failed-job-2',
+        startedAt: new Date(now.getTime() - 12 * 3600_000),
+        completedAt: new Date(now.getTime() - 12 * 3600_000 + 3200),
+      },
+    });
+
+    await prisma.importJob.create({
+      data: {
+        userId: adminId,
+        sourceId: sourceIdMap['CSV Import'],
+        sourceName: 'CSV Import',
+        fileName: 'cairo_medical_resync.csv',
+        collectorVersion: 'csv-v1',
+        contractVersion: 'INGESTION_CONTRACT_V1',
+        triggerType: 'CSV_UPLOAD',
+        status: 'COMPLETED',
+        discoveredCount: 10,
+        fetchedCount: 10,
+        normalizedCount: 10,
+        totalRows: 10,
+        validCount: 2,
+        insertedCount: 2,
+        updatedCount: 8,
+        duplicateCount: 8,
+        invalidCount: 0,
+        failedCount: 0,
+        saleableCount: 2,
+        deadLetterCount: 0,
+        retryCount: 0,
+        durationMs: 290,
+        idempotencyKey: 'seed-phase8-dup-heavy-job-3',
+        acquisitionCostEgp: 12.5,
+        startedAt: new Date(now.getTime() - 24 * 3600_000),
+        completedAt: new Date(now.getTime() - 24 * 3600_000 + 290),
+      },
+    });
+
+    await prisma.deadLetterRecord.createMany({
+      data: [
+        {
+          sourceId: sourceIdMap['Public Domain & Website Registry'],
+          sourceName: 'Public Domain & Website Registry',
+          sourceType: 'WEBSITE',
+          importJobId: partialJob.id,
+          externalId: 'web-seed-dl-001',
+          collectorVersion: 'website-v1',
+          rawPayload: {
+            name: 'مركز الشفاء التخصصي للعلاج الطبيعي والتأهيل',
+            category: 'Medical',
+            city: 'القاهرة',
+            area: 'مصر الجديدة',
+            address: 'شارع الحجاز، مصر الجديدة، القاهرة',
+            phone: '01098761234',
+            website: 'http://alshifaa-rehab-center.eg',
+            source: 'Public Domain & Website Registry',
+          },
+          failureReason: 'Website inspection timed out after 3 retries (5000ms limit)',
+          errorCode: 'SOURCE_TIMEOUT',
+          lastError: 'Website inspection timed out after 3 retries (5000ms limit)',
+          retryCount: 3,
+          maxRetries: 3,
+          status: 'DEAD_LETTER',
+        },
+        {
+          sourceId: sourceIdMap['CSV Import'],
+          sourceName: 'CSV Import',
+          sourceType: 'CSV_IMPORT',
+          importJobId: partialJob.id,
+          externalId: 'csv-seed-dl-002',
+          collectorVersion: 'csv-v1',
+          rawPayload: {
+            name: '',
+            category: 'Unknown',
+            city: '',
+            phone: 'invalid-phone',
+          },
+          failureReason: 'Missing business name and invalid Egyptian phone number',
+          errorCode: 'INVALID_SOURCE_RECORD',
+          lastError: 'Missing business name and invalid Egyptian phone number',
+          retryCount: 1,
+          maxRetries: 3,
+          status: 'DEAD_LETTER',
+        },
+      ],
+    });
+  }
+}
+
+
+

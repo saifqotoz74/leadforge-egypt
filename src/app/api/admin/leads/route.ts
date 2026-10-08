@@ -7,6 +7,43 @@ import { createAuditLog } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
+const VALID_AVAILABILITY_STATUSES = new Set([
+  'AVAILABLE',
+  'CLAIMED_SHARED',
+  'CLAIMED_EXCLUSIVE',
+  'HIDDEN',
+  'INVALID',
+  'REQUIRES_VERIFICATION',
+  'STALE',
+  'CLOSED',
+  'DUPLICATE',
+  'NOT_SALEABLE',
+]);
+
+const VALID_QUALITY_STATUSES = new Set([
+  'VERY_LOW',
+  'LOW',
+  'MEDIUM',
+  'HIGH',
+  'EXCELLENT',
+]);
+
+const VALID_FRESHNESS_STATUSES = new Set([
+  'FRESH',
+  'RECENT',
+  'NEEDS_VERIFICATION',
+  'STALE',
+  'VERY_STALE',
+  'UNKNOWN',
+]);
+
+const VALID_VERIFICATION_STATUSES = new Set([
+  'UNVERIFIED',
+  'PARTIALLY_VERIFIED',
+  'VERIFIED',
+  'FAILED_VERIFICATION',
+]);
+
 export async function GET(req: NextRequest) {
   try {
     await requireAdmin(req);
@@ -23,23 +60,59 @@ export async function GET(req: NextRequest) {
     const saleabilityStatus = searchParams.get('saleabilityStatus')?.trim() || '';
     const flag = searchParams.get('flag')?.trim() || '';
 
+    const rawLimit = Number(searchParams.get('pageSize') || searchParams.get('limit') || '200');
+    const take = Number.isFinite(rawLimit) ? Math.min(500, Math.max(1, Math.floor(rawLimit))) : 200;
+    const rawPage = Number(searchParams.get('page') || '1');
+    const page = Number.isFinite(rawPage) ? Math.max(1, Math.floor(rawPage)) : 1;
+    const skip = (page - 1) * take;
+
     const where: Record<string, unknown> = {};
     if (!includeMerged) {
       where.isCanonical = true;
     }
     if (status && status !== 'ALL') {
+      if (!VALID_AVAILABILITY_STATUSES.has(status)) {
+        return NextResponse.json(
+          { error: 'فلتر الحالة غير صالح.', code: 'VALIDATION_ERROR' },
+          { status: 400 }
+        );
+      }
       where.status = status;
     }
     if (qualityStatus && qualityStatus !== 'ALL') {
+      if (!VALID_QUALITY_STATUSES.has(qualityStatus)) {
+        return NextResponse.json(
+          { error: 'فلتر مستوى الجودة غير صالح.', code: 'VALIDATION_ERROR' },
+          { status: 400 }
+        );
+      }
       where.qualityStatus = qualityStatus;
     }
     if (freshnessStatus && freshnessStatus !== 'ALL') {
+      if (!VALID_FRESHNESS_STATUSES.has(freshnessStatus)) {
+        return NextResponse.json(
+          { error: 'فلتر الحداثة غير صالح.', code: 'VALIDATION_ERROR' },
+          { status: 400 }
+        );
+      }
       where.freshnessStatus = freshnessStatus;
     }
     if (verificationStatus && verificationStatus !== 'ALL') {
+      if (!VALID_VERIFICATION_STATUSES.has(verificationStatus)) {
+        return NextResponse.json(
+          { error: 'فلتر حالة التحقق غير صالح.', code: 'VALIDATION_ERROR' },
+          { status: 400 }
+        );
+      }
       where.verificationStatus = verificationStatus;
     }
     if (saleabilityStatus && saleabilityStatus !== 'ALL') {
+      if (!VALID_AVAILABILITY_STATUSES.has(saleabilityStatus)) {
+        return NextResponse.json(
+          { error: 'فلتر قابلية البيع غير صالح.', code: 'VALIDATION_ERROR' },
+          { status: 400 }
+        );
+      }
       where.saleabilityStatus = saleabilityStatus;
     }
     if (flag && flag !== 'ALL') {
@@ -63,6 +136,8 @@ export async function GET(req: NextRequest) {
       prisma.lead.findMany({
         where,
         orderBy: { createdAt: 'desc' },
+        skip,
+        take,
         include: {
           scores: {
             orderBy: { calculatedAt: 'desc' },

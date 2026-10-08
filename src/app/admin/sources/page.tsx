@@ -2,7 +2,28 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { AppShell } from '@/components/AppShell';
-import { Database, RefreshCw, CheckCircle2 } from 'lucide-react';
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Database,
+  Eye,
+  Play,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  Settings,
+  ShieldAlert,
+  TrendingUp,
+  XCircle,
+} from 'lucide-react';
+
+interface SourceCostMetric {
+  value: number | null;
+  currency: 'EGP';
+  status: 'OK' | 'INSUFFICIENT_DATA';
+}
 
 interface SourceItem {
   id: string;
@@ -10,215 +31,1467 @@ interface SourceItem {
   type: string;
   description?: string | null;
   isActive: boolean;
-  lastSyncAt?: string | null;
-  recordsCount: number;
+  enabled: boolean;
+  collectorKey: string;
+  collectorVersion: string;
+  contractVersion: string;
+  configurationStatus: 'CONFIGURED' | 'NOT_CONFIGURED' | 'INVALID';
+  healthStatus: 'HEALTHY' | 'DEGRADED' | 'FAILING' | 'DISABLED' | 'NOT_CONFIGURED';
+  circuitState: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  consecutiveFailures: number;
+  totalSuccessCount: number;
+  totalFailureCount: number;
+  averageDurationMs: number;
+  scheduleCron?: string | null;
+  scheduleIntervalMinutes?: number | null;
+  nextRunAt?: string | null;
+  lastRunAt?: string | null;
+  lastSuccessAt?: string | null;
+  lastFailureAt?: string | null;
+  priority: number;
+  unresolvedDeadLettersCount: number;
+  quotas?: {
+    maxRecordsPerRun: number;
+    batchSize: number;
+    requestsPerMinute: number;
+    timeoutMs: number;
+    maxRetries: number;
+  };
+  funnelStats?: {
+    discovered: number;
+    fetched: number;
+    normalized: number;
+    accepted: number;
+    inserted: number;
+    updated: number;
+    duplicate: number;
+    possibleDuplicate: number;
+    conflict: number;
+    invalid: number;
+    failed: number;
+    skipped: number;
+    saleable: number;
+    deadLetter: number;
+  };
+  rates?: {
+    successRate: number;
+    duplicateRate: number;
+    invalidRate: number;
+    conflictRate: number;
+    saleableRate: number;
+  };
+  economics?: {
+    hasCostData: boolean;
+    totalAcquisitionCostEgp: number | null;
+    costPerCollectedRecord: SourceCostMetric;
+    costPerUniqueLead: SourceCostMetric;
+    costPerSaleableLead: SourceCostMetric;
+    costPerClaimedLead: SourceCostMetric;
+    costPerWonLead: SourceCostMetric;
+  };
 }
 
-interface ImportJobItem {
+interface IngestionJobItem {
   id: string;
+  sourceId?: string | null;
   sourceName: string;
   fileName?: string | null;
+  collectorVersion?: string | null;
+  triggerType: string;
   status: string;
-  totalRows: number;
+  discoveredCount: number;
+  fetchedCount: number;
+  normalizedCount: number;
+  totalRecords: number;
   validCount: number;
+  insertedCount: number;
+  updatedCount: number;
   duplicateCount: number;
+  possibleDuplicateCount: number;
+  conflictCount: number;
   invalidCount: number;
+  failedCount: number;
+  skippedCount: number;
+  saleableCount: number;
+  deadLetterCount: number;
+  retryCount: number;
+  durationMs?: number | null;
+  errorCode?: string | null;
+  errorSummary?: string | null;
   createdAt: string;
+  completedAt?: string | null;
+}
+
+interface DeadLetterItem {
+  id: string;
+  sourceId?: string | null;
+  sourceName: string;
+  sourceType: string;
+  importJobId?: string | null;
+  externalId?: string | null;
+  collectorVersion: string;
+  failureStage: string;
+  errorCode: string;
+  errorMessage: string;
+  retryCount: number;
+  maxRetries: number;
+  status: string;
+  rawPayload: Record<string, unknown>;
+  firstFailedAt: string;
+  lastFailedAt: string;
+}
+
+interface OperationalAlertItem {
+  code: string;
+  severity: 'WARNING' | 'CRITICAL';
+  sourceId?: string | null;
+  sourceName: string;
+  message: string;
+  observedValue: number | string;
+  thresholdValue: number | string;
+  detectedAt: string;
+}
+
+interface ReplenishmentDecisionItem {
+  ruleId: string;
+  category: string;
+  city: string | null;
+  governorate: string | null;
+  requiredService: string | null;
+  minRequired: number;
+  currentAvailable: number;
+  deficit: number;
+  needsReplenishment: boolean;
+  selectedSources: {
+    sourceId: string;
+    sourceName: string;
+    sourceType: string;
+    priority: number;
+    healthStatus: string;
+    selectionReason: string;
+  }[];
+  triggeredJobIds: string[];
 }
 
 export default function AdminSourcesPage() {
-  const [sources, setSources] = useState<SourceItem[]>([]);
-  const [importJobs, setImportJobs] = useState<ImportJobItem[]>([]);
+  const [activeTab, setActiveTab] = useState<'sources' | 'jobs' | 'deadletter' | 'supply'>('sources');
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [syncReport, setSyncReport] = useState<{
-    imported: number;
-    valid: number;
-    duplicates: number;
-    invalid: number;
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [bannerMessage, setBannerMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
   } | null>(null);
 
-  const loadSources = useCallback(async () => {
+  const [sources, setSources] = useState<SourceItem[]>([]);
+  const [summary, setSummary] = useState<Record<string, number>>({});
+  const [alerts, setAlerts] = useState<OperationalAlertItem[]>([]);
+  const [replenishmentDecisions, setReplenishmentDecisions] = useState<ReplenishmentDecisionItem[]>([]);
+
+  // Jobs state
+  const [jobs, setJobs] = useState<IngestionJobItem[]>([]);
+  const [jobStatusFilter, setJobStatusFilter] = useState('');
+  const [jobSourceFilter, setJobSourceFilter] = useState('');
+  const [selectedJobDetail, setSelectedJobDetail] = useState<Record<string, unknown> | null>(null);
+
+  // Dead-letter state
+  const [deadLetters, setDeadLetters] = useState<DeadLetterItem[]>([]);
+  const [dlStatusFilter, setDlStatusFilter] = useState('DEAD_LETTER');
+
+  // Create/Edit source modals
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newSourceForm, setNewSourceForm] = useState({
+    name: '',
+    type: 'OPEN_DATA',
+    description: '',
+    priority: 25,
+    scheduleIntervalMinutes: 360,
+    maxRecordsPerRun: 500,
+    batchSize: 50,
+    acquisitionCostPerRunEgp: '',
+  });
+
+  const [editingSource, setEditingSource] = useState<SourceItem | null>(null);
+  const [editForm, setEditForm] = useState({
+    priority: 25,
+    scheduleIntervalMinutes: '',
+    scheduleCron: '',
+    maxRecordsPerRun: 500,
+    batchSize: 50,
+    acquisitionCostPerRunEgp: '',
+  });
+
+  const loadAllData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/sources');
-      if (res.ok) {
-        const data = await res.json();
-        setSources(data.sources || []);
-        setImportJobs(data.importJobs || []);
+      const jobQuery = new URLSearchParams();
+      if (jobStatusFilter) jobQuery.set('status', jobStatusFilter);
+      if (jobSourceFilter) jobQuery.set('sourceName', jobSourceFilter);
+      jobQuery.set('pageSize', '30');
+
+      const dlQuery = new URLSearchParams();
+      if (dlStatusFilter) dlQuery.set('status', dlStatusFilter);
+      dlQuery.set('pageSize', '40');
+
+      const [healthRes, jobsRes, dlRes] = await Promise.all([
+        fetch('/api/admin/ingestion/health'),
+        fetch(`/api/admin/ingestion/jobs?${jobQuery.toString()}`),
+        fetch(`/api/admin/ingestion/dead-letter?${dlQuery.toString()}`),
+      ]);
+
+      if (healthRes.ok) {
+        const hData = await healthRes.json();
+        setSources(hData.sources || []);
+        setSummary(hData.summary || {});
+        setAlerts(hData.alerts || []);
+        setReplenishmentDecisions(hData.replenishment?.decisions || []);
+      }
+
+      if (jobsRes.ok) {
+        const jData = await jobsRes.json();
+        setJobs(jData.jobs || []);
+      }
+
+      if (dlRes.ok) {
+        const dData = await dlRes.json();
+        setDeadLetters(dData.items || []);
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [jobStatusFilter, jobSourceFilter, dlStatusFilter]);
 
   useEffect(() => {
-    loadSources();
-  }, [loadSources]);
+    loadAllData();
+  }, [loadAllData]);
 
-  async function toggleSourceActive(src: SourceItem) {
-    const res = await fetch('/api/admin/sources', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sourceId: src.id,
-        isActive: !src.isActive,
-      }),
-    });
-    if (res.ok) {
-      await loadSources();
-    }
-  }
-
-  async function handleRunOpenDataSync() {
-    setSyncing(true);
-    setSyncReport(null);
+  async function handleRunSource(source: SourceItem) {
+    setActionLoading(`run-${source.id}`);
+    setBannerMessage(null);
     try {
-      const res = await fetch('/api/admin/sources', {
+      const res = await fetch(`/api/admin/ingestion/sources/${source.id}/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'SYNC_OPEN_DATA' }),
+        body: JSON.stringify({ triggerType: 'MANUAL' }),
       });
       const data = await res.json();
       if (res.ok && data.report) {
-        setSyncReport(data.report);
-        await loadSources();
+        const r = data.report;
+        setBannerMessage({
+          type: 'success',
+          text: `اكتمل تشغيل "${source.name}" (${r.collectorVersion}) — مكتشف: ${r.discovered ?? r.imported} | مقبول جديد: ${r.valid} | مكرر: ${r.duplicates} | غير صالح: ${r.invalid} | قابل للبيع: ${r.saleable ?? 0}`,
+        });
+        await loadAllData();
+      } else {
+        setBannerMessage({
+          type: 'error',
+          text: data.error || 'تعذر تشغيل جامع البيانات.',
+        });
       }
     } finally {
-      setSyncing(false);
+      setActionLoading(null);
+    }
+  }
+
+  async function handleToggleSource(source: SourceItem) {
+    setActionLoading(`toggle-${source.id}`);
+    try {
+      const res = await fetch(`/api/admin/ingestion/sources/${source.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !source.enabled }),
+      });
+      if (res.ok) {
+        await loadAllData();
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleResetCircuit(source: SourceItem) {
+    setActionLoading(`reset-${source.id}`);
+    try {
+      const res = await fetch(`/api/admin/ingestion/sources/${source.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resetCircuit: true }),
+      });
+      if (res.ok) {
+        setBannerMessage({
+          type: 'success',
+          text: `تمت إعادة ضبط قاطع الدائرة (Circuit Breaker) للمصدر "${source.name}".`,
+        });
+        await loadAllData();
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleCreateSource(e: React.FormEvent) {
+    e.preventDefault();
+    setActionLoading('create-source');
+    try {
+      const res = await fetch('/api/admin/ingestion/sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newSourceForm.name,
+          type: newSourceForm.type,
+          description: newSourceForm.description,
+          priority: Number(newSourceForm.priority),
+          scheduleIntervalMinutes: Number(newSourceForm.scheduleIntervalMinutes) || null,
+          maxRecordsPerRun: Number(newSourceForm.maxRecordsPerRun),
+          batchSize: Number(newSourceForm.batchSize),
+          acquisitionCostPerRunEgp: newSourceForm.acquisitionCostPerRunEgp
+            ? Number(newSourceForm.acquisitionCostPerRunEgp)
+            : null,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setShowCreateModal(false);
+        setNewSourceForm({
+          name: '',
+          type: 'OPEN_DATA',
+          description: '',
+          priority: 25,
+          scheduleIntervalMinutes: 360,
+          maxRecordsPerRun: 500,
+          batchSize: 50,
+          acquisitionCostPerRunEgp: '',
+        });
+        setBannerMessage({
+          type: 'success',
+          text: `تمت إضافة المصدر "${data.source?.name}" بنجاح.`,
+        });
+        await loadAllData();
+      } else {
+        setBannerMessage({
+          type: 'error',
+          text: data.error || 'تعذر إنشاء المصدر.',
+        });
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleSaveEditSource(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingSource) return;
+    setActionLoading(`edit-${editingSource.id}`);
+    try {
+      const res = await fetch(`/api/admin/ingestion/sources/${editingSource.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priority: Number(editForm.priority),
+          scheduleIntervalMinutes: editForm.scheduleIntervalMinutes
+            ? Number(editForm.scheduleIntervalMinutes)
+            : null,
+          scheduleCron: editForm.scheduleCron || null,
+          maxRecordsPerRun: Number(editForm.maxRecordsPerRun),
+          batchSize: Number(editForm.batchSize),
+          acquisitionCostPerRunEgp: editForm.acquisitionCostPerRunEgp
+            ? Number(editForm.acquisitionCostPerRunEgp)
+            : null,
+        }),
+      });
+      if (res.ok) {
+        setEditingSource(null);
+        setBannerMessage({
+          type: 'success',
+          text: 'تم تحديث إعدادات الجدولة والحصص بنجاح.',
+        });
+        await loadAllData();
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleInspectJob(jobId: string) {
+    setActionLoading(`job-${jobId}`);
+    try {
+      const res = await fetch(`/api/admin/ingestion/jobs/${jobId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedJobDetail(data.job);
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleCancelJob(jobId: string) {
+    setActionLoading(`cancel-${jobId}`);
+    try {
+      const res = await fetch(`/api/admin/ingestion/jobs/${jobId}/cancel`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        setBannerMessage({ type: 'success', text: 'تم إرسال طلب إلغاء المهمة بنجاح.' });
+        await loadAllData();
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleDeadLetterAction(
+    id: string,
+    action: 'RETRY' | 'MARK_INVALID' | 'RESOLVE'
+  ) {
+    setActionLoading(`dl-${id}-${action}`);
+    try {
+      const res = await fetch(`/api/admin/ingestion/dead-letter/${id}/retry`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setBannerMessage({
+          type: 'success',
+          text:
+            action === 'RETRY'
+              ? 'تمت إعادة معالجة السجل المعلق بنجاح.'
+              : action === 'MARK_INVALID'
+                ? 'تم تصنيف السجل كغير صالح نهائياً.'
+                : 'تم إغلاق السجل المعلق.',
+        });
+        await loadAllData();
+      } else {
+        setBannerMessage({
+          type: 'error',
+          text: data.error || 'تعذر تنفيذ الإجراء على السجل المعلق.',
+        });
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleTriggerReplenishment() {
+    setActionLoading('trigger-replenishment');
+    setBannerMessage(null);
+    try {
+      const res = await fetch('/api/admin/ingestion/health', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'EVALUATE_REPLENISHMENT',
+          autoTrigger: true,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setReplenishmentDecisions(data.replenishment?.decisions || []);
+        setBannerMessage({
+          type: 'success',
+          text: `تم فحص مخزون الفرص القابلة للبيع وتشغيل ${data.replenishment?.triggeredJobsCount ?? 0} مهمة إمداد تلقائية.`,
+        });
+        await loadAllData();
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  function renderHealthBadge(status: SourceItem['healthStatus']) {
+    switch (status) {
+      case 'HEALTHY':
+        return (
+          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+            سليم (HEALTHY)
+          </span>
+        );
+      case 'DEGRADED':
+        return (
+          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+            متراجع (DEGRADED)
+          </span>
+        );
+      case 'FAILING':
+        return (
+          <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-800">
+            متعطل (FAILING)
+          </span>
+        );
+      case 'NOT_CONFIGURED':
+        return (
+          <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold text-purple-800">
+            غير مهيأ (NOT_CONFIGURED)
+          </span>
+        );
+      default:
+        return (
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-600">
+            متوقف (DISABLED)
+          </span>
+        );
+    }
+  }
+
+  function renderJobStatusBadge(status: string) {
+    switch (status) {
+      case 'COMPLETED':
+        return (
+          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+            COMPLETED
+          </span>
+        );
+      case 'PARTIALLY_COMPLETED':
+        return (
+          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+            PARTIALLY_COMPLETED
+          </span>
+        );
+      case 'FAILED':
+        return (
+          <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-800">
+            FAILED
+          </span>
+        );
+      case 'CANCELLED':
+        return (
+          <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-[11px] font-bold text-slate-700">
+            CANCELLED
+          </span>
+        );
+      default:
+        return (
+          <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-bold text-blue-800">
+            {status}
+          </span>
+        );
     }
   }
 
   return (
     <AppShell isAdminView>
       <div className="space-y-6">
-        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center">
+        {/* Header */}
+        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:flex-row lg:items-center">
           <div>
             <h1 className="text-xl font-extrabold text-slate-900">
-              إدارة مصادر البيانات والمجمّعات (Data Sources & Collectors)
+              منظومة الإمداد المستمر وجمع البيانات الإنتاجية (Phase 8 Ingestion & Collectors)
             </h1>
             <p className="mt-1 text-xs text-slate-500">
-              معمارية معيارية: Raw Data → Collector → Normalizer → Validator → Deduplicator →
-              Website Checker → Scoring Engine → Database
+              محرك جمع حتمي 100% بمعايير الإيداع الآمن (Idempotency)، قواطع الدائرة (Circuit Breakers)،
+              طابور المعالجة المعلقة (Dead-Letter Queue)، والإمداد التلقائي للسوق المصري
             </p>
           </div>
 
-          <button
-            onClick={handleRunOpenDataSync}
-            disabled={syncing}
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-extrabold text-white hover:bg-emerald-700 disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
-            <span>{syncing ? 'جاري المزامنة...' : 'تشغيل مزامنة OpenDataCollector'}</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-50"
+            >
+              <Plus className="h-4 w-4 text-emerald-600" />
+              <span>إضافة مصدر جديد</span>
+            </button>
+
+            <button
+              onClick={handleTriggerReplenishment}
+              disabled={actionLoading === 'trigger-replenishment'}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-extrabold text-white hover:bg-emerald-700 disabled:opacity-50"
+            >
+              <TrendingUp className="h-4 w-4" />
+              <span>
+                {actionLoading === 'trigger-replenishment'
+                  ? 'جاري فحص المخزون...'
+                  : 'فحص وتشغيل الإمداد التلقائي'}
+              </span>
+            </button>
+
+            <button
+              onClick={loadAllData}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>تحديث</span>
+            </button>
+          </div>
         </div>
 
-        {syncReport && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-bold text-emerald-900">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              اكتملت مزامنة البيانات المفتوحة — الإجمالي: {syncReport.imported} | جديد:{' '}
-              {syncReport.valid} | مكرر وتم دمجه: {syncReport.duplicates} | غير صالح:{' '}
-              {syncReport.invalid}
-            </span>
+        {/* KPI Summary Cards */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-slate-500">المصادر السليمة</span>
+            <p className="mt-1 text-xl font-extrabold text-emerald-700">
+              {summary.healthySources ?? 0} / {summary.totalSources ?? sources.length}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-slate-500">غير مهيأة (Credentials)</span>
+            <p className="mt-1 text-xl font-extrabold text-purple-700">
+              {summary.notConfiguredSources ?? 0}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-slate-500">إجمالي مهام الجمع</span>
+            <p className="mt-1 text-xl font-extrabold text-slate-900">
+              {summary.totalJobs ?? jobs.length}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-slate-500">المهام المكتملة</span>
+            <p className="mt-1 text-xl font-extrabold text-emerald-700">
+              {summary.completedJobs ?? 0}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-slate-500">طابور Dead-Letter</span>
+            <p className="mt-1 text-xl font-extrabold text-amber-700">
+              {summary.unresolvedDeadLetters ?? deadLetters.length}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-slate-500">التنبيهات النشطة</span>
+            <p className="mt-1 text-xl font-extrabold text-rose-700">
+              {summary.activeAlertsCount ?? alerts.length}
+            </p>
+          </div>
+        </div>
+
+        {bannerMessage && (
+          <div
+            className={`rounded-xl border p-4 text-xs font-bold ${
+              bannerMessage.type === 'success'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                : 'border-rose-200 bg-rose-50 text-rose-900'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                {bannerMessage.type === 'success' ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 text-rose-600" />
+                )}
+                {bannerMessage.text}
+              </span>
+              <button
+                onClick={() => setBannerMessage(null)}
+                className="text-slate-500 hover:text-slate-800"
+              >
+                إغلاق
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Sources Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {loading
-            ? [1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-white p-5"
-                />
-              ))
-            : sources.map((src) => (
-                <div
-                  key={src.id}
-                  className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="rounded bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-700">
-                        {src.type}
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+          <button
+            onClick={() => setActiveTab('sources')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
+              activeTab === 'sources'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Database className="h-4 w-4" />
+            <span>المصادر والمجمّعات ({sources.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('jobs')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
+              activeTab === 'jobs'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Clock className="h-4 w-4" />
+            <span>سجل مهام التشغيل ({jobs.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('deadletter')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
+              activeTab === 'deadletter'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <ShieldAlert className="h-4 w-4" />
+            <span>طابور المعالجة المعلقة ({deadLetters.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('supply')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
+              activeTab === 'supply'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Activity className="h-4 w-4" />
+            <span>التنبيهات والإمداد المستمر ({alerts.length})</span>
+          </button>
+        </div>
+
+        {/* TAB 1: SOURCES */}
+        {activeTab === 'sources' && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {sources.map((src) => (
+              <div
+                key={src.id}
+                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              >
+                <div>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded bg-slate-100 px-2.5 py-0.5 font-mono text-[11px] font-bold text-slate-700">
+                        {src.collectorVersion || src.type}
                       </span>
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                          src.isActive
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-slate-100 text-slate-500'
-                        }`}
-                      >
-                        {src.isActive ? 'نشط (Active)' : 'متوقف (Inactive)'}
+                      <span className="rounded bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">
+                        أولوية #{src.priority}
                       </span>
                     </div>
-
-                    <h2 className="mt-3 flex items-center gap-2 text-base font-extrabold text-slate-900">
-                      <Database className="h-4 w-4 text-emerald-600" />
-                      {src.name}
-                    </h2>
-                    <p className="mt-1 text-xs text-slate-500">{src.description}</p>
+                    <div className="flex items-center gap-1.5">
+                      {renderHealthBadge(src.healthStatus)}
+                      {src.circuitState !== 'CLOSED' && (
+                        <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-extrabold text-white">
+                          Circuit: {src.circuitState}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
-                    <div>
-                      <span className="block font-bold text-slate-800">
-                        {src.recordsCount} سجل مرتبط
-                      </span>
-                      <span className="text-[11px] text-slate-400">
-                        آخر مزامنة:{' '}
-                        {src.lastSyncAt
-                          ? new Date(src.lastSyncAt).toLocaleDateString('ar-EG')
-                          : '—'}
-                      </span>
+                  <h2 className="mt-3 flex items-center gap-2 text-base font-extrabold text-slate-900">
+                    <Database className="h-4 w-4 text-emerald-600" />
+                    <span>{src.name}</span>
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500">{src.description}</p>
+
+                  {/* Funnel & Quality Metrics */}
+                  {src.funnelStats && (
+                    <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl bg-slate-50 p-3 text-center text-[11px]">
+                      <div>
+                        <span className="block text-slate-400">مجلوب</span>
+                        <span className="font-extrabold text-slate-800">
+                          {src.funnelStats.fetched}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-400">مقبول</span>
+                        <span className="font-extrabold text-emerald-700">
+                          {src.funnelStats.accepted}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-400">مكرر ({src.rates?.duplicateRate ?? 0}%)</span>
+                        <span className="font-extrabold text-amber-700">
+                          {src.funnelStats.duplicate}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-400">قابل للبيع</span>
+                        <span className="font-extrabold text-blue-700">
+                          {src.funnelStats.saleable}
+                        </span>
+                      </div>
                     </div>
+                  )}
+
+                  {/* Cost & Schedule Info */}
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                    <span>
+                      الجدولة:{' '}
+                      <strong className="text-slate-700">
+                        {src.scheduleIntervalMinutes
+                          ? `كل ${src.scheduleIntervalMinutes} دقيقة`
+                          : src.scheduleCron || 'يدوي فقط'}
+                      </strong>
+                    </span>
+                    <span>
+                      تكلفة الفرصة الصالحة:{' '}
+                      <strong className="text-slate-700">
+                        {src.economics?.costPerSaleableLead.status === 'OK' &&
+                        src.economics.costPerSaleableLead.value !== null
+                          ? `${src.economics.costPerSaleableLead.value} ج.م`
+                          : 'INSUFFICIENT_DATA'}
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs">
+                  <div className="text-[11px] text-slate-400">
+                    آخر نجاح:{' '}
+                    {src.lastSuccessAt
+                      ? new Date(src.lastSuccessAt).toLocaleString('ar-EG')
+                      : '—'}{' '}
+                    | متوسط الزمن: {src.averageDurationMs || 0}ms
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {src.circuitState !== 'CLOSED' && (
+                      <button
+                        onClick={() => handleResetCircuit(src)}
+                        disabled={actionLoading === `reset-${src.id}`}
+                        className="inline-flex items-center gap-1 rounded-lg bg-amber-100 px-2.5 py-1.5 font-bold text-amber-900 hover:bg-amber-200"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        <span>إعادة ضبط القاطع</span>
+                      </button>
+                    )}
 
                     <button
-                      onClick={() => toggleSourceActive(src)}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 font-bold text-slate-700 hover:bg-slate-50"
+                      onClick={() => {
+                        setEditingSource(src);
+                        setEditForm({
+                          priority: src.priority,
+                          scheduleIntervalMinutes: src.scheduleIntervalMinutes
+                            ? String(src.scheduleIntervalMinutes)
+                            : '',
+                          scheduleCron: src.scheduleCron || '',
+                          maxRecordsPerRun: src.quotas?.maxRecordsPerRun || 500,
+                          batchSize: src.quotas?.batchSize || 50,
+                          acquisitionCostPerRunEgp: '',
+                        });
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 font-bold text-slate-600 hover:bg-slate-50"
                     >
-                      {src.isActive ? 'إيقاف المصدر' : 'تفعيل المصدر'}
+                      <Settings className="h-3.5 w-3.5" />
+                      <span>الإعدادات</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleToggleSource(src)}
+                      disabled={actionLoading === `toggle-${src.id}`}
+                      className="rounded-lg border border-slate-300 px-2.5 py-1.5 font-bold text-slate-700 hover:bg-slate-50"
+                    >
+                      {src.enabled ? 'إيقاف' : 'تفعيل'}
+                    </button>
+
+                    <button
+                      onClick={() => handleRunSource(src)}
+                      disabled={
+                        !src.enabled ||
+                        src.configurationStatus === 'NOT_CONFIGURED' ||
+                        actionLoading === `run-${src.id}`
+                      }
+                      className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 font-bold text-white hover:bg-emerald-700 disabled:opacity-40"
+                    >
+                      <Play className="h-3.5 w-3.5" />
+                      <span>
+                        {actionLoading === `run-${src.id}` ? 'جاري التشغيل...' : 'تشغيل الآن'}
+                      </span>
                     </button>
                   </div>
                 </div>
-              ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
 
-        {/* Import Jobs History */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm overflow-x-auto">
-          <h2 className="text-base font-extrabold text-slate-900">
-            سجل عمليات الاستيراد والمزامنة (Import Jobs History)
-          </h2>
-          <table className="mt-4 w-full text-right text-xs">
-            <thead>
-              <tr className="border-b border-slate-200 text-slate-500">
-                <th className="py-2.5 px-3">المصدر</th>
-                <th className="py-2.5 px-3">الملف</th>
-                <th className="py-2.5 px-3">الإجمالي (Imported)</th>
-                <th className="py-2.5 px-3">صالح (Valid)</th>
-                <th className="py-2.5 px-3">مكرر مدمج (Duplicates)</th>
-                <th className="py-2.5 px-3">غير صالح (Invalid)</th>
-                <th className="py-2.5 px-3">التاريخ</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-semibold">
-              {importJobs.map((job) => (
-                <tr key={job.id}>
-                  <td className="py-3 px-3 font-bold text-slate-900">{job.sourceName}</td>
-                  <td className="py-3 px-3 font-mono text-slate-600">{job.fileName || '—'}</td>
-                  <td className="py-3 px-3">{job.totalRows}</td>
-                  <td className="py-3 px-3 text-emerald-700">{job.validCount}</td>
-                  <td className="py-3 px-3 text-amber-700">{job.duplicateCount}</td>
-                  <td className="py-3 px-3 text-rose-700">{job.invalidCount}</td>
-                  <td className="py-3 px-3 text-slate-500">
-                    {new Date(job.createdAt).toLocaleString('ar-EG')}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {/* TAB 2: INGESTION JOBS */}
+        {activeTab === 'jobs' && (
+          <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+              <h2 className="text-base font-extrabold text-slate-900">
+                سجل مهام جمع واستيراد البيانات (Ingestion Jobs)
+              </h2>
+
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <select
+                  value={jobStatusFilter}
+                  onChange={(e) => setJobStatusFilter(e.target.value)}
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 font-bold text-slate-700"
+                >
+                  <option value="">كل الحالات</option>
+                  <option value="COMPLETED">COMPLETED</option>
+                  <option value="PARTIALLY_COMPLETED">PARTIALLY_COMPLETED</option>
+                  <option value="FAILED">FAILED</option>
+                  <option value="RUNNING">RUNNING</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                </select>
+
+                <select
+                  value={jobSourceFilter}
+                  onChange={(e) => setJobSourceFilter(e.target.value)}
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 font-bold text-slate-700"
+                >
+                  <option value="">كل المصادر</option>
+                  {sources.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-right text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-500">
+                    <th className="py-2.5 px-3">المصدر والنسخة</th>
+                    <th className="py-2.5 px-3">النوع</th>
+                    <th className="py-2.5 px-3">الحالة</th>
+                    <th className="py-2.5 px-3">مكتشف / مجلوب</th>
+                    <th className="py-2.5 px-3">جديد / محدث</th>
+                    <th className="py-2.5 px-3">مكرر / تعارض</th>
+                    <th className="py-2.5 px-3">غير صالح / فاشل</th>
+                    <th className="py-2.5 px-3">قابل للبيع</th>
+                    <th className="py-2.5 px-3">المدة</th>
+                    <th className="py-2.5 px-3">التاريخ</th>
+                    <th className="py-2.5 px-3">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-semibold">
+                  {jobs.map((job) => (
+                    <tr key={job.id} className="hover:bg-slate-50">
+                      <td className="py-3 px-3">
+                        <span className="block font-bold text-slate-900">{job.sourceName}</span>
+                        <span className="font-mono text-[10px] text-slate-400">
+                          {job.collectorVersion || 'v1'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 font-mono text-[11px] text-slate-600">
+                        {job.triggerType || 'MANUAL'}
+                      </td>
+                      <td className="py-3 px-3">{renderJobStatusBadge(job.status)}</td>
+                      <td className="py-3 px-3">
+                        {job.discoveredCount || job.totalRecords} /{' '}
+                        {job.fetchedCount || job.totalRecords}
+                      </td>
+                      <td className="py-3 px-3 text-emerald-700">
+                        {job.validCount} ({job.insertedCount || job.validCount} جديد،{' '}
+                        {job.updatedCount || 0} محدث)
+                      </td>
+                      <td className="py-3 px-3 text-amber-700">
+                        {job.duplicateCount} / {job.conflictCount || 0}
+                      </td>
+                      <td className="py-3 px-3 text-rose-700">
+                        {job.invalidCount} / {job.failedCount || 0}
+                      </td>
+                      <td className="py-3 px-3 font-bold text-blue-700">
+                        {job.saleableCount || 0}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-slate-600">
+                        {job.durationMs ? `${job.durationMs}ms` : '—'}
+                      </td>
+                      <td className="py-3 px-3 text-slate-500">
+                        {new Date(job.createdAt).toLocaleString('ar-EG')}
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleInspectJob(job.id)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100"
+                          >
+                            <Eye className="h-3 w-3" />
+                            <span>التفاصيل</span>
+                          </button>
+                          {(job.status === 'RUNNING' || job.status === 'PROCESSING') && (
+                            <button
+                              onClick={() => handleCancelJob(job.id)}
+                              className="inline-flex items-center gap-1 rounded-lg bg-rose-100 px-2.5 py-1 text-[11px] font-bold text-rose-800 hover:bg-rose-200"
+                            >
+                              <XCircle className="h-3 w-3" />
+                              <span>إلغاء</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: DEAD-LETTER QUEUE */}
+        {activeTab === 'deadletter' && (
+          <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+              <div>
+                <h2 className="text-base font-extrabold text-slate-900">
+                  طابور السجلات المعلقة والفاشلة (Dead-Letter Queue)
+                </h2>
+                <p className="text-xs text-slate-500">
+                  السجلات التي استنفدت محاولات إعادة التشغيل أو واجهت أخطاء معالجة وتحتاج إلى مراجعة أو إعادة تشغيل
+                </p>
+              </div>
+
+              <select
+                value={dlStatusFilter}
+                onChange={(e) => setDlStatusFilter(e.target.value)}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700"
+              >
+                <option value="">كل الحالات</option>
+                <option value="DEAD_LETTER">معلق (DEAD_LETTER)</option>
+                <option value="RETRIED_RESOLVED">تمت إعادة المحاولة والحل (RETRIED_RESOLVED)</option>
+                <option value="RETRIED_FAILED">فشلت إعادة المحاولة (RETRIED_FAILED)</option>
+                <option value="PERMANENTLY_INVALID">غير صالح نهائياً (PERMANENTLY_INVALID)</option>
+              </select>
+            </div>
+
+            {deadLetters.length === 0 ? (
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-8 text-center text-xs font-bold text-slate-500">
+                لا توجد سجلات معلقة في طابور Dead-Letter حالياً.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-right text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500">
+                      <th className="py-2.5 px-3">المصدر</th>
+                      <th className="py-2.5 px-3">المرحلة / رمز الخطأ</th>
+                      <th className="py-2.5 px-3">سبب الفشل</th>
+                      <th className="py-2.5 px-3">المحاولات</th>
+                      <th className="py-2.5 px-3">الحالة</th>
+                      <th className="py-2.5 px-3">آخر فشل</th>
+                      <th className="py-2.5 px-3">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-semibold">
+                    {deadLetters.map((dl) => (
+                      <tr key={dl.id} className="hover:bg-slate-50">
+                        <td className="py-3 px-3">
+                          <span className="block font-bold text-slate-900">{dl.sourceName}</span>
+                          <span className="font-mono text-[10px] text-slate-400">
+                            {dl.externalId || dl.collectorVersion}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 font-mono text-[11px] text-rose-700">
+                          {dl.failureStage} / {dl.errorCode}
+                        </td>
+                        <td className="py-3 px-3 text-slate-700">{dl.errorMessage}</td>
+                        <td className="py-3 px-3 font-mono">
+                          {dl.retryCount} / {dl.maxRetries}
+                        </td>
+                        <td className="py-3 px-3">
+                          <span
+                            className={`rounded px-2 py-0.5 text-[11px] font-bold ${
+                              dl.status === 'DEAD_LETTER'
+                                ? 'bg-amber-100 text-amber-900'
+                                : dl.status === 'RETRIED_RESOLVED' || dl.status === 'RESOLVED' || dl.status === 'RETRIED'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : dl.status === 'RETRIED_FAILED'
+                                    ? 'bg-rose-100 text-rose-800'
+                                    : 'bg-slate-200 text-slate-700'
+                            }`}
+                          >
+                            {dl.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-slate-500">
+                          {new Date(dl.lastFailedAt).toLocaleString('ar-EG')}
+                        </td>
+                        <td className="py-3 px-3">
+                          {dl.status === 'DEAD_LETTER' && (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleDeadLetterAction(dl.id, 'RETRY')}
+                                disabled={actionLoading === `dl-${dl.id}-RETRY`}
+                                className="rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
+                              >
+                                إعادة المحاولة
+                              </button>
+                              <button
+                                onClick={() => handleDeadLetterAction(dl.id, 'MARK_INVALID')}
+                                disabled={actionLoading === `dl-${dl.id}-MARK_INVALID`}
+                                className="rounded-lg border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100"
+                              >
+                                غير صالح
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 4: HEALTH ALERTS & CONTINUOUS SUPPLY REPLENISHMENT */}
+        {activeTab === 'supply' && (
+          <div className="space-y-6">
+            {/* Operational Alerts */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-base font-extrabold text-slate-900">
+                التنبيهات التشغيلية الحتمية (Deterministic Operational Alerts)
+              </h2>
+              {alerts.length === 0 ? (
+                <p className="mt-3 text-xs font-bold text-emerald-700">
+                  جميع المصادر تعمل ضمن الحدود الطبيعية دون أي تنبيهات حرجة.
+                </p>
+              ) : (
+                <div className="mt-4 space-y-2.5">
+                  {alerts.map((alert, idx) => (
+                    <div
+                      key={`${alert.code}-${idx}`}
+                      className={`flex items-center justify-between rounded-xl border p-3.5 text-xs ${
+                        alert.severity === 'CRITICAL'
+                          ? 'border-rose-200 bg-rose-50 text-rose-900'
+                          : 'border-amber-200 bg-amber-50 text-amber-900'
+                      }`}
+                    >
+                      <div>
+                        <span className="font-mono text-[10px] font-extrabold uppercase">
+                          [{alert.severity}] {alert.code}
+                        </span>
+                        <p className="mt-0.5 font-bold">{alert.message}</p>
+                      </div>
+                      <span className="font-mono text-[11px]">
+                        القيمة: {alert.observedValue} (الحد: {alert.thresholdValue})
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Inventory Replenishment Rules */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                <div>
+                  <h2 className="text-base font-extrabold text-slate-900">
+                    قواعد الإمداد المستمر وموازنة المخزون القابل للبيع (Inventory Replenishment)
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    مراقبة الفرص المتاحة القابلة للبيع (SALEABLE + AVAILABLE) حسب القطاع والمدينة والخدمة المطلوبة
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-right text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500">
+                      <th className="py-2.5 px-3">القطاع (Category)</th>
+                      <th className="py-2.5 px-3">المدينة / المحافظة</th>
+                      <th className="py-2.5 px-3">الخدمة المطلوبة</th>
+                      <th className="py-2.5 px-3">الحد الأدنى المطلوب</th>
+                      <th className="py-2.5 px-3">المتوفر حالياً</th>
+                      <th className="py-2.5 px-3">العجز</th>
+                      <th className="py-2.5 px-3">المصادر المرشحة للإمداد</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-semibold">
+                    {replenishmentDecisions.map((d) => (
+                      <tr key={d.ruleId}>
+                        <td className="py-3 px-3 font-bold text-slate-900">{d.category}</td>
+                        <td className="py-3 px-3">{d.city || d.governorate || 'كل المدن'}</td>
+                        <td className="py-3 px-3 font-mono text-[11px]">
+                          {d.requiredService || 'الكل'}
+                        </td>
+                        <td className="py-3 px-3">{d.minRequired}</td>
+                        <td className="py-3 px-3 text-emerald-700">{d.currentAvailable}</td>
+                        <td className="py-3 px-3">
+                          {d.needsReplenishment ? (
+                            <span className="rounded bg-rose-100 px-2 py-0.5 font-bold text-rose-800">
+                              عجز -{d.deficit}
+                            </span>
+                          ) : (
+                            <span className="rounded bg-emerald-100 px-2 py-0.5 font-bold text-emerald-800">
+                              مكتمل
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-[11px] text-slate-600">
+                          {d.selectedSources.length > 0
+                            ? d.selectedSources.map((s) => s.sourceName).join(' ، ')
+                            : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Create Source */}
+        {showCreateModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+            <form
+              onSubmit={handleCreateSource}
+              className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
+            >
+              <h3 className="text-base font-extrabold text-slate-900">
+                إضافة مصدر بيانات جديد
+              </h3>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700">اسم المصدر</label>
+                <input
+                  type="text"
+                  required
+                  value={newSourceForm.name}
+                  onChange={(e) => setNewSourceForm({ ...newSourceForm, name: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                  placeholder="مثال: دليل العيادات الطبية بالقاهرة"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700">نوع المجمّع</label>
+                <select
+                  value={newSourceForm.type}
+                  onChange={(e) => setNewSourceForm({ ...newSourceForm, type: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                >
+                  <option value="OPEN_DATA">OPEN_DATA (open-data-v1)</option>
+                  <option value="DIRECTORY">DIRECTORY (directory-v1)</option>
+                  <option value="CSV_IMPORT">CSV_IMPORT (csv-v1)</option>
+                  <option value="WEBSITE">WEBSITE (website-v1)</option>
+                  <option value="GOOGLE_MAPS">GOOGLE_MAPS (google-business-v1)</option>
+                  <option value="MANUAL">MANUAL (manual-v1)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700">الوصف</label>
+                <input
+                  type="text"
+                  value={newSourceForm.description}
+                  onChange={(e) =>
+                    setNewSourceForm({ ...newSourceForm, description: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700">الأولوية</label>
+                  <input
+                    type="number"
+                    value={newSourceForm.priority}
+                    onChange={(e) =>
+                      setNewSourceForm({ ...newSourceForm, priority: Number(e.target.value) })
+                    }
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700">
+                    فترة الجدولة (دقائق)
+                  </label>
+                  <input
+                    type="number"
+                    value={newSourceForm.scheduleIntervalMinutes}
+                    onChange={(e) =>
+                      setNewSourceForm({
+                        ...newSourceForm,
+                        scheduleIntervalMinutes: Number(e.target.value),
+                      })
+                    }
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white"
+                >
+                  حفظ المصدر
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Modal: Edit Source Settings */}
+        {editingSource && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+            <form
+              onSubmit={handleSaveEditSource}
+              className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
+            >
+              <h3 className="text-base font-extrabold text-slate-900">
+                إعدادات المصدر: {editingSource.name}
+              </h3>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700">الأولوية</label>
+                  <input
+                    type="number"
+                    value={editForm.priority}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, priority: Number(e.target.value) })
+                    }
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700">
+                    فترة الجدولة (دقائق)
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.scheduleIntervalMinutes}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, scheduleIntervalMinutes: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700">
+                    الحد الأقصى للسجلات / تشغيل
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.maxRecordsPerRun}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, maxRecordsPerRun: Number(e.target.value) })
+                    }
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700">حجم الدفعة (Batch)</label>
+                  <input
+                    type="number"
+                    value={editForm.batchSize}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, batchSize: Number(e.target.value) })
+                    }
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingSource(null)}
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white"
+                >
+                  حفظ التعديلات
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Modal: Job Detail Inspection */}
+        {selectedJobDetail && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+            <div className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <h3 className="text-base font-extrabold text-slate-900">
+                  تفاصيل المهمة: {String(selectedJobDetail.sourceName || '')}
+                </h3>
+                <button
+                  onClick={() => setSelectedJobDetail(null)}
+                  className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700"
+                >
+                  إغلاق
+                </button>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <span className="text-slate-400">معرف المهمة</span>
+                  <p className="mt-1 font-mono font-bold text-slate-800">
+                    {String(selectedJobDetail.id)}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <span className="text-slate-400">نسخة المجمّع والعقد</span>
+                  <p className="mt-1 font-mono font-bold text-slate-800">
+                    {String(selectedJobDetail.collectorVersion || 'v1')} /{' '}
+                    {String(selectedJobDetail.contractVersion || 'INGESTION_CONTRACT_V1')}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <span className="text-slate-400">نقطة الاستئناف (Checkpoint)</span>
+                  <p className="mt-1 font-mono font-bold text-slate-800">
+                    {selectedJobDetail.checkpoint
+                      ? `Offset: ${(selectedJobDetail.checkpoint as { offset?: number }).offset ?? 0}`
+                      : 'لا يوجد'}
+                  </p>
+                </div>
+              </div>
+
+              {Boolean(selectedJobDetail.errorSummary) && (
+                <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900">
+                  <strong>ملخص الأخطاء ({String(selectedJobDetail.errorCode || 'ERROR')}):</strong>{' '}
+                  {String(selectedJobDetail.errorSummary)}
+                </div>
+              )}
+
+              <div className="mt-4">
+                <h4 className="text-xs font-extrabold text-slate-700">
+                  السجلات المعالجة داخل المهمة
+                </h4>
+                <div className="mt-2 max-h-60 overflow-y-auto rounded-xl border border-slate-200">
+                  <table className="w-full text-right text-[11px]">
+                    <thead className="bg-slate-50 text-slate-500">
+                      <tr>
+                        <th className="py-2 px-3">#</th>
+                        <th className="py-2 px-3">المعرف الخارجي</th>
+                        <th className="py-2 px-3">المرحلة</th>
+                        <th className="py-2 px-3">الحالة</th>
+                        <th className="py-2 px-3">ملاحظات</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {Array.isArray(selectedJobDetail.records) &&
+                        (
+                          selectedJobDetail.records as {
+                            id: string;
+                            rowNumber: number;
+                            externalId?: string;
+                            lifecycleStage?: string;
+                            status: string;
+                            errorMessage?: string;
+                          }[]
+                        ).map((rec) => (
+                          <tr key={rec.id}>
+                            <td className="py-2 px-3 font-mono">{rec.rowNumber}</td>
+                            <td className="py-2 px-3 font-mono">{rec.externalId || '—'}</td>
+                            <td className="py-2 px-3 font-mono">
+                              {rec.lifecycleStage || rec.status}
+                            </td>
+                            <td className="py-2 px-3 font-bold">{rec.status}</td>
+                            <td className="py-2 px-3 text-slate-500">
+                              {rec.errorMessage || '—'}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );

@@ -208,11 +208,14 @@ export const TEMPERATURE_LABELS: Record<string, { labelAr: string; labelEn: stri
 };
 
 export const PIPELINE_STATUS_LABELS: Record<string, { labelAr: string; badgeClass: string }> = {
-  NEW: { labelAr: 'جديد', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200' },
+  NEW: { labelAr: 'جديد (مُقتنص)', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200' },
+  CLAIMED: { labelAr: 'مُقتنص (CLAIMED)', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200' },
   CONTACTED: { labelAr: 'تم التواصل', badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
   REPLIED: { labelAr: 'تم الرد', badgeClass: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
   INTERESTED: { labelAr: 'مهتم بالعرض', badgeClass: 'bg-amber-50 text-amber-700 border-amber-200' },
   MEETING: { labelAr: 'اجتماع محدد', badgeClass: 'bg-purple-50 text-purple-700 border-purple-200' },
+  PROPOSAL_SENT: { labelAr: 'تم إرسال العرض الفني/المالي', badgeClass: 'bg-violet-50 text-violet-700 border-violet-200' },
+  NEGOTIATION: { labelAr: 'مرحلة التفاوض النهائي', badgeClass: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200' },
   WON: { labelAr: 'صفقة ناجحة (WON)', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
   LOST: { labelAr: 'صفقة خاسرة (LOST)', badgeClass: 'bg-rose-50 text-rose-700 border-rose-200' },
   NOT_INTERESTED: { labelAr: 'غير مهتم', badgeClass: 'bg-slate-100 text-slate-600 border-slate-200' },

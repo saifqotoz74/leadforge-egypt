@@ -1,280 +1,128 @@
-import { FeedbackReason, PipelineStatus, PrismaClient } from '@prisma/client';
+import { FeedbackReason, Lead, PipelineStatus, PrismaClient } from '@prisma/client';
 import { createAuditLog } from './audit';
 import { createInAppNotification } from './notifications';
 import {
-  calculateLeadFreshness,
-  getActiveQualityAndFreshnessConfig,
   recordDeveloperFeedbackVerification,
 } from './quality';
+import { claimLead, ClaimEngineError } from './claims';
+
+function maskPhone(phone?: string | null): string | null {
+  if (!phone) return null;
+  if (phone.length <= 6) return '****';
+  return `${phone.slice(0, 4)}****${phone.slice(-3)}`;
+}
+
+function maskEmail(email?: string | null): string | null {
+  if (!email) return null;
+  const parts = email.split('@');
+  if (parts.length !== 2) return '***';
+  return `${parts[0].slice(0, 2)}***@${parts[1]}`;
+}
+
+/**
+ * Sanitizes a raw database Lead record for developer-facing APIs.
+ * Masks private contact details unless `isUnlocked === true` and strips internal deduplication/ownership metadata.
+ */
+export function sanitizeLeadForDeveloper(lead: Lead, isUnlocked: boolean) {
+  const {
+    normalizedPhone: _np,
+    normalizedEmail: _ne,
+    normalizedAddress: _na,
+    normalizedFacebook: _nf,
+    normalizedInstagram: _ni,
+    normalizedName: _nn,
+    canonicalIdentityKeys: _cik,
+    fieldProvenance: _fp,
+    fieldConflicts: _fc,
+    exclusiveClaimedById: _ecb,
+    ...publicLead
+  } = lead;
+
+  if (isUnlocked) {
+    return publicLead;
+  }
+
+  return {
+    ...publicLead,
+    address: null,
+    phone: maskPhone(lead.phone),
+    phones: [],
+    email: maskEmail(lead.email),
+    facebook: lead.hasFacebook ? 'متاح بعد فتح الفرصة' : null,
+    instagram: lead.hasInstagram ? 'متاح بعد فتح الفرصة' : null,
+  };
+}
 
 export class LeadServiceError extends Error {
   statusCode: number;
   code: string;
-  constructor(message: string, code: string, statusCode = 400) {
+  details?: Record<string, unknown>;
+  constructor(message: string, code: string, statusCode = 400, details?: Record<string, unknown>) {
     super(message);
     this.name = 'LeadServiceError';
     this.code = code;
     this.statusCode = statusCode;
+    this.details = details;
   }
 }
 
 /**
- * Atomically claims a lead for a developer:
- * Enforces all security and business rules:
- * 1. User must have an active subscription with credits > 0 ("No credits remaining")
- * 2. Lead must exist and be AVAILABLE (and pass Phase 3 saleability, freshness, verification, and quality gates)
- * 3. User cannot claim the same lead twice
- * 4. Lead cannot exceed maxPurchasers
- * 5. Exclusive lead can only be claimed once (maxPurchasers = 1, currentPurchasers = 0)
- * 6. Deducts 1 credit and records LeadClaim + LeadStatusHistory + AuditLog + low-credit notification
+ * Atomically claims a lead for a developer via the Phase 5 Claim, Credits & Shared/Exclusive Leads Engine.
  */
 export async function claimLeadForDeveloper(params: {
   prisma: PrismaClient;
   userId: string;
   leadId: string;
+  idempotencyKey?: string | null;
+  ipAddress?: string;
+  legacyCompatibilityMode?: boolean;
 }) {
-  const { prisma, userId, leadId } = params;
-  const { qualityConfig, freshnessThresholds } = await getActiveQualityAndFreshnessConfig();
+  const {
+    prisma,
+    userId,
+    leadId,
+    idempotencyKey,
+    ipAddress,
+    legacyCompatibilityMode = true,
+  } = params;
 
-  const result = await prisma.$transaction(async (tx) => {
-    const subscription = await tx.subscription.findUnique({
-      where: { userId },
-      include: { plan: true },
+  try {
+    const result = await claimLead({
+      leadId,
+      developerId: userId,
+      idempotencyKey,
+      ipAddress,
+      legacyCompatibilityMode,
     });
 
-    if (!subscription || subscription.status !== 'ACTIVE') {
-      throw new LeadServiceError(
-        'لا يوجد اشتراك نشط في حسابك. يرجى تفعيل باقتك أولاً.',
-        'NO_ACTIVE_SUBSCRIPTION',
-        403
-      );
-    }
-
-    if (subscription.credits <= 0) {
-      throw new LeadServiceError(
-        'No credits remaining — لا يوجد رصيد كافٍ من النقاط لاقتناص هذه الفرصة.',
-        'NO_CREDITS_REMAINING',
-        403
-      );
-    }
-
-    const lead = await tx.lead.findUnique({
-      where: { id: leadId },
-      include: {
-        verifications: {
-          orderBy: { checkedAt: 'desc' },
-        },
-      },
-    });
-
-    if (!lead) {
-      throw new LeadServiceError('الفرصة المطلوبة غير موجودة.', 'LEAD_NOT_FOUND', 404);
-    }
-
-    const existingClaim = await tx.leadClaim.findUnique({
-      where: {
-        leadId_userId: {
-          leadId,
-          userId,
-        },
-      },
-    });
-
-    if (existingClaim) {
-      throw new LeadServiceError(
-        'لقد قمت بالحصول على بيانات هذا العميل مسبقًا.',
-        'ALREADY_CLAIMED_BY_USER',
-        409
-      );
-    }
-
-    const now = new Date();
-    const dynamicFreshness = calculateLeadFreshness(
-      lead.lastVerifiedAt,
-      freshnessThresholds,
-      now
-    );
-
-    // Check if any critical latest verification (PHONE or BUSINESS_STATUS) has expired or failed
-    const latestByType = new Map<string, (typeof lead.verifications)[number]>();
-    for (const v of lead.verifications) {
-      const dim = v.verificationType;
-      if (!latestByType.has(dim)) {
-        latestByType.set(dim, v);
-      }
-    }
-    const latestPhoneVer = latestByType.get('PHONE');
-    const latestBizVer = latestByType.get('BUSINESS_STATUS');
-    const hasExpiredCriticalVerification =
-      (latestPhoneVer?.expiresAt && new Date(latestPhoneVer.expiresAt).getTime() <= now.getTime()) ||
-      (latestBizVer?.expiresAt && new Date(latestBizVer.expiresAt).getTime() <= now.getTime());
-
-    const isQualityGateBlocked =
-      lead.status !== 'AVAILABLE' ||
-      (lead.saleabilityStatus && lead.saleabilityStatus !== 'AVAILABLE') ||
-      !lead.isCanonical ||
-      Boolean(lead.mergedIntoLeadId) ||
-      lead.businessStatus === 'CLOSED' ||
-      lead.verificationStatus === 'FAILED_VERIFICATION' ||
-      lead.verificationStatus === 'UNVERIFIED' ||
-      lead.qualityScore < qualityConfig.minSaleableQualityScore ||
-      dynamicFreshness.isStale ||
-      dynamicFreshness.requiresVerification ||
-      Boolean(hasExpiredCriticalVerification);
-
-    if (isQualityGateBlocked) {
-      throw new LeadServiceError(
-        'هذه الفرصة غير متاحة حاليًا للشراء (تحتاج إلى إعادة تحقق أو غير مستوفية لمعايير الجودة).',
-        'LEAD_NOT_AVAILABLE',
-        409
-      );
-    }
-
-    const effectiveMaxPurchasers =
-      lead.exclusive || lead.leadType === 'EXCLUSIVE' ? 1 : lead.maxPurchasers;
-
-    if (lead.currentPurchasers >= effectiveMaxPurchasers) {
-      if (lead.exclusive || lead.leadType === 'EXCLUSIVE') {
-        throw new LeadServiceError(
-          'هذه فرصة حصرية وقد تم شراؤها بالفعل من قِبل مطور آخر.',
-          'EXCLUSIVE_LEAD_ALREADY_CLAIMED',
-          409
-        );
-      }
-      throw new LeadServiceError(
-        'وصلت هذه الفرصة إلى الحد الأقصى لعدد المشترين المسموح به.',
-        'MAX_PURCHASERS_EXCEEDED',
-        409
-      );
-    }
-
-    // Atomic conditional credit deduction to prevent concurrent race conditions when credits === 1
-    const subUpdate = await tx.subscription.updateMany({
-      where: {
-        id: subscription.id,
-        status: 'ACTIVE',
-        credits: { gt: 0 },
-      },
-      data: {
-        credits: { decrement: 1 },
-        creditsUsed: { increment: 1 },
-      },
-    });
-
-    if (subUpdate.count === 0) {
-      throw new LeadServiceError(
-        'No credits remaining — لا يوجد رصيد كافٍ من النقاط لاقتناص هذه الفرصة.',
-        'NO_CREDITS_REMAINING',
-        403
-      );
-    }
-
-    // Atomic conditional purchaser increment to prevent concurrent race conditions on exclusive/shared leads
-    const leadIncrement = await tx.lead.updateMany({
-      where: {
-        id: lead.id,
-        status: 'AVAILABLE',
-        currentPurchasers: { lt: effectiveMaxPurchasers },
-      },
-      data: {
-        currentPurchasers: { increment: 1 },
-      },
-    });
-
-    if (leadIncrement.count === 0) {
-      throw new LeadServiceError(
-        lead.exclusive || lead.leadType === 'EXCLUSIVE'
-          ? 'هذه فرصة حصرية وقد تم شراؤها بالفعل من قِبل مطور آخر.'
-          : 'وصلت هذه الفرصة إلى الحد الأقصى لعدد المشترين المسموح به.',
-        lead.exclusive || lead.leadType === 'EXCLUSIVE'
-          ? 'EXCLUSIVE_LEAD_ALREADY_CLAIMED'
-          : 'MAX_PURCHASERS_EXCEEDED',
-        409
-      );
-    }
-
-    const refreshedLead = await tx.lead.findUniqueOrThrow({ where: { id: lead.id } });
-    const isNowFull =
-      refreshedLead.exclusive ||
-      refreshedLead.leadType === 'EXCLUSIVE' ||
-      refreshedLead.currentPurchasers >= refreshedLead.maxPurchasers;
-
-    const updatedLead = isNowFull
-      ? await tx.lead.update({
-          where: { id: lead.id },
-          data: { status: 'CLAIMED_FULL', saleabilityStatus: 'CLAIMED_FULL' },
-        })
-      : refreshedLead;
-
-    const updatedSub = await tx.subscription.findUniqueOrThrow({
-      where: { id: subscription.id },
-    });
-
-    const claim = await tx.leadClaim.create({
-      data: {
-        leadId: lead.id,
-        userId,
-        pipelineStatus: 'NEW',
-        creditsSpent: 1,
-        exclusiveClaim: lead.exclusive || lead.leadType === 'EXCLUSIVE',
-      },
-    });
-
-    await tx.leadStatusHistory.create({
-      data: {
-        claimId: claim.id,
-        leadId: lead.id,
-        userId,
-        previousStatus: null,
-        newStatus: 'NEW',
-        notes: 'تم الحصول على الفرصة وفتح بيانات التواصل',
-      },
-    });
+    const [claim, lead] = await Promise.all([
+      prisma.leadClaim.findUniqueOrThrow({ where: { id: result.claimId } }),
+      prisma.lead.findUniqueOrThrow({ where: { id: result.leadId } }),
+    ]);
 
     return {
       claim,
-      lead: updatedLead,
-      remainingCredits: updatedSub.credits,
+      lead,
+      remainingCredits: result.remainingBalance,
+      claimResult: result,
     };
-  });
-
-  if (result.remainingCredits <= 5) {
-    await createInAppNotification(
-      {
-        userId,
-        title: 'تنبيه انخفاض رصيد النقاط',
-        message: `Your subscription has ${result.remainingCredits} credits remaining — متبقي لديك ${result.remainingCredits} نقاط فقط في باقتك الحالية.`,
-        type: 'LOW_CREDITS',
-        link: '/subscription',
-      },
-      prisma
-    );
+  } catch (error) {
+    if (error instanceof ClaimEngineError) {
+      throw new LeadServiceError(error.message, error.code, error.statusCode, error.details);
+    }
+    throw error;
   }
-
-  await createAuditLog(
-    {
-      userId,
-      action: 'LEAD_CLAIMED',
-      entityType: 'Lead',
-      entityId: leadId,
-      details: {
-        claimId: result.claim.id,
-        exclusive: result.claim.exclusiveClaim,
-        remainingCredits: result.remainingCredits,
-      },
-    },
-    prisma
-  );
-
-  return result;
 }
 
 const VALID_PIPELINE_STATUSES: PipelineStatus[] = [
   'NEW',
+  'CLAIMED',
   'CONTACTED',
   'REPLIED',
   'INTERESTED',
   'MEETING',
+  'PROPOSAL_SENT',
+  'NEGOTIATION',
   'WON',
   'LOST',
   'NOT_INTERESTED',
@@ -283,7 +131,7 @@ const VALID_PIPELINE_STATUSES: PipelineStatus[] = [
 
 /**
  * Updates the pipeline status, notes, lastContactedAt, and nextFollowUpAt of a claimed lead.
- * Enforces ownership: a developer can ONLY update their own claimed leads.
+ * Enforces ownership: a developer can ONLY update their own active claimed leads.
  */
 export async function updateDeveloperLeadStatus(params: {
   prisma: PrismaClient;
@@ -307,14 +155,31 @@ export async function updateDeveloperLeadStatus(params: {
         userId,
       },
     },
-    include: { lead: true },
+    include: { lead: true, engagement: true },
   });
 
-  if (!claim) {
+  if (!claim || claim.status !== 'ACTIVE' || claim.accessGranted === false) {
     throw new LeadServiceError(
-      'غير مصرح لك بتعديل حالة هذا العميل لأنك لم تقم بشراء الفرصة.',
+      'غير مصرح لك بتعديل حالة هذا العميل لأنك لم تقم بشراء الفرصة أو تم استردادها.',
       'CLAIM_NOT_FOUND_OR_FORBIDDEN',
       403
+    );
+  }
+
+  const mappedEngagementStatus = status === 'NEW' ? 'CLAIMED' : status;
+  const currentEngagementStatus =
+    claim.engagement?.currentStatus ??
+    (claim.pipelineStatus === 'NEW' ? 'CLAIMED' : claim.pipelineStatus);
+  const terminalStates = ['WON', 'LOST', 'NOT_INTERESTED', 'INVALID'];
+
+  if (
+    terminalStates.includes(currentEngagementStatus) &&
+    mappedEngagementStatus !== currentEngagementStatus
+  ) {
+    throw new LeadServiceError(
+      'لا يمكن إعادة فتح أو تغيير حالة الفرصة بعد وصولها لحالة نهائية إلا بواسطة مدير النظام.',
+      'TERMINAL_STATUS',
+      422
     );
   }
 
@@ -323,7 +188,8 @@ export async function updateDeveloperLeadStatus(params: {
       ? lastContactedAt
         ? new Date(lastContactedAt)
         : null
-      : ['CONTACTED', 'REPLIED', 'INTERESTED', 'MEETING', 'WON'].includes(status) && !claim.lastContactedAt
+      : ['CONTACTED', 'REPLIED', 'INTERESTED', 'MEETING', 'PROPOSAL_SENT', 'NEGOTIATION', 'WON'].includes(status) &&
+        !claim.lastContactedAt
       ? new Date()
       : claim.lastContactedAt;
 
@@ -344,13 +210,75 @@ export async function updateDeveloperLeadStatus(params: {
     },
   });
 
+  const now = new Date();
+  const isTargetTerminal = terminalStates.includes(mappedEngagementStatus);
+  const engagement = await prisma.leadEngagement.upsert({
+    where: {
+      leadId_developerId: {
+        leadId,
+        developerId: userId,
+      },
+    },
+    update: {
+      claimId: claim.id,
+      currentStatus: mappedEngagementStatus,
+      isTerminal: isTargetTerminal,
+      ...(isTargetTerminal && !claim.engagement?.closedAt ? { closedAt: now } : {}),
+      lastContactedAt: resolvedLastContacted ?? undefined,
+      ...(mappedEngagementStatus === 'CONTACTED' && !claim.engagement?.firstContactedAt
+        ? { firstContactedAt: resolvedLastContacted ?? now }
+        : {}),
+      ...(mappedEngagementStatus === 'REPLIED' && !claim.engagement?.firstRepliedAt
+        ? { firstRepliedAt: now }
+        : {}),
+      ...(mappedEngagementStatus === 'INTERESTED' && !claim.engagement?.interestedAt
+        ? { interestedAt: now }
+        : {}),
+      ...(mappedEngagementStatus === 'MEETING' && !claim.engagement?.meetingAt
+        ? { meetingAt: now }
+        : {}),
+      ...(mappedEngagementStatus === 'PROPOSAL_SENT' && !claim.engagement?.proposalSentAt
+        ? { proposalSentAt: now }
+        : {}),
+      ...(mappedEngagementStatus === 'NEGOTIATION' && !claim.engagement?.negotiationAt
+        ? { negotiationAt: now }
+        : {}),
+      ...(mappedEngagementStatus === 'WON' && !claim.engagement?.wonAt
+        ? { wonAt: now, finalOutcome: 'WON' }
+        : {}),
+      ...(mappedEngagementStatus === 'LOST' && !claim.engagement?.lostAt
+        ? { lostAt: now, finalOutcome: 'LOST' }
+        : {}),
+      ...(mappedEngagementStatus === 'NOT_INTERESTED' && !claim.engagement?.notInterestedAt
+        ? { notInterestedAt: now, finalOutcome: 'NOT_INTERESTED' }
+        : {}),
+      ...(mappedEngagementStatus === 'INVALID' && !claim.engagement?.invalidAt
+        ? { invalidAt: now, invalidatedAt: now, finalOutcome: 'INVALID' }
+        : {}),
+    },
+    create: {
+      leadId,
+      developerId: userId,
+      claimId: claim.id,
+      currentStatus: mappedEngagementStatus,
+      isTerminal: isTargetTerminal,
+      closedAt: isTargetTerminal ? now : null,
+      claimedAt: claim.claimedAt,
+      lastContactedAt: resolvedLastContacted,
+    },
+  });
+
   await prisma.leadStatusHistory.create({
     data: {
       claimId: claim.id,
+      engagementId: engagement.id,
       leadId,
       userId,
+      developerId: userId,
       previousStatus: claim.pipelineStatus,
       newStatus: status,
+      actorType: 'DEVELOPER',
+      actorId: userId,
       notes: notes || null,
     },
   });
@@ -376,6 +304,7 @@ export async function updateDeveloperLeadStatus(params: {
       entityId: claim.id,
       details: {
         leadId,
+        engagementId: engagement.id,
         previousStatus: claim.pipelineStatus,
         newStatus: status,
       },
@@ -418,6 +347,7 @@ export async function submitDeveloperLeadFeedback(params: {
         userId,
       },
     },
+    include: { engagement: true },
   });
 
   if (!claim) {
@@ -438,27 +368,46 @@ export async function submitDeveloperLeadFeedback(params: {
     }
   }
 
-  const feedback = await prisma.leadFeedback.upsert({
+  const existingLegacyFeedback = await prisma.leadFeedback.findFirst({
     where: {
-      leadId_userId: {
-        leadId,
-        userId,
-      },
-    },
-    update: {
-      useful,
-      reason: useful ? null : reason || null,
-      comment: comment?.trim() || null,
-    },
-    create: {
       leadId,
       userId,
-      claimId: claim.id,
-      useful,
-      reason: useful ? null : reason || null,
-      comment: comment?.trim() || null,
     },
+    orderBy: { createdAt: 'desc' },
   });
+
+  const resolvedReasonCode = useful ? 'HIGH_QUALITY_LEAD' : (reason ?? 'OTHER');
+  const trimmedComment = comment?.trim() || null;
+  const feedback = existingLegacyFeedback
+    ? await prisma.leadFeedback.update({
+        where: { id: existingLegacyFeedback.id },
+        data: {
+          developerId: userId,
+          useful,
+          reason: useful ? null : reason || null,
+          reasonCode: resolvedReasonCode,
+          category: 'LEAD_QUALITY',
+          comment: trimmedComment,
+          note: trimmedComment,
+          engagementId: claim.engagement?.id ?? existingLegacyFeedback.engagementId,
+        },
+      })
+    : await prisma.leadFeedback.create({
+        data: {
+          leadId,
+          userId,
+          developerId: userId,
+          claimId: claim.id,
+          engagementId: claim.engagement?.id ?? null,
+          useful,
+          reason: useful ? null : reason || null,
+          reasonCode: resolvedReasonCode,
+          category: 'LEAD_QUALITY',
+          confidence: 'MEDIUM',
+          comment: trimmedComment,
+          note: trimmedComment,
+        },
+      });
 
   await recordDeveloperFeedbackVerification({
     leadId,

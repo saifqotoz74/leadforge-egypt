@@ -15,6 +15,8 @@ import {
   Database,
   Layers,
   BarChart3,
+  ShieldCheck,
+  Activity,
 } from 'lucide-react';
 
 interface AdminOverviewData {
@@ -46,16 +48,56 @@ interface AdminOverviewData {
   }[];
 }
 
+interface ObservabilitySnapshot {
+  systemHealth: {
+    liveness: {
+      status: 'ALIVE' | 'SHUTTING_DOWN';
+      alive: boolean;
+      uptimeSeconds: number;
+      activeOperations: number;
+    };
+    readiness: {
+      status: 'READY' | 'NOT_READY';
+      ready: boolean;
+      components: {
+        database: { status: string; latencyMs?: number };
+      };
+    };
+  };
+  dataIntegrity: {
+    healthy: boolean;
+    totalViolations: number;
+    checkedAt: string;
+  } | null;
+  performanceAndQueries: {
+    cache: {
+      entriesCount: number;
+      hitRatePct: number;
+    };
+  };
+  securityAndAbuse: {
+    flaggedAbuseSignalsCount: number;
+  };
+}
+
 export default function AdminOverviewPage() {
   const [data, setData] = useState<AdminOverviewData | null>(null);
+  const [observability, setObservability] = useState<ObservabilitySnapshot | null>(null);
+  const [scanningIntegrity, setScanningIntegrity] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch('/api/admin/reports');
-        if (res.ok) {
-          setData(await res.json());
+        const [reportsRes, obsRes] = await Promise.all([
+          fetch('/api/admin/reports'),
+          fetch('/api/admin/observability'),
+        ]);
+        if (reportsRes.ok) {
+          setData(await reportsRes.json());
+        }
+        if (obsRes.ok) {
+          setObservability(await obsRes.json());
         }
       } finally {
         setLoading(false);
@@ -63,6 +105,28 @@ export default function AdminOverviewPage() {
     }
     load();
   }, []);
+
+  async function runIntegrityScan() {
+    setScanningIntegrity(true);
+    try {
+      const res = await fetch('/api/admin/observability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'RUN_INTEGRITY_CHECKS' }),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        if (result.report && observability) {
+          setObservability({
+            ...observability,
+            dataIntegrity: result.report,
+          });
+        }
+      }
+    } finally {
+      setScanningIntegrity(false);
+    }
+  }
 
   return (
     <AppShell isAdminView>
@@ -270,9 +334,105 @@ export default function AdminOverviewPage() {
                   <BarChart3 className="h-4 w-4 text-rose-600" />
                   <span>التقارير التفصيلية</span>
                 </Link>
+                <Link
+                  href="/admin/analytics"
+                  className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/50 p-3.5 text-emerald-900 hover:border-emerald-500 hover:bg-emerald-50"
+                >
+                  <BarChart3 className="h-4 w-4 text-emerald-600" />
+                  <span>التحليلات وحلقة البيانات (Phase 7)</span>
+                </Link>
               </div>
             </div>
           </div>
+
+          {/* Phase 9 Operational Observability, Security & Integrity Hardening */}
+          {observability && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                  <h2 className="text-base font-extrabold text-slate-900">
+                    المراقبة التشغيلية وأمان المنصة وسلامة البيانات (Phase 9 Security &amp; Reliability)
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={runIntegrityScan}
+                  disabled={scanningIntegrity}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50"
+                >
+                  <Activity className="h-3.5 w-3.5" />
+                  <span>
+                    {scanningIntegrity
+                      ? 'جاري فحص سلامة البيانات...'
+                      : 'فحص سلامة الرصيد والبيانات (Integrity Scan)'}
+                  </span>
+                </button>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+                  <span className="text-xs font-bold text-slate-600">
+                    جاهزية النظام (Readiness &amp; DB)
+                  </span>
+                  <p
+                    className={`mt-1 text-lg font-extrabold ${
+                      observability.systemHealth.readiness.ready ? 'text-emerald-700' : 'text-rose-700'
+                    }`}
+                  >
+                    {observability.systemHealth.readiness.status}
+                  </p>
+                  <span className="text-[11px] text-slate-500">
+                    DB Latency: {observability.systemHealth.readiness.components.database.latencyMs ?? 1}ms
+                  </span>
+                </div>
+
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+                  <span className="text-xs font-bold text-slate-600">
+                    سلامة دفتر الرصيد والـ Claims (Integrity)
+                  </span>
+                  <p
+                    className={`mt-1 text-lg font-extrabold ${
+                      observability.dataIntegrity?.healthy
+                        ? 'text-emerald-700'
+                        : 'text-rose-700'
+                    }`}
+                  >
+                    {observability.dataIntegrity?.healthy
+                      ? 'سليم 100% (ALL_HEALTHY)'
+                      : `تنبيه (${observability.dataIntegrity?.totalViolations ?? 0} تعارض)`}
+                  </p>
+                  <span className="text-[11px] text-slate-500">
+                    Violations: {observability.dataIntegrity?.totalViolations ?? 0}
+                  </span>
+                </div>
+
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+                  <span className="text-xs font-bold text-slate-600">
+                    أداء الذاكرة المؤقتة (Tenant Cache)
+                  </span>
+                  <p className="mt-1 text-lg font-extrabold text-indigo-700">
+                    {observability.performanceAndQueries.cache.hitRatePct}% Hit Rate
+                  </p>
+                  <span className="text-[11px] text-slate-500">
+                    Active Entries: {observability.performanceAndQueries.cache.entriesCount}
+                  </span>
+                </div>
+
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+                  <span className="text-xs font-bold text-slate-600">
+                    تنبيهات الحماية وإساءة الاستخدام (Abuse Alerts)
+                  </span>
+                  <p className="mt-1 text-lg font-extrabold text-slate-900">
+                    {observability.securityAndAbuse.flaggedAbuseSignalsCount}
+                  </p>
+                  <span className="text-[11px] text-slate-500">
+                    Uptime: {observability.systemHealth.liveness.uptimeSeconds}s
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Audit Logs */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

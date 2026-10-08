@@ -33,6 +33,7 @@ import {
   verifyWebsite,
 } from '@/lib/quality';
 import { invalidateAndRecalculateLeadMatches } from '@/lib/matching/service';
+import { handleLeadInvalidationAfterClaim } from '@/lib/claims/refund-service';
 
 export async function GET(
   req: NextRequest,
@@ -333,6 +334,12 @@ export async function PATCH(
         source: `ADMIN_MARK_CLOSED:${admin.id}`,
         overrideBusinessStatus: 'CLOSED',
       });
+      const invalidationOutcome = await handleLeadInvalidationAfterClaim({
+        leadId,
+        invalidationType: 'CLOSED',
+        reason: body.reason || 'Lead marked CLOSED by admin',
+        triggeredBy: admin.id,
+      });
       await invalidateAndRecalculateLeadMatches(leadId);
       const refreshed = await prisma.lead.findUnique({ where: { id: leadId } });
 
@@ -350,28 +357,39 @@ export async function PATCH(
         success: true,
         lead: refreshed,
         verification: outcome,
+        invalidationOutcome,
       });
     }
 
-    // Action 2: MARK_INVALID
-    if (body.action === 'MARK_INVALID') {
-      const updated = await prisma.lead.update({
+    // Action 2: MARK_INVALID or MARK_DUPLICATE
+    if (body.action === 'MARK_INVALID' || body.action === 'MARK_DUPLICATE') {
+      const invType = body.action === 'MARK_DUPLICATE' ? 'DUPLICATE' : 'INVALID';
+      const invalidationOutcome = await handleLeadInvalidationAfterClaim({
+        leadId,
+        invalidationType: invType,
+        reason: body.reason || `Lead marked ${invType} by admin`,
+        triggeredBy: admin.id,
+      });
+      const updated = await prisma.lead.findUnique({
         where: { id: leadId },
-        data: { status: 'INVALID', saleabilityStatus: 'INVALID' },
       });
       await invalidateAndRecalculateLeadMatches(leadId);
 
       await createAuditLog(
         {
           userId: admin.id,
-          action: 'ADMIN_LEAD_MARKED_INVALID',
+          action: `ADMIN_LEAD_MARKED_${invType}`,
           entityType: 'Lead',
           entityId: leadId,
         },
         prisma
       );
 
-      return NextResponse.json({ success: true, lead: updated });
+      return NextResponse.json({
+        success: true,
+        lead: updated,
+        invalidationOutcome,
+      });
     }
 
     // Action 3: ASSIGN to Developer
@@ -412,6 +430,7 @@ export async function PATCH(
         data: {
           leadId,
           userId: developerId,
+          developerId,
           pipelineStatus: 'NEW',
           creditsSpent: 0,
           exclusiveClaim: existing.exclusive,
@@ -419,13 +438,38 @@ export async function PATCH(
         },
       });
 
+      const engagement = await prisma.leadEngagement.upsert({
+        where: {
+          leadId_developerId: {
+            leadId,
+            developerId,
+          },
+        },
+        update: {
+          claimId: newClaim.id,
+          currentStatus: 'CLAIMED',
+          claimedAt: newClaim.claimedAt,
+        },
+        create: {
+          leadId,
+          developerId,
+          claimId: newClaim.id,
+          currentStatus: 'CLAIMED',
+          claimedAt: newClaim.claimedAt,
+        },
+      });
+
       await prisma.leadStatusHistory.create({
         data: {
           claimId: newClaim.id,
+          engagementId: engagement.id,
           leadId,
           userId: developerId,
+          developerId,
           previousStatus: null,
           newStatus: 'NEW',
+          actorType: 'ADMIN',
+          actorId: admin.id,
           notes: 'تم التخصيص المباشر بواسطة مدير النظام',
         },
       });

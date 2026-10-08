@@ -12,6 +12,8 @@ const statusUpdateSchema = z.object({
     'REPLIED',
     'INTERESTED',
     'MEETING',
+    'PROPOSAL_SENT',
+    'NEGOTIATION',
     'WON',
     'LOST',
     'NOT_INTERESTED',

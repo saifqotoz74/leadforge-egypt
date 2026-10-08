@@ -2,26 +2,38 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AuthError, requireAdmin, verifyCsrfOrigin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { createAuditLog } from '@/lib/audit';
+import { globalAppCache } from '@/lib/observability/cache';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
     await requireAdmin(req);
-    const plans = await prisma.plan.findMany({
-      orderBy: { sortOrder: 'asc' },
-      include: {
-        _count: {
-          select: { subscriptions: true },
-        },
+    const formattedPlans = await globalAppCache.getOrSet(
+      {
+        namespace: 'plans',
+        tenantId: 'GLOBAL',
+        key: 'admin_plans_list',
+        ttlMs: 30_000,
       },
-    });
+      async () => {
+        const plans = await prisma.plan.findMany({
+          orderBy: { sortOrder: 'asc' },
+          include: {
+            _count: {
+              select: { subscriptions: true },
+            },
+          },
+        });
+        return plans.map((p) => ({
+          ...p,
+          subscribersCount: p._count.subscriptions,
+        }));
+      }
+    );
 
     return NextResponse.json({
-      plans: plans.map((p) => ({
-        ...p,
-        subscribersCount: p._count.subscriptions,
-      })),
+      plans: formattedPlans,
     });
   } catch (err) {
     if (err instanceof AuthError) {
@@ -66,6 +78,8 @@ export async function PATCH(req: NextRequest) {
         isActive: body.isActive !== undefined ? Boolean(body.isActive) : existing.isActive,
       },
     });
+
+    globalAppCache.invalidateNamespace('plans');
 
     await createAuditLog(
       {

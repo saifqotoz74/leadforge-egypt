@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthError, requireAdmin, verifyCsrfOrigin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { rejectAdminDuplicateCandidate } from '@/lib/deduplication';
+import { rejectAdminDuplicateCandidate, MergeServiceError } from '@/lib/deduplication';
 import { createAuditLog } from '@/lib/audit';
+import { getSafeClientErrorMessage } from '@/lib/security/error-taxonomy';
 
 export async function POST(
   req: NextRequest,
@@ -55,8 +56,17 @@ export async function POST(
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.statusCode });
     }
+    if (err instanceof MergeServiceError) {
+      return NextResponse.json(
+        { error: getSafeClientErrorMessage(err, 'تعذر رفض التكرار.'), code: err.code },
+        { status: err.statusCode }
+      );
+    }
     if (err instanceof Error) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
+      return NextResponse.json(
+        { error: getSafeClientErrorMessage(err, 'تعذر رفض التكرار.') },
+        { status: 400 }
+      );
     }
     return NextResponse.json({ error: 'تعذر رفض التكرار.' }, { status: 500 });
   }

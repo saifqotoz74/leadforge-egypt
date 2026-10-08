@@ -7,6 +7,7 @@ import {
   parsePhoneDetails,
 } from '../normalizer';
 import { analyzeWebsiteStatic, WebsiteAnalysisResult } from '../website-analyzer';
+import { validateSafeExternalUrl } from '../collectors/security';
 import {
   EmailValidationState,
   PhoneValidationState,
@@ -253,6 +254,15 @@ export async function verifyWebsiteHttpWithTimeout(
   }
 
   const targetUrl = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  const initialSafety = validateSafeExternalUrl(targetUrl);
+  if (!initialSafety.valid) {
+    return {
+      reachable: false,
+      errorType: 'PERMANENT_FAILURE',
+      errorMessage: `SSRF_BLOCKED: ${initialSafety.reason || 'Unsafe external URL'}`,
+    };
+  }
+
   const controller = new AbortController();
   const timeoutHandle = setTimeout(() => {
     controller.abort(new Error(`Website probe timed out after ${timeoutMs}ms`));
@@ -271,6 +281,19 @@ export async function verifyWebsiteHttpWithTimeout(
 
     const statusCode = response.status;
     const finalUrl = response.url || targetUrl;
+    if (finalUrl !== targetUrl) {
+      const redirectSafety = validateSafeExternalUrl(finalUrl);
+      if (!redirectSafety.valid) {
+        return {
+          reachable: false,
+          statusCode: 403,
+          finalUrl,
+          redirected: true,
+          errorType: 'PERMANENT_FAILURE',
+          errorMessage: `SSRF_BLOCKED: Redirect to unsafe target (${redirectSafety.reason})`,
+        };
+      }
+    }
     const redirected =
       response.redirected === true ||
       finalUrl.replace(/\/+$/, '').toLowerCase() !==

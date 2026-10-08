@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AuthError, requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { DEFAULT_FRESHNESS_THRESHOLDS, evaluateLeadFreshness } from '@/lib/freshness';
+import { sanitizeLeadForDeveloper } from '@/lib/lead-service';
 import { evaluateDeveloperLeadMatch } from '@/lib/matching-engine';
 import { getActiveMatchingConfigAndRules } from '@/lib/matching/service';
 import { resolveLeadProjectType, resolveLeadRequiredServices } from '@/lib/matching/taxonomy';
+import {
+  calculateCentralizedFunnelMetrics,
+  evaluateClaimEngagementFlags,
+  normalizeAnalyticsFilters,
+} from '@/lib/analytics';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const [allAvailableLeads, myClaims, notifications, freshnessRow, matchingCtx] =
+    const [allAvailableLeads, myClaims, notifications, freshnessRow, matchingCtx, creditAccount] =
       await Promise.all([
         prisma.lead.findMany({
           where: {
@@ -27,7 +33,7 @@ export async function GET(req: NextRequest) {
         }),
         prisma.leadClaim.findMany({
           where: { userId: user.id },
-          include: { lead: true },
+          include: { lead: true, engagement: true },
           orderBy: { claimedAt: 'desc' },
         }),
         prisma.notification.findMany({
@@ -37,14 +43,20 @@ export async function GET(req: NextRequest) {
         }),
         prisma.freshnessConfig.findUnique({ where: { id: 'default' } }),
         getActiveMatchingConfigAndRules(),
+        prisma.developerCreditAccount.findUnique({ where: { developerId: user.id } }),
       ]);
 
     const thresholds = freshnessRow || DEFAULT_FRESHNESS_THRESHOLDS;
     const { config: matchingConfig, rules: matchingRules } = matchingCtx;
 
-    const claimedLeadIds = new Set(myClaims.map((c) => c.leadId));
-    const activeClaimsCount = myClaims.filter((c) =>
-      ['NEW', 'CONTACTED', 'REPLIED', 'INTERESTED', 'MEETING'].includes(c.pipelineStatus)
+    const activeMyClaims = myClaims.filter(
+      (c) => c.status === 'ACTIVE' && c.accessGranted !== false
+    );
+    const claimedLeadIds = new Set(activeMyClaims.map((c) => c.leadId));
+    const activeClaimsCount = activeMyClaims.filter((c) =>
+      ['NEW', 'CLAIMED', 'CONTACTED', 'REPLIED', 'INTERESTED', 'MEETING', 'PROPOSAL_SENT', 'NEGOTIATION'].includes(
+        c.pipelineStatus
+      )
     ).length;
 
     const unclaimedLeads = allAvailableLeads.filter((l) => !claimedLeadIds.has(l.id));
@@ -100,7 +112,7 @@ export async function GET(req: NextRequest) {
               ? {
                   id: user.subscription.id,
                   status: user.subscription.status,
-                  credits: user.subscription.credits,
+                  credits: creditAccount?.balance ?? user.subscription.credits,
                   currentPeriodEnd: user.subscription.currentPeriodEnd,
                   plan: user.subscription.plan
                     ? {
@@ -120,9 +132,10 @@ export async function GET(req: NextRequest) {
 
         const resolvedServices = resolveLeadRequiredServices(matchableLead);
         const resolvedProjectType = resolveLeadProjectType(matchableLead);
+        const sanitizedLead = sanitizeLeadForDeveloper(lead, false);
 
         return {
-          ...lead,
+          ...sanitizedLead,
           opportunityScore: lead.score,
           freshnessStatus: freshness.freshnessStatus,
           saleabilityStatus: dynamicSaleabilityStatus,
@@ -176,24 +189,56 @@ export async function GET(req: NextRequest) {
       (l) => new Date(l.createdAt) >= sevenDaysAgo
     ).length;
 
-    const totalUsed = myClaims.length;
-    const contactedCount = myClaims.filter((c) =>
-      ['CONTACTED', 'REPLIED', 'INTERESTED', 'MEETING', 'WON'].includes(c.pipelineStatus)
-    ).length;
-    const repliedCount = myClaims.filter((c) =>
-      ['REPLIED', 'INTERESTED', 'MEETING', 'WON'].includes(c.pipelineStatus)
-    ).length;
-    const meetingCount = myClaims.filter((c) =>
-      ['MEETING', 'WON'].includes(c.pipelineStatus)
-    ).length;
-    const wonCount = myClaims.filter((c) => c.pipelineStatus === 'WON').length;
+    const evaluatedFlags = activeMyClaims.map((c) =>
+      evaluateClaimEngagementFlags(c, c.engagement)
+    );
+    const totalUsed = evaluatedFlags.length;
+    const contactedCount = evaluatedFlags.filter((f) => f.isContacted).length;
+    const repliedCount = evaluatedFlags.filter((f) => f.isReplied).length;
+    const interestedCount = evaluatedFlags.filter((f) => f.isInterested).length;
+    const meetingCount = evaluatedFlags.filter((f) => f.isMeeting).length;
+    const proposalCount = evaluatedFlags.filter((f) => f.isProposal).length;
+    const negotiationCount = evaluatedFlags.filter((f) => f.isNegotiation).length;
+    const wonCount = evaluatedFlags.filter((f) => f.isWon).length;
+    const lostCount = evaluatedFlags.filter((f) => f.isLost).length;
+    const notInterestedCount = evaluatedFlags.filter((f) => f.isNotInterested).length;
+    const invalidCount = evaluatedFlags.filter((f) => f.isInvalid).length;
+
+    const centralizedFunnel = calculateCentralizedFunnelMetrics(
+      {
+        claimed: totalUsed,
+        contacted: contactedCount,
+        replied: repliedCount,
+        interested: interestedCount,
+        meetings: meetingCount,
+        proposals: proposalCount,
+        negotiations: negotiationCount,
+        won: wonCount,
+        lost: lostCount,
+        notInterested: notInterestedCount,
+        invalid: invalidCount,
+      },
+      normalizeAnalyticsFilters({ developerId: user.id })
+    );
 
     const conversionRate =
-      totalUsed > 0 ? Math.round((wonCount / totalUsed) * 100) : 0;
+      centralizedFunnel.overallRates.winRateOfClaimed.value !== null
+        ? Math.round(centralizedFunnel.overallRates.winRateOfClaimed.value * 100)
+        : 0;
     const contactRate =
-      totalUsed > 0 ? Math.round((contactedCount / totalUsed) * 100) : 0;
+      centralizedFunnel.stageRates.contactRate.value !== null
+        ? Math.round(centralizedFunnel.stageRates.contactRate.value * 100)
+        : 0;
     const replyRate =
       totalUsed > 0 ? Math.round((repliedCount / totalUsed) * 100) : 0;
+
+    const sanitizedRecentClaims = myClaims.slice(0, 5).map((c) => {
+      const canViewSensitive = c.status === 'ACTIVE' && c.accessGranted !== false;
+      return {
+        ...c,
+        lead: sanitizeLeadForDeveloper(c.lead, canViewSensitive),
+      };
+    });
 
     return NextResponse.json({
       stats: {
@@ -202,24 +247,28 @@ export async function GET(req: NextRequest) {
         warmLeadsCount,
         usedLeadsCount: totalUsed,
         availableLeadsCount: unclaimedLeads.length,
-        remainingCredits: user.subscription?.credits ?? 0,
+        remainingCredits: creditAccount?.balance ?? user.subscription?.credits ?? 0,
         leadsThisWeekCount,
       },
       conversion: {
         totalClaimed: totalUsed,
         contactedCount,
         repliedCount,
+        interestedCount,
         meetingCount,
+        proposalCount,
+        negotiationCount,
         wonCount,
         contactRate,
         replyRate,
         conversionRate,
       },
+      centralizedFunnel,
       matchVersion: matchingConfig.currentVersion,
       subscription: user.subscription,
       profile: user.developerProfile,
       topMatchedLeads: matchedLeads.slice(0, 6),
-      recentClaims: myClaims.slice(0, 5),
+      recentClaims: sanitizedRecentClaims,
       notifications,
     });
   } catch (err) {

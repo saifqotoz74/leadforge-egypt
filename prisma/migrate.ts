@@ -7,6 +7,10 @@ import {
   PHASE2_SCHEMA_UPGRADE_SQL,
   PHASE3_SCHEMA_UPGRADE_SQL,
   PHASE4_SCHEMA_UPGRADE_SQL,
+  PHASE5_SCHEMA_UPGRADE_SQL,
+  PHASE6_SCHEMA_UPGRADE_SQL,
+  PHASE7_SCHEMA_UPGRADE_SQL,
+  PHASE8_SCHEMA_UPGRADE_SQL,
   prisma,
 } from '../src/lib/db';
 
@@ -20,6 +24,20 @@ async function main() {
     'npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script',
     { encoding: 'utf-8' }
   );
+
+  const { classifySqlMigrationSafety } = await import('../src/lib/production/database-ops');
+  const safety = classifySqlMigrationSafety(sql);
+  console.log(
+    `Migration safety classification: ${safety.classification} (${safety.statementCount} statements, ${safety.hazards.length} hazards)`
+  );
+
+  if (safety.classification === 'DANGEROUS' && process.env.ALLOW_DANGEROUS_MIGRATION !== 'true') {
+    throw new Error(
+      `DANGEROUS_MIGRATION_BLOCKED: Detected ${safety.hazards.length} destructive DDL hazard(s): ${safety.hazards
+        .map((h) => h.pattern)
+        .join(', ')}`
+    );
+  }
 
   fs.writeFileSync(migrationFile, sql, 'utf-8');
   console.log(`Saved UTF-8 migration SQL to ${migrationFile} (${sql.length} bytes)`);
@@ -36,18 +54,32 @@ async function main() {
     if (!alreadyExists) {
       console.log('Applying migration SQL to embedded PostgreSQL (PGlite)...');
       await pgliteInstance.exec(sql);
+      await pgliteInstance.exec(PHASE5_SCHEMA_UPGRADE_SQL);
+      await pgliteInstance.exec(PHASE6_SCHEMA_UPGRADE_SQL);
+      await pgliteInstance.exec(PHASE7_SCHEMA_UPGRADE_SQL);
+      await pgliteInstance.exec(PHASE8_SCHEMA_UPGRADE_SQL);
       console.log('Migration applied successfully!');
     } else {
-      console.log('Applying Phase 1, Phase 2, Phase 3 & Phase 4 incremental schema upgrades to embedded PostgreSQL (PGlite)...');
+      console.log('Applying Phase 1–8 incremental schema upgrades to embedded PostgreSQL (PGlite)...');
       await pgliteInstance.exec(PHASE1_SCHEMA_UPGRADE_SQL);
       await pgliteInstance.exec(PHASE2_SCHEMA_UPGRADE_SQL);
       await pgliteInstance.exec(PHASE3_SCHEMA_UPGRADE_SQL);
       await pgliteInstance.exec(PHASE4_SCHEMA_UPGRADE_SQL);
-      console.log('Phase 1, Phase 2, Phase 3 & Phase 4 incremental schema upgrades applied successfully!');
+      await pgliteInstance.exec(PHASE5_SCHEMA_UPGRADE_SQL);
+      await pgliteInstance.exec(PHASE6_SCHEMA_UPGRADE_SQL);
+      await pgliteInstance.exec(PHASE7_SCHEMA_UPGRADE_SQL);
+      await pgliteInstance.exec(PHASE8_SCHEMA_UPGRADE_SQL);
+      console.log('Phase 1–8 incremental schema upgrades applied successfully!');
     }
   } else {
-    console.log('External PostgreSQL configured. Running prisma db push...');
-    execSync('npx prisma db push', { stdio: 'inherit' });
+    const isProd = (process.env.NODE_ENV || '').toLowerCase() === 'production';
+    if (isProd) {
+      console.log('Production PostgreSQL configured. Running safe prisma migrate deploy...');
+      execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+    } else {
+      console.log('External PostgreSQL configured. Running prisma db push...');
+      execSync('npx prisma db push', { stdio: 'inherit' });
+    }
   }
 
   await prisma.$disconnect();
@@ -60,3 +92,4 @@ main().catch((err) => {
   console.error('Migration failed:', err);
   process.exit(1);
 });
+

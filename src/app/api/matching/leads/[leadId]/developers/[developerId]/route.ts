@@ -23,7 +23,7 @@ export async function GET(
 
     if (user.role !== 'ADMIN' && targetDeveloperId !== user.id) {
       return NextResponse.json(
-        { error: 'غير مصرح لك بعرض تفاصيل مطابقة مطور آخر.' },
+        { error: 'غير مصرح لك بعرض تفاصيل مطابقة مطور آخر.', code: 'FORBIDDEN' },
         { status: 403 }
       );
     }
@@ -41,7 +41,7 @@ export async function GET(
     }
 
     const { searchParams } = new URL(req.url);
-    if (searchParams.get('persist') === 'true') {
+    if (searchParams.get('persist') === 'true' && user.role === 'ADMIN') {
       await persistMatchSnapshot(report.matchResult);
     }
 

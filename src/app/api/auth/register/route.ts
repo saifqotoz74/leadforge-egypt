@@ -6,6 +6,8 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { createAuditLog } from '@/lib/audit';
 import { createInAppNotification } from '@/lib/notifications';
 import { DEFAULT_PLANS } from '@/lib/payment/provider';
+import { ensureDeveloperCreditAccount } from '@/lib/claims/credit-service';
+import { isFeatureFlagEnabled } from '@/lib/production/feature-flags';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'الاسم الكامل مطلوب (حرفين على الأقل)'),
@@ -25,6 +27,16 @@ export async function POST(req: NextRequest) {
   try {
     if (!verifyCsrfOrigin(req)) {
       return NextResponse.json({ error: 'طلب غير مصرح به (CSRF).' }, { status: 403 });
+    }
+
+    if (!isFeatureFlagEnabled('public_registration_enabled')) {
+      return NextResponse.json(
+        {
+          error: 'التسجيل العام متوقف مؤقتًا حاليًا.',
+          code: 'PUBLIC_REGISTRATION_DISABLED',
+        },
+        { status: 503 }
+      );
     }
 
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
@@ -123,6 +135,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    await ensureDeveloperCreditAccount(prisma, user.id);
+
     await createInAppNotification(
       {
         userId: user.id,
@@ -174,8 +188,7 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch (err) {
-    console.error('Register error:', err);
+  } catch {
     return NextResponse.json({ error: 'حدث خطأ أثناء إنشاء الحساب.' }, { status: 500 });
   }
 }

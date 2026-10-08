@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AuthError, requireAdmin } from '@/lib/auth';
+import { AuthError, requireAdmin, verifyCsrfOrigin } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
 import { prisma } from '@/lib/db';
 import {
@@ -265,6 +265,12 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    if (!verifyCsrfOrigin(req)) {
+      return NextResponse.json(
+        { error: 'طلب غير مصرح به (CSRF).', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+    }
     const admin = await requireAdmin(req);
     const body = await req.json();
 

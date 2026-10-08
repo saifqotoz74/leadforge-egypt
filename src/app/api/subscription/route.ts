@@ -4,6 +4,8 @@ import { AuthError, requireAuth, verifyCsrfOrigin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { subscribeUserToPlan } from '@/lib/payment/provider';
 import { invalidateAndRecalculateDeveloperMatches } from '@/lib/matching/service';
+import { getSafeClientErrorMessage } from '@/lib/security/error-taxonomy';
+import { globalAppCache } from '@/lib/observability/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,6 +66,7 @@ export async function POST(req: NextRequest) {
       planId: parsed.data.planId,
     });
 
+    globalAppCache.invalidateNamespace('plans');
     await invalidateAndRecalculateDeveloperMatches(user.id);
 
     return NextResponse.json({
@@ -75,7 +78,7 @@ export async function POST(req: NextRequest) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.statusCode });
     }
-    const message = err instanceof Error ? err.message : 'تعذر تفعيل الباقة.';
+    const message = getSafeClientErrorMessage(err, 'تعذر تفعيل الباقة.');
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

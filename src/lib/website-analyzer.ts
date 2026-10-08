@@ -1,4 +1,6 @@
 import { normalizeDomain } from './normalizer';
+import { assertSafeExternalUrl, safeExternalFetch } from './collectors/security';
+import { IngestionError } from './collectors/types';
 
 export interface WebsiteAnalysisResult {
   url: string | null;
@@ -199,30 +201,25 @@ export async function analyzeWebsiteUrl(
       : `http://${cleanUrl}`;
 
   if (options?.allowNetwork) {
+    assertSafeExternalUrl(fullUrl);
     const start = Date.now();
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), options.timeoutMs || 4000);
     try {
-      const response = await fetch(fullUrl, {
-        method: 'GET',
-        signal: controller.signal,
-        headers: {
-          'User-Agent': 'LeadForgeEgypt-WebsiteVerifier/1.0',
-          Accept: 'text/html,application/xhtml+xml',
-        },
+      const safeRes = await safeExternalFetch(fullUrl, {
+        timeoutMs: options.timeoutMs || 4000,
+        maxRedirects: 3,
+        maxResponseBytes: 512 * 1024,
       });
-      clearTimeout(timeout);
-      const responseTimeMs = Date.now() - start;
-      const html = await response.text();
       return evaluateWebsiteRules({
-        url: response.url || fullUrl,
-        httpStatus: response.status,
-        reachable: response.ok,
-        responseTimeMs,
-        html,
+        url: safeRes.finalUrl || fullUrl,
+        httpStatus: safeRes.status,
+        reachable: safeRes.status >= 200 && safeRes.status < 400,
+        responseTimeMs: safeRes.durationMs,
+        html: safeRes.bodyText,
       });
-    } catch {
-      clearTimeout(timeout);
+    } catch (err) {
+      if (err instanceof IngestionError && err.code === 'SSRF_BLOCKED') {
+        throw err;
+      }
       return evaluateWebsiteRules({
         url: fullUrl,
         httpStatus: 503,
