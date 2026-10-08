@@ -1,0 +1,943 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  DEVELOPER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+}
+
+enum WebsiteStatus {
+  NO_WEBSITE
+  HAS_WEBSITE
+  POOR_WEBSITE
+  UNKNOWN
+}
+
+enum LeadTemperature {
+  COLD
+  WARM
+  HOT
+  PREMIUM
+}
+
+enum LeadAvailabilityStatus {
+  AVAILABLE
+  CLAIMED_FULL
+  REQUIRES_VERIFICATION
+  STALE
+  INVALID
+  CLOSED
+  DUPLICATE
+  NOT_SALEABLE
+  ARCHIVED
+}
+
+enum QualityStatus {
+  VERY_LOW
+  LOW
+  MEDIUM
+  HIGH
+  EXCELLENT
+}
+
+enum FreshnessState {
+  FRESH
+  RECENT
+  NEEDS_VERIFICATION
+  STALE
+  VERY_STALE
+  UNKNOWN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PARTIALLY_VERIFIED
+  VERIFIED
+  FAILED_VERIFICATION
+}
+
+enum VerificationType {
+  PHONE
+  EMAIL
+  WEBSITE
+  BUSINESS_STATUS
+  ADDRESS
+  IDENTITY
+  CATEGORY
+  LOCATION
+  FEEDBACK
+  FULL
+}
+
+enum VerificationRecordStatus {
+  VERIFIED
+  FAILED
+  UNKNOWN
+  NEEDS_REVERIFICATION
+}
+
+enum BusinessOperationalStatus {
+  OPEN
+  CLOSED
+  TEMPORARILY_CLOSED
+  UNKNOWN
+}
+
+enum LeadOwnershipType {
+  SHARED
+  EXCLUSIVE
+}
+
+enum PipelineStatus {
+  NEW
+  CONTACTED
+  REPLIED
+  INTERESTED
+  MEETING
+  WON
+  LOST
+  NOT_INTERESTED
+  INVALID
+}
+
+enum FeedbackReason {
+  WRONG_PHONE
+  BUSINESS_CLOSED
+  ALREADY_HAS_WEBSITE
+  NOT_INTERESTED
+  DUPLICATE
+  WRONG_CATEGORY
+  WRONG_LOCATION
+  OTHER
+}
+
+enum SourceType {
+  MANUAL
+  CSV_IMPORT
+  OPEN_DATA
+  DIRECTORY
+  WEBSITE
+  GOOGLE_BUSINESS
+}
+
+enum ImportRecordStatus {
+  VALID
+  DUPLICATE
+  INVALID
+  POSSIBLE_DUPLICATE
+  CONFLICT
+}
+
+enum SourceRecordStatus {
+  ACTIVE
+  DUPLICATE
+  REJECTED
+  CONFLICT
+  STALE
+  MERGED
+  UNMERGED
+}
+
+enum DeduplicationDecisionType {
+  UNIQUE
+  DUPLICATE_CONFIRMED
+  POSSIBLE_DUPLICATE
+  CONFLICT
+}
+
+enum DuplicateCandidateStatus {
+  PENDING
+  CONFIRMED_MERGED
+  KEPT_SEPARATE
+  MARKED_INVALID
+  RESOLVED
+}
+
+model User {
+  id               String             @id @default(cuid())
+  email            String             @unique
+  passwordHash     String
+  name             String
+  role             UserRole           @default(DEVELOPER)
+  status           UserStatus         @default(ACTIVE)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  developerProfile DeveloperProfile?
+  subscription     Subscription?
+  claims           LeadClaim[]
+  feedbacks        LeadFeedback[]
+  statusHistories  LeadStatusHistory[]
+  notifications    Notification[]
+  payments         Payment[]
+  auditLogs        AuditLog[]
+  importJobs       ImportJob[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+}
+
+model DeveloperProfile {
+  id                    String          @id @default(cuid())
+  userId                String          @unique
+  companyName           String?
+  phone                 String?
+  bio                   String?
+  services              String[]        @default(["Website Development"])
+  preferredServices     String[]        @default([])
+  excludedServices      String[]        @default([])
+  locations             String[]        @default(["القاهرة", "الجيزة"])
+  supportedGovernorates String[]        @default([])
+  supportedCities       String[]        @default([])
+  supportedDistricts    String[]        @default([])
+  preferredCities       String[]        @default([])
+  excludedLocations     String[]        @default([])
+  allLocationsMode      Boolean         @default(false)
+  niches                String[]        @default(["Dental", "Medical", "Restaurant"])
+  preferredNiches       String[]        @default([])
+  excludedNiches        String[]        @default([])
+  allNichesMode         Boolean         @default(false)
+  leadPreferences       String[]        @default(["NO_WEBSITE", "POOR_WEBSITE"])
+  supportedLeadTypes    String[]        @default([])
+  preferredLeadTypes    String[]        @default([])
+  excludedLeadTypes     String[]        @default([])
+  minBudget             Int             @default(5000)
+  maxBudget             Int?            @default(50000)
+  preferredMinBudget    Int?
+  preferredMaxBudget    Int?
+  budgetCurrency        String          @default("EGP")
+  budgetRange           String          @default("5000-50000")
+  leadType              String          @default("BOTH")
+  isActive              Boolean         @default(true)
+  isAcceptingLeads      Boolean         @default(true)
+  isVerified            Boolean         @default(true)
+  maxActiveLeads        Int?
+  lastMatchedAt         DateTime?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchSnapshots        MatchSnapshot[]
+
+  @@index([isActive, isAcceptingLeads])
+  @@index([minBudget, maxBudget])
+  @@index([leadType])
+}
+
+model Plan {
+  id                  String         @id @default(cuid())
+  slug                String         @unique
+  name                String
+  nameEn              String
+  priceEgp            Int
+  monthlyCredits      Int
+  allowsExclusive     Boolean        @default(true)
+  maxConcurrentClaims Int            @default(100)
+  features            String[]
+  isActive            Boolean        @default(true)
+  sortOrder           Int            @default(0)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  subscriptions       Subscription[]
+  payments            Payment[]
+}
+
+model Subscription {
+  id                  String             @id @default(cuid())
+  userId              String             @unique
+  planId              String
+  status              SubscriptionStatus @default(ACTIVE)
+  credits             Int                @default(3)
+  totalCreditsGranted Int                @default(3)
+  creditsUsed         Int                @default(0)
+  currentPeriodStart  DateTime           @default(now())
+  currentPeriodEnd    DateTime
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                Plan               @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+}
+
+enum ScoringTrigger {
+  LEAD_CREATED
+  LEAD_UPDATED
+  SOURCE_REFRESH
+  MANUAL_RECALCULATION
+  ADMIN_RECALCULATION
+  SCHEDULED_RECALCULATION
+}
+
+model Lead {
+  id                       String                    @id @default(cuid())
+  businessName             String
+  normalizedName           String
+  category                 String
+  governorate              String
+  city                     String
+  area                     String?
+  address                  String?
+  normalizedAddress        String?
+  phone                    String?
+  normalizedPhone          String?
+  phones                   String[]                  @default([])
+  hasPhone                 Boolean                   @default(false)
+  email                    String?
+  normalizedEmail          String?
+  hasEmail                 Boolean                   @default(false)
+  website                  String?
+  normalizedDomain         String?
+  websiteStatus            WebsiteStatus             @default(NO_WEBSITE)
+  facebook                 String?
+  normalizedFacebook       String?
+  hasFacebook              Boolean                   @default(false)
+  instagram                String?
+  normalizedInstagram      String?
+  hasInstagram             Boolean                   @default(false)
+  rating                   Float?
+  reviewCount              Int                       @default(0)
+  branchCount              Int                       @default(1)
+  estimatedBudget          Int                       @default(8000)
+  minBudget                Int?
+  maxBudget                Int?
+  budgetCurrency           String                    @default("EGP")
+  budgetType               String                    @default("ESTIMATED")
+  requiredService          String?
+  requiredServices         String[]                  @default([])
+  projectLeadType          String?
+  isVerified               Boolean                   @default(true)
+  isRecentlyActive         Boolean                   @default(true)
+  score                    Int                       @default(0)
+  temperature              LeadTemperature           @default(COLD)
+  scoringVersion           String                    @default("v1")
+  scoreExplanation         Json?
+  lastScoredAt             DateTime                  @default(now())
+  status                   LeadAvailabilityStatus    @default(AVAILABLE)
+  confidence               String                    @default("HIGH")
+  qualificationReasons     String[]                  @default([])
+  qualificationRules       Json                      @default("[]")
+  websiteAnalysis          Json?
+  leadType                 LeadOwnershipType         @default(SHARED)
+  exclusive                Boolean                   @default(false)
+  maxPurchasers            Int                       @default(3)
+  currentPurchasers        Int                       @default(0)
+  source                   String                    @default("Manual")
+  sourceList               String[]                  @default(["Manual"])
+  sourceId                 String?
+  canonicalIdentityKeys    String[]                  @default([])
+  fieldProvenance          Json?
+  fieldConflicts           Json?
+  isCanonical              Boolean                   @default(true)
+  mergedIntoLeadId         String?
+  qualityScore             Int                       @default(50)
+  qualityStatus            QualityStatus             @default(MEDIUM)
+  freshnessStatus          FreshnessState            @default(FRESH)
+  verificationStatus       VerificationStatus        @default(UNVERIFIED)
+  saleabilityStatus        LeadAvailabilityStatus    @default(AVAILABLE)
+  completenessScore        Int                       @default(0)
+  completenessBreakdown    Json?
+  qualityFlags             String[]                  @default([])
+  qualitySummary           Json?
+  businessStatus           BusinessOperationalStatus @default(OPEN)
+  phoneValidationStatus    String                    @default("UNKNOWN")
+  emailValidationStatus    String                    @default("UNKNOWN")
+  websiteVerificationState String                    @default("UNKNOWN")
+  lastVerifiedAt           DateTime?                 @default(now())
+  nextVerificationAt       DateTime?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+
+  leadSource               LeadSource?               @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  scores                   LeadScore[]
+  verifications            LeadVerification[]
+  claims                   LeadClaim[]
+  feedbacks                LeadFeedback[]
+  statusHistories          LeadStatusHistory[]
+  importRecords            ImportRecord[]
+  sourceRecords            SourceRecord[]
+  identities               LeadIdentity[]
+  matchedCandidates        DuplicateCandidate[]      @relation("MatchedCanonicalLead")
+  candidateDuplicates      DuplicateCandidate[]      @relation("CandidateDuplicateLead")
+  mergeHistoriesAsTarget   LeadMergeHistory[]        @relation("MergeTargetLead")
+  mergeHistoriesAsSource   LeadMergeHistory[]        @relation("MergeSourceLead")
+  matchSnapshots           MatchSnapshot[]
+
+  @@index([city])
+  @@index([governorate])
+  @@index([category])
+  @@index([score])
+  @@index([temperature])
+  @@index([scoringVersion])
+  @@index([status])
+  @@index([qualityScore])
+  @@index([qualityStatus])
+  @@index([freshnessStatus])
+  @@index([verificationStatus])
+  @@index([saleabilityStatus])
+  @@index([businessStatus])
+  @@index([website])
+  @@index([websiteStatus])
+  @@index([phone])
+  @@index([normalizedPhone])
+  @@index([normalizedDomain])
+  @@index([normalizedEmail])
+  @@index([normalizedFacebook])
+  @@index([normalizedInstagram])
+  @@index([normalizedName, city])
+  @@index([normalizedName, normalizedAddress, city])
+  @@index([isCanonical])
+  @@index([mergedIntoLeadId])
+  @@index([source])
+  @@index([createdAt])
+  @@index([lastVerifiedAt])
+  @@index([nextVerificationAt])
+  @@index([requiredService])
+  @@index([projectLeadType])
+  @@index([estimatedBudget])
+  @@index([saleabilityStatus, isCanonical, status])
+}
+
+model LeadSource {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  type          SourceType     @default(MANUAL)
+  description   String?
+  isActive      Boolean        @default(true)
+  lastSyncAt    DateTime?
+  recordsCount  Int            @default(0)
+  config        Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  leads         Lead[]
+  importJobs    ImportJob[]
+  sourceRecords SourceRecord[]
+}
+
+model SourceRecord {
+  id                  String                    @id @default(cuid())
+  leadId              String?
+  sourceId            String?
+  sourceName          String
+  sourceType          SourceType                @default(MANUAL)
+  externalId          String?
+  rawData             Json
+  normalizedData      Json
+  identityKeys        String[]                  @default([])
+  decision            DeduplicationDecisionType @default(UNIQUE)
+  matchedSignals      Json                      @default("[]")
+  status              SourceRecordStatus        @default(ACTIVE)
+  importJobId         String?
+  firstSeenAt         DateTime                  @default(now())
+  lastSeenAt          DateTime                  @default(now())
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+
+  lead                Lead?                     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  source              LeadSource?               @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  duplicateCandidates DuplicateCandidate[]
+  mergeHistories      LeadMergeHistory[]
+
+  @@unique([sourceName, externalId])
+  @@index([leadId])
+  @@index([sourceId])
+  @@index([sourceId, externalId])
+  @@index([sourceType, externalId])
+  @@index([externalId])
+  @@index([status])
+  @@index([decision])
+  @@index([createdAt])
+}
+
+model LeadIdentity {
+  id             String   @id @default(cuid())
+  leadId         String
+  keyType        String
+  keyValue       String
+  canonicalKey   String
+  source         String?
+  sourceRecordId String?
+  isPrimary      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  lead           Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, canonicalKey])
+  @@index([canonicalKey])
+  @@index([keyType, keyValue])
+  @@index([leadId])
+  @@index([sourceRecordId])
+}
+
+model DuplicateCandidate {
+  id              String                    @id @default(cuid())
+  sourceRecordId  String?
+  candidateLeadId String?
+  matchedLeadId   String
+  decision        DeduplicationDecisionType @default(POSSIBLE_DUPLICATE)
+  status          DuplicateCandidateStatus  @default(PENDING)
+  signals         Json                      @default("[]")
+  conflicts       Json                      @default("[]")
+  confidenceLevel String                    @default("MEDIUM")
+  resolvedBy      String?
+  resolvedAt      DateTime?
+  resolutionNotes String?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  sourceRecord    SourceRecord?             @relation(fields: [sourceRecordId], references: [id], onDelete: SetNull)
+  candidateLead   Lead?                     @relation("CandidateDuplicateLead", fields: [candidateLeadId], references: [id], onDelete: SetNull)
+  matchedLead     Lead                      @relation("MatchedCanonicalLead", fields: [matchedLeadId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([decision])
+  @@index([matchedLeadId])
+  @@index([candidateLeadId])
+  @@index([sourceRecordId])
+  @@index([createdAt])
+}
+
+model LeadMergeHistory {
+  id                 String        @id @default(cuid())
+  targetLeadId       String
+  sourceLeadId       String?
+  sourceRecordId     String?
+  mergeType          String        @default("AUTOMATIC")
+  reason             String
+  decision           String        @default("DUPLICATE_CONFIRMED")
+  matchedSignals     Json          @default("[]")
+  fieldChanges       Json
+  sourceLeadSnapshot Json?
+  conflictsRecorded  Json?
+  performedBy        String        @default("SYSTEM")
+  performedAt        DateTime      @default(now())
+  revertedAt         DateTime?
+  revertedBy         String?
+  revertReason       String?
+  isReverted         Boolean       @default(false)
+
+  targetLead         Lead          @relation("MergeTargetLead", fields: [targetLeadId], references: [id], onDelete: Cascade)
+  sourceLead         Lead?         @relation("MergeSourceLead", fields: [sourceLeadId], references: [id], onDelete: SetNull)
+  sourceRecord       SourceRecord? @relation(fields: [sourceRecordId], references: [id], onDelete: SetNull)
+
+  @@index([targetLeadId])
+  @@index([sourceLeadId])
+  @@index([sourceRecordId])
+  @@index([performedBy])
+  @@index([performedAt])
+  @@index([isReverted])
+}
+
+model LeadScore {
+  id                     String         @id @default(cuid())
+  leadId                 String
+  previousScore          Int?
+  rawScore               Int
+  normalizedScore        Int
+  newScore               Int            @default(0)
+  previousClassification String?
+  temperature            String
+  newClassification      String         @default("COLD")
+  scoringVersion         String         @default("v1")
+  trigger                ScoringTrigger @default(MANUAL_RECALCULATION)
+  appliedRules           Json
+  evaluatedRules         Json?
+  explanation            Json?
+  qualificationReasons   String[]
+  calculatedAt           DateTime       @default(now())
+  evaluatedAt            DateTime       @default(now())
+
+  lead                   Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([scoringVersion])
+  @@index([evaluatedAt])
+  @@index([calculatedAt])
+  @@index([leadId, calculatedAt])
+}
+
+model ScoringRule {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  key         String?  @unique
+  name        String
+  nameEn      String   @default("")
+  description String?
+  category    String   @default("GENERAL")
+  ruleGroup   String?
+  weight      Int
+  points      Int      @default(0)
+  priority    Int      @default(0)
+  enabled     Boolean  @default(true)
+  field       String
+  operator    String
+  targetValue String
+  conditions  Json     @default("{}")
+  version     String   @default("v1")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([enabled])
+  @@index([category])
+  @@index([ruleGroup])
+  @@index([version])
+  @@index([sortOrder])
+  @@index([createdAt])
+}
+
+model ScoringConfig {
+  id             String   @id @default("default")
+  currentVersion String   @default("v1")
+  versionNumber  Int      @default(1)
+  coldMax        Int      @default(49)
+  warmMin        Int      @default(50)
+  warmMax        Int      @default(69)
+  hotMin         Int      @default(70)
+  hotMax         Int      @default(84)
+  premiumMin     Int      @default(85)
+  minScore       Int      @default(0)
+  maxScore       Int      @default(100)
+  updatedAt      DateTime @updatedAt
+}
+
+model FreshnessConfig {
+  id                 String   @id @default("default")
+  freshMaxDays       Int      @default(7)
+  recentMaxDays      Int      @default(30)
+  needsVerifyMaxDays Int      @default(90)
+  staleMaxDays       Int      @default(180)
+  updatedAt          DateTime @updatedAt
+}
+
+model QualityConfig {
+  id                       String   @id @default("default")
+  veryLowMax               Int      @default(24)
+  lowMin                   Int      @default(25)
+  lowMax                   Int      @default(49)
+  mediumMin                Int      @default(50)
+  mediumMax                Int      @default(69)
+  highMin                  Int      @default(70)
+  highMax                  Int      @default(84)
+  excellentMin             Int      @default(85)
+  minSaleableQualityScore  Int      @default(35)
+  phoneExpiryDays          Int      @default(30)
+  emailExpiryDays          Int      @default(30)
+  websiteExpiryDays        Int      @default(14)
+  businessStatusExpiryDays Int      @default(7)
+  addressExpiryDays        Int      @default(90)
+  identityExpiryDays       Int      @default(90)
+  updatedAt                DateTime @updatedAt
+}
+
+model LeadVerification {
+  id               String                   @id @default(cuid())
+  leadId           String
+  verificationType VerificationType
+  status           VerificationRecordStatus @default(UNKNOWN)
+  previousStatus   String?
+  checkedAt        DateTime                 @default(now())
+  expiresAt        DateTime?
+  source           String                   @default("SYSTEM")
+  resultSummary    String
+  evidence         Json?
+  errorType        String?
+  retryCount       Int                      @default(0)
+  durationMs       Int                      @default(0)
+  createdAt        DateTime                 @default(now())
+
+  lead             Lead                     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([verificationType])
+  @@index([status])
+  @@index([checkedAt])
+  @@index([expiresAt])
+  @@index([leadId, verificationType, checkedAt])
+}
+
+model LeadClaim {
+  id              String              @id @default(cuid())
+  leadId          String
+  userId          String
+  pipelineStatus  PipelineStatus      @default(NEW)
+  creditsSpent    Int                 @default(1)
+  exclusiveClaim  Boolean             @default(false)
+  notes           String?
+  lastContactedAt DateTime?
+  nextFollowUpAt  DateTime?
+  claimedAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  lead            Lead                @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedback        LeadFeedback?
+  statusHistories LeadStatusHistory[]
+
+  @@unique([leadId, userId])
+  @@index([userId])
+  @@index([leadId])
+  @@index([pipelineStatus])
+}
+
+model LeadFeedback {
+  id        String          @id @default(cuid())
+  leadId    String
+  userId    String
+  claimId   String?         @unique
+  useful    Boolean
+  reason    FeedbackReason?
+  comment   String?
+  createdAt DateTime        @default(now())
+
+  lead      Lead            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  claim     LeadClaim?      @relation(fields: [claimId], references: [id], onDelete: SetNull)
+
+  @@unique([leadId, userId])
+  @@index([leadId])
+  @@index([useful])
+  @@index([reason])
+}
+
+model LeadStatusHistory {
+  id             String   @id @default(cuid())
+  claimId        String
+  leadId         String
+  userId         String
+  previousStatus String?
+  newStatus      String
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  claim          LeadClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  lead           Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@index([leadId])
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("SYSTEM")
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+model Payment {
+  id             String   @id @default(cuid())
+  userId         String
+  planId         String
+  amountEgp      Int
+  creditsGranted Int
+  provider       String   @default("SANDBOX")
+  providerRef    String
+  status         String   @default("COMPLETED")
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan           Plan     @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+}
+
+model ImportJob {
+  id             String         @id @default(cuid())
+  userId         String
+  sourceId       String?
+  sourceName     String
+  fileName       String?
+  status         String         @default("COMPLETED")
+  totalRows      Int            @default(0)
+  validCount     Int            @default(0)
+  duplicateCount Int            @default(0)
+  invalidCount   Int            @default(0)
+  summary        Json?
+  createdAt      DateTime       @default(now())
+  completedAt    DateTime?
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source         LeadSource?    @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  records        ImportRecord[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ImportRecord {
+  id           String             @id @default(cuid())
+  importJobId  String
+  rowNumber    Int
+  rawData      Json
+  status       ImportRecordStatus
+  errorMessage String?
+  leadId       String?
+  createdAt    DateTime           @default(now())
+
+  importJob    ImportJob          @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+  lead         Lead?              @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([importJobId])
+  @@index([status])
+}
+
+enum MatchingRuleCategory {
+  SERVICE
+  NICHE
+  LOCATION
+  BUDGET
+  LEAD_TYPE
+  QUALITY
+  FRESHNESS
+  PREFERENCE
+  PERFORMANCE
+}
+
+enum ServiceMatchMode {
+  ALL_REQUIRED
+  ANY_REQUIRED
+}
+
+enum UnknownDataPolicy {
+  ALLOW_WITH_PENALTY
+  REQUIRE_VERIFICATION
+  FAIL
+}
+
+enum RequiresVerificationMatchPolicy {
+  EXCLUDE
+  VERIFIED_DEVELOPERS_ONLY
+  INCLUDE_WITH_WARNING
+}
+
+model MatchingRule {
+  id          String               @id @default(cuid())
+  key         String               @unique
+  name        String
+  nameEn      String               @default("")
+  description String?
+  category    MatchingRuleCategory @default(SERVICE)
+  ruleGroup   String?
+  points      Int                  @default(10)
+  priority    Int                  @default(0)
+  enabled     Boolean              @default(true)
+  version     String               @default("v1")
+  condition   Json                 @default("{}")
+  usageCount  Int                  @default(0)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([enabled])
+  @@index([category])
+  @@index([ruleGroup])
+  @@index([version])
+  @@index([priority])
+}
+
+model MatchingConfig {
+  id                         String                          @id @default("default")
+  currentVersion             String                          @default("v1")
+  versionNumber              Int                             @default(1)
+  serviceMatchMode           ServiceMatchMode                @default(ALL_REQUIRED)
+  unknownLocationPolicy      UnknownDataPolicy               @default(FAIL)
+  unknownBudgetPolicy        UnknownDataPolicy               @default(ALLOW_WITH_PENALTY)
+  requiresVerificationPolicy RequiresVerificationMatchPolicy @default(EXCLUDE)
+  budgetHardRequirement      Boolean                         @default(true)
+  requireActiveSubscription  Boolean                         @default(true)
+  requireDeveloperVerified   Boolean                         @default(false)
+  minMatchStrength           Int                             @default(0)
+  maxMatchStrength           Int                             @default(100)
+  unknownLocationPenalty     Int                             @default(10)
+  unknownBudgetPenalty       Int                             @default(5)
+  updatedAt                  DateTime                        @updatedAt
+}
+
+model MatchSnapshot {
+  id               String            @id @default(cuid())
+  leadId           String
+  developerId      String
+  profileId        String?
+  matchVersion     String            @default("v1")
+  eligible         Boolean           @default(false)
+  rank             Int?
+  matchStrength    Int               @default(0)
+  rawMatchPoints   Int               @default(0)
+  opportunityScore Int               @default(0)
+  qualityScore     Int               @default(0)
+  freshness        String            @default("FRESH")
+  matchedCriteria  Json              @default("[]")
+  failedCriteria   Json              @default("[]")
+  hardFailures     Json              @default("[]")
+  warnings         Json              @default("[]")
+  explanation      Json?
+  isStale          Boolean           @default(false)
+  calculatedAt     DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  lead             Lead              @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  developerProfile DeveloperProfile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, developerId, matchVersion])
+  @@index([leadId, eligible, matchStrength])
+  @@index([developerId, eligible, matchStrength])
+  @@index([matchVersion])
+  @@index([calculatedAt])
+  @@index([isStale])
+}
+
