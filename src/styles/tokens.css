@@ -1,0 +1,138 @@
+:root {
+  /* Primitives: teal (brand) */
+  --teal-50: #E8F8F7;
+  --teal-100: #CBF5F4;
+  --teal-200: #BEE9E8;
+  --teal-300: #8FD5D3;
+  --teal-400: #62C0BE;
+  --teal-500: #3F9E9C;
+  --teal-600: #2B7A78;
+  --teal-700: #1D5857;
+  --teal-800: #154341;
+  --teal-900: #0E2F2E;
+
+  /* Primitives: neutral (cool, slightly teal-leaning) */
+  --n-0: #FFFFFF;
+  --n-25: #F5F8F8;
+  --n-50: #EEF3F3;
+  --n-100: #E1E9E9;
+  --n-200: #CFDADA;
+  --n-300: #B3C1C1;
+  --n-400: #8A9B9B;
+  --n-500: #5E7070;
+  --n-600: #455555;
+  --n-700: #2F3D3D;
+  --n-800: #1B2B2B;
+  --n-900: #101A1A;
+
+  /* Primitives: warm (heat tiers, warnings) */
+  --sand-100: #F6EFE0;
+  --sand-700: #6B5420;
+  --clay-50: #FBE7D3;
+  --clay-700: #8A4A12;
+  --amber-50: #FFF4DD;
+  --amber-200: #F2D9A0;
+  --amber-500: #B87A00;
+  --amber-700: #7A5200;
+
+  /* Primitives: danger */
+  --red-50: #FDECEC;
+  --red-200: #F3C2C2;
+  --red-500: #C23B3B;
+  --red-600: #B42323;
+  --red-700: #8C2020;
+
+  /* Semantic: surfaces */
+  --bg-page: var(--n-25);
+  --bg-surface: var(--n-0);
+  --bg-subtle: var(--n-50);
+  --bg-brand-soft: var(--teal-50);
+  --bg-brand-soft-strong: var(--teal-100);
+  --bg-inverse: var(--n-800);
+  --bg-overlay: rgba(16, 26, 26, 0.48);
+
+  /* Semantic: borders */
+  --border-default: var(--n-100);
+  --border-strong: var(--n-200);
+  --border-brand: var(--teal-400);
+
+  /* Semantic: text */
+  --text-primary: var(--n-800);
+  --text-secondary: var(--n-500);
+  --text-muted: var(--n-400);      /* placeholders and disabled only */
+  --text-brand: var(--teal-700);
+  --text-on-brand: #FFFFFF;
+  --text-inverse: var(--sand-100);
+
+  /* Semantic: brand actions */
+  --brand: var(--teal-700);
+  --brand-hover: var(--teal-800);
+  --brand-pressed: var(--teal-900);
+  --brand-accent: var(--teal-400);  /* icons, meters, focus */
+  --focus-ring: var(--teal-400);
+
+  /* Semantic: status */
+  --warning-bg: var(--amber-50);
+  --warning-border: var(--amber-200);
+  --warning-text: var(--amber-700);
+  --warning-icon: var(--amber-500);
+  --danger-bg: var(--red-50);
+  --danger-border: var(--red-200);
+  --danger-text: var(--red-700);
+  --danger-icon: var(--red-500);
+  --danger-fill: var(--red-600);
+  --danger-fill-hover: var(--red-700);
+  --info-bg: var(--teal-50);
+  --info-border: var(--teal-200);
+  --info-text: var(--teal-700);
+  --info-icon: var(--teal-600);
+
+  /* Semantic: heat tiers */
+  --tier-cold-bg: var(--bg-subtle);
+  --tier-cold-fg: var(--text-secondary);
+  --tier-warm-bg: var(--sand-100);
+  --tier-warm-fg: var(--sand-700);
+  --tier-hot-bg: var(--clay-50);
+  --tier-hot-fg: var(--clay-700);
+  --tier-premium-bg: var(--bg-inverse);
+  --tier-premium-fg: var(--text-inverse);
+
+  /* Radius (5.4) */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows (5.4) */
+  --shadow-xs: 0 1px 2px rgba(16, 26, 26, 0.04);
+  --shadow-sm: 0 2px 8px rgba(16, 26, 26, 0.06);
+  --shadow-md: 0 8px 24px rgba(16, 26, 26, 0.08);
+  --shadow-lg: 0 16px 40px rgba(16, 26, 26, 0.12);
+  --ring-focus: 0 0 0 3px rgba(98, 192, 190, 0.45);
+
+  /* Motion (5.5) */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Density modes (5.7 & Appendix B) */
+:root,
+[data-density="comfortable"] {
+  --control-h: 3rem;       /* 48px */
+  --row-h: 3.5rem;         /* 56px */
+  --text-body-size: 1rem;  /* 16px */
+  --card-pad: 1.5rem;      /* 24px */
+  --nav-item-h: 2.75rem;   /* 44px */
+}
+
+[data-density="compact"] {
+  --control-h: 2.25rem;     /* 36px */
+  --row-h: 2.75rem;         /* 44px */
+  --text-body-size: 0.875rem;/* 14px */
+  --card-pad: 1rem;         /* 16px */
+  --nav-item-h: 2.5rem;     /* 40px */
+}

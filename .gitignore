@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+build
+.env
+.pgdata
+.pgdata-test*
+*.tsbuildinfo
+next-env.d.ts
+coverage
