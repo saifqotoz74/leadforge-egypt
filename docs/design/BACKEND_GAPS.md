@@ -66,3 +66,27 @@ This document records visual and interactive features required by the LeadForge 
   Checkout flow displays package pricing in EGP with per-point cost calculation, confirms selection via toast notifications, and triggers the credit addition API.
 - **Recommended Backend Action:**
   Configure production webhook listener at `/api/webhooks/payment` when payment gateway credentials are deployed.
+
+---
+
+## 6. User Account Locale Persistence (`preferredLocale`)
+- **Spec Citation:** LEADFORGE_SPEC_ADDENDUM_01.md Section 3.8:
+  > *"LanguageSwitcher: a two-option segmented control whose options are labeled in their own language (العربية, English)... It sets lf_locale (1 year, SameSite=Lax) and refreshes. Persisting the choice per account needs a backend field: record it in BACKEND_GAPS, do not add it."*
+- **Backend Current State:**
+  The `User` model in `prisma/schema.prisma` does not currently include a `locale` or `preferredLocale` field. The locale is managed via the HTTP client cookie `lf_locale`.
+- **Frontend Fallback Implemented:**
+  Client reads and writes `lf_locale` cookie with 1-year expiration and `SameSite=Lax`.
+- **Recommended Backend Action:**
+  Add `preferredLocale String @default("ar")` to the `User` model in Prisma, and update user authentication/profile endpoints to synchronize with the cookie preference.
+
+---
+
+## 7. Pipeline Status Source of Truth (`LeadClaim.pipelineStatus` vs `LeadEngagement.currentStatus`)
+- **Spec Citation:** LEADFORGE_SPEC_ADDENDUM_01.md Section 3.7, Item 5:
+  > *"Pipeline source of truth: the board and stage badges use LeadClaim.pipelineStatus; the engagement timeline uses LeadEngagement.currentStatus. If the two can disagree, show pipeline status and report the case in BACKEND_GAPS."*
+- **Backend Current State:**
+  Lead claiming tracks `LeadClaim.pipelineStatus` (for board columns and high-level claim progression) while contact engagement tracking uses `LeadEngagement.currentStatus` (for activity timeline transitions). Under asynchronous updates, a developer may advance engagement without synchronizing claim pipeline status immediately.
+- **Frontend Fallback Implemented:**
+  The board columns and stage badges display `LeadClaim.pipelineStatus` as the primary source of truth.
+- **Recommended Backend Action:**
+  Synchronize `LeadClaim.pipelineStatus` and `LeadEngagement.currentStatus` automatically in a single atomic database transaction on every pipeline progression API call.

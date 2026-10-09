@@ -167,3 +167,37 @@ All 11 Admin platform pages have been completely migrated to `AppShell` (`isAdmi
 - **CSS Class Validation**: Eliminated invented classes (`text-brand-dark`, `bg-surface-subtle`) that caused silent unstyled rendering.
 - **Screenshot Coverage**: All 21 target routes fully captured and verified at required desktop (1440px) and mobile (390px) viewports with live authenticated sessions.
 
+---
+
+## 8. Spec Addendum 01 Implementation & 100% Conformance Milestone
+> **Spec Reference:** `docs/design/LEADFORGE_SPEC_ADDENDUM_01.md`  
+> **Status:** 100% Conformance Achieved Across All 25 Routes  
+> **Date:** October 9, 2026
+
+### 1. Tooling & Conformance Matrix (`scripts/check-conformance.mjs`)
+- Automated AST/regex scanner checking 8 strict design system rules (palette utilities, raw black/white, raw hex colors, gradients, physical directions, arbitrary values, off-scale radius/shadows, forbidden motion/AI icons).
+- Generates and maintains [`docs/design/CONFORMANCE.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/CONFORMANCE.md) across all 25 application routes.
+- **Result:** **0 violations in 0 files** across the codebase. All 25 routes are marked **Done**.
+
+### 2. Internationalization Architecture (`next-intl` & `scripts/check-i18n.mjs`)
+- Full localization with `next-intl` without URL prefixes, driven by `lf_locale` cookie (`ar` default, `en` second locale).
+- Unified catalogs: `src/messages/ar.json` and `src/messages/en.json` now have **1,119 keys with 100% parity**.
+- All 33 Prisma enums comprehensively mapped in `enums.*`.
+- Zero unauthorized Latin leaks in Arabic UI chrome.
+
+### 3. Route Groups Migration & String Extraction
+- **Batch 3a (Developer Pages Group):** `/dashboard`, `/dashboard/analytics`, `/leads`, `/leads/[id]`, `/credits`, `/pipeline`, `/my-leads`, `/subscription` — 100% converted to semantic tokens, AppShell, and message catalogs.
+- **Batch 3b (Core Admin & Data Operations):** `/admin`, `/admin/leads`, `/admin/duplicates`, `/admin/quality` — Conformed, Dialogs integrated, localized.
+- **Batch 3c (Configuration & Ingestion):** `/admin/matching`, `/admin/rules`, `/admin/sources` — Custom overlays replaced with `<Dialog>`, `EmptyState` and mirrored icons applied.
+- **Batch 3d (Entities & Reporting):** `/admin/users`, `/admin/plans`, `/admin/reports`, `/admin/analytics` — Fully conformed, localized, zero violations.
+- **Batch 3e (Public, Auth & Settings):** `/login`, `/register`, `/pricing`, `/onboarding`, `/settings` — Redesigned with token radiuses, translated strings, state handling.
+
+### 4. Redesigned Landing Page (`src/app/page.tsx` & Score Lab)
+- Built 12 guided tour sections matching Spec 4.4 without marketing fluff or false claims.
+- Integrated interactive **Score Lab** (`src/features/landing/ScoreLab.tsx`) powered by pure deterministic math in `src/features/landing/demoRules.ts`.
+- Zero AI buzzwords, 200ms transitions, Western digits (`tabular-nums`), and `.ltr-iso` isolation.
+
+### 5. Tailwind Lockdown (Phase 5)
+- In `tailwind.config.ts`, `colors`, `borderRadius`, and `boxShadow` replace the root theme directly, preventing any accidental use of off-scale colors, radiuses, or shadows.
+- All 240 backend and integration tests in Vitest continue to pass with 0 failures (`12/12 test files passed`).
+
