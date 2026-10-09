@@ -220,7 +220,7 @@ export default function RegisterPage() {
                 isLoading={loading}
                 className="w-full"
               >
-                <UserPlus className="h-4 w-4 me-2 rtl:-scale-x-100" />
+                <UserPlus className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
                 <span>{tAuth('submitRegisterAndContinue')}</span>
               </Button>
             </div>

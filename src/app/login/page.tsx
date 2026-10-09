@@ -98,7 +98,7 @@ export default function LoginPage() {
                 onClick={fillDemoDeveloper}
                 className="w-full text-caption gap-1.5"
               >
-                <UserCheck className="h-3.5 w-3.5 text-brand" />
+                <UserCheck className="h-3.5 w-3.5 text-brand shrink-0" />
                 <span>{tAuth('demoDeveloper')}</span>
               </Button>
               <Button
@@ -108,7 +108,7 @@ export default function LoginPage() {
                 onClick={fillDemoAdmin}
                 className="w-full text-caption gap-1.5"
               >
-                <KeyRound className="h-3.5 w-3.5 text-brand" />
+                <KeyRound className="h-3.5 w-3.5 text-brand shrink-0" />
                 <span>{tAuth('demoAdmin')}</span>
               </Button>
             </div>
@@ -151,7 +151,7 @@ export default function LoginPage() {
                 isLoading={loading}
                 className="w-full"
               >
-                <LogIn className="h-4 w-4 me-2 rtl:-scale-x-100" />
+                <LogIn className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
                 <span>{tAuth('submitLogin')}</span>
               </Button>
             </div>

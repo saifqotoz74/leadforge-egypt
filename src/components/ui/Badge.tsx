@@ -38,7 +38,7 @@ export function Badge({
       {...props}
     >
       {icon && <span className="w-3.5 h-3.5 shrink-0 flex items-center justify-center">{icon}</span>}
-      <span>{children}</span>
+      {children}
     </span>
   );
 }

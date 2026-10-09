@@ -62,7 +62,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         type="button"
         disabled={isDisabled}
         aria-busy={isLoading}
-        className={`inline-flex items-center justify-center gap-2 font-medium transition-colors select-none focus-visible:outline-2 focus-visible:outline-brand-accent focus-visible:outline-offset-2 ${
+        className={`inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors select-none focus-visible:outline-2 focus-visible:outline-brand-accent focus-visible:outline-offset-2 ${
           fullWidth ? 'w-full' : 'w-auto'
         } ${SIZE_CLASSES[size]} ${VARIANT_CLASSES[variant]} ${
           isDisabled
@@ -80,7 +80,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             </span>
           )
         )}
-        <span>{children}</span>
+        {children}
         {!isLoading && endIcon && (
           <span className={`inline-flex items-center justify-center shrink-0 ${ICON_SIZE_CLASSES[size]}`}>
             {endIcon}

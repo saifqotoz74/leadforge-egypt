@@ -73,12 +73,12 @@ export default function LandingPage() {
                   <Link href="/register">
                     <Button variant="primary" size="lg" className="gap-2">
                       <span>{tLanding('heroCtaPrimary')}</span>
-                      <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
+                      <ArrowLeft className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
                     </Button>
                   </Link>
                   <a href="#score-lab">
                     <Button variant="secondary" size="lg" className="gap-2">
-                      <Sliders className="h-4 w-4" />
+                      <Sliders className="h-4 w-4 shrink-0" />
                       <span>{tLanding('heroCtaSecondary')}</span>
                     </Button>
                   </a>
@@ -717,7 +717,7 @@ export default function LandingPage() {
               <Link href="/register">
                 <Button variant="primary" size="lg" className="gap-2">
                   <span>{tLanding('finalCtaBtnRegister')}</span>
-                  <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
+                  <ArrowLeft className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
                 </Button>
               </Link>
               <Link href="/pricing">
