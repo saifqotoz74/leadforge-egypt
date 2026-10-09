@@ -23,7 +23,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   danger:
     'bg-danger-fill text-white border-0 hover:bg-danger-fill-hover active:bg-red-700 shadow-xs',
   link:
-    'bg-transparent text-brand border-0 p-0 h-auto hover:underline underline-offset-[3px]',
+    'bg-transparent text-brand border-0 p-0 h-auto hover:underline underline-offset-2',
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {

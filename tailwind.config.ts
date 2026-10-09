@@ -116,9 +116,25 @@ const config: Config = {
         tooltip: '60',
       },
       maxWidth: {
-        public: '75rem',
-        app: '80rem',
-        reading: '45rem',
+        public: '75rem',    // 1200px
+        app: '80rem',       // 1280px
+        reading: '45rem',   // 720px
+        auth: '27.5rem',    // 440px
+        onboarding: '35rem',// 560px
+        form: '30rem',      // 480px
+        dialogSm: '27.5rem',// 440px
+        dialogMd: '35rem',  // 560px
+        dialogLg: '45rem',  // 720px
+        drawer: '30rem',    // 480px
+        toast: '26.25rem',  // 420px
+        popover: '20rem',   // 320px
+        filter: '20rem',    // 320px
+        search: '17.5rem',  // 280px
+      },
+      width: {
+        column: '18.75rem', // 300px
+        drawer: '30rem',    // 480px
+        sidebar: '16rem',   // 256px
       },
     },
   },

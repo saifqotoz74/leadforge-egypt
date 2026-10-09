@@ -22,6 +22,9 @@ import {
   MergeCompare,
   RuleWeightEditor,
   Stepper,
+  StatTile,
+  DealTimeline,
+  LedgerTable,
 } from '@/components/domain';
 
 import {
@@ -48,7 +51,19 @@ import {
   Avatar,
   Badge,
   Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
   Spinner,
+  NumberStepper,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
 } from '@/components/ui';
 
 import {
@@ -56,7 +71,6 @@ import {
   ChevronRight,
   ChevronLeft,
   ArrowRight,
-  Sparkles,
   HelpCircle,
   Copy,
   Sliders,
@@ -68,6 +82,9 @@ import {
   Palette,
   Type,
   Maximize2,
+  TrendingUp,
+  Coins,
+  Users,
 } from 'lucide-react';
 
 export default function DesignSystemPage() {
@@ -81,6 +98,7 @@ export default function DesignSystemPage() {
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [purchaseModalState, setPurchaseModalState] = useState<'idle' | 'insufficient_balance' | 'success'>('idle');
   const [isScoreDrawerOpen, setIsScoreDrawerOpen] = useState(false);
+  const [numberStepperVal, setNumberStepperVal] = useState(5);
 
   // Active toast simulation
   const [activeToast, setActiveToast] = useState<{ message: string; variant: 'success' | 'error' | 'info' } | null>(null);
@@ -232,9 +250,9 @@ export default function DesignSystemPage() {
                       className={`h-16 rounded-lg ${c.bg} ${c.text} flex flex-col justify-between p-2 shadow-xs border border-line/40`}
                     >
                       <span className="text-caption font-bold">{c.name}</span>
-                      <span className="text-[10px] font-mono opacity-80">{c.hex}</span>
+                      <span className="text-caption font-mono opacity-80">{c.hex}</span>
                     </div>
-                    <span className="text-[10px] text-fg-muted text-center">{c.ratio}</span>
+                    <span className="text-caption text-fg-muted text-center">{c.ratio}</span>
                   </div>
                 ))}
               </div>
@@ -262,7 +280,7 @@ export default function DesignSystemPage() {
                       className={`h-16 rounded-lg ${c.bg} ${c.text} flex flex-col justify-between p-2 shadow-xs border border-line/40`}
                     >
                       <span className="text-caption font-bold">{c.name}</span>
-                      <span className="text-[10px] font-mono opacity-80">{c.hex}</span>
+                      <span className="text-caption font-mono opacity-80">{c.hex}</span>
                     </div>
                   </div>
                 ))}
@@ -484,6 +502,25 @@ export default function DesignSystemPage() {
                   onChange={(e) => setSwitchVal(e.target.checked)}
                   label="تطبيق الفلترة التلقائية"
                 />
+
+                <div className="flex items-center gap-3">
+                  <span className="text-body-sm text-fg-secondary">العداد الرقمي (NumberStepper):</span>
+                  <NumberStepper
+                    value={numberStepperVal}
+                    onChange={setNumberStepperVal}
+                    min={1}
+                    max={20}
+                    step={1}
+                  />
+                  <NumberStepper
+                    value={numberStepperVal}
+                    onChange={setNumberStepperVal}
+                    min={1}
+                    max={20}
+                    step={1}
+                    size="sm"
+                  />
+                </div>
               </div>
             </div>
 
@@ -581,6 +618,205 @@ export default function DesignSystemPage() {
                 />
               </div>
             </div>
+
+            {/* AVATAR & BADGES */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">الصور الرمزية والشارات (Avatar & Badges)</h3>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                <div className="flex items-center gap-3">
+                  <span className="text-body-sm text-fg-secondary">الصور الرمزية (Avatar):</span>
+                  <Avatar name="محمد سلام" size="sm" />
+                  <Avatar name="سيف قطز" size="md" />
+                  <Avatar name="شركة النور" size="lg" />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-body-sm text-fg-secondary">الشارات (Badges):</span>
+                  <Badge variant="neutral">افتراضي (Neutral)</Badge>
+                  <Badge variant="brand">علامة تجارية (Brand)</Badge>
+                  <Badge variant="warning">تحذير (Warning)</Badge>
+                  <Badge variant="danger">خطر (Danger)</Badge>
+                  <Badge variant="outline">إطار (Outline)</Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* CARDS */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">البطاقات (Card Variants & Subcomponents)</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <div>
+                      <CardTitle>بطاقة قياسية مع ترويسة</CardTitle>
+                      <CardDescription>تحتوي على ترويسة، محتوى، وتذييل منظم</CardDescription>
+                    </div>
+                    <Badge variant="brand">نشط</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-body-sm text-fg-secondary">
+                      هذا محتوى البطاقة القياسية المبنية باستخدام مصفوفة الحشو والتسطيح الخاصة بالديزاين سيستم.
+                    </p>
+                  </CardContent>
+                  <CardFooter className="flex justify-between items-center">
+                    <span className="text-caption text-fg-muted">تحديث: منذ ٥ دقائق</span>
+                    <Button variant="secondary" size="sm">عرض التفاصيل</Button>
+                  </CardFooter>
+                </Card>
+
+                <Card
+                  interactive
+                  onClick={() => showToast('تم النقر على البطاقة التفاعلية', 'info')}
+                >
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-label font-bold text-fg-primary">بطاقة تفاعلية (Interactive Card)</span>
+                      <ArrowRight className="h-4 w-4 text-fg-muted rtl:-scale-x-100" />
+                    </div>
+                    <p className="text-body-sm text-fg-secondary">
+                      تدعم حالات التحويم `hover:border-line-strong` والتركيز للوحة المفاتيح تلقائياً.
+                    </p>
+                  </div>
+                </Card>
+              </div>
+            </div>
+
+            {/* GENERIC TABLE */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-4">
+              <h3 className="text-h3 font-semibold text-fg-primary">مكون الجدول الأساسي (Generic Accessible Table)</h3>
+              <p className="text-body-sm text-fg-secondary">
+                مبني بخصائص منطقية ومحاذاة أرقام جدولية Western Arabic (`tabular-nums`).
+              </p>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>معرف العملية</TableHead>
+                    <TableHead>نوع العملية</TableHead>
+                    <TableHead>الحالة</TableHead>
+                    <TableHead isNumeric>النقاط</TableHead>
+                    <TableHead isNumeric>الرصيد النهائي</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell><span className="ltr-iso font-mono font-medium">TX-8012</span></TableCell>
+                    <TableCell>شراء باقة نمو</TableCell>
+                    <TableCell><Badge variant="brand" size="sm">مكتمل</Badge></TableCell>
+                    <TableCell isNumeric><span className="ltr-iso font-mono font-bold text-fg-brand">+٥٠٠</span></TableCell>
+                    <TableCell isNumeric><span className="ltr-iso font-mono">٥٠٠</span></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell><span className="ltr-iso font-mono font-medium">TX-8013</span></TableCell>
+                    <TableCell>شراء فرصة حصرية (مستشفى الشروق)</TableCell>
+                    <TableCell><Badge variant="neutral" size="sm">معتمد</Badge></TableCell>
+                    <TableCell isNumeric><span className="ltr-iso font-mono font-bold text-danger-text">-٦٠</span></TableCell>
+                    <TableCell isNumeric><span className="ltr-iso font-mono">٤٤٠</span></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* EMPTY STATES */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-4">
+              <h3 className="text-h3 font-semibold text-fg-primary">حالات الفراغ (EmptyState Variants)</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="border border-line rounded-lg bg-surface">
+                  <EmptyState
+                    variant="no-results"
+                    title="لم يتم العثور على نتائج"
+                    description="جرب ضبط معايير التصفية أو إزالة الكلمات المحددة للبحث."
+                    action={{
+                      label: 'إعادة ضبط الفلاتر',
+                      onClick: () => showToast('تمت إعادة ضبط الفلاتر', 'info'),
+                    }}
+                  />
+                </div>
+                <div className="border border-line rounded-lg bg-surface">
+                  <EmptyState
+                    variant="first-use"
+                    title="لا توجد صفقات في المتابعة بعد"
+                    description="قم بشراء فرص جديدة من صفحة استكشاف الفرص لإضافتها إلى خط سيرك."
+                    action={{
+                      label: 'استكشاف الفرص الآن',
+                      onClick: () => showToast('الانتقال لسوق الفرص', 'info'),
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* SKELETON & SPINNERS */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-4">
+              <h3 className="text-h3 font-semibold text-fg-primary">مؤشرات التحميل والهيكل العظمي (Skeleton & Spinner)</h3>
+
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="flex-1 w-full flex flex-col gap-3">
+                  <span className="text-caption text-fg-secondary">هيكل تحميل البطاقات (Card Skeleton):</span>
+                  <div className="p-4 rounded-lg border border-line bg-surface flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                      <Skeleton circle width={40} height={40} />
+                      <div className="flex flex-col gap-1.5 flex-1">
+                        <Skeleton height={14} width="60%" />
+                        <Skeleton height={10} width="40%" />
+                      </div>
+                    </div>
+                    <Skeleton height={32} width="100%" />
+                    <Skeleton height={16} width="80%" />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <span className="text-caption text-fg-secondary">مؤشرات الدوران (Spinners):</span>
+                  <div className="flex items-center gap-6 p-4 rounded-lg border border-line bg-surface">
+                    <Spinner size="sm" />
+                    <Spinner size="md" />
+                    <Spinner size="lg" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* MODALS, DRAWERS & POPOVERS DEMO */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-4">
+              <h3 className="text-h3 font-semibold text-fg-primary">النوافذ المنبثقة والقوائم (Dialogs, Drawers & Popovers)</h3>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <Button variant="secondary" onClick={() => setIsDialogOpen(true)}>
+                  فتح نافذة حوار (Dialog)
+                </Button>
+
+                <Button variant="secondary" onClick={() => setIsDrawerOpen(true)}>
+                  فتح درج جانبي (Drawer)
+                </Button>
+
+                <Popover
+                  trigger={
+                    <Button variant="ghost">
+                      فتح قائمة منبثقة (Popover)
+                    </Button>
+                  }
+                  content={
+                    <div className="p-3 flex flex-col gap-2 min-w-48 text-start">
+                      <span className="text-label font-bold text-fg-primary">خيارات الفرز</span>
+                      <button className="text-body-sm text-start py-1 hover:text-fg-brand">الأعلى تقييماً أولاً</button>
+                      <button className="text-body-sm text-start py-1 hover:text-fg-brand">الأحدث إضافة</button>
+                      <button className="text-body-sm text-start py-1 hover:text-fg-brand">الأقل سعراً</button>
+                    </div>
+                  }
+                />
+
+                <Tooltip content="تلميح يوضح آلية حساب النقاط للفرص الحصرية">
+                  <span className="inline-flex items-center gap-1 text-body-sm text-fg-secondary cursor-help border-b border-dashed border-line-strong">
+                    <HelpCircle className="h-4 w-4" />
+                    <span>تلميح توضيحي (Tooltip)</span>
+                  </span>
+                </Tooltip>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -631,27 +867,27 @@ export default function DesignSystemPage() {
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
-                  <span className="text-[11px] font-mono text-fg-muted">FRESH</span>
+                  <span className="text-caption font-mono text-fg-muted">FRESH</span>
                   <QualityIndicator status="FRESH" timestamp={new Date()} />
                 </div>
                 <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
-                  <span className="text-[11px] font-mono text-fg-muted">AGING</span>
+                  <span className="text-caption font-mono text-fg-muted">AGING</span>
                   <QualityIndicator status="AGING" timestamp={new Date(Date.now() - 86400000 * 5)} />
                 </div>
                 <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
-                  <span className="text-[11px] font-mono text-fg-muted">STALE</span>
+                  <span className="text-caption font-mono text-fg-muted">STALE</span>
                   <QualityIndicator status="STALE" timestamp={new Date(Date.now() - 86400000 * 45)} />
                 </div>
                 <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
-                  <span className="text-[11px] font-mono text-fg-muted">UNVERIFIED</span>
+                  <span className="text-caption font-mono text-fg-muted">UNVERIFIED</span>
                   <QualityIndicator status="UNVERIFIED" />
                 </div>
                 <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
-                  <span className="text-[11px] font-mono text-fg-muted">VERIFIED</span>
+                  <span className="text-caption font-mono text-fg-muted">VERIFIED</span>
                   <QualityIndicator status="VERIFIED" timestamp={new Date()} />
                 </div>
                 <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
-                  <span className="text-[11px] font-mono text-fg-muted">REVERIFYING</span>
+                  <span className="text-caption font-mono text-fg-muted">REVERIFYING</span>
                   <QualityIndicator status="REVERIFYING" />
                 </div>
               </div>
@@ -1051,6 +1287,142 @@ export default function DesignSystemPage() {
                 ]}
               />
             </div>
+
+            {/* STAT TILES (SPEC 7.14) */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                مربعات الإحصائيات الحيوية (StatTile — Spec 7.14)
+              </h3>
+              <p className="text-body-sm text-fg-secondary">
+                عرض المؤشرات الرئيسية مع تنبيهات عند خروج الأرقام عن النطاق الموصى به.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatTile
+                  label="إجمالي الفرص المكتشفة"
+                  value={1248}
+                  unit="فرصة"
+                  statusText="تحديث لحظي"
+                />
+                <StatTile
+                  label="رصيد النقاط الحالي"
+                  value={420}
+                  unit="نقطة"
+                  statusText="يكفي لشراء ٧ فرص حصرية"
+                />
+                <StatTile
+                  label="معدل إغلاق الصفقات"
+                  value={34.5}
+                  unit="%"
+                  statusText="ضمن المعدل المستهدف"
+                />
+                <StatTile
+                  label="فرص تتطلب إعادة التحقق"
+                  value={18}
+                  unit="فرصة"
+                  statusText="تجاوزت الحد المسموح (يحتاج مراجعة)"
+                  isOutOfRange={true}
+                />
+              </div>
+            </div>
+
+            {/* DEAL TIMELINE (SPEC 7.13) */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                سجل نشاط الصفقة والخط الزمني (DealTimeline — Spec 7.13)
+              </h3>
+              <p className="text-body-sm text-fg-secondary">
+                متابعة تواصل العميل، إضافة ملاحظات مؤرخة، وإمكانية الإبلاغ عن رقم خاطئ لاسترداد النقاط.
+              </p>
+
+              <DealTimeline
+                events={[
+                  {
+                    id: 'ev-1',
+                    type: 'STATUS_CHANGE',
+                    author: 'النظام الآلي',
+                    content: 'تم شراء الفرصة حصرياً بواسطة فريق المبيعات ونقلها لمرحلة (تم الشراء)',
+                    createdAt: new Date(Date.now() - 86400000 * 2),
+                  },
+                  {
+                    id: 'ev-2',
+                    type: 'NOTE',
+                    author: 'محمد سلام (مدير الحساب)',
+                    content: 'تم الاتصال بالمدير التنفيذي د. أحمد. أبدى اهتماماً كبيراً بتطوير منصة حجز إلكترونية للمستشفى وطلب إرسال العرض المالي الأسبوع القادم.',
+                    createdAt: new Date(Date.now() - 86400000 * 1),
+                  },
+                  {
+                    id: 'ev-3',
+                    type: 'STATUS_CHANGE',
+                    author: 'محمد سلام',
+                    content: 'تم تحديث حالة الصفقة من (تم التواصل) إلى (مهتم)',
+                    createdAt: new Date(),
+                  },
+                ]}
+                onAddNote={async (content) => {
+                  showToast(`تمت إضافة الملاحظة: "${content.slice(0, 30)}..."`, 'success');
+                }}
+                onReportWrongNumber={async () => {
+                  showToast('تم رفع بلاغ الرقم الخاطئ إلى الإدارة للمراجعة', 'info');
+                }}
+              />
+            </div>
+
+            {/* LEDGER TABLE (SPEC 7.11) */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                سجل حركات الرصيد غير القابل للتعديل (LedgerTable — Spec 7.11)
+              </h3>
+              <p className="text-body-sm text-fg-secondary">
+                سجل محاسبي حتمي غير قابل للتعديل أو الحذف، يدعم تدقيق العمليات والمصادقة.
+              </p>
+
+              <LedgerTable
+                showImmutabilityNotice={true}
+                entries={[
+                  {
+                    id: 'TXN-9021',
+                    createdAt: new Date(Date.now() - 86400000 * 7),
+                    type: 'BONUS',
+                    description: 'مكافأة التسجيل والتحقق من الحساب الجديد',
+                    amount: 50,
+                    balanceAfter: 50,
+                  },
+                  {
+                    id: 'TXN-9022',
+                    createdAt: new Date(Date.now() - 86400000 * 5),
+                    type: 'PURCHASE',
+                    description: 'شحن رصيد إلكتروني — باقة المحترفين (٢٠٠ نقطة)',
+                    amount: 200,
+                    balanceAfter: 250,
+                  },
+                  {
+                    id: 'TXN-9023',
+                    createdAt: new Date(Date.now() - 86400000 * 3),
+                    type: 'CLAIM',
+                    description: 'شراء فرصة حصرية: مستشفى الشروق التخصصي',
+                    amount: -60,
+                    balanceAfter: 190,
+                  },
+                  {
+                    id: 'TXN-9024',
+                    createdAt: new Date(Date.now() - 86400000 * 1),
+                    type: 'CLAIM',
+                    description: 'شراء مقعد في فرصة مشتركة: سلسلة مطاعم كرم الشام',
+                    amount: -45,
+                    balanceAfter: 145,
+                  },
+                  {
+                    id: 'TXN-9025',
+                    createdAt: new Date(),
+                    type: 'REFUND',
+                    description: 'استرداد نقاط صفقة ملغاة بعد التحقق من خطأ الرقم',
+                    amount: 35,
+                    balanceAfter: 180,
+                  },
+                ]}
+              />
+            </div>
           </div>
         </section>
       </div>
@@ -1058,6 +1430,52 @@ export default function DesignSystemPage() {
       {/* ========================================================= */}
       {/* INTERACTIVE MODALS & DRAWERS                              */}
       {/* ========================================================= */}
+      <Dialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        title="نافذة حوار تأكيدية (Dialog Modal)"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setIsDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                setIsDialogOpen(false);
+                showToast('تم تنفيذ الإجراء بنجاح', 'success');
+              }}
+            >
+              تأكيد الإجراء
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-body-sm text-fg-secondary">
+          هذه نافذة حوار قياسية تلتزم بقيود التصميم (لا تتجاوز الحدود القصوى، خلفية معتمة، وإمكانية الإغلاق بزر Esc أو النقر خارج النافذة).
+        </p>
+      </Dialog>
+
+      <Drawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        title="درج جانبي تفاعلي (Slide-over Drawer)"
+      >
+        <div className="p-6 flex flex-col gap-4">
+          <p className="text-body-sm text-fg-secondary">
+            لوحة جانبية للمراجعات التفصيلية مثل تفكيك درجات التقييم وتاريخ الاتصال.
+          </p>
+          <div className="p-4 rounded-lg bg-subtle border border-line flex flex-col gap-2">
+            <span className="text-label font-bold">معلومات السجل</span>
+            <span className="text-body-sm text-fg-muted">سجل نشط وموثق بالكامل</span>
+          </div>
+          <Button variant="secondary" onClick={() => setIsDrawerOpen(false)}>
+            إغلاق الدرج
+          </Button>
+        </div>
+      </Drawer>
+
       <PurchaseConfirm
         isOpen={isPurchaseModalOpen}
         onClose={() => setIsPurchaseModalOpen(false)}

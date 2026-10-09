@@ -107,7 +107,7 @@ export const RuleWeightEditor: React.FC<RuleWeightEditorProps> = ({
                         <Minus className="h-3.5 w-3.5" />
                       </button>
 
-                      <span className="ltr-iso font-mono font-bold text-body tabular-nums min-w-[36px] text-center text-fg-primary">
+                      <span className="ltr-iso font-mono font-bold text-body tabular-nums min-w-9 text-center text-fg-primary">
                         {fmtNumber(rule.weight)}
                       </span>
 

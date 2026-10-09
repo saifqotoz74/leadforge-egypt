@@ -41,9 +41,9 @@ export function FilterBar({
       role="search"
       className={`py-3 bg-page flex flex-wrap items-center justify-between gap-3 text-start select-none ${className}`}
     >
-      <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+      <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-search">
         {/* Search input (320px max) */}
-        <div className="relative w-full max-w-[320px] flex items-center">
+        <div className="relative w-full max-w-filter flex items-center">
           <div className="absolute start-3 flex items-center justify-center text-fg-secondary pointer-events-none w-4 h-4">
             <Search className="w-4 h-4" />
           </div>

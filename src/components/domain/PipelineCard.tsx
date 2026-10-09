@@ -53,7 +53,7 @@ export const PipelineCard: React.FC<PipelineCardProps> = ({
       className={`rounded-lg border border-line bg-surface p-3 shadow-xs hover:border-line-strong hover:shadow-sm transition-all cursor-pointer flex flex-col gap-2.5 ${className}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <h4 className="text-body font-semibold text-fg-primary truncate max-w-[180px]">
+        <h4 className="text-body font-semibold text-fg-primary truncate max-w-44">
           {lead.businessName}
         </h4>
         <OpportunityBadge

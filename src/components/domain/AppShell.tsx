@@ -30,7 +30,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   return (
     <div
       data-density={density}
-      className={`min-h-screen bg-page flex flex-row ${className}`}
+      className={`min-h-screen bg-page flex flex-row overflow-x-hidden ${className}`}
     >
       {/* Sidebar Frame */}
       <Sidebar

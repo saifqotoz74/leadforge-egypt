@@ -55,7 +55,7 @@ export const LeadRow: React.FC<LeadRowProps> = ({
                 onViewLead(id);
               }
             }}
-            className="text-body font-semibold text-fg-primary hover:text-fg-brand truncate max-w-[240px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-sm"
+            className="text-body font-semibold text-fg-primary hover:text-fg-brand truncate max-w-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-sm"
           >
             {companyName}
           </Link>

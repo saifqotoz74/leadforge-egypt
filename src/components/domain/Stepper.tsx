@@ -36,7 +36,7 @@ export const Stepper: React.FC<StepperProps> = ({
 
   return (
     <div
-      className={`w-full max-w-[560px] mx-auto flex flex-col gap-6 ${className}`}
+      className={`w-full max-w-onboarding mx-auto flex flex-col gap-6 ${className}`}
       role="region"
       aria-label="خطوات الإعداد"
     >

@@ -15,9 +15,9 @@ export interface DialogProps {
 }
 
 const DIALOG_WIDTHS = {
-  sm: 'max-w-[440px]',
-  md: 'max-w-[560px]',
-  lg: 'max-w-[720px]',
+  sm: 'max-w-dialogSm',
+  md: 'max-w-dialogMd',
+  lg: 'max-w-dialogLg',
 };
 
 export function Dialog({

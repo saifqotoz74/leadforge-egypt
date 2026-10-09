@@ -57,7 +57,7 @@ export function Drawer({
       {/* Drawer Surface (slides from inline-end) */}
       <div
         ref={drawerRef}
-        className="relative z-10 w-full max-w-[480px] h-full bg-surface border-s border-line shadow-lg p-6 text-start flex flex-col animate-in slide-in-from-end duration-300"
+        className="relative z-10 w-full max-w-drawer h-full bg-surface border-s border-line shadow-lg p-6 text-start flex flex-col animate-in slide-in-from-end duration-300"
       >
         {/* Header */}
         {title && (

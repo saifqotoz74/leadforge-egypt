@@ -54,7 +54,7 @@ export function Popover({
       {isOpen && (
         <div
           role="region"
-          className={`absolute top-full mt-2 z-dropdown w-72 max-w-[320px] p-4 bg-surface rounded-lg border border-line shadow-md text-start animate-in fade-in zoom-in-95 duration-150 ${ALIGN_CLASSES[align]} ${className}`}
+          className={`absolute top-full mt-2 z-dropdown w-72 max-w-popover p-4 bg-surface rounded-lg border border-line shadow-md text-start animate-in fade-in zoom-in-95 duration-150 ${ALIGN_CLASSES[align]} ${className}`}
         >
           {content}
         </div>

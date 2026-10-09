@@ -107,7 +107,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar Container */}
       <aside
         className={`fixed inset-y-0 start-0 z-50 w-64 border-e border-line bg-surface transition-transform duration-300 ease-in-out flex flex-col lg:static lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          isOpen
+            ? 'translate-x-0 visible'
+            : 'max-lg:-translate-x-full max-lg:rtl:translate-x-full max-lg:invisible max-lg:pointer-events-none'
         } ${className}`}
       >
         {/* Wordmark Header per Spec 7.16: 64px high */}

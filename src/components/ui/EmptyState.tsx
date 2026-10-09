@@ -33,7 +33,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={`flex flex-col items-center justify-center text-center py-16 px-4 max-w-[420px] mx-auto select-none ${className}`}
+      className={`flex flex-col items-center justify-center text-center py-16 px-4 max-w-toast mx-auto select-none ${className}`}
     >
       {/* Icon / Illustration Frame */}
       <div className="flex items-center justify-center w-20 h-20 rounded-full bg-brand-soft mb-5">
@@ -44,7 +44,7 @@ export function EmptyState({
         {title}
       </h3>
 
-      <p className="text-body-sm text-fg-secondary max-w-[360px] mb-6 leading-relaxed">
+      <p className="text-body-sm text-fg-secondary max-w-xs mb-6 leading-relaxed">
         {description}
       </p>
 

@@ -110,14 +110,28 @@ Inspected `https://www.hostinger.com/ae` live at 1440px desktop and 390px mobile
 
 ---
 
-## 5. Verification Metrics
+## 5. Verification Metrics & Audit Gap Closure
 
 - **TypeScript Typecheck:** `tsc --noEmit` ➔ **0 errors**.
 - **Linter:** `npm run lint` ➔ **0 errors**.
 - **Automated Test Suite:** `vitest run` ➔ **12 passed test suites, 240/240 passed tests (100%)**.
+- **Arbitrary `[...px]` & Gradients Check:** `grep -rEn "\[[0-9]+px\]|gradient" src/components/ui src/components/domain src/app/design-system` ➔ **0 matches**.
+- **Logical Properties Compliance:** `grep -rEn "\b(ml|mr|pl|pr)-[0-9]|text-(left|right)\b|\b(left|right)-[0-9]" src/components/ui src/components/domain src/app/design-system` ➔ **0 matches**.
+- **Audit Gap Closure:**
+  - Added `NumberStepper` (`src/components/ui/NumberStepper.tsx`, Spec 7.2).
+  - Added `LedgerTable` (`src/components/domain/LedgerTable.tsx`, Spec 7.11).
+  - Added `DealTimeline` (`src/components/domain/DealTimeline.tsx`, Spec 7.13).
+  - Added `StatTile` (`src/components/domain/StatTile.tsx`, Spec 7.14).
+  - Added `CardDescription` (`src/components/ui/Card.tsx`).
+  - Extended `tailwind.config.ts` widths/maxWidths tokens for dialogs, drawers, toasts, popovers, and columns.
+  - Zero AI Policy: purged all AI icons/references (`Sparkles`) from design system components and style guide.
+  - Expanded `/design-system` with interactive previews for all 26 primitives and 19 domain components.
 - **Git Commits Citing Spec:**
   - `2f5efa5`: `feat(design): Phase 0 discovery and base setup (spec section 2)`
   - `5a0f2fa`: `feat(design): Phase 1 foundations - tokens, IBM Plex fonts, Tailwind mapping and RTL formatting (spec sections 5, 5.2, 5.7, 9, Appendix A, Appendix B)`
   - `d99091c`: `feat(design): Phase 2 primitives - accessible headless UI components (spec sections 5.4, 7.1-7.7, 7.16)`
   - `596b72a`: `feat(design): Phase 3 domain components and Hostinger calibration (spec sections 6.1-6.5, 7.8-7.16, 13)`
-  - Next: Phase 4 style guide commit.
+  - `20f2f6d`: `feat(design): Phase 4 living style guide and progress tracking (spec sections 8, 12, 13)`
+  - `0f18c85`: `chore(rules): update AGENTS.md with calibration and style guide invariants`
+  - `2f85b4c`: `fix(design): reinforce IBM Plex Sans Arabic and Mono loading across Next.js and CDN fallback (spec section 5.2)`
+  - `Upcoming`: `feat(design): close design system gaps - add NumberStepper, LedgerTable, DealTimeline, StatTile and eliminate arbitrary pixel classes (spec sections 5.3, 7.2, 7.11, 7.13, 7.14, 14)`

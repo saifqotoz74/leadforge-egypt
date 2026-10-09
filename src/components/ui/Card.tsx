@@ -54,6 +54,21 @@ export function CardTitle({
   );
 }
 
+export function CardDescription({
+  children,
+  className = '',
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={`text-body-sm text-fg-secondary ${className}`}
+      {...props}
+    >
+      {children}
+    </p>
+  );
+}
+
 export function CardContent({
   children,
   className = '',

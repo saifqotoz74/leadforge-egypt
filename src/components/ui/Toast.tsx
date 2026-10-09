@@ -45,7 +45,7 @@ export function Toast({
     <div
       role="status"
       aria-live={variant === 'error' ? 'assertive' : 'polite'}
-      className="inline-flex items-center gap-3 w-full max-w-[420px] p-3.5 bg-surface rounded-lg border border-line shadow-md text-start animate-in fade-in slide-in-from-top-2 duration-200"
+      className="inline-flex items-center gap-3 w-full max-w-toast p-3.5 bg-surface rounded-lg border border-line shadow-md text-start animate-in fade-in slide-in-from-top-2 duration-200"
     >
       {ICONS[variant]}
       <p className="flex-1 text-body-sm text-fg-primary leading-tight font-medium">

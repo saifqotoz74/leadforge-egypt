@@ -58,7 +58,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
 
                 {/* Meter track per Spec 7.9: height 6 radius full */}
                 <div
-                  className="mt-1.5 h-1.5 w-full max-w-[200px] rounded-full bg-brand-soft overflow-hidden"
+                  className="mt-1.5 h-1.5 w-full max-w-xs rounded-full bg-brand-soft overflow-hidden"
                   aria-hidden="true"
                 >
                   <div

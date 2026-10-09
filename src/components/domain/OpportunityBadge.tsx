@@ -74,8 +74,8 @@ export const OpportunityBadge: React.FC<OpportunityBadgeProps> = ({
         aria-label={`درجة الفرصة: ${config.label}`}
       >
         <span>{config.label}</span>
-        {/* 4-dot heat meter (Spec 6.1: 6px circles, 3px gap) */}
-        <span className="inline-flex items-center gap-[3px]" aria-hidden="true">
+        {/* 4-dot heat meter (Spec 6.1: 6px circles) */}
+        <span className="inline-flex items-center gap-0.5" aria-hidden="true">
           {[1, 2, 3, 4].map((dotIndex) => {
             const isFilled = dotIndex <= config.filledDots;
             return (

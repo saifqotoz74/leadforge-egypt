@@ -55,9 +55,9 @@ export const PackageCard: React.FC<PackageCardProps> = ({
         )}
       </div>
 
-      {/* Points block (40px/700 tabular with unit secondary) */}
+      {/* Points block (display token tabular with unit secondary) */}
       <div className="flex items-baseline gap-2 mb-3">
-        <span className="ltr-iso font-mono text-[40px] font-bold leading-none tabular-nums text-fg-primary">
+        <span className="ltr-iso font-mono text-display font-bold leading-none tabular-nums text-fg-primary">
           {fmtNumber(points)}
         </span>
         <span className="text-body text-fg-secondary">نقطة</span>

@@ -55,7 +55,7 @@ export const ScorePair: React.FC<ScorePairProps> = ({
         </div>
 
         <div className="flex items-baseline gap-1 mt-1">
-          <span className="ltr-iso font-mono text-[40px] font-bold leading-none tabular-nums text-fg-primary">
+          <span className="ltr-iso font-mono text-display font-bold leading-none tabular-nums text-fg-primary">
             {fmtNumber(opportunityScore)}
           </span>
           <span className="text-body-sm text-fg-muted">/ ١٠٠</span>
@@ -74,7 +74,7 @@ export const ScorePair: React.FC<ScorePairProps> = ({
         </div>
 
         <div className="flex items-baseline gap-1 mt-1">
-          <span className="ltr-iso font-mono text-[40px] font-bold leading-none tabular-nums text-fg-primary">
+          <span className="ltr-iso font-mono text-display font-bold leading-none tabular-nums text-fg-primary">
             {fmtNumber(qualityScore)}
           </span>
           <span className="text-body-sm text-fg-muted">/ ١٠٠</span>
