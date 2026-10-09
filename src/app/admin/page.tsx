@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatTile } from '@/components/domain/StatTile';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   Table,
   TableHeader,
@@ -26,6 +28,7 @@ import {
   BarChart3,
   Users,
   Activity,
+  ChevronLeft,
 } from 'lucide-react';
 
 interface AdminOverviewData {
@@ -90,6 +93,7 @@ interface ObservabilitySnapshot {
 }
 
 export default function AdminOverviewPage() {
+  const t = useTranslations('admin');
   const [data, setData] = useState<AdminOverviewData | null>(null);
   const [observability, setObservability] = useState<ObservabilitySnapshot | null>(null);
   const [scanningIntegrity, setScanningIntegrity] = useState(false);
@@ -138,7 +142,7 @@ export default function AdminOverviewPage() {
   }
 
   return (
-    <AppShell isAdmin={true} density="compact" pageTitle="نظرة عامة على المنظومة">
+    <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       {loading || !data ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4, 5, 6, 7].map((i) => (
@@ -148,8 +152,8 @@ export default function AdminOverviewPage() {
       ) : (
         <div className="flex flex-col gap-6">
           <PageHeader
-            title="نظرة عامة على المنظومة والعمليات"
-            description="متابعة مؤشرات الأداء اللحظية، محركات الفحص، وسلامة دفاتر الرصيد"
+            title={t('title')}
+            description={t('desc')}
             actions={
               <Button
                 variant="secondary"
@@ -159,7 +163,7 @@ export default function AdminOverviewPage() {
                 className="gap-1.5"
               >
                 <Activity className="h-4 w-4" />
-                <span>فحص سلامة الرصيد والبيانات</span>
+                <span>{t('runIntegrityCheck')}</span>
               </Button>
             }
           />
@@ -167,45 +171,45 @@ export default function AdminOverviewPage() {
           {/* Slim Overview Metrics Row with StatTiles per Template T11 */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
             <StatTile
-              label="إجمالي المطورين"
+              label={t('totalDevelopers')}
               value={fmtNumber(data.overview.totalUsers)}
-              statusText="الحسابات المسجلة"
+              statusText={t('registeredAccounts')}
             />
 
             <StatTile
-              label="المشتركون النشطون"
+              label={t('activeSubscribers')}
               value={fmtNumber(data.overview.activeSubscribers)}
-              statusText="اشتراكات فعالة"
+              statusText={t('activeSubsDesc')}
             />
 
             <StatTile
-              label="إجمالي الفرص"
+              label={t('totalLeads')}
               value={fmtNumber(data.overview.totalLeads)}
-              statusText="بقاعدة البيانات"
+              statusText={t('inDb')}
             />
 
             <StatTile
-              label="الفرص الساخنة"
+              label={t('hotLeads')}
               value={fmtNumber(data.overview.hotLeads)}
-              statusText="HOT & PREMIUM"
+              statusText={t('hotDesc')}
             />
 
             <StatTile
-              label="الفرص المشتراة"
+              label={t('claimedLeads')}
               value={fmtNumber(data.overview.leadsClaimed)}
-              statusText="تم شراؤها"
+              statusText={t('claimedDesc')}
             />
 
             <StatTile
-              label="الصفقات الناجحة"
+              label={t('wonDeals')}
               value={fmtNumber(data.overview.leadsWon)}
-              statusText="صفقات مغلقة"
+              statusText={t('wonDesc')}
             />
 
             <StatTile
-              label="إجمالي الإيرادات"
+              label={t('totalRevenue')}
               value={formatEGP(data.overview.revenueEgp)}
-              statusText="عبر الباقات"
+              statusText={t('packagesRevenue')}
             />
           </div>
 
@@ -213,13 +217,13 @@ export default function AdminOverviewPage() {
           <div className="grid gap-6 lg:grid-cols-12">
             <Card className="lg:col-span-7">
               <CardHeader>
-                <CardTitle>مؤشرات جودة الفرص ومعدلات التحويل</CardTitle>
+                <CardTitle>{t('qualityTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
                     <span className="text-caption font-medium text-fg-secondary">
-                      نسبة نجاح الفرص
+                      {t('successRate')}
                     </span>
                     <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-brand">
                       {fmtNumber(data.rates.leadSuccessRate)}%
@@ -228,7 +232,7 @@ export default function AdminOverviewPage() {
 
                   <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
                     <span className="text-caption font-medium text-fg-secondary">
-                      نسبة غير الصالح
+                      {t('invalidRate')}
                     </span>
                     <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-warning-text">
                       {fmtNumber(data.rates.invalidRate)}%
@@ -237,7 +241,7 @@ export default function AdminOverviewPage() {
 
                   <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
                     <span className="text-caption font-medium text-fg-secondary">
-                      معدل التواصل
+                      {t('contactRate')}
                     </span>
                     <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-fg-primary">
                       {fmtNumber(data.rates.contactRate)}%
@@ -246,7 +250,7 @@ export default function AdminOverviewPage() {
 
                   <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
                     <span className="text-caption font-medium text-fg-secondary">
-                      معدل الرد
+                      {t('replyRate')}
                     </span>
                     <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-fg-primary">
                       {fmtNumber(data.rates.replyRate)}%
@@ -255,7 +259,7 @@ export default function AdminOverviewPage() {
 
                   <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
                     <span className="text-caption font-medium text-fg-secondary">
-                      معدل الاجتماعات
+                      {t('meetingRate')}
                     </span>
                     <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-fg-primary">
                       {fmtNumber(data.rates.meetingRate)}%
@@ -264,7 +268,7 @@ export default function AdminOverviewPage() {
 
                   <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
                     <span className="text-caption font-medium text-fg-secondary">
-                      معدل الفوز
+                      {t('wonRate')}
                     </span>
                     <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-brand">
                       {fmtNumber(data.rates.wonRate)}%
@@ -276,7 +280,7 @@ export default function AdminOverviewPage() {
 
             <Card className="lg:col-span-5">
               <CardHeader>
-                <CardTitle>وحدات الإدارة والمحركات</CardTitle>
+                <CardTitle>{t('modulesTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3 text-body-sm font-medium">
@@ -285,7 +289,8 @@ export default function AdminOverviewPage() {
                     className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
                   >
                     <Briefcase className="h-4 w-4 text-brand" />
-                    <span>سجل الفرص</span>
+                    <span>{t('navLeads')}</span>
+                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -293,7 +298,8 @@ export default function AdminOverviewPage() {
                     className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
                   >
                     <CheckCircle2 className="h-4 w-4 text-brand" />
-                    <span>جودة البيانات</span>
+                    <span>{t('navQuality')}</span>
+                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -301,7 +307,8 @@ export default function AdminOverviewPage() {
                     className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
                   >
                     <Users className="h-4 w-4 text-brand" />
-                    <span>المستخدمون</span>
+                    <span>{t('navUsers')}</span>
+                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -309,7 +316,8 @@ export default function AdminOverviewPage() {
                     className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
                   >
                     <Sliders className="h-4 w-4 text-brand" />
-                    <span>قواعد التقييم</span>
+                    <span>{t('navRules')}</span>
+                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -317,7 +325,8 @@ export default function AdminOverviewPage() {
                     className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
                   >
                     <Database className="h-4 w-4 text-brand" />
-                    <span>مصادر البيانات</span>
+                    <span>{t('navSources')}</span>
+                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -325,7 +334,8 @@ export default function AdminOverviewPage() {
                     className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
                   >
                     <Layers className="h-4 w-4 text-brand" />
-                    <span>إعدادات الباقات</span>
+                    <span>{t('navPlans')}</span>
+                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -333,7 +343,8 @@ export default function AdminOverviewPage() {
                     className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
                   >
                     <BarChart3 className="h-4 w-4 text-brand" />
-                    <span>سجل التدقيق</span>
+                    <span>{t('navReports')}</span>
+                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -341,7 +352,8 @@ export default function AdminOverviewPage() {
                     className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
                   >
                     <BarChart3 className="h-4 w-4 text-brand" />
-                    <span>تحليلات المنظومة</span>
+                    <span>{t('navAnalytics')}</span>
+                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
                 </div>
               </CardContent>
@@ -352,16 +364,16 @@ export default function AdminOverviewPage() {
           {observability && (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>سلامة المنظومة والمراقبة التشغيلية</CardTitle>
+                <CardTitle>{t('obsTitle')}</CardTitle>
                 <span className="text-caption font-mono ltr-iso text-fg-muted">
-                  Uptime: {fmtNumber(observability.systemHealth.liveness.uptimeSeconds)}s
+                  {t('uptime', { sec: fmtNumber(observability.systemHealth.liveness.uptimeSeconds) })}
                 </span>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="rounded-xl border border-line bg-subtle p-3.5">
                     <span className="text-caption font-medium text-fg-secondary">
-                      جاهزية النظام وقاعدة البيانات
+                      {t('dbReadiness')}
                     </span>
                     <p
                       className={`mt-1 text-label font-bold ${
@@ -373,13 +385,13 @@ export default function AdminOverviewPage() {
                       {observability.systemHealth.readiness.status}
                     </p>
                     <span className="text-caption text-fg-muted font-mono ltr-iso">
-                      Latency: {fmtNumber(observability.systemHealth.readiness.components.database.latencyMs ?? 1)}ms
+                      {t('latency', { ms: fmtNumber(observability.systemHealth.readiness.components.database.latencyMs ?? 1) })}
                     </span>
                   </div>
 
                   <div className="rounded-xl border border-line bg-subtle p-3.5">
                     <span className="text-caption font-medium text-fg-secondary">
-                      سلامة دفتر الرصيد
+                      {t('ledgerIntegrity')}
                     </span>
                     <p
                       className={`mt-1 text-label font-bold ${
@@ -389,35 +401,35 @@ export default function AdminOverviewPage() {
                       }`}
                     >
                       {observability.dataIntegrity?.healthy
-                        ? 'سليم 100%'
-                        : `تنبيه (${fmtNumber(observability.dataIntegrity?.totalViolations ?? 0)} تعارض)`}
+                        ? t('healthy100')
+                        : t('conflictWarning', { count: fmtNumber(observability.dataIntegrity?.totalViolations ?? 0) })}
                     </p>
                     <span className="text-caption text-fg-muted">
-                      {observability.dataIntegrity?.totalViolations ?? 0} مخالفات
+                      {t('violationsCount', { count: observability.dataIntegrity?.totalViolations ?? 0 })}
                     </span>
                   </div>
 
                   <div className="rounded-xl border border-line bg-subtle p-3.5">
                     <span className="text-caption font-medium text-fg-secondary">
-                      كفاءة الذاكرة المؤقتة (Cache)
+                      {t('cacheEfficiency')}
                     </span>
                     <p className="mt-1 text-label font-bold font-mono tabular-nums text-brand">
-                      {fmtNumber(observability.performanceAndQueries.cache.hitRatePct)}% Hit Rate
+                      {t('hitRate', { pct: fmtNumber(observability.performanceAndQueries.cache.hitRatePct) })}
                     </p>
                     <span className="text-caption text-fg-muted">
-                      {fmtNumber(observability.performanceAndQueries.cache.entriesCount)} مدخلات فعالة
+                      {t('activeEntries', { count: fmtNumber(observability.performanceAndQueries.cache.entriesCount) })}
                     </span>
                   </div>
 
                   <div className="rounded-xl border border-line bg-subtle p-3.5">
                     <span className="text-caption font-medium text-fg-secondary">
-                      إشارات الحماية وإساءة الاستخدام
+                      {t('abuseSignals')}
                     </span>
                     <p className="mt-1 text-label font-bold font-mono tabular-nums text-fg-primary">
                       {fmtNumber(observability.securityAndAbuse.flaggedAbuseSignalsCount)}
                     </p>
                     <span className="text-caption text-fg-muted">
-                      إشارات مشبوهة مرصودة
+                      {t('suspiciousSignals')}
                     </span>
                   </div>
                 </div>
@@ -428,37 +440,46 @@ export default function AdminOverviewPage() {
           {/* Recent Audit Logs Table */}
           <Card>
             <CardHeader>
-              <CardTitle>سجل العمليات الإدارية والتدقيق الأمني</CardTitle>
+              <CardTitle>{t('auditTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>العملية (Action)</TableHead>
-                      <TableHead>الكيان (Entity)</TableHead>
-                      <TableHead>المستخدم</TableHead>
-                      <TableHead>التوقيت</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data.recentAuditLogs.map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell className="font-mono text-caption text-brand">
-                          {log.action}
-                        </TableCell>
-                        <TableCell>{log.entityType}</TableCell>
-                        <TableCell>
-                          {log.user ? `${log.user.name} (${log.user.email})` : 'النظام'}
-                        </TableCell>
-                        <TableCell className="text-fg-muted font-mono ltr-iso text-caption">
-                          {fmtDate(new Date(log.createdAt))}
-                        </TableCell>
+              {data.recentAuditLogs.length === 0 ? (
+                <div className="py-6">
+                  <EmptyState
+                    title={t('noAuditLogs')}
+                    description={t('noAuditLogsDesc')}
+                  />
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('colAction')}</TableHead>
+                        <TableHead>{t('colEntity')}</TableHead>
+                        <TableHead>{t('colUser')}</TableHead>
+                        <TableHead>{t('colTime')}</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {data.recentAuditLogs.map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="font-mono text-caption text-brand">
+                            {log.action}
+                          </TableCell>
+                          <TableCell>{log.entityType}</TableCell>
+                          <TableCell>
+                            {log.user ? `${log.user.name} (${log.user.email})` : t('systemUser')}
+                          </TableCell>
+                          <TableCell className="text-fg-muted font-mono ltr-iso text-caption">
+                            {fmtDate(new Date(log.createdAt))}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

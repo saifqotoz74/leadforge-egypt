@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatTile } from '@/components/domain/StatTile';
@@ -8,6 +10,8 @@ import { MergeCompare, LeadCompareRecord } from '@/components/domain/MergeCompar
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Banner } from '@/components/ui/Banner';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
   TableHeader,
@@ -18,14 +22,10 @@ import {
 } from '@/components/ui/Table';
 import { fmtNumber, fmtDate } from '@/lib/format';
 import {
-  ShieldAlert,
-  CheckCircle2,
   RotateCcw,
   History,
-  AlertTriangle,
-  Layers,
-  Database,
   Globe,
+  ArrowRight,
 } from 'lucide-react';
 
 interface DedupSignal {
@@ -58,12 +58,8 @@ interface CandidateItem {
     address: string | null;
     phone: string | null;
     email: string | null;
-    website: string | null;
-    facebook: string | null;
-    instagram: string | null;
-    score: number;
     source: string;
-    sourceList: string[];
+    score: number;
   };
   candidateLead?: {
     id: string;
@@ -72,10 +68,7 @@ interface CandidateItem {
     address: string | null;
     phone: string | null;
     email: string | null;
-    website: string | null;
-    facebook: string | null;
-    instagram: string | null;
-    score: number;
+    website?: string | null;
     source: string;
   } | null;
   sourceRecord?: {
@@ -121,6 +114,7 @@ interface MergeHistoryItem {
 }
 
 export default function AdminDuplicatesPage() {
+  const t = useTranslations('adminDuplicates');
   const [candidates, setCandidates] = useState<CandidateItem[]>([]);
   const [mergeHistory, setMergeHistory] = useState<MergeHistoryItem[]>([]);
   const [stats, setStats] = useState({
@@ -172,16 +166,16 @@ export default function AdminDuplicatesPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'error', text: data.error || 'تعذّر تأكيد الدمج.' });
+        setActionMsg({ type: 'error', text: data.error || t('mergeError') });
       } else {
         setActionMsg({
           type: 'success',
-          text: 'تم تأكيد دمج السجلين وتحديث تقييم الفرصة بنجاح.',
+          text: t('mergeSuccess'),
         });
         await loadData();
       }
     } catch {
-      setActionMsg({ type: 'error', text: 'حدث خطأ أثناء تنفيذ عملية الدمج.' });
+      setActionMsg({ type: 'error', text: t('mergeError') });
     } finally {
       setProcessingId(null);
     }
@@ -201,19 +195,19 @@ export default function AdminDuplicatesPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'error', text: data.error || 'تعذّر تنفيذ الإجراء.' });
+        setActionMsg({ type: 'error', text: data.error || t('mergeError') });
       } else {
         setActionMsg({
           type: 'success',
           text:
             action === 'KEEP_SEPARATE'
-              ? 'تم فصل السجلين واعتماد السجل الجديد كفرصة مستقلة.'
-              : 'تم تعليم السجل المرشح كغير صالح (INVALID).',
+              ? t('keepSeparateSuccess')
+              : t('markInvalidSuccess'),
         });
         await loadData();
       }
     } catch {
-      setActionMsg({ type: 'error', text: 'حدث خطأ أثناء تنفيذ الإجراء.' });
+      setActionMsg({ type: 'error', text: t('mergeError') });
     } finally {
       setProcessingId(null);
     }
@@ -228,40 +222,53 @@ export default function AdminDuplicatesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mergeId,
-          reason: 'التراجع اليدوي عن الدمج بواسطة مدير النظام',
+          reason: 'Manual unmerge by admin',
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'error', text: data.error || 'تعذّر التراجع عن الدمج.' });
+        setActionMsg({ type: 'error', text: data.error || t('unmergeError') });
       } else {
         setActionMsg({
           type: 'success',
-          text: 'تم التراجع عن الدمج واستعادة حالة السجلات الأصلية بنجاح.',
+          text: t('unmergeSuccess'),
         });
         await loadData();
       }
     } catch {
-      setActionMsg({ type: 'error', text: 'حدث خطأ أثناء التراجع عن الدمج.' });
+      setActionMsg({ type: 'error', text: t('unmergeError') });
     } finally {
       setProcessingId(null);
     }
   }
 
   return (
-    <AppShell isAdmin={true} density="compact" pageTitle="مراجعة التكرارات">
+    <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       <div className="flex flex-col gap-6">
         <PageHeader
-          title="مراجعة التكرارات وحل التعارضات"
-          description="مراجعة السجلات المشبوهة، مقارنة الأدلة الحتمية، وإدارة سجلات الدمج والتراجع"
+          title={t('title')}
+          description={t('desc')}
+          breadcrumbs={[
+            { label: 'لوحة التحكم', href: '/admin' },
+            { label: t('pageTitle') },
+          ]}
           actions={
             <div className="flex items-center gap-2">
+              <Link href="/admin">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  startIcon={<ArrowRight className="h-4 w-4 rtl:-scale-x-100" />}
+                >
+                  لوحة التحكم
+                </Button>
+              </Link>
               <Button
                 variant={activeTab === 'CANDIDATES' ? 'primary' : 'secondary'}
                 size="sm"
                 onClick={() => setActiveTab('CANDIDATES')}
               >
-                طلبات المراجعة ({fmtNumber(stats.pendingCandidates)})
+                {t('tabCandidates', { count: fmtNumber(stats.pendingCandidates) })}
               </Button>
               <Button
                 variant={activeTab === 'HISTORY' ? 'primary' : 'secondary'}
@@ -270,7 +277,7 @@ export default function AdminDuplicatesPage() {
                 className="gap-1.5"
               >
                 <History className="h-4 w-4" />
-                <span>سجل الدمج ({fmtNumber(stats.totalActiveMerges)})</span>
+                <span>{t('tabHistory', { count: fmtNumber(stats.totalActiveMerges) })}</span>
               </Button>
             </div>
           }
@@ -279,26 +286,26 @@ export default function AdminDuplicatesPage() {
         {/* Summary KPI Row */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatTile
-            label="بانتظار المراجعة"
+            label={t('pendingReview')}
             value={fmtNumber(stats.pendingCandidates)}
-            statusText="سجلات معلقة"
+            statusText={t('pendingDesc')}
             isOutOfRange={stats.pendingCandidates > 0}
           />
           <StatTile
-            label="تعارضات البيانات"
+            label={t('conflicts')}
             value={fmtNumber(stats.pendingConflicts)}
-            statusText="Conflicts"
+            statusText={t('conflictsDesc')}
             isOutOfRange={stats.pendingConflicts > 0}
           />
           <StatTile
-            label="عمليات دمج نشطة"
+            label={t('activeMerges')}
             value={fmtNumber(stats.totalActiveMerges)}
-            statusText="سجلات موحدة"
+            statusText={t('activeMergesDesc')}
           />
           <StatTile
-            label="سجلات المصادر"
+            label={t('sourceRecords')}
             value={fmtNumber(stats.totalSourceRecords)}
-            statusText="Source Records"
+            statusText={t('sourceRecordsDesc')}
           />
         </div>
 
@@ -317,28 +324,30 @@ export default function AdminDuplicatesPage() {
                   size="sm"
                   onClick={() => setStatusFilter('PENDING')}
                 >
-                  المعلقة فقط
+                  {t('filterPending')}
                 </Button>
                 <Button
                   variant={statusFilter === 'ALL' ? 'primary' : 'secondary'}
                   size="sm"
                   onClick={() => setStatusFilter('ALL')}
                 >
-                  جميع الحالات
+                  {t('filterAll')}
                 </Button>
               </div>
             </div>
 
             {loading ? (
-              <div className="p-8 text-center text-body-sm text-fg-muted rounded-xl border border-line bg-surface">
-                جاري تحميل طلبات المراجعة وأدلة التكرار...
+              <div className="flex flex-col gap-4">
+                {[1, 2].map((i) => (
+                  <Skeleton key={i} className="h-72 w-full rounded-xl" />
+                ))}
               </div>
             ) : candidates.length === 0 ? (
-              <div className="p-10 text-center rounded-xl border border-line bg-surface flex flex-col items-center gap-3">
-                <CheckCircle2 className="h-10 w-10 text-brand" />
-                <p className="text-body font-bold text-fg-primary">
-                  لا توجد تكرارات معلقة أو تعارضات بحاجة للمراجعة حالياً
-                </p>
+              <div className="py-12">
+                <EmptyState
+                  title={t('noPending')}
+                  description={t('noPendingDesc')}
+                />
               </div>
             ) : (
               candidates.map((cand) => {
@@ -360,13 +369,13 @@ export default function AdminDuplicatesPage() {
 
                 const recordB: LeadCompareRecord = {
                   id: (cand.candidateLead?.id as string) || (cand.sourceRecord?.id as string) || 'B',
-                  businessName: (normB.businessName as string) || 'سجل وارد',
+                  businessName: (normB.businessName as string) || t('incomingRecord'),
                   phone: (normB.phone as string) || undefined,
                   email: (normB.email as string) || undefined,
                   address: (normB.address as string) || undefined,
                   city: (normB.city as string) || undefined,
                   category: (normB as Record<string, unknown>).category as string | undefined,
-                  source: cand.sourceRecord?.sourceName || cand.candidateLead?.source || 'المصدر الوارد',
+                  source: cand.sourceRecord?.sourceName || cand.candidateLead?.source || t('incomingSource'),
                 };
 
                 const ruleMatchedText =
@@ -385,7 +394,7 @@ export default function AdminDuplicatesPage() {
                       onSkip={() => handleRejectCandidate(cand.id, 'MARK_INVALID')}
                     />
 
-                    {cand.status === 'PENDING' && cand.decision === 'CONFLICT' && Boolean(normB.website) && (
+                    {cand.status === 'PENDING' && cand.decision === 'CONFLICT' && Boolean((normB as { website?: unknown }).website) && (
                       <div className="flex justify-end ps-4">
                         <Button
                           variant="secondary"
@@ -395,7 +404,7 @@ export default function AdminDuplicatesPage() {
                           className="gap-1.5"
                         >
                           <Globe className="h-3.5 w-3.5 text-brand" />
-                          <span>دمج مع اعتماد موقع السجل الوارد (B)</span>
+                          <span>{t('mergeWebsiteB')}</span>
                         </Button>
                       </div>
                     )}
@@ -408,24 +417,27 @@ export default function AdminDuplicatesPage() {
           /* MERGE HISTORY TAB */
           <Card>
             <CardHeader>
-              <CardTitle>سجل العمليات السابقة وقرارات الدمج</CardTitle>
+              <CardTitle>{t('historyTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               {mergeHistory.length === 0 ? (
-                <div className="p-8 text-center text-body-sm text-fg-muted">
-                  لا توجد عمليات دمج سابقة مسجلة.
+                <div className="py-8">
+                  <EmptyState
+                    title={t('noHistory')}
+                    description={t('desc')}
+                  />
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>الفرصة المستهدفة</TableHead>
-                        <TableHead>نوع الدمج والسبب</TableHead>
-                        <TableHead>بواسطة</TableHead>
-                        <TableHead>التاريخ</TableHead>
-                        <TableHead>الحالة</TableHead>
-                        <TableHead>الإجراء</TableHead>
+                        <TableHead>{t('colTarget')}</TableHead>
+                        <TableHead>{t('colReason')}</TableHead>
+                        <TableHead>{t('colBy')}</TableHead>
+                        <TableHead>{t('colDate')}</TableHead>
+                        <TableHead>{t('colStatus')}</TableHead>
+                        <TableHead>{t('colAction')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -454,7 +466,7 @@ export default function AdminDuplicatesPage() {
                                   : 'bg-brand-soft text-brand font-semibold'
                               }`}
                             >
-                              {item.isReverted ? 'تم التراجع' : 'نشط'}
+                              {item.isReverted ? t('reverted') : t('active')}
                             </span>
                           </TableCell>
                           <TableCell>
@@ -467,7 +479,7 @@ export default function AdminDuplicatesPage() {
                                 className="text-danger-text hover:text-danger-text gap-1"
                               >
                                 <RotateCcw className="h-3.5 w-3.5" />
-                                <span>إلغاء الدمج</span>
+                                <span>{t('btnUnmerge')}</span>
                               </Button>
                             )}
                           </TableCell>

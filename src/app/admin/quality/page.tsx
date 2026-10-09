@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatTile } from '@/components/domain/StatTile';
@@ -9,7 +10,8 @@ import { QualityIndicator, QualityState } from '@/components/domain/QualityIndic
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Banner } from '@/components/ui/Banner';
-import { Input } from '@/components/ui/Input';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
   TableHeader,
@@ -20,9 +22,9 @@ import {
 } from '@/components/ui/Table';
 import { fmtNumber, fmtDate } from '@/lib/format';
 import {
-  ShieldCheck,
   RefreshCw,
   ExternalLink,
+  ArrowRight,
 } from 'lucide-react';
 
 interface QualitySummary {
@@ -92,11 +94,12 @@ interface QueueLeadItem {
 }
 
 export default function AdminQualityOverviewPage() {
+  const t = useTranslations('adminQuality');
   const [overview, setOverview] = useState<QualityOverviewResponse | null>(null);
   const [queueTab, setQueueTab] = useState<'NEEDS_VERIFICATION' | 'STALE' | 'FLAGS'>(
     'NEEDS_VERIFICATION'
   );
-  const [selectedFlag, setSelectedFlag] = useState<string>('');
+  const [selectedFlag] = useState<string>('');
   const [queueLeads, setQueueLeads] = useState<QueueLeadItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [queueLoading, setQueueLoading] = useState(false);
@@ -160,17 +163,22 @@ export default function AdminQualityOverviewPage() {
       if (!res.ok) {
         setStatusMessage({
           type: 'error',
-          text: data.error || 'تعذّر تشغيل دفعة التحقق الآلي.',
+          text: data.error || t('batchError'),
         });
       } else {
         setStatusMessage({
           type: 'success',
-          text: `تم تشغيل التحقق الدفعي بنجاح: تمت معالجة ${data.processedCount} عميل (${data.verifiedCount} موثق، ${data.partiallyVerifiedCount} جزئي، ${data.failedCount} فشل).`,
+          text: t('batchSuccess', {
+            processed: data.processedCount,
+            verified: data.verifiedCount,
+            partial: data.partiallyVerifiedCount,
+            failed: data.failedCount,
+          }),
         });
         await Promise.all([loadOverview(), loadQueue()]);
       }
     } catch {
-      setStatusMessage({ type: 'error', text: 'حدث خطأ أثناء الاتصال بالخادم.' });
+      setStatusMessage({ type: 'error', text: t('batchError') });
     } finally {
       setBatchRunning(false);
     }
@@ -189,17 +197,17 @@ export default function AdminQualityOverviewPage() {
       if (!res.ok) {
         setStatusMessage({
           type: 'error',
-          text: data.error || 'تعذّر إعادة التحقق من العميل.',
+          text: data.error || t('verifyLeadError'),
         });
       } else {
         setStatusMessage({
           type: 'success',
-          text: `تم تحديث التحقق والجودة بنجاح (Quality: ${data.qualityScore}/100 — ${data.verificationStatus}).`,
+          text: t('verifyLeadSuccess'),
         });
         await Promise.all([loadOverview(), loadQueue()]);
       }
     } catch {
-      setStatusMessage({ type: 'error', text: 'حدث خطأ أثناء الاتصال بالخادم.' });
+      setStatusMessage({ type: 'error', text: t('verifyLeadError') });
     } finally {
       setVerifyingId(null);
     }
@@ -216,15 +224,28 @@ export default function AdminQualityOverviewPage() {
   }
 
   return (
-    <AppShell isAdmin={true} density="compact" pageTitle="جودة البيانات والتحقق">
+    <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       <div className="flex flex-col gap-6">
         <PageHeader
-          title="محرك جودة البيانات، الحداثة والتحقق"
-          description="فصل درجة الفرصة البيعية عن جودة البيانات، وتتبع بوابات صلاحية الشراء والتحقق الدوري"
+          title={t('title')}
+          description={t('desc')}
+          breadcrumbs={[
+            { label: 'لوحة التحكم', href: '/admin' },
+            { label: t('pageTitle') },
+          ]}
           actions={
             <div className="flex items-center gap-3">
+              <Link href="/admin">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  startIcon={<ArrowRight className="h-4 w-4 rtl:-scale-x-100" />}
+                >
+                  لوحة التحكم
+                </Button>
+              </Link>
               <div className="flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-1.5 text-caption font-semibold">
-                <span className="text-fg-secondary">حجم الدفعة:</span>
+                <span className="text-fg-secondary">{t('batchSizeLabel')}</span>
                 <input
                   type="number"
                   min={1}
@@ -243,7 +264,7 @@ export default function AdminQualityOverviewPage() {
                 className="gap-1.5"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span>تشغيل التحقق الدفعي</span>
+                <span>{t('btnRunBatch')}</span>
               </Button>
             </div>
           }
@@ -256,91 +277,102 @@ export default function AdminQualityOverviewPage() {
         )}
 
         {/* Quality Metrics Row with StatTiles */}
-        {s && (
+        {loading ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
+          </div>
+        ) : s ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             <StatTile
-              label="متوسط جودة البيانات"
+              label={t('avgQuality')}
               value={`${fmtNumber(s.averageQualityScore)}/100`}
               statusText="Quality Score"
             />
             <StatTile
-              label="فرص صالحة للبيع"
+              label={t('saleableLeads')}
               value={fmtNumber(s.saleableLeads)}
-              statusText={`من إجمالي ${fmtNumber(s.totalLeads)}`}
+              statusText={t('totalFrom', { count: fmtNumber(s.totalLeads) })}
             />
             <StatTile
-              label="موثقة بالكامل"
+              label={t('verifiedLeads')}
               value={fmtNumber(s.verifiedLeads)}
               statusText="VERIFIED"
             />
             <StatTile
-              label="تحتاج إعادة تحقق"
+              label={t('needsVerification')}
               value={fmtNumber(s.leadsNeedingVerification)}
               statusText="NEEDS_VERIFY"
               isOutOfRange={s.leadsNeedingVerification > 0}
             />
             <StatTile
-              label="بيانات متقادمة"
+              label={t('staleLeads')}
               value={fmtNumber(s.staleLeads)}
               statusText="STALE"
               isOutOfRange={s.staleLeads > 0}
             />
             <StatTile
-              label="مكتملية الحقول"
+              label={t('completeness')}
               value={`${fmtNumber(s.averageCompletenessScore)}%`}
               statusText="Completeness"
             />
           </div>
-        )}
+        ) : null}
 
         {/* Queue Review & Flags Tabs */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>طابور التحقق وفحص الحداثة (Verification Queue)</CardTitle>
+            <CardTitle>{t('queueTitle')}</CardTitle>
             <div className="flex gap-2">
               <Button
                 variant={queueTab === 'NEEDS_VERIFICATION' ? 'primary' : 'secondary'}
                 size="sm"
                 onClick={() => setQueueTab('NEEDS_VERIFICATION')}
               >
-                تحتاج تحقق ({s ? fmtNumber(s.leadsNeedingVerification) : 0})
+                {t('tabNeedsVerify', { count: s ? fmtNumber(s.leadsNeedingVerification) : 0 })}
               </Button>
               <Button
                 variant={queueTab === 'STALE' ? 'primary' : 'secondary'}
                 size="sm"
                 onClick={() => setQueueTab('STALE')}
               >
-                متقادمة ({s ? fmtNumber(s.staleLeads) : 0})
+                {t('tabStale', { count: s ? fmtNumber(s.staleLeads) : 0 })}
               </Button>
               <Button
                 variant={queueTab === 'FLAGS' ? 'primary' : 'secondary'}
                 size="sm"
                 onClick={() => setQueueTab('FLAGS')}
               >
-                تنبيهات الجودة
+                {t('tabFlags')}
               </Button>
             </div>
           </CardHeader>
           <CardContent>
             {queueLoading ? (
-              <div className="p-8 text-center text-body-sm text-fg-muted">
-                جاري تحميل سجلات الطابور...
+              <div className="flex flex-col gap-3 p-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
+                ))}
               </div>
             ) : queueLeads.length === 0 ? (
-              <div className="p-8 text-center text-body-sm text-fg-muted">
-                لا توجد سجلات في هذا الطابور حالياً.
+              <div className="py-8">
+                <EmptyState
+                  title={t('noQueueRecords')}
+                  description={t('noQueueDesc')}
+                />
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>النشاط التجاري</TableHead>
-                      <TableHead>المدينة والتصنيف</TableHead>
-                      <TableHead>درجة الجودة</TableHead>
-                      <TableHead>حالة الحداثة</TableHead>
-                      <TableHead>صلاحية البيع</TableHead>
-                      <TableHead>الإجراء</TableHead>
+                      <TableHead>{t('colBusiness')}</TableHead>
+                      <TableHead>{t('colCityCategory')}</TableHead>
+                      <TableHead>{t('colQualityScore')}</TableHead>
+                      <TableHead>{t('colFreshness')}</TableHead>
+                      <TableHead>{t('colSaleability')}</TableHead>
+                      <TableHead>{t('colAction')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -389,7 +421,7 @@ export default function AdminQualityOverviewPage() {
                             className="gap-1"
                           >
                             <RefreshCw className={`h-3.5 w-3.5 ${verifyingId === lead.id ? 'animate-spin' : ''}`} />
-                            <span>تحقق فوري</span>
+                            <span>{t('btnVerifyNow')}</span>
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -406,7 +438,7 @@ export default function AdminQualityOverviewPage() {
           {/* Quality by Source */}
           <Card>
             <CardHeader>
-              <CardTitle>مؤشرات الجودة بحسب المصدر</CardTitle>
+              <CardTitle>{t('bySourceTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               {overview?.qualityBySource && overview.qualityBySource.length > 0 ? (
@@ -414,10 +446,10 @@ export default function AdminQualityOverviewPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>المصدر</TableHead>
-                        <TableHead>إجمالي الفرص</TableHead>
-                        <TableHead>متوسط الجودة</TableHead>
-                        <TableHead>الصالحة للبيع</TableHead>
+                        <TableHead>{t('colSource')}</TableHead>
+                        <TableHead>{t('colTotalLeads')}</TableHead>
+                        <TableHead>{t('colAvgQuality')}</TableHead>
+                        <TableHead>{t('colSaleable')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -441,7 +473,7 @@ export default function AdminQualityOverviewPage() {
                   </Table>
                 </div>
               ) : (
-                <p className="text-body-sm text-fg-muted">لا توجد بيانات مصادر كافية.</p>
+                <p className="text-body-sm text-fg-muted">{t('noSourceData')}</p>
               )}
             </CardContent>
           </Card>
@@ -449,7 +481,7 @@ export default function AdminQualityOverviewPage() {
           {/* Recent Verifications Audit */}
           <Card>
             <CardHeader>
-              <CardTitle>سجل عمليات التحقق الأخيرة</CardTitle>
+              <CardTitle>{t('recentVerificationsTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               {overview?.recentVerifications && overview.recentVerifications.length > 0 ? (
@@ -457,10 +489,10 @@ export default function AdminQualityOverviewPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>الفرصة</TableHead>
-                        <TableHead>نوع التحقق</TableHead>
-                        <TableHead>النتيجة</TableHead>
-                        <TableHead>التاريخ</TableHead>
+                        <TableHead>{t('colLead')}</TableHead>
+                        <TableHead>{t('colVerifyType')}</TableHead>
+                        <TableHead>{t('colResult')}</TableHead>
+                        <TableHead>{t('colDate')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -492,7 +524,7 @@ export default function AdminQualityOverviewPage() {
                   </Table>
                 </div>
               ) : (
-                <p className="text-body-sm text-fg-muted">لا توجد عمليات تحقق مسجلة.</p>
+                <p className="text-body-sm text-fg-muted">{t('noVerifications')}</p>
               )}
             </CardContent>
           </Card>

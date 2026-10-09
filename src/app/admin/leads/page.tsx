@@ -1,8 +1,27 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Dialog } from '@/components/ui/Dialog';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/Table';
 import { ALL_CITIES, BUSINESS_CATEGORIES } from '@/lib/constants';
+import { fmtNumber } from '@/lib/format';
 import {
   Plus,
   Upload,
@@ -12,6 +31,8 @@ import {
   ShieldAlert,
   UserPlus,
   RefreshCw,
+  Search,
+  ArrowRight,
 } from 'lucide-react';
 
 interface AdminLeadRow {
@@ -37,10 +58,6 @@ interface AdminLeadRow {
   currentPurchasers: number;
   source: string;
   sourceList: string[];
-  freshness?: {
-    labelAr: string;
-    badgeClass: string;
-  };
 }
 
 interface ImportReportSummary {
@@ -52,6 +69,7 @@ interface ImportReportSummary {
 }
 
 export default function AdminLeadsPage() {
+  const t = useTranslations('adminLeads');
   const [leads, setLeads] = useState<AdminLeadRow[]>([]);
   const [developers, setDevelopers] = useState<{ id: string; name: string; email: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -254,427 +272,421 @@ export default function AdminLeadsPage() {
   }
 
   return (
-    <AppShell isAdmin={true} density="compact" pageTitle="إدارة العملاء المحتملين والاستيراد">
-      <div className="space-y-6">
-        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-line bg-surface p-6 shadow-sm sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-xl font-extrabold text-fg-primary">
-              إدارة العملاء المحتملين والاستيراد (Admin Leads & CSV Import)
-            </h1>
-            <p className="mt-1 text-xs text-fg-muted">
-              إضافة، تعديل، فحص المواقع، إعادة حساب التقييم، التخصيص لمطور، أو استيراد ملفات CSV مع
-              منع التكرار التلقائي.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2.5">
-            <button
-              onClick={() => {
-                setCsvOpen(true);
-                setImportReport(null);
-              }}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-line-brand bg-brand-soft px-4 py-2.5 text-xs font-extrabold text-brand hover:bg-brand-soft-strong"
-            >
-              <Upload className="h-4 w-4" />
-              استيراد CSV (CSV Import)
-            </button>
-            <button
-              onClick={openCreateModal}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-xs font-extrabold text-white hover:bg-brand-hover"
-            >
-              <Plus className="h-4 w-4" />
-              إضافة نشاط تجاري جديد
-            </button>
-          </div>
-        </div>
+    <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title={t('title')}
+          description={t('desc')}
+          breadcrumbs={[
+            { label: 'لوحة التحكم', href: '/admin' },
+            { label: t('pageTitle') },
+          ]}
+          actions={
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Link href="/admin">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  startIcon={<ArrowRight className="h-4 w-4 rtl:-scale-x-100" />}
+                >
+                  لوحة التحكم
+                </Button>
+              </Link>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setCsvOpen(true);
+                  setImportReport(null);
+                }}
+                className="gap-1.5"
+              >
+                <Upload className="h-4 w-4" />
+                <span>{t('btnImportCsv')}</span>
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={openCreateModal}
+                className="gap-1.5"
+              >
+                <Plus className="h-4 w-4" />
+                <span>{t('btnNewLead')}</span>
+              </Button>
+            </div>
+          }
+        />
 
         {/* Search Bar */}
-        <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ابحث باسم الشركة، المدينة، أو رقم الهاتف..."
-            className="w-full rounded-xl border border-line bg-surface px-4 py-2 text-xs font-semibold text-fg-primary placeholder:text-fg-muted focus:border-brand"
-          />
-        </div>
+        <Card>
+          <CardContent className="p-4">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('searchPlaceholder')}
+              startIcon={<Search className="h-4 w-4 text-fg-muted" />}
+            />
+          </CardContent>
+        </Card>
 
         {/* Leads Table */}
-        <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm overflow-x-auto">
-          {loading ? (
-            <div className="h-64 animate-pulse rounded-xl bg-subtle" />
-          ) : (
-            <table className="w-full text-start text-xs">
-              <thead>
-                <tr className="border-b border-line text-fg-muted">
-                  <th className="py-3 px-2">النشاط التجاري</th>
-                  <th className="py-3 px-2">المدينة / التصنيف</th>
-                  <th className="py-3 px-2">الموقع الإلكتروني</th>
-                  <th className="py-3 px-2">التقييم (Score)</th>
-                  <th className="py-3 px-2">الملكية والمبيعات</th>
-                  <th className="py-3 px-2">المصادر المدمجة</th>
-                  <th className="py-3 px-2">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line font-semibold">
-                {leads.map((lead) => (
-                  <tr key={lead.id}>
-                    <td className="py-3 px-2">
-                      <p className="font-extrabold text-fg-primary">{lead.businessName}</p>
-                      <p className="text-[11px] text-fg-muted" dir="ltr">
-                        {lead.phone || 'بدون هاتف'}
-                      </p>
-                    </td>
-                    <td className="py-3 px-2">
-                      <p>{lead.city}</p>
-                      <p className="text-[11px] text-fg-muted">{lead.category}</p>
-                    </td>
-                    <td className="py-3 px-2">
-                      <span className="rounded bg-subtle px-2 py-0.5 text-[11px]">
-                        {lead.websiteStatus}
-                      </span>
-                    </td>
-                    <td className="py-3 px-2">
-                      <span className="font-extrabold text-brand tabular-nums ltr-iso">
-                        {lead.score}/100 ({lead.temperature})
-                      </span>
-                    </td>
-                    <td className="py-3 px-2">
-                      <span className="block">
-                        {lead.exclusive ? 'حصري (1/1)' : `مشترك (${lead.currentPurchasers}/${lead.maxPurchasers})`}
-                      </span>
-                      <span className="text-[10px] text-fg-muted">{lead.status}</span>
-                    </td>
-                    <td className="py-3 px-2 text-[11px] text-fg-secondary">
-                      {(lead.sourceList || [lead.source]).join(' + ')}
-                    </td>
-                    <td className="py-3 px-2">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <button
-                          onClick={() => openEditModal(lead)}
-                          title="تعديل"
-                          className="rounded-lg border border-line p-1.5 text-fg-secondary hover:bg-subtle"
-                        >
-                          <Edit3 className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleLeadAction(lead.id, 'VERIFY')}
-                          title="فحص الموقع وتحديث التحقق"
-                          className="rounded-lg border border-line-brand bg-brand-soft p-1.5 text-brand hover:bg-brand-soft-strong"
-                        >
-                          <RefreshCw className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setAssignLead(lead)}
-                          title="تخصيص لمطور"
-                          className="rounded-lg border border-line bg-surface p-1.5 text-fg-secondary hover:bg-subtle"
-                        >
-                          <UserPlus className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleLeadAction(lead.id, 'MARK_INVALID')}
-                          title="تعليم كغير صالح"
-                          className="rounded-lg border border-warning-border bg-warning-bg p-1.5 text-warning-text hover:opacity-90"
-                        >
-                          <ShieldAlert className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteLead(lead.id)}
-                          title="حذف"
-                          className="rounded-lg border border-danger-border bg-danger-bg p-1.5 text-danger-text hover:opacity-90"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+        <Card>
+          <CardContent className="p-0 overflow-x-auto">
+            {loading ? (
+              <div className="flex flex-col gap-3 p-6">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
                 ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Create / Edit Lead Modal */}
-        {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-            <div className="w-full max-w-xl rounded-2xl bg-surface p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-              <h3 className="text-base font-extrabold text-fg-primary">
-                {editingLead ? 'تعديل بيانات النشاط التجاري' : 'إضافة نشاط تجاري جديد'}
-              </h3>
-              <form onSubmit={handleSaveLead} className="mt-4 grid gap-3 sm:grid-cols-2 text-xs">
-                <div className="sm:col-span-2">
-                  <label className="font-bold text-fg-secondary">اسم النشاط التجاري *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.businessName}
-                    onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-line px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-fg-secondary">التصنيف</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 font-bold"
-                  >
-                    {BUSINESS_CATEGORIES.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.labelAr}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="font-bold text-fg-secondary">المدينة</label>
-                  <select
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 font-bold"
-                  >
-                    {ALL_CITIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="font-bold text-fg-secondary">رقم الهاتف</label>
-                  <input
-                    type="text"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-line px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-fg-secondary">البريد الإلكتروني</label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-line px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-fg-secondary">الموقع الإلكتروني (إن وجد)</label>
-                  <input
-                    type="text"
-                    value={formData.website}
-                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    placeholder="اتركه فارغًا إذا لم يكن لديه موقع"
-                    className="mt-1 w-full rounded-xl border border-line px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-fg-secondary">نوع الملكية</label>
-                  <select
-                    value={formData.leadType}
-                    onChange={(e) => setFormData({ ...formData, leadType: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 font-bold"
-                  >
-                    <option value="SHARED">مشترك (Shared)</option>
-                    <option value="EXCLUSIVE">حصري (Exclusive)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="font-bold text-fg-secondary">تقييم جوجل (0-5)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="5"
-                    value={formData.rating}
-                    onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-line px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-fg-secondary">عدد المراجعات</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.reviewCount}
-                    onChange={(e) => setFormData({ ...formData, reviewCount: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-line px-3 py-2"
-                  />
-                </div>
-
-                <div className="sm:col-span-2 flex justify-end gap-2 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => setModalOpen(false)}
-                    className="rounded-xl border border-line px-4 py-2 font-bold text-fg-secondary"
-                  >
-                    إلغاء
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded-xl bg-brand px-5 py-2 font-bold text-white hover:bg-brand-hover"
-                  >
-                    حفظ وتقييم تلقائي
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Assign Lead Modal */}
-        {assignLead && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-            <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
-              <h3 className="text-base font-extrabold text-fg-primary">
-                تخصيص الفرصة لمطور: {assignLead.businessName}
-              </h3>
-              <div className="mt-4">
-                <label className="block text-xs font-bold text-fg-secondary">اختر المطور:</label>
-                <select
-                  value={selectedDevId}
-                  onChange={(e) => setSelectedDevId(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs font-bold"
-                >
-                  {developers.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name} ({d.email})
-                    </option>
+              </div>
+            ) : leads.length === 0 ? (
+              <div className="py-12">
+                <EmptyState
+                  title={t('noLeads')}
+                  description={t('noLeadsDesc')}
+                />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('colBusiness')}</TableHead>
+                    <TableHead>{t('colCityCategory')}</TableHead>
+                    <TableHead>{t('colWebsite')}</TableHead>
+                    <TableHead>{t('colScore')}</TableHead>
+                    <TableHead>{t('colOwnership')}</TableHead>
+                    <TableHead>{t('colSources')}</TableHead>
+                    <TableHead className="text-end">{t('colActions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leads.map((lead) => (
+                    <TableRow key={lead.id}>
+                      <TableCell>
+                        <p className="font-semibold text-fg-primary">{lead.businessName}</p>
+                        <p className="text-caption text-fg-muted ltr-iso">
+                          {lead.phone || t('noPhone')}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-body-sm font-medium text-fg-primary">{lead.city}</p>
+                        <p className="text-caption text-fg-muted">{lead.category}</p>
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-subtle text-caption font-medium text-fg-secondary">
+                          {lead.websiteStatus}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-semibold text-fg-brand tabular-nums ltr-iso">
+                          {lead.score}/100 ({lead.temperature})
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="block text-body-sm font-medium text-fg-primary">
+                          {lead.exclusive
+                            ? t('exclusiveTag', { claimed: lead.currentPurchasers })
+                            : t('sharedTag', { claimed: lead.currentPurchasers, max: lead.maxPurchasers })}
+                        </span>
+                        <span className="text-caption text-fg-muted">{lead.status}</span>
+                      </TableCell>
+                      <TableCell className="text-caption text-fg-secondary">
+                        {(lead.sourceList || [lead.source]).join(' + ')}
+                      </TableCell>
+                      <TableCell className="text-end">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openEditModal(lead)}
+                            title={t('btnEdit')}
+                            className="p-1.5 h-8 w-8"
+                          >
+                            <Edit3 className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleLeadAction(lead.id, 'VERIFY')}
+                            title={t('btnVerify')}
+                            className="p-1.5 h-8 w-8"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setAssignLead(lead)}
+                            title={t('btnAssign')}
+                            className="p-1.5 h-8 w-8"
+                          >
+                            <UserPlus className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleLeadAction(lead.id, 'MARK_INVALID')}
+                            title={t('btnInvalid')}
+                            className="p-1.5 h-8 w-8 text-warning-text hover:bg-warning-bg"
+                          >
+                            <ShieldAlert className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDeleteLead(lead.id)}
+                            title={t('btnDelete')}
+                            className="p-1.5 h-8 w-8"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </select>
-              </div>
-              <div className="mt-5 flex justify-end gap-2">
-                <button
-                  onClick={() => setAssignLead(null)}
-                  className="rounded-xl border border-line px-4 py-2 text-xs font-bold text-fg-secondary"
-                >
-                  إلغاء
-                </button>
-                <button
-                  onClick={() =>
-                    handleLeadAction(assignLead.id, 'ASSIGN', { developerId: selectedDevId })
-                  }
-                  className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white hover:bg-brand-hover"
-                >
-                  تأكيد التخصيص
-                </button>
-              </div>
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Create / Edit Lead Dialog */}
+        <Dialog
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title={editingLead ? t('modalEditTitle') : t('modalCreateTitle')}
+          footer={
+            <div className="flex items-center justify-end gap-2 w-full">
+              <Button variant="ghost" onClick={() => setModalOpen(false)}>
+                {t('btnCancel')}
+              </Button>
+              <Button variant="primary" onClick={handleSaveLead}>
+                {t('btnSave')}
+              </Button>
             </div>
+          }
+        >
+          <form onSubmit={handleSaveLead} className="grid gap-4 sm:grid-cols-2 text-body-sm py-2">
+            <div className="sm:col-span-2">
+              <Input
+                label={t('fieldName')}
+                required
+                value={formData.businessName}
+                onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+              />
+            </div>
+            <div>
+              <Select
+                label={t('fieldCategory')}
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                options={BUSINESS_CATEGORIES.map((c) => ({ value: c.value, label: c.labelAr }))}
+              />
+            </div>
+            <div>
+              <Select
+                label={t('fieldCity')}
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                options={ALL_CITIES.map((c) => ({ value: c, label: c }))}
+              />
+            </div>
+            <div>
+              <Input
+                label={t('fieldPhone')}
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
+            </div>
+            <div>
+              <Input
+                label={t('fieldEmail')}
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <Input
+                label={t('fieldWebsite')}
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                placeholder={t('fieldWebsitePlaceholder')}
+              />
+            </div>
+            <div>
+              <Select
+                label={t('fieldOwnership')}
+                value={formData.leadType}
+                onChange={(e) => setFormData({ ...formData, leadType: e.target.value })}
+                options={[
+                  { value: 'SHARED', label: t('fieldShared') },
+                  { value: 'EXCLUSIVE', label: t('fieldExclusive') },
+                ]}
+              />
+            </div>
+            <div>
+              <Input
+                label={t('fieldRating')}
+                type="number"
+                step="0.1"
+                min="0"
+                max="5"
+                value={formData.rating}
+                onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+              />
+            </div>
+            <div>
+              <Input
+                label={t('fieldReviews')}
+                type="number"
+                min="0"
+                value={formData.reviewCount}
+                onChange={(e) => setFormData({ ...formData, reviewCount: e.target.value })}
+              />
+            </div>
+          </form>
+        </Dialog>
+
+        {/* Assign Lead Dialog */}
+        <Dialog
+          isOpen={assignLead !== null}
+          onClose={() => setAssignLead(null)}
+          title={assignLead ? t('modalAssignTitle', { name: assignLead.businessName }) : ''}
+          footer={
+            <div className="flex items-center justify-end gap-2 w-full">
+              <Button variant="ghost" onClick={() => setAssignLead(null)}>
+                {t('btnCancel')}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() =>
+                  assignLead && handleLeadAction(assignLead.id, 'ASSIGN', { developerId: selectedDevId })
+                }
+              >
+                {t('confirmAssign')}
+              </Button>
+            </div>
+          }
+        >
+          <div className="py-2">
+            <Select
+              label={t('selectDeveloper')}
+              value={selectedDevId}
+              onChange={(e) => setSelectedDevId(e.target.value)}
+              options={developers.map((d) => ({
+                value: d.id,
+                label: `${d.name} (${d.email})`,
+              }))}
+            />
           </div>
-        )}
+        </Dialog>
 
-        {/* CSV Import Modal (Section 19) */}
-        {csvOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-            <div className="w-full max-w-2xl rounded-2xl bg-surface p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-extrabold text-fg-primary">
-                  استيراد العملاء عبر ملف CSV (Validate → Normalize → Deduplicate → Score → Store)
-                </h3>
-                <button
-                  type="button"
-                  onClick={fillSampleCsv}
-                  className="rounded-lg bg-brand-soft px-3 py-1 text-xs font-bold text-brand hover:bg-brand-soft-strong"
-                >
-                  تحميل بيانات CSV تجريبية
-                </button>
-              </div>
-
-              <p className="mt-1 text-xs text-fg-muted">
-                الأعمدة المدعومة: name, category, city, area, address, phone, email, website,
-                facebook, instagram, rating, reviewCount, source
+        {/* CSV Import Dialog */}
+        <Dialog
+          isOpen={csvOpen}
+          onClose={() => setCsvOpen(false)}
+          title={t('modalCsvTitle')}
+          footer={
+            <div className="flex items-center justify-end gap-2 w-full">
+              <Button variant="ghost" onClick={() => setCsvOpen(false)}>
+                {t('btnClose')}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleRunCsvImport}
+                isLoading={importingCsv}
+              >
+                {t('btnStartImport')}
+              </Button>
+            </div>
+          }
+        >
+          <div className="flex flex-col gap-4 py-2">
+            <div className="flex items-center justify-between">
+              <p className="text-caption text-fg-muted">
+                {t('csvColumnsHint')}
               </p>
-
-              <form onSubmit={handleRunCsvImport} className="mt-4 space-y-4 text-xs">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="font-bold text-fg-secondary">رفع ملف CSV من جهازك:</label>
-                    <input
-                      type="file"
-                      accept=".csv,text/csv"
-                      onChange={handleFileSelect}
-                      className="mt-1 w-full rounded-xl border border-line p-1.5"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold text-fg-secondary">اسم المصدر (Source):</label>
-                    <input
-                      type="text"
-                      value={csvSourceName}
-                      onChange={(e) => setCsvSourceName(e.target.value)}
-                      className="mt-1 w-full rounded-xl border border-line px-3 py-2"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="font-bold text-fg-secondary">محتوى CSV:</label>
-                  <textarea
-                    rows={6}
-                    dir="ltr"
-                    required
-                    value={csvText}
-                    onChange={(e) => setCsvText(e.target.value)}
-                    placeholder="name,category,city,area,address,phone,email,website,facebook,instagram,rating,reviewCount,source"
-                    className="mt-1 w-full rounded-xl border border-line p-3 font-mono text-xs"
-                  />
-                </div>
-
-                {importReport && (
-                  <div className="rounded-xl border border-line-brand bg-brand-soft/50 p-4">
-                    <p className="flex items-center gap-1.5 font-extrabold text-brand">
-                      <CheckCircle2 className="h-4 w-4 text-brand" />
-                      تقرير الاستيراد (Import Report):
-                    </p>
-                    <div className="mt-2 grid grid-cols-4 gap-2 text-center">
-                      <div className="rounded-lg bg-surface p-2">
-                        <span className="block text-[11px] text-fg-muted">Imported</span>
-                        <strong className="text-base text-fg-primary">
-                          {importReport.imported}
-                        </strong>
-                      </div>
-                      <div className="rounded-lg bg-surface p-2">
-                        <span className="block text-[11px] text-brand">Valid</span>
-                        <strong className="text-base text-brand tabular-nums ltr-iso">
-                          {importReport.valid}
-                        </strong>
-                      </div>
-                      <div className="rounded-lg bg-surface p-2">
-                        <span className="block text-[11px] text-warning-icon">Duplicates</span>
-                        <strong className="text-base text-warning-text tabular-nums ltr-iso">
-                          {importReport.duplicates}
-                        </strong>
-                      </div>
-                      <div className="rounded-lg bg-surface p-2">
-                        <span className="block text-[11px] text-danger">Invalid</span>
-                        <strong className="text-base text-danger tabular-nums ltr-iso">
-                          {importReport.invalid}
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setCsvOpen(false)}
-                    className="rounded-xl border border-line px-4 py-2 font-bold text-fg-secondary"
-                  >
-                    إغلاق
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={importingCsv}
-                    className="rounded-xl bg-brand px-5 py-2 font-bold text-white hover:bg-brand-hover"
-                  >
-                    {importingCsv ? 'جاري الفحص والاستيراد...' : 'بدء الاستيراد والتقييم'}
-                  </button>
-                </div>
-              </form>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={fillSampleCsv}
+              >
+                {t('loadSampleCsv')}
+              </Button>
             </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="text-body-sm font-medium text-fg-secondary block mb-1">
+                  {t('uploadFile')}
+                </label>
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={handleFileSelect}
+                  className="w-full text-body-sm text-fg-primary file:me-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-subtle file:text-fg-primary file:font-semibold hover:file:bg-brand-soft"
+                />
+              </div>
+              <div>
+                <Input
+                  label={t('sourceName')}
+                  value={csvSourceName}
+                  onChange={(e) => setCsvSourceName(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-body-sm font-medium text-fg-secondary block mb-1">
+                {t('csvContent')}
+              </label>
+              <textarea
+                rows={6}
+                dir="ltr"
+                required
+                value={csvText}
+                onChange={(e) => setCsvText(e.target.value)}
+                placeholder="name,category,city,area,address,phone,email,website,facebook,instagram,rating,reviewCount,source"
+                className="w-full rounded-xl border border-line bg-surface p-3 font-mono text-body-sm text-fg-primary focus:border-line-brand focus:outline-none"
+              />
+            </div>
+
+            {importReport && (
+              <div className="rounded-xl border border-line bg-subtle p-4">
+                <div className="flex items-center gap-1.5 font-semibold text-fg-brand mb-3">
+                  <CheckCircle2 className="h-4 w-4 text-fg-brand" />
+                  <span>{t('importReportTitle')}</span>
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className="rounded-lg bg-surface border border-line p-2">
+                    <span className="block text-caption text-fg-muted">{t('statImported')}</span>
+                    <strong className="text-h3 font-mono tabular-nums text-fg-primary">
+                      {fmtNumber(importReport.imported)}
+                    </strong>
+                  </div>
+                  <div className="rounded-lg bg-surface border border-line p-2">
+                    <span className="block text-caption text-fg-brand">{t('statValid')}</span>
+                    <strong className="text-h3 font-mono tabular-nums text-fg-brand">
+                      {fmtNumber(importReport.valid)}
+                    </strong>
+                  </div>
+                  <div className="rounded-lg bg-surface border border-line p-2">
+                    <span className="block text-caption text-warning-text">{t('statDuplicates')}</span>
+                    <strong className="text-h3 font-mono tabular-nums text-warning-text">
+                      {fmtNumber(importReport.duplicates)}
+                    </strong>
+                  </div>
+                  <div className="rounded-lg bg-surface border border-line p-2">
+                    <span className="block text-caption text-danger-text">{t('statInvalid')}</span>
+                    <strong className="text-h3 font-mono tabular-nums text-danger-text">
+                      {fmtNumber(importReport.invalid)}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </Dialog>
       </div>
     </AppShell>
   );
