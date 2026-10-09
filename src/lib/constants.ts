@@ -21,6 +21,10 @@ export const CATEGORY_LABELS_AR: Record<string, string> = Object.fromEntries(
   BUSINESS_CATEGORIES.map((c) => [c.value, c.labelAr])
 );
 
+export const CATEGORY_LABELS_EN: Record<string, string> = Object.fromEntries(
+  BUSINESS_CATEGORIES.map((c) => [c.value, c.labelEn])
+);
+
 export interface LocationHierarchy {
   governorate: string;
   cities: {
@@ -165,22 +169,26 @@ export const DEVELOPER_SERVICES = [
   { value: 'Custom Web Applications', labelAr: 'تطبيقات الويب والأنظمة المخصصة' },
 ];
 
-export const WEBSITE_STATUS_LABELS: Record<string, { labelAr: string; badgeClass: string }> = {
+export const WEBSITE_STATUS_LABELS: Record<string, { labelAr: string; labelEn: string; badgeClass: string }> = {
   NO_WEBSITE: {
     labelAr: 'لا يوجد موقع إلكتروني',
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    labelEn: 'No Website',
+    badgeClass: 'bg-brand-soft text-brand border-line-brand',
   },
   POOR_WEBSITE: {
     labelAr: 'موقع قديم / ضعيف تقنيًا',
-    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+    labelEn: 'Outdated / Poor Website',
+    badgeClass: 'bg-warning-bg text-warning-text border-warning-border',
   },
   HAS_WEBSITE: {
     labelAr: 'يمتلك موقعًا إلكترونيًا',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
+    labelEn: 'Has Website',
+    badgeClass: 'bg-subtle text-fg-secondary border-line',
   },
   UNKNOWN: {
     labelAr: 'غير معروف',
-    badgeClass: 'bg-gray-100 text-gray-600 border-gray-200',
+    labelEn: 'Unknown',
+    badgeClass: 'bg-subtle text-fg-muted border-line',
   },
 };
 
@@ -188,38 +196,38 @@ export const TEMPERATURE_LABELS: Record<string, { labelAr: string; labelEn: stri
   PREMIUM: {
     labelAr: 'فرصة ممتازة (PREMIUM)',
     labelEn: 'PREMIUM',
-    badgeClass: 'bg-purple-100 text-purple-800 border-purple-300',
+    badgeClass: 'bg-brand-soft text-brand border-line-brand',
   },
   HOT: {
     labelAr: 'فرصة ساخنة (HOT)',
     labelEn: 'HOT',
-    badgeClass: 'bg-rose-100 text-rose-800 border-rose-300',
+    badgeClass: 'bg-brand-soft text-brand border-line-brand',
   },
   WARM: {
     labelAr: 'فرصة دافئة (WARM)',
     labelEn: 'WARM',
-    badgeClass: 'bg-amber-100 text-amber-800 border-amber-300',
+    badgeClass: 'bg-warning-bg text-warning-text border-warning-border',
   },
   COLD: {
     labelAr: 'فرصة باردة (COLD)',
     labelEn: 'COLD',
-    badgeClass: 'bg-sky-100 text-sky-800 border-sky-300',
+    badgeClass: 'bg-subtle text-fg-secondary border-line',
   },
 };
 
-export const PIPELINE_STATUS_LABELS: Record<string, { labelAr: string; badgeClass: string }> = {
-  NEW: { labelAr: 'جديد (مُقتنص)', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200' },
-  CLAIMED: { labelAr: 'مُقتنص (CLAIMED)', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200' },
-  CONTACTED: { labelAr: 'تم التواصل', badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  REPLIED: { labelAr: 'تم الرد', badgeClass: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
-  INTERESTED: { labelAr: 'مهتم بالعرض', badgeClass: 'bg-amber-50 text-amber-700 border-amber-200' },
-  MEETING: { labelAr: 'اجتماع محدد', badgeClass: 'bg-purple-50 text-purple-700 border-purple-200' },
-  PROPOSAL_SENT: { labelAr: 'تم إرسال العرض الفني/المالي', badgeClass: 'bg-violet-50 text-violet-700 border-violet-200' },
-  NEGOTIATION: { labelAr: 'مرحلة التفاوض النهائي', badgeClass: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200' },
-  WON: { labelAr: 'صفقة ناجحة (WON)', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-  LOST: { labelAr: 'صفقة خاسرة (LOST)', badgeClass: 'bg-rose-50 text-rose-700 border-rose-200' },
-  NOT_INTERESTED: { labelAr: 'غير مهتم', badgeClass: 'bg-slate-100 text-slate-600 border-slate-200' },
-  INVALID: { labelAr: 'بيانات غير صالحة', badgeClass: 'bg-red-100 text-red-800 border-red-300' },
+export const PIPELINE_STATUS_LABELS: Record<string, { labelAr: string; labelEn: string; badgeClass: string }> = {
+  NEW: { labelAr: 'جديد (مُقتنص)', labelEn: 'New (Claimed)', badgeClass: 'bg-brand-soft text-brand border-line-brand' },
+  CLAIMED: { labelAr: 'مُقتنص (CLAIMED)', labelEn: 'Claimed', badgeClass: 'bg-brand-soft text-brand border-line-brand' },
+  CONTACTED: { labelAr: 'تم التواصل', labelEn: 'Contacted', badgeClass: 'bg-subtle text-fg-primary border-line' },
+  REPLIED: { labelAr: 'تم الرد', labelEn: 'Replied', badgeClass: 'bg-brand-soft text-brand border-line' },
+  INTERESTED: { labelAr: 'مهتم بالعرض', labelEn: 'Interested', badgeClass: 'bg-brand-soft text-brand border-line-brand' },
+  MEETING: { labelAr: 'اجتماع محدد', labelEn: 'Meeting Scheduled', badgeClass: 'bg-brand-soft text-brand border-line-brand' },
+  PROPOSAL_SENT: { labelAr: 'تم إرسال العرض الفني/المالي', labelEn: 'Proposal Sent', badgeClass: 'bg-brand-soft text-brand border-line' },
+  NEGOTIATION: { labelAr: 'مرحلة التفاوض النهائي', labelEn: 'Negotiation', badgeClass: 'bg-brand-soft text-brand border-line' },
+  WON: { labelAr: 'صفقة ناجحة (WON)', labelEn: 'Deal Won', badgeClass: 'bg-brand-soft-strong text-brand font-semibold border-line-brand' },
+  LOST: { labelAr: 'صفقة خاسرة (LOST)', labelEn: 'Deal Lost', badgeClass: 'bg-subtle text-fg-secondary border-line' },
+  NOT_INTERESTED: { labelAr: 'غير مهتم', labelEn: 'Not Interested', badgeClass: 'bg-subtle text-fg-secondary border-line' },
+  INVALID: { labelAr: 'بيانات غير صالحة', labelEn: 'Invalid Lead', badgeClass: 'bg-danger-bg text-danger-text border-danger-border' },
 };
 
 export const FEEDBACK_REASON_LABELS: Record<string, string> = {
@@ -231,6 +239,17 @@ export const FEEDBACK_REASON_LABELS: Record<string, string> = {
   WRONG_CATEGORY: 'تصنيف النشاط غير صحيح',
   WRONG_LOCATION: 'الموقع الجغرافي غير صحيح',
   OTHER: 'سبب آخر',
+};
+
+export const FEEDBACK_REASON_LABELS_EN: Record<string, string> = {
+  WRONG_PHONE: 'Wrong Phone Number',
+  BUSINESS_CLOSED: 'Business Permanently Closed',
+  ALREADY_HAS_WEBSITE: 'Already Has Modern Website',
+  NOT_INTERESTED: 'Not Interested in Web Services',
+  DUPLICATE: 'Duplicate Lead',
+  WRONG_CATEGORY: 'Incorrect Business Category',
+  WRONG_LOCATION: 'Incorrect Location',
+  OTHER: 'Other Reason',
 };
 
 export const SCORE_RANGES = [

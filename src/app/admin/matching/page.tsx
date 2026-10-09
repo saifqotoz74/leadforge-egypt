@@ -449,40 +449,34 @@ export default function AdminMatchingPage() {
         )}
 
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 border-b border-line pb-3">
-          <button
+        <div className="flex flex-wrap items-center gap-2 border-b border-line pb-4">
+          <Button
+            variant={activeTab === 'debugger' ? 'primary' : 'secondary'}
+            size="sm"
             onClick={() => setActiveTab('debugger')}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
-              activeTab === 'debugger'
-                ? 'bg-brand text-fg-inverted shadow-xs'
-                : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
-            }`}
+            className="gap-2 text-xs"
           >
             <Bug className="h-4 w-4" />
-            {t('tabDebugger')}
-          </button>
-          <button
+            <span>{t('tabDebugger')}</span>
+          </Button>
+          <Button
+            variant={activeTab === 'rules' ? 'primary' : 'secondary'}
+            size="sm"
             onClick={() => setActiveTab('rules')}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
-              activeTab === 'rules'
-                ? 'bg-brand text-fg-inverted shadow-xs'
-                : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
-            }`}
+            className="gap-2 text-xs"
           >
             <Sliders className="h-4 w-4" />
-            {t('tabRules')} ({rules.length})
-          </button>
-          <button
+            <span>{t('tabRules')} ({rules.length})</span>
+          </Button>
+          <Button
+            variant={activeTab === 'config' ? 'primary' : 'secondary'}
+            size="sm"
             onClick={() => setActiveTab('config')}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
-              activeTab === 'config'
-                ? 'bg-brand text-fg-inverted shadow-xs'
-                : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
-            }`}
+            className="gap-2 text-xs"
           >
             <ShieldCheck className="h-4 w-4" />
-            {t('tabConstraints')}
-          </button>
+            <span>{t('tabConstraints')}</span>
+          </Button>
         </div>
 
         {loading ? (
@@ -561,14 +555,6 @@ export default function AdminMatchingPage() {
               <EmptyState
                 title={t('noData')}
                 description={t('desc')}
-                action={{
-                  label: t('btnEvaluate'),
-                  onClick: () => {
-                    if (selectedLeadId && selectedDeveloperId) {
-                      runPairInspection(selectedLeadId, selectedDeveloperId);
-                    }
-                  },
-                }}
               />
             ) : debugReport ? (
               <div className="space-y-6">

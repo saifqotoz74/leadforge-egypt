@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -10,7 +10,9 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import {
   CATEGORY_LABELS_AR,
+  CATEGORY_LABELS_EN,
   FEEDBACK_REASON_LABELS,
+  FEEDBACK_REASON_LABELS_EN,
   PIPELINE_STATUS_LABELS,
   WEBSITE_STATUS_LABELS,
 } from '@/lib/constants';
@@ -109,6 +111,7 @@ const ENGAGEMENT_STATES = [
 
 export default function AdminReportsPage() {
   const t = useTranslations('adminReports');
+  const locale = useLocale();
   const [data, setData] = useState<ReportsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [correctingEngagement, setCorrectingEngagement] = useState<AdminEngagementItem | null>(null);
@@ -268,7 +271,9 @@ export default function AdminReportsPage() {
                         <div className="font-mono text-xs font-bold">{st}</div>
                         <div className="mt-1 text-lg font-extrabold font-mono tabular-nums">{count}</div>
                         <div className="text-xs">
-                          {PIPELINE_STATUS_LABELS[st]?.labelAr || st}
+                          {locale === 'en'
+                            ? PIPELINE_STATUS_LABELS[st]?.labelEn || st
+                            : PIPELINE_STATUS_LABELS[st]?.labelAr || st}
                         </div>
                       </div>
                     );
@@ -329,8 +334,9 @@ export default function AdminReportsPage() {
                 {t('feedbackNegativeReasons')}
               </h3>
               <div className="mt-2 space-y-2 text-xs">
-                {Object.entries(FEEDBACK_REASON_LABELS).map(([code, label]) => {
+                {Object.entries(FEEDBACK_REASON_LABELS).map(([code, labelAr]) => {
                   const count = data.feedbackStats.reasonsBreakdown[code] || 0;
+                  const label = locale === 'en' ? (FEEDBACK_REASON_LABELS_EN[code] || code) : labelAr;
                   return (
                     <div
                       key={code}
@@ -356,7 +362,7 @@ export default function AdminReportsPage() {
                       className="flex items-center justify-between rounded-lg bg-canvas px-3 py-2 font-semibold"
                     >
                       <span>
-                        {CATEGORY_LABELS_AR[cat] || cat} ({cat})
+                        {locale === 'en' ? (CATEGORY_LABELS_EN[cat] || cat) : (CATEGORY_LABELS_AR[cat] || cat)}
                       </span>
                       <strong className="text-brand font-mono tabular-nums">{count}</strong>
                     </div>
@@ -374,7 +380,7 @@ export default function AdminReportsPage() {
                       key={st}
                       className="flex items-center justify-between rounded-lg bg-brand-soft/60 px-3 py-2 font-bold text-brand"
                     >
-                      <span>{WEBSITE_STATUS_LABELS[st]?.labelAr || st}</span>
+                      <span>{locale === 'en' ? (WEBSITE_STATUS_LABELS[st]?.labelEn || st) : (WEBSITE_STATUS_LABELS[st]?.labelAr || st)}</span>
                       <strong className="font-mono tabular-nums">{count}</strong>
                     </div>
                   ))}
@@ -435,7 +441,9 @@ export default function AdminReportsPage() {
                                 'bg-subtle text-fg-secondary'
                               }`}
                             >
-                              {eng.currentStatus}
+                              {locale === 'en'
+                                ? PIPELINE_STATUS_LABELS[eng.currentStatus]?.labelEn || eng.currentStatus
+                                : PIPELINE_STATUS_LABELS[eng.currentStatus]?.labelAr || eng.currentStatus}
                             </span>
                           </td>
                           <td className="py-2.5 px-2 text-xs text-fg-secondary font-mono tabular-nums">

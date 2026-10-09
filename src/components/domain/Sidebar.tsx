@@ -67,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
-      title: 'المحركات والقواعد',
+      title: tNav('adminEngines'),
       items: [
         { href: '/admin/matching', label: tNav('adminMatching'), icon: Sliders },
         { href: '/admin/rules', label: tNav('adminRules'), icon: Scale },
@@ -75,7 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
-      title: 'الإدارة والتقارير',
+      title: tNav('adminManagement'),
       items: [
         { href: '/admin/users', label: tNav('adminUsers'), icon: Users2 },
         { href: '/admin/plans', label: tNav('adminPlans'), icon: Package },

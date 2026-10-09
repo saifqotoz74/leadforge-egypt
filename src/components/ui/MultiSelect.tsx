@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocale } from 'next-intl';
 import { Check, ChevronDown, X, Search, AlertCircle } from 'lucide-react';
 
 export interface MultiSelectOption {
@@ -11,6 +12,7 @@ export interface MultiSelectOption {
 export interface MultiSelectProps {
   label?: string;
   optional?: boolean;
+  optionalLabel?: string;
   helperText?: string;
   error?: string;
   placeholder?: string;
@@ -24,6 +26,7 @@ export interface MultiSelectProps {
 export function MultiSelect({
   label,
   optional = false,
+  optionalLabel,
   helperText,
   error,
   placeholder = 'اختر...',
@@ -36,6 +39,13 @@ export function MultiSelect({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  let locale = 'ar';
+  try {
+    locale = useLocale();
+  } catch {
+    // fallback
+  }
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -74,7 +84,7 @@ export function MultiSelect({
           {label}
           {optional && (
             <span className="text-fg-secondary font-normal ms-2 text-caption">
-              (اختياري)
+              {optionalLabel || (locale === 'en' ? '(Optional)' : '(اختياري)')}
             </span>
           )}
         </label>

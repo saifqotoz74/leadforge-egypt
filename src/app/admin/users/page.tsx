@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -42,6 +42,7 @@ interface PlanOption {
 
 export default function AdminUsersPage() {
   const t = useTranslations('adminUsers');
+  const locale = useLocale();
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [plans, setPlans] = useState<PlanOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -199,7 +200,11 @@ export default function AdminUsersPage() {
                       </Badge>
                     </td>
                     <td className="py-3.5 px-3">
-                      {u.subscription?.plan?.name || '—'}
+                      {u.subscription?.plan
+                        ? locale === 'en'
+                          ? u.subscription.plan.nameEn || u.subscription.plan.name
+                          : u.subscription.plan.name
+                        : '—'}
                     </td>
                     <td className="py-3.5 px-3 font-extrabold text-brand tabular-nums ltr-iso">
                       {u.subscription ? `${u.subscription.credits} ${t('pointsSuffix')}` : '—'}
@@ -275,7 +280,7 @@ export default function AdminUsersPage() {
                 >
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({p.monthlyCredits} {t('pointsSuffix')})
+                      {locale === 'en' ? p.nameEn || p.name : p.name} ({p.monthlyCredits} {t('pointsSuffix')})
                     </option>
                   ))}
                 </select>

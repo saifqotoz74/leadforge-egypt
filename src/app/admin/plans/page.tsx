@@ -6,6 +6,7 @@ import { AppShell } from '@/components/domain/AppShell';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Save } from 'lucide-react';
 
@@ -105,55 +106,46 @@ export default function AdminPlansPage() {
                     {plan.nameEn} ({plan.slug})
                   </span>
                   <span className="text-xs font-bold text-brand">
-                    <span className="tabular-nums ltr-iso">{plan.subscribersCount}</span>{' '}
                     {t('subscribersCount', { count: plan.subscribersCount })}
                   </span>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3 text-xs">
-                  <div>
-                    <label className="font-bold text-fg-secondary">{t('planNameLabel')}</label>
-                    <input
-                      type="text"
-                      value={plan.name}
-                      onChange={(e) => {
-                        const next = [...plans];
-                        next[idx] = { ...plan, name: e.target.value };
-                        setPlans(next);
-                      }}
-                      className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 font-bold text-fg-primary focus:border-brand"
-                    />
-                  </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Input
+                    label={t('planNameLabel')}
+                    value={plan.name}
+                    onChange={(e) => {
+                      const next = [...plans];
+                      next[idx] = { ...plan, name: e.target.value };
+                      setPlans(next);
+                    }}
+                  />
 
-                  <div>
-                    <label className="font-bold text-fg-secondary">{t('priceLabel')}</label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={plan.priceEgp}
-                      onChange={(e) => {
-                        const next = [...plans];
-                        next[idx] = { ...plan, priceEgp: Number(e.target.value) };
-                        setPlans(next);
-                      }}
-                      className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 font-bold text-fg-primary tabular-nums ltr-iso focus:border-brand"
-                    />
-                  </div>
+                  <Input
+                    label={t('priceLabel')}
+                    type="number"
+                    min={0}
+                    value={plan.priceEgp}
+                    onChange={(e) => {
+                      const next = [...plans];
+                      next[idx] = { ...plan, priceEgp: Number(e.target.value) };
+                      setPlans(next);
+                    }}
+                    className="tabular-nums ltr-iso"
+                  />
 
-                  <div>
-                    <label className="font-bold text-fg-secondary">{t('creditsLabel')}</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={plan.monthlyCredits}
-                      onChange={(e) => {
-                        const next = [...plans];
-                        next[idx] = { ...plan, monthlyCredits: Number(e.target.value) };
-                        setPlans(next);
-                      }}
-                      className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 font-bold text-fg-primary tabular-nums ltr-iso focus:border-brand"
-                    />
-                  </div>
+                  <Input
+                    label={t('creditsLabel')}
+                    type="number"
+                    min={1}
+                    value={plan.monthlyCredits}
+                    onChange={(e) => {
+                      const next = [...plans];
+                      next[idx] = { ...plan, monthlyCredits: Number(e.target.value) };
+                      setPlans(next);
+                    }}
+                    className="tabular-nums ltr-iso"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between border-t border-line pt-3 text-xs">

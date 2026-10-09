@@ -1,9 +1,11 @@
 import React from 'react';
+import { useLocale } from 'next-intl';
 import { AlertCircle } from 'lucide-react';
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   optional?: boolean;
+  optionalLabel?: string;
   helperText?: string;
   error?: string;
 }
@@ -13,6 +15,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     {
       label,
       optional = false,
+      optionalLabel,
       helperText,
       error,
       id,
@@ -23,6 +26,13 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     },
     ref
   ) => {
+    let locale = 'ar';
+    try {
+      locale = useLocale();
+    } catch {
+      // fallback
+    }
+
     const textareaId = id || (label ? `textarea-${label.replace(/\s+/g, '-').toLowerCase()}` : undefined);
     const hasError = Boolean(error);
 
@@ -36,7 +46,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             {label}
             {optional && (
               <span className="text-fg-secondary font-normal ms-2 text-caption">
-                (اختياري)
+                {optionalLabel || (locale === 'en' ? '(Optional)' : '(اختياري)')}
               </span>
             )}
           </label>

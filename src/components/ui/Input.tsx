@@ -1,9 +1,11 @@
 import React from 'react';
+import { useLocale } from 'next-intl';
 import { AlertCircle } from 'lucide-react';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   optional?: boolean;
+  optionalLabel?: string;
   helperText?: string;
   error?: string;
   startIcon?: React.ReactNode;
@@ -15,6 +17,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     {
       label,
       optional = false,
+      optionalLabel,
       helperText,
       error,
       startIcon,
@@ -26,6 +29,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
+    let locale = 'ar';
+    try {
+      locale = useLocale();
+    } catch {
+      // fallback
+    }
+
     const inputId = id || (label ? `input-${label.replace(/\s+/g, '-').toLowerCase()}` : undefined);
     const hasError = Boolean(error);
 
@@ -39,7 +49,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label}
             {optional && (
               <span className="text-fg-secondary font-normal ms-2 text-caption">
-                (اختياري)
+                {optionalLabel || (locale === 'en' ? '(Optional)' : '(اختياري)')}
               </span>
             )}
           </label>

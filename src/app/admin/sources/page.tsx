@@ -510,35 +510,15 @@ export default function AdminSourcesPage() {
   function renderHealthBadge(status: SourceItem['healthStatus']) {
     switch (status) {
       case 'HEALTHY':
-        return (
-          <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-caption font-semibold text-brand">
-            سليم (HEALTHY)
-          </span>
-        );
+        return <Badge variant="brand">{t('healthHealthy')}</Badge>;
       case 'DEGRADED':
-        return (
-          <span className="rounded-full bg-warning-bg px-2.5 py-0.5 text-caption font-semibold text-warning-text">
-            متراجع (DEGRADED)
-          </span>
-        );
+        return <Badge variant="warning">{t('healthDegraded')}</Badge>;
       case 'FAILING':
-        return (
-          <span className="rounded-full bg-danger-bg px-2.5 py-0.5 text-caption font-semibold text-danger-text">
-            متعطل (FAILING)
-          </span>
-        );
+        return <Badge variant="danger">{t('healthFailing')}</Badge>;
       case 'NOT_CONFIGURED':
-        return (
-          <span className="rounded-full bg-subtle px-2.5 py-0.5 text-caption font-semibold text-fg-secondary">
-            غير مهيأ (NOT_CONFIGURED)
-          </span>
-        );
+        return <Badge variant="neutral">{t('healthNotConfigured')}</Badge>;
       default:
-        return (
-          <span className="rounded-full bg-subtle px-2.5 py-0.5 text-caption font-medium text-fg-muted">
-            متوقف (DISABLED)
-          </span>
-        );
+        return <Badge variant="neutral">{status}</Badge>;
     }
   }
 
@@ -779,7 +759,7 @@ export default function AdminSourcesPage() {
                           {src.collectorVersion || src.type}
                         </span>
                         <span className="rounded bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand font-mono tabular-nums">
-                          أولوية #{src.priority}
+                          {t('priorityPrefix', { priority: src.priority })}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -802,25 +782,25 @@ export default function AdminSourcesPage() {
                     {src.funnelStats && (
                       <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl bg-subtle p-3 text-center text-xs">
                         <div>
-                          <span className="block text-fg-muted">مجلوب</span>
+                          <span className="block text-fg-muted">{t('metricFetched')}</span>
                           <span className="font-extrabold text-fg-primary font-mono tabular-nums">
                             {src.funnelStats.fetched}
                           </span>
                         </div>
                         <div>
-                          <span className="block text-fg-muted">مقبول</span>
+                          <span className="block text-fg-muted">{t('metricAccepted')}</span>
                           <span className="font-extrabold text-brand font-mono tabular-nums">
                             {src.funnelStats.accepted}
                           </span>
                         </div>
                         <div>
-                          <span className="block text-fg-muted">مكرر ({src.rates?.duplicateRate ?? 0}%)</span>
+                          <span className="block text-fg-muted">{t('metricDuplicate', { rate: src.rates?.duplicateRate ?? 0 })}</span>
                           <span className="font-extrabold text-warning-text font-mono tabular-nums">
                             {src.funnelStats.duplicate}
                           </span>
                         </div>
                         <div>
-                          <span className="block text-fg-muted">قابل للبيع</span>
+                          <span className="block text-fg-muted">{t('metricSaleable')}</span>
                           <span className="font-extrabold text-brand font-mono tabular-nums">
                             {src.funnelStats.saleable}
                           </span>
@@ -831,19 +811,19 @@ export default function AdminSourcesPage() {
                     {/* Cost & Schedule Info */}
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-fg-secondary">
                       <span>
-                        الجدولة:{' '}
+                        {t('scheduleLabel')}{' '}
                         <strong className="text-fg-primary">
                           {src.scheduleIntervalMinutes
-                            ? `كل ${src.scheduleIntervalMinutes} دقيقة`
-                            : src.scheduleCron || 'يدوي فقط'}
+                            ? t('everyMinutes', { mins: src.scheduleIntervalMinutes })
+                            : src.scheduleCron || t('manualOnly')}
                         </strong>
                       </span>
                       <span>
-                        تكلفة الفرصة الصالحة:{' '}
+                        {t('costPerLeadLabel')}{' '}
                         <strong className="text-fg-primary font-mono tabular-nums">
                           {src.economics?.costPerSaleableLead.status === 'OK' &&
                           src.economics.costPerSaleableLead.value !== null
-                            ? `${src.economics.costPerSaleableLead.value} ج.م`
+                            ? `${src.economics.costPerSaleableLead.value} EGP`
                             : 'INSUFFICIENT_DATA'}
                         </strong>
                       </span>
@@ -852,26 +832,30 @@ export default function AdminSourcesPage() {
 
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-xs">
                     <div className="text-xs text-fg-muted font-mono tabular-nums">
-                      آخر نجاح:{' '}
+                      {t('lastSuccessLabel')}{' '}
                       {src.lastSuccessAt
-                        ? new Date(src.lastSuccessAt).toLocaleString('ar-EG')
+                        ? new Date(src.lastSuccessAt).toLocaleDateString()
                         : '—'}{' '}
-                      | متوسط الزمن: {src.averageDurationMs || 0}ms
+                      | {t('avgDurationLabel')} {src.averageDurationMs || 0}ms
                     </div>
 
                     <div className="flex flex-wrap items-center gap-1.5">
                       {src.circuitState !== 'CLOSED' && (
-                        <button
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => handleResetCircuit(src)}
-                          disabled={actionLoading === `reset-${src.id}`}
-                          className="inline-flex items-center gap-1 rounded-lg bg-warning-bg px-2.5 py-1.5 font-bold text-warning-text hover:opacity-90"
+                          isLoading={actionLoading === `reset-${src.id}`}
+                          className="gap-1 text-xs"
                         >
                           <RotateCcw className="h-3.5 w-3.5" />
-                          <span>إعادة ضبط القاطع</span>
-                        </button>
+                          <span>{t('btnResetCircuit')}</span>
+                        </Button>
                       )}
 
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => {
                           setEditingSource(src);
                           setEditForm({
@@ -885,34 +869,36 @@ export default function AdminSourcesPage() {
                             acquisitionCostPerRunEgp: '',
                           });
                         }}
-                        className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 font-bold text-fg-secondary hover:bg-subtle"
+                        className="gap-1 text-xs"
                       >
                         <Settings className="h-3.5 w-3.5" />
-                        <span>الإعدادات</span>
-                      </button>
+                        <span>{t('btnSettings')}</span>
+                      </Button>
 
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => handleToggleSource(src)}
-                        disabled={actionLoading === `toggle-${src.id}`}
-                        className="rounded-lg border border-line px-2.5 py-1.5 font-bold text-fg-primary hover:bg-subtle"
+                        isLoading={actionLoading === `toggle-${src.id}`}
+                        className="text-xs"
                       >
-                        {src.enabled ? 'إيقاف' : 'تفعيل'}
-                      </button>
+                        {src.enabled ? t('btnDisable') : t('btnEnable')}
+                      </Button>
 
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => handleRunSource(src)}
+                        isLoading={actionLoading === `run-${src.id}`}
                         disabled={
                           !src.enabled ||
-                          src.configurationStatus === 'NOT_CONFIGURED' ||
-                          actionLoading === `run-${src.id}`
+                          src.configurationStatus === 'NOT_CONFIGURED'
                         }
-                        className="inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 font-bold text-fg-inverted hover:bg-brand-hover disabled:opacity-40"
+                        className="gap-1 text-xs"
                       >
                         <Play className="h-3.5 w-3.5 rtl:-scale-x-100" />
-                        <span>
-                          {actionLoading === `run-${src.id}` ? 'جاري التشغيل...' : 'تشغيل الآن'}
-                        </span>
-                      </button>
+                        <span>{t('btnRunNow')}</span>
+                      </Button>
                     </div>
                   </div>
                 </Card>
@@ -959,17 +945,17 @@ export default function AdminSourcesPage() {
               <table className="w-full text-start text-xs">
                 <thead>
                   <tr className="border-b border-line text-fg-secondary">
-                    <th className="py-2.5 px-3 text-start">المصدر والنسخة</th>
-                    <th className="py-2.5 px-3 text-start">النوع</th>
-                    <th className="py-2.5 px-3 text-start">الحالة</th>
-                    <th className="py-2.5 px-3 text-start">مكتشف / مجلوب</th>
-                    <th className="py-2.5 px-3 text-start">جديد / محدث</th>
-                    <th className="py-2.5 px-3 text-start">مكرر / تعارض</th>
-                    <th className="py-2.5 px-3 text-start">غير صالح / فاشل</th>
-                    <th className="py-2.5 px-3 text-start">قابل للبيع</th>
-                    <th className="py-2.5 px-3 text-start">المدة</th>
-                    <th className="py-2.5 px-3 text-start">التاريخ</th>
-                    <th className="py-2.5 px-3 text-start">إجراءات</th>
+                    <th className="py-2.5 px-3 text-start">{t('thSourceVersion')}</th>
+                    <th className="py-2.5 px-3 text-start">{t('thType')}</th>
+                    <th className="py-2.5 px-3 text-start">{t('thStatus')}</th>
+                    <th className="py-2.5 px-3 text-start">{t('thDiscovered')}</th>
+                    <th className="py-2.5 px-3 text-start">{t('thNewUpdated')}</th>
+                    <th className="py-2.5 px-3 text-start">{t('thDuplicate')}</th>
+                    <th className="py-2.5 px-3 text-start">{t('thInvalid')}</th>
+                    <th className="py-2.5 px-3 text-start">{t('thSaleable')}</th>
+                    <th className="py-2.5 px-3 text-start">{t('thDuration')}</th>
+                    <th className="py-2.5 px-3 text-start">{t('thDate')}</th>
+                    <th className="py-2.5 px-3 text-start">{t('thActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line font-semibold">
@@ -990,8 +976,7 @@ export default function AdminSourcesPage() {
                         {job.fetchedCount || job.totalRecords}
                       </td>
                       <td className="py-3 px-3 text-brand font-mono tabular-nums">
-                        {job.validCount} ({job.insertedCount || job.validCount} جديد،{' '}
-                        {job.updatedCount || 0} محدث)
+                        {job.validCount}
                       </td>
                       <td className="py-3 px-3 text-warning-text font-mono tabular-nums">
                         {job.duplicateCount} / {job.conflictCount || 0}
@@ -1006,17 +991,19 @@ export default function AdminSourcesPage() {
                         {job.durationMs ? `${job.durationMs}ms` : '—'}
                       </td>
                       <td className="py-3 px-3 text-fg-secondary font-mono tabular-nums">
-                        {new Date(job.createdAt).toLocaleString('ar-EG')}
+                        {new Date(job.createdAt).toLocaleDateString()}
                       </td>
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-1.5">
-                          <button
+                          <Button
+                            variant="secondary"
+                            size="sm"
                             onClick={() => handleInspectJob(job.id)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1 text-xs font-bold text-fg-primary hover:bg-subtle"
+                            className="gap-1 text-xs"
                           >
                             <Eye className="h-3 w-3" />
-                            <span>التفاصيل</span>
-                          </button>
+                            <span>{t('btnViewDetails')}</span>
+                          </Button>
                           {(job.status === 'RUNNING' || job.status === 'PROCESSING') && (
                             <button
                               onClick={() => handleCancelJob(job.id)}
