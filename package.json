@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
+    "check:design": "node scripts/check-conformance.mjs",
     "db:generate": "prisma generate",
     "db:migrate": "tsx prisma/migrate.ts",
     "db:seed": "tsx prisma/seed.ts",
