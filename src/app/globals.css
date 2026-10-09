@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 @import '../styles/tokens.css';
 
 @tailwind base;
@@ -6,17 +7,17 @@
 
 @layer base {
   html {
-    font-family: var(--font-sans);
+    font-family: var(--font-sans), 'IBM Plex Sans Arabic', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
   body {
+    font-family: var(--font-sans), 'IBM Plex Sans Arabic', system-ui, sans-serif;
     background: var(--bg-page);
     color: var(--text-primary);
     font-size: 1rem;
     line-height: 1.7;
-    font-family: var(--font-sans), system-ui, sans-serif;
   }
 
   *, *::before, *::after {

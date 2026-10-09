@@ -1,4 +1,12 @@
 :root {
+  /* Typography tokens (Spec 5.2) */
+  --font-sans: 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
   /* Primitives: teal (brand) */
   --teal-50: #E8F8F7;
   --teal-100: #CBF5F4;

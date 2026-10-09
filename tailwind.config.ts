@@ -62,8 +62,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-sans)'],
-        mono: ['var(--font-mono)'],
+        sans: ['var(--font-sans)', 'IBM Plex Sans Arabic', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'IBM Plex Mono', 'monospace'],
       },
       fontSize: {
         display: ['clamp(2rem, 1.4rem + 2.6vw, 3.5rem)', { lineHeight: '1.15', fontWeight: '700' }],
