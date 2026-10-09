@@ -1,23 +1,63 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
-import {
-  BarChart3,
-  Briefcase,
-  CheckCircle2,
-  Coins,
-  Filter,
-  MapPin,
-  RefreshCw,
-  TrendingUp,
-  Trophy,
-} from 'lucide-react';
+import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { StatTile } from '@/components/domain/StatTile';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { fmtNumber, formatEGP } from '@/lib/format';
+import { RefreshCw } from 'lucide-react';
+
+interface MetricRateDto {
+  numerator: number;
+  denominator: number;
+  displayValue: string;
+}
+
+interface PerformanceDto {
+  leadsClaimed: number;
+  averageMatchStrength?: number | null;
+  totalWins: number;
+  winRate?: MetricRateDto;
+  estimatedProjectValueEgp?: number;
+  creditsConsumed: number;
+  creditsRefunded: number;
+  creditsBalance: number;
+  contactRate?: MetricRateDto;
+  replyRate?: MetricRateDto;
+  interestRate?: MetricRateDto;
+  meetingRate?: MetricRateDto;
+  winRateOfMeetings?: MetricRateDto;
+}
+
+interface AnalyticsDataDto {
+  performance?: PerformanceDto;
+  byNiche?: Array<{
+    niche: string;
+    labelAr: string;
+    claimed: number;
+    contacted: number;
+    meetings: number;
+    wins: number;
+    estimatedValueEgp?: number;
+  }>;
+  byCity?: Array<{
+    city: string;
+    claimed: number;
+    contacted: number;
+    meetings: number;
+    wins: number;
+    estimatedValueEgp?: number;
+  }>;
+}
 
 export default function DeveloperAnalyticsPage() {
   const [preset, setPreset] = useState<string>('all_time');
   const [loading, setLoading] = useState<boolean>(true);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AnalyticsDataDto | null>(null);
 
   const loadDeveloperAnalytics = useCallback(async () => {
     setLoading(true);
@@ -38,215 +78,183 @@ export default function DeveloperAnalyticsPage() {
   const perf = data?.performance;
 
   return (
-    <AppShell>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center">
-          <div>
-            <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-extrabold text-emerald-800">
-              Developer Analytics • Scoped Performance
-            </span>
-            <h1 className="mt-2 text-xl font-extrabold text-slate-900">
-              تحليلات أدائي وقمع المبيعات الخاص بي (My Sales & Conversion Analytics)
-            </h1>
-            <p className="mt-1 text-xs text-slate-500">
-              مؤشرات دقيقة ومحمية لحسابك فقط مع توضيح البسط والمقام لكل معدل تحويل عبر مراحل المتابعة.
-            </p>
-          </div>
+    <AppShell density="compact" pageTitle="تحليلات الأداء">
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title="تحليلات الأداء ومعدلات التحويل"
+          description="مؤشرات دقيقة ومحمية لحسابك مع توضيح البسط والمقام لكل مرحلة مبيعات"
+          actions={
+            <div className="flex items-center gap-3">
+              <div className="w-48">
+                <Select
+                  value={preset}
+                  onChange={(e) => setPreset(e.target.value)}
+                  options={[
+                    { value: 'all_time', label: 'كل الفترات' },
+                    { value: 'last_7_days', label: 'آخر 7 أيام' },
+                    { value: 'last_30_days', label: 'آخر 30 يوماً' },
+                    { value: 'last_90_days', label: 'آخر 90 يوماً' },
+                    { value: 'month_to_date', label: 'الشهر الحالي' },
+                  ]}
+                />
+              </div>
 
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-emerald-600" />
-            <select
-              value={preset}
-              onChange={(e) => setPreset(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-800"
-            >
-              <option value="all_time">كل الفترات (All Time)</option>
-              <option value="last_7_days">آخر 7 أيام</option>
-              <option value="last_30_days">آخر 30 يومًا</option>
-              <option value="last_90_days">آخر 90 يومًا</option>
-              <option value="month_to_date">الشهر الحالي</option>
-            </select>
-
-            <button
-              onClick={loadDeveloperAnalytics}
-              disabled={loading}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>تحديث</span>
-            </button>
-          </div>
-        </div>
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={loadDeveloperAnalytics}
+                disabled={loading}
+                className="gap-1.5"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>تحديث</span>
+              </Button>
+            </div>
+          }
+        />
 
         {loading || !perf ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-28 animate-pulse rounded-2xl border border-slate-200 bg-white p-5"
-              />
+              <Skeleton key={i} className="h-28 rounded-xl" />
             ))}
           </div>
         ) : (
           <>
-            {/* Top Summary Cards */}
+            {/* Top StatTiles */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                  <span>إجمالي الفرص المشتراة</span>
-                  <Briefcase className="h-4 w-4 text-emerald-600" />
-                </div>
-                <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                  {perf.leadsClaimed}
-                </p>
-                <span className="text-[11px] text-slate-400">
-                  متوسط قوة المطابقة: {perf.averageMatchStrength ?? '—'}%
-                </span>
-              </div>
+              <StatTile
+                label="إجمالي الفرص المشتراة"
+                value={fmtNumber(perf.leadsClaimed)}
+                statusText={`متوسط المطابقة: ${perf.averageMatchStrength != null ? fmtNumber(perf.averageMatchStrength) + '%' : '—'}`}
+              />
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                  <span>الصفقات الناجحة (Deals Won)</span>
-                  <Trophy className="h-4 w-4 text-amber-500" />
-                </div>
-                <p className="mt-2 text-2xl font-extrabold text-emerald-700">
-                  {perf.totalWins}
-                </p>
-                <span className="text-[11px] text-slate-400">
-                  معدل الفوز: {perf.winRate?.displayValue} ({perf.winRate?.numerator}/
-                  {perf.winRate?.denominator})
-                </span>
-              </div>
+              <StatTile
+                label="الصفقات الناجحة"
+                value={fmtNumber(perf.totalWins)}
+                statusText={`معدل الفوز: ${perf.winRate?.displayValue || '—'} (${perf.winRate?.numerator ?? 0}/${perf.winRate?.denominator ?? 0})`}
+              />
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                  <span>قيمة المشاريع المكتسبة</span>
-                  <TrendingUp className="h-4 w-4 text-blue-600" />
-                </div>
-                <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                  {(perf.estimatedProjectValueEgp || 0).toLocaleString()}{' '}
-                  <span className="text-xs font-bold">ج.م</span>
-                </p>
-                <span className="text-[11px] text-slate-400">Estimated Won Deal Value</span>
-              </div>
+              <StatTile
+                label="قيمة المشاريع المكتسبة"
+                value={formatEGP(perf.estimatedProjectValueEgp || 0)}
+                statusText="إجمالي قيمة العقود التقديرية"
+              />
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                  <span>النقاط المستهلكة والرصيد</span>
-                  <Coins className="h-4 w-4 text-purple-600" />
-                </div>
-                <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                  {perf.creditsConsumed}{' '}
-                  <span className="text-xs font-bold text-slate-500">نقطة صافية</span>
-                </p>
-                <span className="text-[11px] text-slate-400">
-                  المسترد: {perf.creditsRefunded} | الرصيد الحالي: {perf.creditsBalance}
-                </span>
-              </div>
+              <StatTile
+                label="النقاط المستهلكة الصافية"
+                value={fmtNumber(perf.creditsConsumed)}
+                statusText={`الرصيد الحالي: ${fmtNumber(perf.creditsBalance)} نقطة`}
+              />
             </div>
 
             {/* Funnel Stage Conversion Rates */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-base font-extrabold text-slate-900">
-                قمع المبيعات ومعدلات التحويل المرحلية (Stage-to-Stage & Overall Funnel)
-              </h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                {[
-                  { label: 'معدل التواصل (Contact / Claimed)', metric: perf.contactRate },
-                  { label: 'معدل الرد (Replied / Contacted)', metric: perf.replyRate },
-                  { label: 'معدل الاهتمام (Interested / Replied)', metric: perf.interestRate },
-                  { label: 'معدل الاجتماعات (Meetings / Interested)', metric: perf.meetingRate },
-                  {
-                    label: 'معدل إغلاق الاجتماعات (Won / Meetings)',
-                    metric: perf.winRateOfMeetings,
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-700">{item.label}</span>
-                      <span className="rounded bg-white px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-500">
-                        {item.metric?.numerator ?? 0}/{item.metric?.denominator ?? 0}
-                      </span>
+            <Card>
+              <CardHeader>
+                <CardTitle>قمع المبيعات ومعدلات التحويل بين المراحل</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                  {[
+                    { label: 'معدل التواصل (Contact / Claimed)', metric: perf.contactRate },
+                    { label: 'معدل الرد (Replied / Contacted)', metric: perf.replyRate },
+                    { label: 'معدل الاهتمام (Interested / Replied)', metric: perf.interestRate },
+                    { label: 'معدل الاجتماعات (Meetings / Interested)', metric: perf.meetingRate },
+                    {
+                      label: 'إغلاق الاجتماعات (Won / Meetings)',
+                      metric: perf.winRateOfMeetings,
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-xl border border-line bg-subtle p-4 flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between text-caption text-fg-secondary">
+                        <span className="font-medium line-clamp-1">{item.label}</span>
+                        <span className="font-mono font-medium ltr-iso text-fg-muted">
+                          {item.metric?.numerator ?? 0}/{item.metric?.denominator ?? 0}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-h3 font-bold font-mono tabular-nums text-brand">
+                        {item.metric?.displayValue || 'INSUFFICIENT_DATA'}
+                      </p>
                     </div>
-                    <p className="mt-2 text-xl font-extrabold text-emerald-700">
-                      {item.metric?.displayValue || 'INSUFFICIENT_DATA'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Breakdown by Niche & City */}
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-sm font-extrabold text-slate-900">
-                  أدائي حسب القطاع التجاري (Performance by Niche)
-                </h3>
-                <div className="mt-3 space-y-2">
-                  {data.byNiche?.length === 0 ? (
-                    <p className="text-xs text-slate-500">لا توجد بيانات كافية بعد.</p>
-                  ) : (
-                    data.byNiche?.map((n: any) => (
-                      <div
-                        key={n.niche}
-                        className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-xs"
-                      >
-                        <div>
-                          <span className="font-bold text-slate-800">{n.labelAr}</span>
-                          <span className="block text-[11px] text-slate-500">
-                            مشتراة: {n.claimed} | تواصل: {n.contacted} | اجتماعات: {n.meetings}
-                          </span>
+              <Card>
+                <CardHeader>
+                  <CardTitle>الأداء بحسب القطاع التجاري</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-2">
+                    {!data.byNiche || data.byNiche.length === 0 ? (
+                      <p className="text-body-sm text-fg-muted">لا توجد بيانات كافية بعد.</p>
+                    ) : (
+                      data.byNiche.map((n) => (
+                        <div
+                          key={n.niche}
+                          className="flex items-center justify-between rounded-xl bg-subtle p-3 text-body-sm"
+                        >
+                          <div>
+                            <span className="font-semibold text-fg-primary">{n.labelAr}</span>
+                            <span className="block text-caption text-fg-muted">
+                              مشتراة: {fmtNumber(n.claimed)} • تواصل: {fmtNumber(n.contacted)} • اجتماعات: {fmtNumber(n.meetings)}
+                            </span>
+                          </div>
+                          <div className="text-end">
+                            <span className="block font-bold text-brand">
+                              فوز: {fmtNumber(n.wins)}
+                            </span>
+                            <span className="block text-caption text-fg-muted font-mono ltr-iso">
+                              {formatEGP(n.estimatedValueEgp || 0)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <span className="block font-extrabold text-emerald-700">
-                            فوز: {n.wins}
-                          </span>
-                          <span className="block text-[11px] text-slate-500">
-                            {(n.estimatedValueEgp || 0).toLocaleString()} ج.م
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-sm font-extrabold text-slate-900">
-                  أدائي حسب المدينة (Performance by City)
-                </h3>
-                <div className="mt-3 space-y-2">
-                  {data.byCity?.length === 0 ? (
-                    <p className="text-xs text-slate-500">لا توجد بيانات كافية بعد.</p>
-                  ) : (
-                    data.byCity?.map((c: any) => (
-                      <div
-                        key={c.city}
-                        className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-xs"
-                      >
-                        <div>
-                          <span className="font-bold text-slate-800">{c.city}</span>
-                          <span className="block text-[11px] text-slate-500">
-                            مشتراة: {c.claimed} | تواصل: {c.contacted} | اجتماعات: {c.meetings}
-                          </span>
+              <Card>
+                <CardHeader>
+                  <CardTitle>الأداء بحسب المدينة</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-2">
+                    {!data.byCity || data.byCity.length === 0 ? (
+                      <p className="text-body-sm text-fg-muted">لا توجد بيانات كافية بعد.</p>
+                    ) : (
+                      data.byCity.map((c) => (
+                        <div
+                          key={c.city}
+                          className="flex items-center justify-between rounded-xl bg-subtle p-3 text-body-sm"
+                        >
+                          <div>
+                            <span className="font-semibold text-fg-primary">{c.city}</span>
+                            <span className="block text-caption text-fg-muted">
+                              مشتراة: {fmtNumber(c.claimed)} • تواصل: {fmtNumber(c.contacted)} • اجتماعات: {fmtNumber(c.meetings)}
+                            </span>
+                          </div>
+                          <div className="text-end">
+                            <span className="block font-bold text-brand">
+                              فوز: {fmtNumber(c.wins)}
+                            </span>
+                            <span className="block text-caption text-fg-muted font-mono ltr-iso">
+                              {formatEGP(c.estimatedValueEgp || 0)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <span className="block font-extrabold text-emerald-700">
-                            فوز: {c.wins}
-                          </span>
-                          <span className="block text-[11px] text-slate-500">
-                            {(c.estimatedValueEgp || 0).toLocaleString()} ج.م
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </>
         )}

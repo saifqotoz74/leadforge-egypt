@@ -3,7 +3,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PublicNavbar } from '@/components/PublicNavbar';
+import { PublicNavbar, PublicFooter } from '@/components/PublicNavbar';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Banner } from '@/components/ui/Banner';
 import { ShieldCheck, LogIn, KeyRound, UserCheck } from 'lucide-react';
 
 export default function LoginPage() {
@@ -27,7 +30,7 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'فشل تسجيل الدخول.');
+        setError(data.error || 'فشل تسجيل الدخول. تحقق من صحة البيانات.');
       } else {
         if (data.user?.role === 'ADMIN') {
           router.push('/admin');
@@ -36,7 +39,7 @@ export default function LoginPage() {
         }
       }
     } catch {
-      setError('تعذر الاتصال بالخادم.');
+      setError('تعذّر الاتصال. تحقق من الإنترنت ثم أعد المحاولة.');
     } finally {
       setLoading(false);
     }
@@ -55,97 +58,112 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div data-density="comfortable" className="min-h-screen flex flex-col bg-page">
       <PublicNavbar />
 
-      <main className="flex flex-1 items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-600 text-white">
+      <main className="flex flex-1 items-center justify-center p-4 sm:p-6 lg:p-8">
+        {/* Template T1 Auth: Centered card 440px, radius-xl (24px), padding 32, on --bg-page */}
+        <div className="w-full max-w-auth rounded-2xl border border-line bg-surface p-8 shadow-xs">
+          {/* Wordmark Block */}
+          <div className="flex flex-col items-center text-center gap-2 mb-6">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white shadow-xs">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <div>
-              <h1 className="text-xl font-extrabold text-slate-900">تسجيل الدخول</h1>
-              <p className="text-xs text-slate-500">مرحباً بعودتك إلى منصة LeadForge Egypt</p>
-            </div>
+            <h1 className="text-h2 font-bold text-fg-primary">
+              تسجيل الدخول
+            </h1>
+            <p className="text-body-sm text-fg-secondary">
+              مرحباً بعودتك إلى منصة <span className="font-semibold text-fg-primary">LeadForge Egypt</span>
+            </p>
           </div>
 
           {/* Quick Demo Credentials Box */}
-          <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5">
-            <p className="text-xs font-extrabold text-emerald-900">
-              حسابات التجربة المحلية السريعة (Demo Accounts):
+          <div className="mb-6 rounded-xl border border-line bg-subtle p-3.5">
+            <p className="text-caption font-semibold text-fg-primary">
+              حسابات المعاينة السريعة (Demo):
             </p>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <button
+            <div className="mt-2.5 grid grid-cols-2 gap-2">
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={fillDemoDeveloper}
-                className="flex items-center justify-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
+                className="w-full text-caption gap-1.5"
               >
-                <UserCheck className="h-3.5 w-3.5" />
-                حساب مطور (Developer)
-              </button>
-              <button
+                <UserCheck className="h-3.5 w-3.5 text-brand" />
+                <span>حساب مطور</span>
+              </Button>
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={fillDemoAdmin}
-                className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100"
+                className="w-full text-caption gap-1.5"
               >
-                <KeyRound className="h-3.5 w-3.5" />
-                حساب مدير (Admin)
-              </button>
+                <KeyRound className="h-3.5 w-3.5 text-brand" />
+                <span>حساب مدير</span>
+              </Button>
             </div>
           </div>
 
           {error && (
-            <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700">
-              {error}
+            <div className="mb-6">
+              <Banner variant="danger">{error}</Banner>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700">
-                البريد الإلكتروني
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="dev@leadforge.eg"
-                className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:outline-none"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <Input
+              label="البريد الإلكتروني"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@company.com"
+              dir="ltr"
+              className="text-start"
+            />
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700">كلمة المرور</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:outline-none"
-              />
-            </div>
+            <Input
+              label="كلمة المرور"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              dir="ltr"
+              className="text-start"
+            />
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
-            >
-              <LogIn className="h-4 w-4" />
-              <span>{loading ? 'جاري تسجيل الدخول...' : 'دخول إلى المنصة'}</span>
-            </button>
+            <div className="pt-2">
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                isLoading={loading}
+                className="w-full"
+              >
+                <LogIn className="h-4 w-4 me-2 rtl:-scale-x-100" />
+                <span>تسجيل الدخول</span>
+              </Button>
+            </div>
           </form>
 
-          <p className="mt-6 text-center text-xs text-slate-600">
-            ليس لديك حساب بعد؟{' '}
-            <Link href="/register" className="font-bold text-emerald-600 hover:underline">
-              سجل كمطور ويب واحصل على 3 فرص مجانًا
-            </Link>
-          </p>
+          <div className="mt-6 border-t border-line pt-4 text-center">
+            <p className="text-body-sm text-fg-secondary">
+              ليس لديك حساب مطور بعد؟{' '}
+              <Link
+                href="/register"
+                className="font-semibold text-brand hover:underline"
+              >
+                إنشاء حساب جديد
+              </Link>
+            </p>
+          </div>
         </div>
       </main>
+
+      <PublicFooter />
     </div>
   );
 }

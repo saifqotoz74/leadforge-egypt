@@ -1,19 +1,28 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
+import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Banner } from '@/components/ui/Banner';
+import { Skeleton } from '@/components/ui/Skeleton';
 import {
   ALL_CITIES,
   BUSINESS_CATEGORIES,
   DEVELOPER_SERVICES,
 } from '@/lib/constants';
-import { Save, Target, Compass } from 'lucide-react';
+import { fmtNumber } from '@/lib/format';
+import { Save, Compass, Check } from 'lucide-react';
 
 export default function SettingsPage() {
   const [name, setName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [phone, setPhone] = useState('');
-  const [bio, setBio] = useState('');
+  const [, setBio] = useState('');
   const [services, setServices] = useState<string[]>(['Website Development']);
   const [locations, setLocations] = useState<string[]>(['القاهرة', 'الجيزة']);
   const [allLocationsMode, setAllLocationsMode] = useState(false);
@@ -119,7 +128,6 @@ export default function SettingsPage() {
           name,
           companyName,
           phone,
-          bio,
           services,
           locations,
           allLocationsMode,
@@ -135,108 +143,93 @@ export default function SettingsPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setMessage({ type: 'error', text: data.error || 'تعذر حفظ الإعدادات.' });
+        setMessage({ type: 'error', text: data.error || 'تعذّر حفظ الإعدادات.' });
       } else {
         setMessage({
           type: 'success',
-          text: 'تم حفظ إعدادات ملفك وإعادة حساب المطابقات (Phase 4 Matching Engine) بنجاح!',
+          text: 'تم حفظ تفضيلات الملف الشخصي وإعادة حساب المطابقات بنجاح.',
         });
       }
     } catch {
-      setMessage({ type: 'error', text: 'حدث خطأ أثناء الاتصال بالخادم.' });
+      setMessage({ type: 'error', text: 'تعذّر الاتصال بالخادم. تحقق من الإنترنت.' });
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <AppShell>
+    <AppShell density="comfortable" pageTitle="تفضيلات المطابقة">
       {loading ? (
-        <div className="h-96 animate-pulse rounded-2xl border border-slate-200 bg-white p-6" />
+        <div className="space-y-6">
+          <Skeleton className="h-12 w-64" />
+          <Skeleton className="h-96 w-full rounded-2xl" />
+        </div>
       ) : (
-        <div className="mx-auto max-w-4xl space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                  <Target className="h-5 w-5" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-extrabold text-slate-900">
-                    إعدادات الحساب ومحرك المطابقة (Developer Matching Profile)
-                  </h1>
-                  <p className="text-xs text-slate-500">
-                    يتحكم هذا الملف في معايير الأهلية الإلزامية (Hard Eligibility) وترتيب الفرص في لوحة التحكم.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
+        <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+          <PageHeader
+            title="تفضيلات المطابقة والملف الشخصي"
+            description="حدد معايير الأهلية وتفضيلاتك لاحتساب درجات مطابقة الفرص تلقائياً"
+            actions={
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={handlePreviewMatches}
-                disabled={previewing}
-                className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-extrabold text-indigo-800 hover:bg-indigo-100"
+                isLoading={previewing}
+                className="gap-2"
               >
                 <Compass className="h-4 w-4" />
-                {previewing
-                  ? 'جاري المعاينة...'
-                  : previewCount !== null
-                    ? `معاينة المطابقة: ${previewCount} عميل مؤهل`
-                    : 'معاينة عدد العملاء المتطابقين'}
-              </button>
-            </div>
+                <span>
+                  {previewCount !== null
+                    ? `المطابقة: ${fmtNumber(previewCount)} عميل مؤهل`
+                    : 'معاينة عدد الفرص المتطابقة'}
+                </span>
+              </Button>
+            }
+          />
 
-            {message && (
-              <div
-                className={`mt-4 rounded-xl border p-3.5 text-xs font-bold ${
-                  message.type === 'success'
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                    : 'border-rose-200 bg-rose-50 text-rose-800'
-                }`}
-              >
-                {message.text}
-              </div>
-            )}
+          {message && (
+            <Banner variant={message.type === 'success' ? 'info' : 'danger'}>
+              {message.text}
+            </Banner>
+          )}
 
-            <form onSubmit={handleSave} className="mt-6 space-y-6">
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700">الاسم الكامل</label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700">
-                    اسم الشركة / الاستوديو
-                  </label>
-                  <input
-                    type="text"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700">رقم الهاتف</label>
-                  <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
+          <form onSubmit={handleSave} className="flex flex-col gap-6">
+            {/* Basic Info Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>بيانات المطور الأساسية</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:grid-cols-3">
+                <Input
+                  label="الاسم الكامل"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <Input
+                  label="اسم الشركة / الاستوديو"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="استوديو البرمجة"
+                />
+                <Input
+                  label="رقم الهاتف"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  dir="ltr"
+                  className="text-start"
+                />
+              </CardContent>
+            </Card>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-800">
-                  1. الخدمات المقدمة (Services):
-                </label>
-                <div className="mt-2 flex flex-wrap gap-2">
+            {/* Services Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>1. الخدمات المقدمة (Services)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
                   {DEVELOPER_SERVICES.map((srv) => {
                     const active = services.includes(srv.value);
                     return (
@@ -244,35 +237,33 @@ export default function SettingsPage() {
                         type="button"
                         key={srv.value}
                         onClick={() => toggleItem(services, srv.value, setServices)}
-                        className={`rounded-xl border px-3 py-2 text-xs font-bold ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-caption border transition-colors ${
                           active
-                            ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                            : 'border-slate-200 bg-white text-slate-600'
+                            ? 'border-brand bg-brand-soft text-brand font-semibold shadow-xs'
+                            : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                         }`}
                       >
-                        {srv.labelAr}
+                        {active && <Check className="h-3 w-3" />}
+                        <span>{srv.labelAr}</span>
                       </button>
                     );
                   })}
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div>
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-800">
-                    2. المدن والمحافظات المستهدفة (Target Locations):
-                  </label>
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
-                    <input
-                      type="checkbox"
-                      checked={allLocationsMode}
-                      onChange={(e) => setAllLocationsMode(e.target.checked)}
-                      className="rounded border-slate-300"
-                    />
-                    تغطية جميع محافظات مصر (All Egypt)
-                  </label>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-2">
+            {/* Locations Card */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle>2. المدن والمحافظات المستهدفة</CardTitle>
+                <Checkbox
+                  label="قبول جميع محافظات مصر"
+                  checked={allLocationsMode}
+                  onChange={(e) => setAllLocationsMode(e.target.checked)}
+                />
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
                   {ALL_CITIES.map((c) => {
                     const active = locations.includes(c);
                     return (
@@ -280,35 +271,33 @@ export default function SettingsPage() {
                         type="button"
                         key={c}
                         onClick={() => toggleItem(locations, c, setLocations)}
-                        className={`rounded-xl border px-3 py-1.5 text-xs font-bold ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-caption border transition-colors ${
                           active
-                            ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                            : 'border-slate-200 bg-white text-slate-600'
+                            ? 'border-brand bg-brand-soft text-brand font-semibold shadow-xs'
+                            : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                         }`}
                       >
-                        {c}
+                        {active && <Check className="h-3 w-3" />}
+                        <span>{c}</span>
                       </button>
                     );
                   })}
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div>
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-800">
-                    3. الأنشطة التجارية المستهدفة (Supported Niches):
-                  </label>
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
-                    <input
-                      type="checkbox"
-                      checked={allNichesMode}
-                      onChange={(e) => setAllNichesMode(e.target.checked)}
-                      className="rounded border-slate-300"
-                    />
-                    قبول جميع الأنشطة العامة (All Niches Mode)
-                  </label>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-2">
+            {/* Niches Card */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle>3. الأنشطة التجارية والقطاعات</CardTitle>
+                <Checkbox
+                  label="قبول جميع الأنشطة"
+                  checked={allNichesMode}
+                  onChange={(e) => setAllNichesMode(e.target.checked)}
+                />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
                   {BUSINESS_CATEGORIES.map((cat) => {
                     const active = niches.includes(cat.value);
                     return (
@@ -316,136 +305,125 @@ export default function SettingsPage() {
                         type="button"
                         key={cat.value}
                         onClick={() => toggleItem(niches, cat.value, setNiches)}
-                        className={`rounded-xl border px-3 py-1.5 text-xs font-bold ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-caption border transition-colors ${
                           active
-                            ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                            : 'border-slate-200 bg-white text-slate-600'
+                            ? 'border-brand bg-brand-soft text-brand font-semibold shadow-xs'
+                            : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                         }`}
                       >
-                        {cat.labelAr} ({cat.value})
+                        {active && <Check className="h-3 w-3" />}
+                        <span>{cat.labelAr}</span>
                       </button>
                     );
                   })}
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold text-rose-700">
-                  4. استبعاد أنشطة تجارية محددة (Excluded Niches — تستبعد حتى مع تفعيل القبول العام):
-                </label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {BUSINESS_CATEGORIES.map((cat) => {
-                    const excluded = excludedNiches.includes(cat.value);
-                    return (
-                      <button
-                        type="button"
-                        key={cat.value}
-                        onClick={() => toggleItem(excludedNiches, cat.value, setExcludedNiches, true)}
-                        className={`rounded-xl border px-3 py-1 text-xs font-bold ${
-                          excluded
-                            ? 'border-rose-600 bg-rose-50 text-rose-800'
-                            : 'border-slate-200 bg-white text-slate-500'
-                        }`}
-                      >
-                        {excluded ? '✕ مستبعد: ' : ''}{cat.labelAr}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700">
-                    الحد الأدنى للميزانية (ج.م)
+                <div className="pt-2 border-t border-line">
+                  <label className="block text-caption font-semibold text-warning-text mb-2">
+                    استبعاد أنشطة محددة:
                   </label>
-                  <input
-                    type="number"
-                    min={0}
-                    step={1000}
-                    value={minBudget}
-                    onChange={(e) => setMinBudget(Number(e.target.value))}
-                    className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold"
-                  />
+                  <div className="flex flex-wrap gap-2">
+                    {BUSINESS_CATEGORIES.map((cat) => {
+                      const excluded = excludedNiches.includes(cat.value);
+                      return (
+                        <button
+                          type="button"
+                          key={cat.value}
+                          onClick={() => toggleItem(excludedNiches, cat.value, setExcludedNiches, true)}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-caption border transition-colors ${
+                            excluded
+                              ? 'border-warning-border bg-warning-bg text-warning-text font-semibold'
+                              : 'border-line bg-surface text-fg-muted hover:bg-subtle'
+                          }`}
+                        >
+                          {excluded && <span>✕ مستبعد:</span>}
+                          <span>{cat.labelAr}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700">
-                    الحد الأقصى للميزانية (ج.م)
-                  </label>
-                  <input
-                    type="number"
-                    min={1000}
-                    step={5000}
-                    value={maxBudget}
-                    onChange={(e) => setMaxBudget(Number(e.target.value))}
-                    className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold"
-                  />
-                </div>
+            {/* Budget & Preference Criteria */}
+            <Card>
+              <CardHeader>
+                <CardTitle>4. الميزانية ونوع الملكية</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:grid-cols-4">
+                <Input
+                  label="الحد الأدنى للميزانية (ج.م)"
+                  type="number"
+                  min={0}
+                  step={1000}
+                  value={minBudget}
+                  onChange={(e) => setMinBudget(Number(e.target.value))}
+                />
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700">
-                    حالة الموقع المستهدفة
-                  </label>
-                  <select
-                    value={
-                      leadPreferences.length >= 2
-                        ? 'BOTH'
-                        : leadPreferences[0] || 'NO_WEBSITE'
-                    }
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (v === 'BOTH') setLeadPreferences(['NO_WEBSITE', 'POOR_WEBSITE']);
-                      else setLeadPreferences([v]);
-                    }}
-                    className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-                  >
-                    <option value="BOTH">بدون موقع أو موقع قديم</option>
-                    <option value="NO_WEBSITE">بدون موقع إلكتروني فقط</option>
-                    <option value="POOR_WEBSITE">موقع قديم / ضعيف فقط</option>
-                  </select>
-                </div>
+                <Input
+                  label="الحد الأقصى للميزانية (ج.م)"
+                  type="number"
+                  min={1000}
+                  step={5000}
+                  value={maxBudget}
+                  onChange={(e) => setMaxBudget(Number(e.target.value))}
+                />
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700">
-                    نوع الملكية المفضلة
-                  </label>
-                  <select
-                    value={leadType}
-                    onChange={(e) =>
-                      setLeadType(e.target.value as 'BOTH' | 'EXCLUSIVE' | 'SHARED')
-                    }
-                    className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-                  >
-                    <option value="BOTH">الحصرية والمشتركة معًا</option>
-                    <option value="EXCLUSIVE">فرص حصرية فقط (Exclusive)</option>
-                    <option value="SHARED">فرص مشتركة فقط (Shared)</option>
-                  </select>
-                </div>
-              </div>
+                <Select
+                  label="حالة الموقع المستهدفة"
+                  value={
+                    leadPreferences.length >= 2
+                      ? 'BOTH'
+                      : leadPreferences[0] || 'NO_WEBSITE'
+                  }
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === 'BOTH') setLeadPreferences(['NO_WEBSITE', 'POOR_WEBSITE']);
+                    else setLeadPreferences([v]);
+                  }}
+                  options={[
+                    { value: 'BOTH', label: 'بدون موقع أو موقع قديم' },
+                    { value: 'NO_WEBSITE', label: 'بدون موقع إلكتروني فقط' },
+                    { value: 'POOR_WEBSITE', label: 'موقع قديم / ضعيف فقط' },
+                  ]}
+                />
 
-              <div className="pt-1">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                  <input
-                    type="checkbox"
-                    checked={isAcceptingLeads}
-                    onChange={(e) => setIsAcceptingLeads(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-emerald-600"
-                  />
-                  الحساب جاهز ومفعل لاستقبال ترشيحات عملاء جدد (Accepting Leads)
-                </label>
-              </div>
+                <Select
+                  label="نوع الملكية المفضلة"
+                  value={leadType}
+                  onChange={(e) =>
+                    setLeadType(e.target.value as 'BOTH' | 'EXCLUSIVE' | 'SHARED')
+                  }
+                  options={[
+                    { value: 'BOTH', label: 'الحصرية والمشتركة معاً' },
+                    { value: 'EXCLUSIVE', label: 'فرص حصرية فقط' },
+                    { value: 'SHARED', label: 'فرص مشتركة فقط' },
+                  ]}
+                />
+              </CardContent>
+            </Card>
 
-              <button
+            {/* Account Status Switch & Save Button */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-line bg-surface">
+              <Checkbox
+                label="الحساب مفعل وجاهز لاستقبال ترشيحات الفرص الجديدة"
+                checked={isAcceptingLeads}
+                onChange={(e) => setIsAcceptingLeads(e.target.checked)}
+              />
+
+              <Button
                 type="submit"
-                disabled={saving}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+                variant="primary"
+                size="lg"
+                isLoading={saving}
+                className="gap-2"
               >
                 <Save className="h-4 w-4" />
-                <span>{saving ? 'جاري الحفظ...' : 'حفظ إعدادات المطابقة والملف الشخصي'}</span>
-              </button>
-            </form>
-          </div>
+                <span>حفظ إعدادات المطابقة</span>
+              </Button>
+            </div>
+          </form>
         </div>
       )}
     </AppShell>
