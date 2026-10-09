@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
+import { AppShell } from '@/components/domain/AppShell';
 import {
   Compass,
   CheckCircle2,
@@ -424,30 +424,30 @@ export default function AdminMatchingPage() {
   }
 
   return (
-    <AppShell isAdminView>
+    <AppShell isAdmin={true} density="compact" pageTitle="محرك المطابقة">
       <div className="space-y-6">
         {/* Top Header */}
-        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 rounded-2xl border border-line bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2.5">
-              <Compass className="h-6 w-6 text-emerald-600" />
-              <h1 className="text-xl font-extrabold text-slate-900">
+              <Compass className="h-6 w-6 text-brand" />
+              <h1 className="text-xl font-extrabold text-fg-primary">
                 محرك المطابقة القياسي ومصحح الأهلية (Phase 4 Deterministic Matching Engine)
               </h1>
             </div>
-            <p className="mt-1 text-xs text-slate-600">
+            <p className="mt-1 text-xs text-fg-secondary">
               فحص الأهلية الإلزامية (Layer A Hard Eligibility) وقواعد الملاءمة الموزونة (Layer B Soft Rules) بدون أي نماذج عشوائية أو ذكاء اصطناعي.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-extrabold text-indigo-800">
+            <span className="rounded-xl border border-line-brand bg-brand-soft px-3 py-1.5 text-xs font-extrabold text-brand">
               إصدار المطابقة النشط: {matchVersion}
             </span>
             <button
               onClick={handleRecalculateAll}
               disabled={recalculating}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
               {recalculating ? 'جاري إعادة الحساب...' : 'إعادة حساب المطابقات (Recalculate)'}
@@ -456,24 +456,24 @@ export default function AdminMatchingPage() {
         </div>
 
         {statusBanner && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-bold text-emerald-800">
+          <div className="rounded-xl border border-line-brand bg-brand-soft p-4 text-xs font-bold text-brand">
             ✓ {statusBanner}
           </div>
         )}
         {errorBanner && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs font-bold text-rose-800">
+          <div className="rounded-xl border border-danger-border bg-danger-bg p-4 text-xs font-bold text-danger-text">
             ✕ {errorBanner}
           </div>
         )}
 
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+        <div className="flex flex-wrap gap-2 border-b border-line pb-3">
           <button
             onClick={() => setActiveTab('debugger')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
               activeTab === 'debugger'
                 ? 'bg-slate-900 text-white'
-                : 'bg-white text-slate-700 hover:bg-slate-100'
+                : 'bg-white text-fg-primary hover:bg-subtle'
             }`}
           >
             <Bug className="h-4 w-4" />
@@ -484,7 +484,7 @@ export default function AdminMatchingPage() {
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
               activeTab === 'rules'
                 ? 'bg-slate-900 text-white'
-                : 'bg-white text-slate-700 hover:bg-slate-100'
+                : 'bg-white text-fg-primary hover:bg-subtle'
             }`}
           >
             <Sliders className="h-4 w-4" />
@@ -495,7 +495,7 @@ export default function AdminMatchingPage() {
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
               activeTab === 'config'
                 ? 'bg-slate-900 text-white'
-                : 'bg-white text-slate-700 hover:bg-slate-100'
+                : 'bg-white text-fg-primary hover:bg-subtle'
             }`}
           >
             <ShieldCheck className="h-4 w-4" />
@@ -504,19 +504,19 @@ export default function AdminMatchingPage() {
         </div>
 
         {loading ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm font-semibold text-slate-500">
+          <div className="rounded-2xl border border-line bg-white p-12 text-center text-sm font-semibold text-fg-secondary">
             جاري تحميل بيانات محرك المطابقة...
           </div>
         ) : activeTab === 'debugger' ? (
           <div className="space-y-6">
             {/* Lead & Developer Selector */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-sm font-extrabold text-slate-900">
+            <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+              <h2 className="text-sm font-extrabold text-fg-primary">
                 اختر العميل المحتمل (Lead) والمطور (Developer) لتحليل أسباب القبول أو الاستبعاد:
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-fg-primary mb-1.5">
                     العميل المحتمل (Lead):
                   </label>
                   <select
@@ -528,7 +528,7 @@ export default function AdminMatchingPage() {
                         runPairInspection(nextLead, selectedDeveloperId);
                       }
                     }}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-semibold text-slate-800"
+                    className="w-full rounded-xl border border-line bg-white px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     {leads.map((l) => (
                       <option key={l.id} value={l.id}>
@@ -539,7 +539,7 @@ export default function AdminMatchingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-fg-primary mb-1.5">
                     المطور (Developer):
                   </label>
                   <select
@@ -551,7 +551,7 @@ export default function AdminMatchingPage() {
                         runPairInspection(selectedLeadId, nextDev);
                       }
                     }}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-semibold text-slate-800"
+                    className="w-full rounded-xl border border-line bg-white px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     {developers.map((d) => (
                       <option key={d.id} value={d.id}>
@@ -579,54 +579,54 @@ export default function AdminMatchingPage() {
                 <div
                   className={`flex flex-col justify-between gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center ${
                     debugReport.eligible
-                      ? 'border-emerald-200 bg-emerald-50/70'
-                      : 'border-rose-200 bg-rose-50/70'
+                      ? 'border-line-brand bg-brand-soft/70'
+                      : 'border-danger-border bg-danger-bg/70'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     {debugReport.eligible ? (
-                      <CheckCircle2 className="h-8 w-8 text-emerald-600 shrink-0" />
+                      <CheckCircle2 className="h-8 w-8 text-brand shrink-0" />
                     ) : (
-                      <XCircle className="h-8 w-8 text-rose-600 shrink-0" />
+                      <XCircle className="h-8 w-8 text-danger-text shrink-0" />
                     )}
                     <div>
                       <span
                         className={`inline-block rounded-lg px-2.5 py-0.5 text-xs font-extrabold ${
                           debugReport.eligible
-                            ? 'bg-emerald-600 text-white'
+                            ? 'bg-brand text-white'
                             : 'bg-rose-600 text-white'
                         }`}
                       >
                         {debugReport.resultLabel} ({debugReport.eligible ? 'مؤهل للمطابقة' : 'مستبعد'})
                       </span>
-                      <h3 className="mt-1 text-base font-extrabold text-slate-900">
+                      <h3 className="mt-1 text-base font-extrabold text-fg-primary">
                         {debugReport.leadData.businessName} ⇄ {debugReport.developerPreferences.name}
                       </h3>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4">
-                    <div className="rounded-xl bg-white px-4 py-2 text-center shadow-sm border border-slate-200">
-                      <span className="block text-[11px] font-semibold text-slate-500">
+                    <div className="rounded-xl bg-white px-4 py-2 text-center shadow-sm border border-line">
+                      <span className="block text-[11px] font-semibold text-fg-secondary">
                         قوة التطابق (Match Strength)
                       </span>
-                      <span className="text-xl font-extrabold text-indigo-700">
+                      <span className="text-xl font-extrabold text-brand">
                         {debugReport.finalMatchStrength}/100
                       </span>
                     </div>
-                    <div className="rounded-xl bg-white px-4 py-2 text-center shadow-sm border border-slate-200">
-                      <span className="block text-[11px] font-semibold text-slate-500">
+                    <div className="rounded-xl bg-white px-4 py-2 text-center shadow-sm border border-line">
+                      <span className="block text-[11px] font-semibold text-fg-secondary">
                         النقاط الخام (Raw Points)
                       </span>
-                      <span className="text-xl font-extrabold text-slate-800">
+                      <span className="text-xl font-extrabold text-fg-primary">
                         {debugReport.matchPoints}
                       </span>
                     </div>
-                    <div className="rounded-xl bg-white px-4 py-2 text-center shadow-sm border border-slate-200">
-                      <span className="block text-[11px] font-semibold text-slate-500">
+                    <div className="rounded-xl bg-white px-4 py-2 text-center shadow-sm border border-line">
+                      <span className="block text-[11px] font-semibold text-fg-secondary">
                         الجودة / الفرصة
                       </span>
-                      <span className="text-sm font-extrabold text-slate-800">
+                      <span className="text-sm font-extrabold text-fg-primary">
                         Q: {debugReport.leadData.qualityScore} | Opp: {debugReport.leadData.opportunityScore}
                       </span>
                     </div>
@@ -634,14 +634,14 @@ export default function AdminMatchingPage() {
                 </div>
 
                 {/* Layer A: Hard Eligibility Gate Checks */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <h3 className="text-sm font-extrabold text-slate-900">
+                <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+                  <h3 className="text-sm font-extrabold text-fg-primary">
                     الطبقة الأولى (Layer A — Hard Eligibility Gates): فحص شروط الأهلية الإلزامية
                   </h3>
                   <div className="mt-3 overflow-x-auto">
-                    <table className="w-full text-right text-xs">
+                    <table className="w-full text-start text-xs">
                       <thead>
-                        <tr className="border-b border-slate-200 bg-slate-50 text-slate-600">
+                        <tr className="border-b border-line bg-subtle text-fg-secondary">
                           <th className="p-2.5 font-bold">البُعد (Dimension)</th>
                           <th className="p-2.5 font-bold">الحالة</th>
                           <th className="p-2.5 font-bold">الكود (Code)</th>
@@ -652,29 +652,29 @@ export default function AdminMatchingPage() {
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {debugReport.hardEligibilityChecks.map((chk, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50/70">
-                            <td className="p-2.5 font-bold text-slate-800">{chk.dimension}</td>
+                          <tr key={idx} className="hover:bg-subtle/70">
+                            <td className="p-2.5 font-bold text-fg-primary">{chk.dimension}</td>
                             <td className="p-2.5">
                               {chk.status === 'PASS' ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand">
                                   <CheckCircle2 className="h-3 w-3" /> PASS
                                 </span>
                               ) : chk.status === 'WARN' ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-[11px] font-bold text-warning-text">
                                   <AlertTriangle className="h-3 w-3" /> WARN
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-800">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-danger-bg px-2 py-0.5 text-[11px] font-bold text-danger-text">
                                   <XCircle className="h-3 w-3" /> FAIL
                                 </span>
                               )}
                             </td>
-                            <td className="p-2.5 font-mono text-[11px] font-semibold text-slate-700">
+                            <td className="p-2.5 font-mono text-[11px] font-semibold text-fg-primary">
                               {chk.code}
                             </td>
-                            <td className="p-2.5 text-slate-700">{chk.leadValue}</td>
-                            <td className="p-2.5 text-slate-700">{chk.developerPreference}</td>
-                            <td className="p-2.5 font-semibold text-slate-800">{chk.reasonAr}</td>
+                            <td className="p-2.5 text-fg-primary">{chk.leadValue}</td>
+                            <td className="p-2.5 text-fg-primary">{chk.developerPreference}</td>
+                            <td className="p-2.5 font-semibold text-fg-primary">{chk.reasonAr}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -684,12 +684,12 @@ export default function AdminMatchingPage() {
 
                 {/* Layer B: Soft Matching Rules Breakdown */}
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <h3 className="text-sm font-extrabold text-emerald-800">
+                  <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+                    <h3 className="text-sm font-extrabold text-brand">
                       الطبقة الثانية (Layer B): القواعد المنطبقة (+ النقاط المكتسبة)
                     </h3>
                     {debugReport.appliedRules.length === 0 ? (
-                      <p className="mt-4 text-xs text-slate-500">
+                      <p className="mt-4 text-xs text-fg-secondary">
                         لم يتم احتساب نقاط ملاءمة (إما لعدم اجتياز شروط الأهلية الإلزامية أو عدم انطباق قواعد).
                       </p>
                     ) : (
@@ -697,18 +697,18 @@ export default function AdminMatchingPage() {
                         {debugReport.appliedRules.map((rule) => (
                           <div
                             key={rule.key}
-                            className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/40 p-3 text-xs"
+                            className="flex items-center justify-between rounded-xl border border-line-brand bg-brand-soft/40 p-3 text-xs"
                           >
                             <div>
-                              <span className="font-mono text-[11px] font-bold text-emerald-900">
+                              <span className="font-mono text-[11px] font-bold text-brand">
                                 {rule.key} ({rule.category})
                               </span>
-                              <p className="mt-0.5 font-semibold text-slate-700">{rule.reasonAr}</p>
+                              <p className="mt-0.5 font-semibold text-fg-primary">{rule.reasonAr}</p>
                             </div>
                             <span
                               className={`rounded-lg px-2.5 py-1 text-xs font-extrabold ${
                                 rule.points >= 0
-                                  ? 'bg-emerald-600 text-white'
+                                  ? 'bg-brand text-white'
                                   : 'bg-amber-600 text-white'
                               }`}
                             >
@@ -720,23 +720,23 @@ export default function AdminMatchingPage() {
                     )}
                   </div>
 
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <h3 className="text-sm font-extrabold text-slate-700">
+                  <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+                    <h3 className="text-sm font-extrabold text-fg-primary">
                       القواعد غير المنطبقة أو المستبدلة ضمن نفس المجموعة (Unapplied Rules)
                     </h3>
                     <div className="mt-3 max-h-80 overflow-y-auto space-y-2">
                       {debugReport.unappliedRules.map((rule) => (
                         <div
                           key={rule.key}
-                          className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs"
+                          className="flex items-center justify-between rounded-xl border border-line bg-subtle p-2.5 text-xs"
                         >
                           <div>
-                            <span className="font-mono text-[11px] font-bold text-slate-700">
+                            <span className="font-mono text-[11px] font-bold text-fg-primary">
                               {rule.key} ({rule.category})
                             </span>
-                            <p className="mt-0.5 text-slate-600">{rule.reasonAr}</p>
+                            <p className="mt-0.5 text-fg-secondary">{rule.reasonAr}</p>
                           </div>
-                          <span className="rounded bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                          <span className="rounded bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-fg-primary">
                             {rule.outcome || '0 pts'}
                           </span>
                         </div>
@@ -749,24 +749,24 @@ export default function AdminMatchingPage() {
 
             {/* All Ranked Developers for Selected Lead */}
             {leadRanking && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="flex items-center gap-2 text-sm font-extrabold text-slate-900">
-                    <Users className="h-4 w-4 text-indigo-600" />
+                  <h3 className="flex items-center gap-2 text-sm font-extrabold text-fg-primary">
+                    <Users className="h-4 w-4 text-brand" />
                     ترتيب جميع المطورين لهذا العميل ({leadRanking.diagnostics.summaryAr})
                   </h3>
-                  <span className="text-xs font-semibold text-slate-500">
+                  <span className="text-xs font-semibold text-fg-secondary">
                     {leadRanking.diagnostics.summary}
                   </span>
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <h4 className="text-xs font-bold text-emerald-800 mb-2">
+                    <h4 className="text-xs font-bold text-brand mb-2">
                       المطورون المؤهلون مرتبون حسب قوة التطابق ({leadRanking.eligibleDevelopers.length}):
                     </h4>
                     {leadRanking.eligibleDevelopers.length === 0 ? (
-                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 font-semibold">
+                      <div className="rounded-xl border border-warning-border bg-warning-bg p-3 text-xs text-warning-text font-semibold">
                         لا يوجد مطورون مؤهلون لهذا العميل حاليًا ({leadRanking.diagnostics.summary}).
                       </div>
                     ) : (
@@ -778,13 +778,13 @@ export default function AdminMatchingPage() {
                               setSelectedDeveloperId(m.developerId);
                               runPairInspection(selectedLeadId, m.developerId);
                             }}
-                            className="cursor-pointer flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/40 p-3 text-xs hover:bg-emerald-50"
+                            className="cursor-pointer flex items-center justify-between rounded-xl border border-line-brand bg-brand-soft/40 p-3 text-xs hover:bg-brand-soft"
                           >
                             <div>
-                              <span className="font-extrabold text-emerald-900">
+                              <span className="font-extrabold text-brand">
                                 #{m.rank} — {developers.find((d) => d.id === m.developerId)?.name || m.developerId}
                               </span>
-                              <p className="mt-0.5 text-[11px] text-slate-600">
+                              <p className="mt-0.5 text-[11px] text-fg-secondary">
                                 {m.matchedCriteria.map((c) => `${c.key} (+${c.points})`).join(' • ')}
                               </p>
                             </div>
@@ -798,7 +798,7 @@ export default function AdminMatchingPage() {
                   </div>
 
                   <div>
-                    <h4 className="text-xs font-bold text-rose-800 mb-2">
+                    <h4 className="text-xs font-bold text-danger-text mb-2">
                       المطورون المستبعدون وأسباب الرفض ({leadRanking.rejectedDevelopers?.length || 0}):
                     </h4>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -809,17 +809,17 @@ export default function AdminMatchingPage() {
                             setSelectedDeveloperId(m.developerId);
                             runPairInspection(selectedLeadId, m.developerId);
                           }}
-                          className="cursor-pointer flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50/40 p-3 text-xs hover:bg-rose-50"
+                          className="cursor-pointer flex items-center justify-between rounded-xl border border-danger-border bg-danger-bg/40 p-3 text-xs hover:bg-danger-bg"
                         >
                           <div>
-                            <span className="font-bold text-slate-900">
+                            <span className="font-bold text-fg-primary">
                               {developers.find((d) => d.id === m.developerId)?.name || m.developerId}
                             </span>
-                            <p className="mt-0.5 text-[11px] font-semibold text-rose-700">
+                            <p className="mt-0.5 text-[11px] font-semibold text-danger-text">
                               {m.hardFailures.map((hf) => `${hf.key}: ${hf.reasonAr}`).join(' | ')}
                             </p>
                           </div>
-                          <span className="rounded bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-800">
+                          <span className="rounded bg-danger-bg px-2 py-0.5 text-[10px] font-bold text-danger-text">
                             REJECTED
                           </span>
                         </div>
@@ -833,14 +833,14 @@ export default function AdminMatchingPage() {
         ) : activeTab === 'rules' ? (
           <div className="space-y-6">
             {/* Existing Rules Table */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-sm font-extrabold text-slate-900">
+            <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+              <h2 className="text-sm font-extrabold text-fg-primary">
                 قواعد المطابقة الموزونة (Layer B Configurable Matching Rules)
               </h2>
               <div className="mt-4 overflow-x-auto">
-                <table className="w-full text-right text-xs">
+                <table className="w-full text-start text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50 text-slate-600">
+                    <tr className="border-b border-line bg-subtle text-fg-secondary">
                       <th className="p-2.5 font-bold">المفتاح (Key)</th>
                       <th className="p-2.5 font-bold">الاسم</th>
                       <th className="p-2.5 font-bold">الفئة</th>
@@ -853,23 +853,23 @@ export default function AdminMatchingPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {rules.map((r) => (
-                      <tr key={r.id} className="hover:bg-slate-50">
-                        <td className="p-2.5 font-mono text-[11px] font-bold text-slate-800">
+                      <tr key={r.id} className="hover:bg-subtle">
+                        <td className="p-2.5 font-mono text-[11px] font-bold text-fg-primary">
                           {r.key}
                         </td>
-                        <td className="p-2.5 font-semibold text-slate-800">
+                        <td className="p-2.5 font-semibold text-fg-primary">
                           {r.name}
-                          <span className="block text-[11px] text-slate-400">{r.nameEn}</span>
+                          <span className="block text-[11px] text-fg-muted">{r.nameEn}</span>
                         </td>
                         <td className="p-2.5">
-                          <span className="rounded bg-slate-100 px-2 py-0.5 font-bold text-slate-700">
+                          <span className="rounded bg-subtle px-2 py-0.5 font-bold text-fg-primary">
                             {r.category}
                           </span>
                         </td>
-                        <td className="p-2.5 font-mono text-[11px] text-slate-500">
+                        <td className="p-2.5 font-mono text-[11px] text-fg-secondary">
                           {r.ruleGroup || '—'}
                         </td>
-                        <td className="p-2.5 font-bold text-slate-700">{r.priority}</td>
+                        <td className="p-2.5 font-bold text-fg-primary">{r.priority}</td>
                         <td className="p-2.5">
                           <input
                             type="number"
@@ -880,7 +880,7 @@ export default function AdminMatchingPage() {
                                 handleUpdateRulePoints(r, val);
                               }
                             }}
-                            className="w-20 rounded-lg border border-slate-300 px-2 py-1 text-center font-bold text-slate-900"
+                            className="w-20 rounded-lg border border-line px-2 py-1 text-center font-bold text-fg-primary"
                           />
                         </td>
                         <td className="p-2.5">
@@ -888,8 +888,8 @@ export default function AdminMatchingPage() {
                             onClick={() => handleToggleRule(r)}
                             className={`rounded-full px-3 py-1 text-[11px] font-bold ${
                               r.enabled
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-slate-200 text-slate-600'
+                                ? 'bg-brand-soft text-brand'
+                                : 'bg-slate-200 text-fg-secondary'
                             }`}
                           >
                             {r.enabled ? 'مفعلة' : 'معطلة'}
@@ -898,7 +898,7 @@ export default function AdminMatchingPage() {
                         <td className="p-2.5">
                           <button
                             onClick={() => handleDeleteRule(r.id, r.key)}
-                            className="rounded-lg p-1.5 text-rose-600 hover:bg-rose-50"
+                            className="rounded-lg p-1.5 text-danger-text hover:bg-danger-bg"
                             title="حذف القاعدة"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -914,15 +914,15 @@ export default function AdminMatchingPage() {
             {/* Add New Rule Form */}
             <form
               onSubmit={handleCreateRule}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4"
+              className="rounded-2xl border border-line bg-white p-5 shadow-sm space-y-4"
             >
-              <h3 className="flex items-center gap-2 text-sm font-extrabold text-slate-900">
-                <Plus className="h-4 w-4 text-emerald-600" />
+              <h3 className="flex items-center gap-2 text-sm font-extrabold text-fg-primary">
+                <Plus className="h-4 w-4 text-brand" />
                 إضافة قاعدة مطابقة قياسية جديدة (Create Matching Rule)
               </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-fg-primary mb-1">
                     المفتاح (Rule Key):
                   </label>
                   <input
@@ -931,11 +931,11 @@ export default function AdminMatchingPage() {
                     placeholder="مثال: CUSTOM_HIGH_OPP_BOOST"
                     value={newRuleKey}
                     onChange={(e) => setNewRuleKey(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-line px-3 py-2 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-fg-primary mb-1">
                     الاسم بالعربية:
                   </label>
                   <input
@@ -944,17 +944,17 @@ export default function AdminMatchingPage() {
                     placeholder="مكافأة الفرصة البيعية المرتفعة"
                     value={newRuleName}
                     onChange={(e) => setNewRuleName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-line px-3 py-2 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-fg-primary mb-1">
                     الفئة (Category):
                   </label>
                   <select
                     value={newRuleCategory}
                     onChange={(e) => setNewRuleCategory(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-line px-3 py-2 text-xs"
                   >
                     <option value="SERVICE">SERVICE</option>
                     <option value="NICHE">NICHE</option>
@@ -968,13 +968,13 @@ export default function AdminMatchingPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-fg-primary mb-1">
                     الحقل الشرطي (Field):
                   </label>
                   <select
                     value={newRuleField}
                     onChange={(e) => setNewRuleField(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-line px-3 py-2 text-xs"
                   >
                     <option value="matchedPrimaryService">matchedPrimaryService</option>
                     <option value="leadOpportunityScore">leadOpportunityScore</option>
@@ -985,13 +985,13 @@ export default function AdminMatchingPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-fg-primary mb-1">
                     المعامل (Operator):
                   </label>
                   <select
                     value={newRuleOperator}
                     onChange={(e) => setNewRuleOperator(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-line px-3 py-2 text-xs"
                   >
                     <option value="eq">eq (يساوي)</option>
                     <option value="neq">neq (لا يساوي)</option>
@@ -1001,7 +1001,7 @@ export default function AdminMatchingPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-fg-primary mb-1">
                     القيمة المستهدفة (Value) والنقاط:
                   </label>
                   <div className="flex gap-2">
@@ -1010,7 +1010,7 @@ export default function AdminMatchingPage() {
                       required
                       value={newRuleValue}
                       onChange={(e) => setNewRuleValue(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
+                      className="w-full rounded-xl border border-line px-3 py-2 text-xs"
                       placeholder="true / 85"
                     />
                     <input
@@ -1018,7 +1018,7 @@ export default function AdminMatchingPage() {
                       required
                       value={newRulePoints}
                       onChange={(e) => setNewRulePoints(Number(e.target.value))}
-                      className="w-24 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold"
+                      className="w-24 rounded-xl border border-line px-3 py-2 text-xs font-bold"
                       placeholder="+5"
                     />
                   </div>
@@ -1026,7 +1026,7 @@ export default function AdminMatchingPage() {
               </div>
               <button
                 type="submit"
-                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
+                className="rounded-xl bg-brand px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
               >
                 إضافة القاعدة وحفظ الإصدار الجديد
               </button>
@@ -1036,16 +1036,16 @@ export default function AdminMatchingPage() {
           config && (
             <form
               onSubmit={handleSaveConfig}
-              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5"
+              className="rounded-2xl border border-line bg-white p-6 shadow-sm space-y-5"
             >
-              <h2 className="flex items-center gap-2 text-sm font-extrabold text-slate-900">
-                <Activity className="h-4 w-4 text-emerald-600" />
+              <h2 className="flex items-center gap-2 text-sm font-extrabold text-fg-primary">
+                <Activity className="h-4 w-4 text-brand" />
                 إعدادات سياسات الأهلية الإلزامية والبيانات غير المكتملة (MatchingConfig)
               </h2>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-fg-primary mb-1">
                     نمط مطابقة الخدمات المتعددة (Service Match Mode):
                   </label>
                   <select
@@ -1056,7 +1056,7 @@ export default function AdminMatchingPage() {
                         serviceMatchMode: e.target.value as MatchingConfigState['serviceMatchMode'],
                       })
                     }
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-semibold"
+                    className="w-full rounded-xl border border-line px-3 py-2.5 text-xs font-semibold"
                   >
                     <option value="ALL_REQUIRED">ALL_REQUIRED (يجب دعم جميع خدمات العميل المطلوبة)</option>
                     <option value="ANY_REQUIRED">ANY_REQUIRED (يكفي دعم خدمة واحدة من المطلوبة)</option>
@@ -1064,7 +1064,7 @@ export default function AdminMatchingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-fg-primary mb-1">
                     سياسة العملاء قيد المراجعة (REQUIRES_VERIFICATION Policy):
                   </label>
                   <select
@@ -1076,7 +1076,7 @@ export default function AdminMatchingPage() {
                           .value as MatchingConfigState['requiresVerificationPolicy'],
                       })
                     }
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-semibold"
+                    className="w-full rounded-xl border border-line px-3 py-2.5 text-xs font-semibold"
                   >
                     <option value="EXCLUDE">EXCLUDE (استبعاد صارم من المطابقة)</option>
                     <option value="VERIFIED_DEVELOPERS_ONLY">
@@ -1089,7 +1089,7 @@ export default function AdminMatchingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-fg-primary mb-1">
                     سياسة الموقع الجغرافي غير المعروف (Unknown Location Policy):
                   </label>
                   <select
@@ -1101,7 +1101,7 @@ export default function AdminMatchingPage() {
                           .value as MatchingConfigState['unknownLocationPolicy'],
                       })
                     }
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-semibold"
+                    className="w-full rounded-xl border border-line px-3 py-2.5 text-xs font-semibold"
                   >
                     <option value="ALLOW_WITH_PENALTY">ALLOW_WITH_PENALTY (السماح مع خصم نقاط)</option>
                     <option value="REQUIRE_VERIFICATION">REQUIRE_VERIFICATION (يشترط التوثيق)</option>
@@ -1110,7 +1110,7 @@ export default function AdminMatchingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-fg-primary mb-1">
                     سياسة الميزانية غير المحددة (Unknown Budget Policy):
                   </label>
                   <select
@@ -1122,7 +1122,7 @@ export default function AdminMatchingPage() {
                           .value as MatchingConfigState['unknownBudgetPolicy'],
                       })
                     }
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-semibold"
+                    className="w-full rounded-xl border border-line px-3 py-2.5 text-xs font-semibold"
                   >
                     <option value="ALLOW_WITH_PENALTY">ALLOW_WITH_PENALTY (السماح مع خصم نقاط)</option>
                     <option value="REQUIRE_VERIFICATION">REQUIRE_VERIFICATION (يشترط التوثيق)</option>
@@ -1132,26 +1132,26 @@ export default function AdminMatchingPage() {
               </div>
 
               <div className="flex flex-wrap gap-6 pt-2">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <label className="flex items-center gap-2 text-xs font-bold text-fg-primary">
                   <input
                     type="checkbox"
                     checked={config.budgetHardRequirement}
                     onChange={(e) =>
                       setConfig({ ...config, budgetHardRequirement: e.target.checked })
                     }
-                    className="h-4 w-4 rounded border-slate-300 text-emerald-600"
+                    className="h-4 w-4 rounded border-line text-brand"
                   />
                   اشتراط توافق الميزانية كشرط إلزامي صارم (Hard Budget Gate)
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <label className="flex items-center gap-2 text-xs font-bold text-fg-primary">
                   <input
                     type="checkbox"
                     checked={config.requireActiveSubscription}
                     onChange={(e) =>
                       setConfig({ ...config, requireActiveSubscription: e.target.checked })
                     }
-                    className="h-4 w-4 rounded border-slate-300 text-emerald-600"
+                    className="h-4 w-4 rounded border-line text-brand"
                   />
                   اشتراط وجود اشتراك نشط ورصيد نقاط موجب للمطابقة
                 </label>
@@ -1159,7 +1159,7 @@ export default function AdminMatchingPage() {
 
               <button
                 type="submit"
-                className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
+                className="rounded-xl bg-brand px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
               >
                 حفظ السياسات وترقية إصدار المطابقة
               </button>
