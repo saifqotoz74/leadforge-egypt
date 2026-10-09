@@ -1,20 +1,31 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
+import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { StatTile } from '@/components/domain/StatTile';
+import { MergeCompare, LeadCompareRecord } from '@/components/domain/MergeCompare';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Banner } from '@/components/ui/Banner';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/Table';
+import { fmtNumber, fmtDate } from '@/lib/format';
 import {
   ShieldAlert,
   CheckCircle2,
-  XCircle,
   RotateCcw,
-  Phone,
-  Globe,
-  Mail,
-  MapPin,
-  Database,
-  Layers,
-  AlertTriangle,
   History,
+  AlertTriangle,
+  Layers,
+  Database,
+  Globe,
 } from 'lucide-react';
 
 interface DedupSignal {
@@ -161,11 +172,11 @@ export default function AdminDuplicatesPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'error', text: data.error || 'تعذر تأكيد الدمج.' });
+        setActionMsg({ type: 'error', text: data.error || 'تعذّر تأكيد الدمج.' });
       } else {
         setActionMsg({
           type: 'success',
-          text: 'تم تأكيد دمج السجلين وتحديث تقييم الفرصة (Phase 1 Score) بنجاح.',
+          text: 'تم تأكيد دمج السجلين وتحديث تقييم الفرصة بنجاح.',
         });
         await loadData();
       }
@@ -190,13 +201,13 @@ export default function AdminDuplicatesPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'error', text: data.error || 'تعذر تنفيذ الإجراء.' });
+        setActionMsg({ type: 'error', text: data.error || 'تعذّر تنفيذ الإجراء.' });
       } else {
         setActionMsg({
           type: 'success',
           text:
             action === 'KEEP_SEPARATE'
-              ? 'تم فصل السجلين واعتماد السجل الجديد كفرصة مستقلة (Canonical Lead).'
+              ? 'تم فصل السجلين واعتماد السجل الجديد كفرصة مستقلة.'
               : 'تم تعليم السجل المرشح كغير صالح (INVALID).',
         });
         await loadData();
@@ -222,11 +233,11 @@ export default function AdminDuplicatesPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'error', text: data.error || 'تعذر التراجع عن الدمج.' });
+        setActionMsg({ type: 'error', text: data.error || 'تعذّر التراجع عن الدمج.' });
       } else {
         setActionMsg({
           type: 'success',
-          text: 'تم التراجع عن الدمج واستعادة حالة السجلات الأصلية وإعادة حساب التقييم بنجاح.',
+          text: 'تم التراجع عن الدمج واستعادة حالة السجلات الأصلية بنجاح.',
         });
         await loadData();
       }
@@ -238,122 +249,95 @@ export default function AdminDuplicatesPage() {
   }
 
   return (
-    <AppShell isAdminView>
-      <div className="space-y-6">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              مراجعة التكرارات وحل التعارضات (Entity Resolution)
-            </h1>
-            <p className="mt-1 text-sm text-slate-600">
-              مراجعة السجلات المشبوهة بالتكرار، مقارنة الأدلة الحتمية جنبًا إلى جنب، وسجل عمليات الدمج والتراجع.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveTab('CANDIDATES')}
-              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
-                activeTab === 'CANDIDATES'
-                  ? 'bg-emerald-600 text-white'
-                  : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              طلبات المراجعة ({stats.pendingCandidates})
-            </button>
-            <button
-              onClick={() => setActiveTab('HISTORY')}
-              className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold transition ${
-                activeTab === 'HISTORY'
-                  ? 'bg-emerald-600 text-white'
-                  : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <History className="h-4 w-4" />
-              سجل الدمج والتراجع ({stats.totalActiveMerges})
-            </button>
-          </div>
-        </div>
+    <AppShell isAdmin={true} density="compact" pageTitle="مراجعة التكرارات">
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title="مراجعة التكرارات وحل التعارضات"
+          description="مراجعة السجلات المشبوهة، مقارنة الأدلة الحتمية، وإدارة سجلات الدمج والتراجع"
+          actions={
+            <div className="flex items-center gap-2">
+              <Button
+                variant={activeTab === 'CANDIDATES' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setActiveTab('CANDIDATES')}
+              >
+                طلبات المراجعة ({fmtNumber(stats.pendingCandidates)})
+              </Button>
+              <Button
+                variant={activeTab === 'HISTORY' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setActiveTab('HISTORY')}
+                className="gap-1.5"
+              >
+                <History className="h-4 w-4" />
+                <span>سجل الدمج ({fmtNumber(stats.totalActiveMerges)})</span>
+              </Button>
+            </div>
+          }
+        />
 
-        {/* Summary KPI Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="card p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500">بانتظار المراجعة</span>
-              <ShieldAlert className="h-5 w-5 text-amber-500" />
-            </div>
-            <p className="mt-2 text-2xl font-black text-slate-900">{stats.pendingCandidates}</p>
-          </div>
-          <div className="card p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500">تعارضات بيانات (Conflicts)</span>
-              <AlertTriangle className="h-5 w-5 text-rose-500" />
-            </div>
-            <p className="mt-2 text-2xl font-black text-rose-600">{stats.pendingConflicts}</p>
-          </div>
-          <div className="card p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500">عمليات دمج نشطة</span>
-              <Layers className="h-5 w-5 text-emerald-600" />
-            </div>
-            <p className="mt-2 text-2xl font-black text-emerald-700">{stats.totalActiveMerges}</p>
-          </div>
-          <div className="card p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500">سجلات المصادر (SourceRecords)</span>
-              <Database className="h-5 w-5 text-sky-600" />
-            </div>
-            <p className="mt-2 text-2xl font-black text-slate-900">{stats.totalSourceRecords}</p>
-          </div>
+        {/* Summary KPI Row */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatTile
+            label="بانتظار المراجعة"
+            value={fmtNumber(stats.pendingCandidates)}
+            statusText="سجلات معلقة"
+            isOutOfRange={stats.pendingCandidates > 0}
+          />
+          <StatTile
+            label="تعارضات البيانات"
+            value={fmtNumber(stats.pendingConflicts)}
+            statusText="Conflicts"
+            isOutOfRange={stats.pendingConflicts > 0}
+          />
+          <StatTile
+            label="عمليات دمج نشطة"
+            value={fmtNumber(stats.totalActiveMerges)}
+            statusText="سجلات موحدة"
+          />
+          <StatTile
+            label="سجلات المصادر"
+            value={fmtNumber(stats.totalSourceRecords)}
+            statusText="Source Records"
+          />
         </div>
 
         {actionMsg && (
-          <div
-            className={`rounded-xl border p-4 text-sm font-semibold ${
-              actionMsg.type === 'success'
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                : 'border-rose-200 bg-rose-50 text-rose-800'
-            }`}
-          >
+          <Banner variant={actionMsg.type === 'success' ? 'info' : 'danger'}>
             {actionMsg.text}
-          </div>
+          </Banner>
         )}
 
         {activeTab === 'CANDIDATES' ? (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant={statusFilter === 'PENDING' ? 'primary' : 'secondary'}
+                  size="sm"
                   onClick={() => setStatusFilter('PENDING')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold ${
-                    statusFilter === 'PENDING'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-700'
-                  }`}
                 >
-                  المعلقة فقط (PENDING)
-                </button>
-                <button
+                  المعلقة فقط
+                </Button>
+                <Button
+                  variant={statusFilter === 'ALL' ? 'primary' : 'secondary'}
+                  size="sm"
                   onClick={() => setStatusFilter('ALL')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold ${
-                    statusFilter === 'ALL'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-700'
-                  }`}
                 >
-                  جميع الطلبات
-                </button>
+                  جميع الحالات
+                </Button>
               </div>
             </div>
 
             {loading ? (
-              <div className="card p-8 text-center text-sm text-slate-500">
+              <div className="p-8 text-center text-body-sm text-fg-muted rounded-xl border border-line bg-surface">
                 جاري تحميل طلبات المراجعة وأدلة التكرار...
               </div>
             ) : candidates.length === 0 ? (
-              <div className="card p-10 text-center">
-                <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
-                <p className="mt-3 font-bold text-slate-800">
-                  لا توجد تكرارات معلقة أو تعارضات بحاجة للمراجعة حاليًا
+              <div className="p-10 text-center rounded-xl border border-line bg-surface flex flex-col items-center gap-3">
+                <CheckCircle2 className="h-10 w-10 text-brand" />
+                <p className="text-body font-bold text-fg-primary">
+                  لا توجد تكرارات معلقة أو تعارضات بحاجة للمراجعة حالياً
                 </p>
               </div>
             ) : (
@@ -362,214 +346,139 @@ export default function AdminDuplicatesPage() {
                   cand.candidateLead ||
                   (cand.sourceRecord?.normalizedData as Record<string, unknown>) ||
                   {};
+
+                const recordA: LeadCompareRecord = {
+                  id: cand.matchedLead.id,
+                  businessName: cand.matchedLead.businessName,
+                  phone: cand.matchedLead.phone || undefined,
+                  email: cand.matchedLead.email || undefined,
+                  address: cand.matchedLead.address || undefined,
+                  city: cand.matchedLead.city,
+                  category: cand.matchedLead.source || undefined,
+                  source: cand.matchedLead.source,
+                };
+
+                const recordB: LeadCompareRecord = {
+                  id: (cand.candidateLead?.id as string) || (cand.sourceRecord?.id as string) || 'B',
+                  businessName: (normB.businessName as string) || 'سجل وارد',
+                  phone: (normB.phone as string) || undefined,
+                  email: (normB.email as string) || undefined,
+                  address: (normB.address as string) || undefined,
+                  city: (normB.city as string) || undefined,
+                  category: (normB as Record<string, unknown>).category as string | undefined,
+                  source: cand.sourceRecord?.sourceName || cand.candidateLead?.source || 'المصدر الوارد',
+                };
+
+                const ruleMatchedText =
+                  cand.signals.map((s) => s.description || s.signal).join(' • ') ||
+                  cand.decision;
+
                 return (
-                  <div key={cand.id} className="card overflow-hidden border border-slate-200">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-5 py-3">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                            cand.decision === 'CONFLICT'
-                              ? 'bg-rose-100 text-rose-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}
+                  <div key={cand.id} className="flex flex-col gap-3">
+                    <MergeCompare
+                      recordA={recordA}
+                      recordB={recordB}
+                      matchLevel={cand.confidenceLevel || cand.decision}
+                      ruleMatched={ruleMatchedText}
+                      onMerge={() => handleConfirmMerge(cand.id, false)}
+                      onNotDuplicate={() => handleRejectCandidate(cand.id, 'KEEP_SEPARATE')}
+                      onSkip={() => handleRejectCandidate(cand.id, 'MARK_INVALID')}
+                    />
+
+                    {cand.status === 'PENDING' && cand.decision === 'CONFLICT' && Boolean(normB.website) && (
+                      <div className="flex justify-end ps-4">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={processingId === cand.id}
+                          onClick={() => handleConfirmMerge(cand.id, true)}
+                          className="gap-1.5"
                         >
-                          {cand.decision === 'CONFLICT'
-                            ? 'تعارض بيانات (CONFLICT)'
-                            : 'تكرار محتمل (POSSIBLE_DUPLICATE)'}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          الحالة: <strong>{cand.status}</strong>
-                        </span>
+                          <Globe className="h-3.5 w-3.5 text-brand" />
+                          <span>دمج مع اعتماد موقع السجل الوارد (B)</span>
+                        </Button>
                       </div>
-
-                      {cand.status === 'PENDING' && (
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            disabled={processingId === cand.id}
-                            onClick={() => handleConfirmMerge(cand.id, false)}
-                            className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            تأكيد الدمج (Confirm Merge)
-                          </button>
-                          {cand.decision === 'CONFLICT' && Boolean(normB.website) && (
-                            <button
-                              disabled={processingId === cand.id}
-                              onClick={() => handleConfirmMerge(cand.id, true)}
-                              className="flex items-center gap-1 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-sky-700 disabled:opacity-50"
-                            >
-                              <Globe className="h-3.5 w-3.5" />
-                              دمج واعتماد موقع B
-                            </button>
-                          )}
-                          <button
-                            disabled={processingId === cand.id}
-                            onClick={() => handleRejectCandidate(cand.id, 'KEEP_SEPARATE')}
-                            className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                          >
-                            فصل كفرصة مستقلة (Keep Separate)
-                          </button>
-                          <button
-                            disabled={processingId === cand.id}
-                            onClick={() => handleRejectCandidate(cand.id, 'MARK_INVALID')}
-                            className="flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
-                          >
-                            <XCircle className="h-3.5 w-3.5" />
-                            تعليم كغير صالح (Invalid)
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Side-by-Side Comparison: Business A vs Business B */}
-                    <div className="grid grid-cols-1 divide-y divide-slate-100 md:grid-cols-2 md:divide-x md:divide-x-reverse md:divide-y-0">
-                      <div className="p-5">
-                        <div className="mb-2 flex items-center justify-between">
-                          <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
-                            الفرصة الأساسية الحالية (Business A - Canonical)
-                          </span>
-                          <span className="text-xs font-bold text-slate-600">
-                            التقييم: {cand.matchedLead.score}/100
-                          </span>
-                        </div>
-                        <h3 className="text-base font-bold text-slate-900">
-                          {cand.matchedLead.businessName}
-                        </h3>
-                        <div className="mt-3 space-y-1.5 text-xs text-slate-600">
-                          <p className="flex items-center gap-1.5">
-                            <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                            {cand.matchedLead.city} — {cand.matchedLead.address || 'بدون عنوان تفصيلي'}
-                          </p>
-                          <p className="flex items-center gap-1.5" dir="ltr">
-                            <Phone className="h-3.5 w-3.5 text-slate-400" />
-                            {cand.matchedLead.phone || '—'}
-                          </p>
-                          <p className="flex items-center gap-1.5" dir="ltr">
-                            <Globe className="h-3.5 w-3.5 text-slate-400" />
-                            {cand.matchedLead.website || '—'}
-                          </p>
-                          <p className="flex items-center gap-1.5" dir="ltr">
-                            <Mail className="h-3.5 w-3.5 text-slate-400" />
-                            {cand.matchedLead.email || '—'}
-                          </p>
-                          <p className="text-[11px] text-slate-400">
-                            المصادر: {(cand.matchedLead.sourceList || [cand.matchedLead.source]).join(' ، ')}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="p-5">
-                        <div className="mb-2 flex items-center justify-between">
-                          <span className="rounded bg-sky-50 px-2 py-0.5 text-xs font-bold text-sky-700">
-                            السجل الوارد للمقارنة (Business B - Source Record)
-                          </span>
-                          <span className="text-xs text-slate-500">
-                            المصدر: {cand.sourceRecord?.sourceName || String(normB.source || '—')}
-                          </span>
-                        </div>
-                        <h3 className="text-base font-bold text-slate-900">
-                          {String(normB.businessName || '—')}
-                        </h3>
-                        <div className="mt-3 space-y-1.5 text-xs text-slate-600">
-                          <p className="flex items-center gap-1.5">
-                            <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                            {String(normB.city || '—')} — {String(normB.address || 'بدون عنوان تفصيلي')}
-                          </p>
-                          <p className="flex items-center gap-1.5" dir="ltr">
-                            <Phone className="h-3.5 w-3.5 text-slate-400" />
-                            {String(normB.phone || '—')}
-                          </p>
-                          <p className="flex items-center gap-1.5" dir="ltr">
-                            <Globe className="h-3.5 w-3.5 text-slate-400" />
-                            {String(normB.website || '—')}
-                          </p>
-                          <p className="flex items-center gap-1.5" dir="ltr">
-                            <Mail className="h-3.5 w-3.5 text-slate-400" />
-                            {String(normB.email || '—')}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Explainable Signals & Conflicts Footer */}
-                    <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-3">
-                      <div className="flex flex-wrap gap-2">
-                        {cand.evidence?.duplicateEvidence?.map((ev, idx) => (
-                          <span
-                            key={idx}
-                            className="rounded-md bg-emerald-100/80 px-2.5 py-1 text-xs font-semibold text-emerald-900"
-                          >
-                            {ev}
-                          </span>
-                        ))}
-                        {cand.evidence?.conflictingEvidence?.map((ce, idx) => (
-                          <span
-                            key={idx}
-                            className="rounded-md bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-900"
-                          >
-                            {ce}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                    )}
                   </div>
                 );
               })
             )}
           </div>
         ) : (
-          /* Merge History & Unmerge Recovery Tab */
-          <div className="card overflow-hidden">
-            <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="text-base font-bold text-slate-900">
-                سجل عمليات الدمج والتراجع (LeadMergeHistory)
-              </h2>
-            </div>
-            {mergeHistory.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-500">
-                لا توجد عمليات دمج مسجلة حتى الآن.
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100">
-                {mergeHistory.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900">
-                          {item.targetLead?.businessName || item.targetLeadId}
-                        </span>
-                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                          {item.reason}
-                        </span>
-                        {item.isReverted && (
-                          <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
-                            تم التراجع (UNMERGED)
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 text-xs text-slate-500">
-                        بواسطة: {item.performedBy} • النوع: {item.mergeType} • الحقول المثرية:{' '}
-                        {(item.fieldChanges?.enrichedFields || []).join(', ') || 'لا يوجد'}
-                      </p>
-                    </div>
-                    {!item.isReverted && (
-                      <button
-                        disabled={processingId === item.id}
-                        onClick={() => handleUnmerge(item.id)}
-                        className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 disabled:opacity-50"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                        فك الدمج واستعادة السجلات (Unmerge)
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          /* MERGE HISTORY TAB */
+          <Card>
+            <CardHeader>
+              <CardTitle>سجل العمليات السابقة وقرارات الدمج</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {mergeHistory.length === 0 ? (
+                <div className="p-8 text-center text-body-sm text-fg-muted">
+                  لا توجد عمليات دمج سابقة مسجلة.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>الفرصة المستهدفة</TableHead>
+                        <TableHead>نوع الدمج والسبب</TableHead>
+                        <TableHead>بواسطة</TableHead>
+                        <TableHead>التاريخ</TableHead>
+                        <TableHead>الحالة</TableHead>
+                        <TableHead>الإجراء</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {mergeHistory.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-semibold text-fg-primary">
+                            {item.targetLead?.businessName || item.targetLeadId}
+                          </TableCell>
+                          <TableCell className="text-body-sm text-fg-secondary">
+                            <div>{item.reason}</div>
+                            <span className="text-caption font-mono text-fg-muted">
+                              {item.mergeType}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-caption font-medium">
+                            {item.performedBy}
+                          </TableCell>
+                          <TableCell className="text-caption font-mono ltr-iso text-fg-muted">
+                            {fmtDate(new Date(item.performedAt))}
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={`inline-flex px-2 py-0.5 rounded-full text-caption font-medium ${
+                                item.isReverted
+                                  ? 'bg-subtle text-fg-muted'
+                                  : 'bg-brand-soft text-brand font-semibold'
+                              }`}
+                            >
+                              {item.isReverted ? 'تم التراجع' : 'نشط'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {!item.isReverted && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={processingId === item.id}
+                                onClick={() => handleUnmerge(item.id)}
+                                className="text-danger-text hover:text-danger-text gap-1"
+                              >
+                                <RotateCcw className="h-3.5 w-3.5" />
+                                <span>إلغاء الدمج</span>
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
     </AppShell>
