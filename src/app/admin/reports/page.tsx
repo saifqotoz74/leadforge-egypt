@@ -1,14 +1,20 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import {
   CATEGORY_LABELS_AR,
   FEEDBACK_REASON_LABELS,
   PIPELINE_STATUS_LABELS,
   WEBSITE_STATUS_LABELS,
 } from '@/lib/constants';
-import { AlertTriangle, BarChart3, ShieldAlert, ThumbsDown, ThumbsUp, Wrench } from 'lucide-react';
+import { AlertTriangle, BarChart3, ShieldAlert, ThumbsDown, ThumbsUp, Wrench, ArrowRight } from 'lucide-react';
 
 interface AdminEngagementItem {
   id: string;
@@ -98,17 +104,15 @@ const ENGAGEMENT_STATES = [
   'NEGOTIATION',
   'WON',
   'LOST',
-  'NOT_INTERESTED',
   'INVALID',
 ];
 
 export default function AdminReportsPage() {
+  const t = useTranslations('adminReports');
   const [data, setData] = useState<ReportsPayload | null>(null);
   const [loading, setLoading] = useState(true);
-  const [correctingEngagement, setCorrectingEngagement] = useState<AdminEngagementItem | null>(
-    null
-  );
-  const [newState, setNewState] = useState('CONTACTED');
+  const [correctingEngagement, setCorrectingEngagement] = useState<AdminEngagementItem | null>(null);
+  const [newState, setNewState] = useState('');
   const [correctionReason, setCorrectionReason] = useState('');
   const [savingCorrection, setSavingCorrection] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -118,7 +122,8 @@ export default function AdminReportsPage() {
     try {
       const res = await fetch('/api/admin/reports');
       if (res.ok) {
-        setData(await res.json());
+        const json = await res.json();
+        setData(json);
       }
     } finally {
       setLoading(false);
@@ -131,22 +136,18 @@ export default function AdminReportsPage() {
 
   async function handleAdminCorrectStatus(e: React.FormEvent) {
     e.preventDefault();
-    if (!correctingEngagement || !correctionReason.trim()) return;
+    if (!correctingEngagement || !newState || !correctionReason.trim()) return;
     setSavingCorrection(true);
     setMsg(null);
     try {
-      const res = await fetch(
-        `/api/admin/engagements/${correctingEngagement.id}/correct-status`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            previousState: correctingEngagement.currentStatus,
-            newState,
-            reason: correctionReason,
-          }),
-        }
-      );
+      const res = await fetch(`/api/admin/engagements/${correctingEngagement.id}/correct-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newState,
+          reason: correctionReason.trim(),
+        }),
+      });
       const result = await res.json();
       if (!res.ok) {
         setMsg({ type: 'error', text: result.error || 'تعذر تصحيح حالة التعاقد.' });
@@ -165,20 +166,23 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <AppShell isAdmin={true} density="compact" pageTitle="تقارير الأداء والمراجعة">
+    <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       {loading || !data ? (
-        <div className="h-96 animate-pulse rounded-2xl border border-line bg-surface p-6" />
+        <div className="space-y-4">
+          <Skeleton className="h-16 w-full rounded-xl" />
+          <Skeleton className="h-96 w-full rounded-xl" />
+        </div>
       ) : (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+          <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
             <h1 className="flex items-center gap-2 text-xl font-extrabold text-fg-primary">
-              <BarChart3 className="h-6 w-6 text-brand" />
-              تقارير الأداء وجودة الفرص ومحرك النتائج (Phase 6 Operational & Outcome Reports)
+              <BarChart3 className="h-6 w-6 text-brand rtl:-scale-x-100" />
+              {t('title')}
             </h1>
             <p className="mt-1 text-xs text-fg-muted">
-              تحليل شامل لمعدلات التحويل، الصفقات الناجحة والخاسرة، بلاغات عدم الصلاحية، وإشارات إساءة الاستخدام.
+              {t('desc')}
             </p>
-          </div>
+          </Card>
 
           {msg && (
             <div
@@ -192,63 +196,63 @@ export default function AdminReportsPage() {
             </div>
           )}
 
-          {/* 6 Required Rates (Section 14) */}
+          {/* 6 Required Rates */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-            <div className="rounded-2xl border border-line-brand bg-brand-soft/50 p-4 text-center">
+            <Card className="rounded-xl border border-line-brand bg-brand-soft/50 p-4 text-center shadow-xs">
               <span className="text-xs font-bold text-brand">Lead Success Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-brand tabular-nums ltr-iso">
+              <p className="mt-2 text-2xl font-extrabold text-brand tabular-nums ltr-iso font-mono">
                 {data.rates.leadSuccessRate}%
               </p>
-              <span className="text-[11px] text-brand">نسبة الفرص المفيدة</span>
-            </div>
+              <span className="text-xs text-brand">{t('kpiSuccessRate')}</span>
+            </Card>
 
-            <div className="rounded-2xl border border-danger-border bg-danger-bg p-4 text-center">
+            <Card className="rounded-xl border border-danger-border bg-danger-bg p-4 text-center shadow-xs">
               <span className="text-xs font-bold text-danger-text">Invalid Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-danger tabular-nums ltr-iso">
+              <p className="mt-2 text-2xl font-extrabold text-danger-text tabular-nums ltr-iso font-mono">
                 {data.rates.invalidRate}%
               </p>
-              <span className="text-[11px] text-danger">نسبة غير الصالح</span>
-            </div>
+              <span className="text-xs text-danger-text">{t('kpiInvalidRate')}</span>
+            </Card>
 
-            <div className="rounded-2xl border border-line bg-surface p-4 text-center">
+            <Card className="rounded-xl border border-line bg-surface p-4 text-center shadow-xs">
               <span className="text-xs font-bold text-fg-secondary">Contact Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-fg-primary tabular-nums ltr-iso">
+              <p className="mt-2 text-2xl font-extrabold text-fg-primary tabular-nums ltr-iso font-mono">
                 {data.rates.contactRate}%
               </p>
-              <span className="text-[11px] text-fg-muted">معدل التواصل</span>
-            </div>
+              <span className="text-xs text-fg-muted">{t('kpiContactRate')}</span>
+            </Card>
 
-            <div className="rounded-2xl border border-line bg-surface p-4 text-center">
+            <Card className="rounded-xl border border-line bg-surface p-4 text-center shadow-xs">
               <span className="text-xs font-bold text-fg-secondary">Reply Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-fg-secondary tabular-nums ltr-iso">
+              <p className="mt-2 text-2xl font-extrabold text-fg-secondary tabular-nums ltr-iso font-mono">
                 {data.rates.replyRate}%
               </p>
-              <span className="text-[11px] text-fg-muted">معدل الرد</span>
-            </div>
+              <span className="text-xs text-fg-muted">{t('kpiReplyRate')}</span>
+            </Card>
 
-            <div className="rounded-2xl border border-line bg-surface p-4 text-center">
+            <Card className="rounded-xl border border-line bg-surface p-4 text-center shadow-xs">
               <span className="text-xs font-bold text-fg-secondary">Meeting Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-fg-secondary tabular-nums ltr-iso">
+              <p className="mt-2 text-2xl font-extrabold text-fg-secondary tabular-nums ltr-iso font-mono">
                 {data.rates.meetingRate}%
               </p>
-              <span className="text-[11px] text-fg-muted">معدل الاجتماعات</span>
-            </div>
+              <span className="text-xs text-fg-muted">{t('kpiMeetingRate')}</span>
+            </Card>
 
-            <div className="rounded-2xl border border-line-brand bg-brand-soft/50 p-4 text-center">
+            <Card className="rounded-xl border border-line-brand bg-brand-soft/50 p-4 text-center shadow-xs">
               <span className="text-xs font-bold text-brand">Won Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-brand tabular-nums ltr-iso">
+              <p className="mt-2 text-2xl font-extrabold text-brand tabular-nums ltr-iso font-mono">
                 {data.rates.wonRate}%
               </p>
-              <span className="text-[11px] text-brand">نسبة إغلاق الصفقات</span>
-            </div>
+              <span className="text-xs text-brand">{t('kpiWonRate')}</span>
+            </Card>
           </div>
 
           {/* Phase 6 Engagement Conversion Funnel & Won Projects Summary */}
           {data.engagementsOverview && (
             <div className="grid gap-6 lg:grid-cols-12">
-              <div className="lg:col-span-8 rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <Card className="lg:col-span-8 rounded-xl border border-line bg-surface p-6 shadow-xs">
                 <h2 className="text-base font-extrabold text-fg-primary">
-                  قمع تحويل مراحل التعاقد (Phase 6 Engagement Conversion Funnel)
+                  {t('funnelTitle')}
                 </h2>
                 <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-6 text-xs">
                   {ENGAGEMENT_STATES.map((st) => {
@@ -261,68 +265,68 @@ export default function AdminReportsPage() {
                         key={st}
                         className={`rounded-xl border p-3 text-center ${badge}`}
                       >
-                        <div className="font-mono text-[10px] font-bold">{st}</div>
-                        <div className="mt-1 text-lg font-extrabold">{count}</div>
-                        <div className="text-[10px]">
+                        <div className="font-mono text-xs font-bold">{st}</div>
+                        <div className="mt-1 text-lg font-extrabold font-mono tabular-nums">{count}</div>
+                        <div className="text-xs">
                           {PIPELINE_STATUS_LABELS[st]?.labelAr || st}
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              </div>
+              </Card>
 
-              <div className="lg:col-span-4 rounded-2xl border border-line-brand bg-brand-soft/40 p-6 shadow-sm space-y-3">
+              <Card className="lg:col-span-4 rounded-xl border border-line-brand bg-brand-soft/40 p-6 shadow-xs space-y-3">
                 <h2 className="text-base font-extrabold text-brand">
-                  ملخص المشاريع الناجحة (Won Projects Summary)
+                  {t('wonSummaryTitle')}
                 </h2>
                 <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between">
-                  <span className="font-bold text-fg-secondary">إجمالي الصفقات المغلقة (WON):</span>
-                  <strong className="text-brand text-base">
+                  <span className="font-bold text-fg-secondary">{t('wonClosedLabel')}</span>
+                  <strong className="text-brand text-base font-mono tabular-nums">
                     {data.engagementsOverview.wonSummary.totalWon}
                   </strong>
                 </div>
                 <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between">
-                  <span className="font-bold text-fg-secondary">القيمة التقديرية للمشاريع:</span>
-                  <strong className="text-brand text-base">
+                  <span className="font-bold text-fg-secondary">{t('wonEstimatedValueLabel')}</span>
+                  <strong className="text-brand text-base font-mono tabular-nums">
                     {data.engagementsOverview.wonSummary.totalEstimatedValue.toLocaleString()} EGP
                   </strong>
                 </div>
                 <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between">
-                  <span className="font-bold text-fg-secondary">متوسط قيمة الصفقة:</span>
-                  <strong className="text-fg-primary">
+                  <span className="font-bold text-fg-secondary">{t('wonAverageValueLabel')}</span>
+                  <strong className="text-fg-primary font-mono tabular-nums">
                     {data.engagementsOverview.wonSummary.averageEstimatedValue.toLocaleString()} EGP
                   </strong>
                 </div>
-              </div>
+              </Card>
             </div>
           )}
 
           {/* Feedback Breakdown & Distributions */}
           <div className="grid gap-6 lg:grid-cols-12">
-            <div className="lg:col-span-5 rounded-2xl border border-line bg-surface p-6 shadow-sm">
+            <Card className="lg:col-span-5 rounded-xl border border-line bg-surface p-6 shadow-xs">
               <h2 className="text-base font-extrabold text-fg-primary">
-                تقييمات المطورين لجودة الـ Leads
+                {t('feedbackTitle')}
               </h2>
               <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-bold">
                 <div className="flex items-center justify-between rounded-xl bg-brand-soft p-3 text-brand">
                   <span className="flex items-center gap-1.5">
                     <ThumbsUp className="h-4 w-4" />
-                    مفيدة (Yes)
+                    {t('feedbackUseful')}
                   </span>
-                  <strong className="text-lg">{data.feedbackStats.usefulFeedbacks}</strong>
+                  <strong className="text-lg font-mono tabular-nums">{data.feedbackStats.usefulFeedbacks}</strong>
                 </div>
                 <div className="flex items-center justify-between rounded-xl bg-danger-bg p-3 text-danger-text">
                   <span className="flex items-center gap-1.5">
                     <ThumbsDown className="h-4 w-4" />
-                    غير مفيدة (No)
+                    {t('feedbackNotUseful')}
                   </span>
-                  <strong className="text-lg">{data.feedbackStats.notUsefulFeedbacks}</strong>
+                  <strong className="text-lg font-mono tabular-nums">{data.feedbackStats.notUsefulFeedbacks}</strong>
                 </div>
               </div>
 
               <h3 className="mt-5 text-xs font-extrabold text-fg-secondary">
-                تفصيل أسباب عدم الفائدة (Negative Feedback Reasons):
+                {t('feedbackNegativeReasons')}
               </h3>
               <div className="mt-2 space-y-2 text-xs">
                 {Object.entries(FEEDBACK_REASON_LABELS).map(([code, label]) => {
@@ -333,17 +337,17 @@ export default function AdminReportsPage() {
                       className="flex items-center justify-between rounded-lg bg-canvas px-3 py-2 font-semibold"
                     >
                       <span>{label}</span>
-                      <span className="font-extrabold text-fg-primary">{count}</span>
+                      <span className="font-extrabold text-fg-primary font-mono tabular-nums">{count}</span>
                     </div>
                   );
                 })}
               </div>
-            </div>
+            </Card>
 
             <div className="lg:col-span-7 grid gap-6 sm:grid-cols-2">
-              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
                 <h2 className="text-base font-extrabold text-fg-primary">
-                  توزيع الفرص حسب التصنيف (By Category)
+                  {t('categoryDistTitle')}
                 </h2>
                 <div className="mt-4 space-y-2 text-xs">
                   {Object.entries(data.distributions.byCategory).map(([cat, count]) => (
@@ -354,15 +358,15 @@ export default function AdminReportsPage() {
                       <span>
                         {CATEGORY_LABELS_AR[cat] || cat} ({cat})
                       </span>
-                      <strong className="text-brand">{count} نشاط</strong>
+                      <strong className="text-brand font-mono tabular-nums">{count}</strong>
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
 
-              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
                 <h2 className="text-base font-extrabold text-fg-primary">
-                  توزيع الفرص حسب المدينة وحالة الموقع
+                  {t('websiteDistTitle')}
                 </h2>
                 <div className="mt-4 space-y-2 text-xs">
                   {Object.entries(data.distributions.byWebsiteStatus).map(([st, count]) => (
@@ -371,12 +375,12 @@ export default function AdminReportsPage() {
                       className="flex items-center justify-between rounded-lg bg-brand-soft/60 px-3 py-2 font-bold text-brand"
                     >
                       <span>{WEBSITE_STATUS_LABELS[st]?.labelAr || st}</span>
-                      <strong>{count}</strong>
+                      <strong className="font-mono tabular-nums">{count}</strong>
                     </div>
                   ))}
                 </div>
 
-                <h3 className="mt-5 text-xs font-extrabold text-fg-secondary">أبرز المدن:</h3>
+                <h3 className="mt-5 text-xs font-extrabold text-fg-secondary">{t('topCitiesTitle')}</h3>
                 <div className="mt-2 space-y-1.5 text-xs">
                   {Object.entries(data.distributions.byCity).map(([city, count]) => (
                     <div
@@ -384,32 +388,32 @@ export default function AdminReportsPage() {
                       className="flex items-center justify-between border-b border-line py-1.5 font-semibold"
                     >
                       <span>{city}</span>
-                      <strong>{count}</strong>
+                      <strong className="font-mono tabular-nums">{count}</strong>
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             </div>
           </div>
 
           {/* Phase 6 Operational Visibility: Engagements List, Admin Status Correction & Abuse Flags */}
           {data.engagementsOverview && (
             <div className="grid gap-6 lg:grid-cols-12">
-              <div className="lg:col-span-8 rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <Card className="lg:col-span-8 rounded-xl border border-line bg-surface p-6 shadow-xs">
                 <h2 className="flex items-center gap-2 text-base font-extrabold text-fg-primary">
                   <Wrench className="h-5 w-5 text-fg-secondary" />
-                  إدارة تعاملات المطورين وتصحيح الحالات النهائية (Developer Engagements & Admin Correction)
+                  {t('engagementsTitle')}
                 </h2>
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full text-start text-xs">
                     <thead>
                       <tr className="border-b border-line text-fg-muted">
-                        <th className="py-2 px-2">العميل</th>
-                        <th className="py-2 px-2">المطور</th>
-                        <th className="py-2 px-2">النوع</th>
-                        <th className="py-2 px-2">الحالة</th>
-                        <th className="py-2 px-2">النتيجة / القيمة</th>
-                        <th className="py-2 px-2">إجراء</th>
+                        <th className="py-2 px-2 text-start">{t('colLead')}</th>
+                        <th className="py-2 px-2 text-start">{t('colDev')}</th>
+                        <th className="py-2 px-2 text-start">{t('colType')}</th>
+                        <th className="py-2 px-2 text-start">{t('colStatus')}</th>
+                        <th className="py-2 px-2 text-start">{t('colOutcome')}</th>
+                        <th className="py-2 px-2 text-start">{t('colAction')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line">
@@ -421,12 +425,12 @@ export default function AdminReportsPage() {
                           <td className="py-2.5 px-2 text-fg-secondary">
                             {eng.developer.name}
                           </td>
-                          <td className="py-2.5 px-2 font-mono text-[11px]">
+                          <td className="py-2.5 px-2 font-mono text-xs">
                             {eng.lead.leadType}
                           </td>
                           <td className="py-2.5 px-2">
                             <span
-                              className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${
+                              className={`rounded-full border px-2 py-0.5 text-xs font-bold ${
                                 PIPELINE_STATUS_LABELS[eng.currentStatus]?.badgeClass ||
                                 'bg-subtle text-fg-secondary'
                               }`}
@@ -434,22 +438,23 @@ export default function AdminReportsPage() {
                               {eng.currentStatus}
                             </span>
                           </td>
-                          <td className="py-2.5 px-2 text-[11px] text-fg-secondary">
+                          <td className="py-2.5 px-2 text-xs text-fg-secondary font-mono tabular-nums">
                             {eng.estimatedProjectValue
                               ? `${eng.estimatedProjectValue.toLocaleString()} ${eng.currency || 'EGP'}`
                               : eng.outcomeReasonCode || '—'}
                           </td>
                           <td className="py-2.5 px-2">
-                            <button
-                              type="button"
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => {
                                 setCorrectingEngagement(eng);
                                 setNewState(eng.currentStatus);
                               }}
-                              className="rounded-lg border border-line bg-surface px-2.5 py-1 text-[11px] font-bold text-fg-secondary hover:bg-subtle"
+                              className="text-xs"
                             >
-                              تصحيح الحالة
-                            </button>
+                              {t('btnCorrectStatus')}
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -464,21 +469,23 @@ export default function AdminReportsPage() {
                   >
                     <div className="flex items-center justify-between font-extrabold text-warning-text">
                       <span>
-                        تصحيح إداري لحالة الفرصة: {correctingEngagement.lead.businessName} (المطور:{' '}
-                        {correctingEngagement.developer.name})
+                        {t('correctionTitle', {
+                          lead: correctingEngagement.lead.businessName,
+                          dev: correctingEngagement.developer.name,
+                        })}
                       </span>
                       <button
                         type="button"
                         onClick={() => setCorrectingEngagement(null)}
                         className="text-fg-muted hover:text-fg-primary"
                       >
-                        ✕ إغلاق
+                        ✕
                       </button>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <label className="block font-bold text-fg-secondary">
-                          الحالة الجديدة (New State)
+                          {t('labelNewState')}
                         </label>
                         <select
                           value={newState}
@@ -494,7 +501,7 @@ export default function AdminReportsPage() {
                       </div>
                       <div>
                         <label className="block font-bold text-fg-secondary">
-                          سبب التصحيح الإداري (إلزامي لسجل التدقيق)
+                          {t('labelCorrectionReason')}
                         </label>
                         <input
                           type="text"
@@ -506,25 +513,27 @@ export default function AdminReportsPage() {
                         />
                       </div>
                     </div>
-                    <button
+                    <Button
+                      variant="primary"
                       type="submit"
                       disabled={savingCorrection}
-                      className="rounded-lg bg-brand px-4 py-2 font-extrabold text-white hover:bg-brand-hover disabled:opacity-50"
+                      className="gap-1.5 text-xs"
                     >
-                      {savingCorrection ? 'جاري تطبيق التصحيح...' : 'تطبيق التصحيح وتوثيقه'}
-                    </button>
+                      <ArrowRight className="h-3.5 w-3.5 rtl:-scale-x-100" />
+                      <span>{savingCorrection ? t('applyingCorrection') : t('btnApplyCorrection')}</span>
+                    </Button>
                   </form>
                 )}
-              </div>
+              </Card>
 
-              <div className="lg:col-span-4 rounded-2xl border border-line bg-surface p-6 shadow-sm space-y-4">
+              <Card className="lg:col-span-4 rounded-xl border border-line bg-surface p-6 shadow-xs space-y-4">
                 <h2 className="flex items-center gap-2 text-base font-extrabold text-fg-primary">
                   <ShieldAlert className="h-5 w-5 text-warning-icon" />
-                  تنبيهات الحماية وجودة البلاغات (Abuse & Quality Signals)
+                  {t('abuseTitle')}
                 </h2>
                 {data.engagementsOverview.suspiciousFlags.length === 0 ? (
                   <p className="text-xs text-fg-muted">
-                    لا توجد تنبيهات إساءة استخدام مسجلة حاليًا.
+                    {t('noAbuse')}
                   </p>
                 ) : (
                   <div className="space-y-2 max-h-72 overflow-y-auto text-xs">
@@ -537,17 +546,17 @@ export default function AdminReportsPage() {
                           <AlertTriangle className="h-3.5 w-3.5" />
                           <span>{flag.action}</span>
                         </div>
-                        <div className="text-[11px] text-fg-secondary">
+                        <div className="text-xs text-fg-secondary">
                           المطور: {flag.user?.name || flag.user?.email || '—'}
                         </div>
-                        <div className="font-mono text-[10px] text-warning-text" dir="ltr">
+                        <div className="font-mono text-xs text-warning-text" dir="ltr">
                           {JSON.stringify(flag.details)}
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
-              </div>
+              </Card>
             </div>
           )}
         </div>
@@ -555,4 +564,3 @@ export default function AdminReportsPage() {
     </AppShell>
   );
 }
-

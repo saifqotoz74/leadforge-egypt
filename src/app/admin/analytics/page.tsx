@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   AlertTriangle,
   BarChart3,
@@ -50,10 +53,10 @@ function RateCard({
   };
 
   return (
-    <div className={`rounded-2xl border p-4 shadow-sm ${colorMap[accent]}`}>
+    <div className={`rounded-xl border p-4 shadow-sm ${colorMap[accent]}`}>
       <div className="flex items-start justify-between gap-2">
         <span className="text-xs font-bold leading-snug">{titleAr}</span>
-        <span className="rounded bg-surface/80 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-fg-secondary tabular-nums ltr-iso">
+        <span className="rounded bg-surface/80 px-1.5 py-0.5 font-mono text-xs font-semibold text-fg-secondary tabular-nums ltr-iso">
           {metric.numerator}/{metric.denominator}
         </span>
       </div>
@@ -66,12 +69,12 @@ function RateCard({
           </span>
         )}
         {metric.status !== 'VALID' && (
-          <span className="rounded-full bg-warning-bg px-2 py-0.5 text-[10px] font-bold text-warning-text">
+          <span className="rounded-full bg-warning-bg px-2 py-0.5 text-xs font-bold text-warning-text">
             {metric.status}
           </span>
         )}
       </div>
-      <p className="mt-1 truncate text-[10px] text-fg-muted">
+      <p className="mt-1 truncate text-xs text-fg-muted">
         {metric.nameAr || metric.name || metric.label} ({metric.metricVersion})
       </p>
     </div>
@@ -90,7 +93,7 @@ function StatCard({
   unit?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <div className="rounded-xl border border-line bg-surface p-4 shadow-sm">
       <span className="text-xs font-bold text-fg-secondary">{titleAr}</span>
       <div className="mt-2 flex items-baseline gap-1">
         {value === null || value === undefined ? (
@@ -104,12 +107,13 @@ function StatCard({
           </>
         )}
       </div>
-      <p className="mt-1 truncate text-[10px] text-fg-muted">{subtitleEn}</p>
+      <p className="mt-1 truncate text-xs text-fg-muted">{subtitleEn}</p>
     </div>
   );
 }
 
 export default function AdminAnalyticsHubPage() {
+  const t = useTranslations('adminAnalytics');
   const [activeTab, setActiveTab] = useState<DashboardTab>('executive');
   const [preset, setPreset] = useState<string>('all_time');
   const [fromDate, setFromDate] = useState<string>('');
@@ -320,7 +324,7 @@ export default function AdminAnalyticsHubPage() {
     <AppShell isAdmin={true} density="compact" pageTitle="تحليلات المنصة ودولاب القيمة">
       <div className="space-y-6">
         {/* Header & Governance Badge */}
-        <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-2">
               <span className="rounded-lg bg-brand-soft px-2.5 py-1 text-xs font-extrabold text-brand">
@@ -350,16 +354,16 @@ export default function AdminAnalyticsHubPage() {
 
             <a
               href={`/api/admin/analytics/export?report=${exportReportType}&${buildQueryString()}`}
-              className="flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-brand-hover"
+              className="flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-xs font-bold text-fg-inverted shadow-sm hover:bg-brand-hover"
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-4 w-4 rtl:-scale-x-100" />
               <span>تصدير CSV آمن</span>
             </a>
           </div>
         </div>
 
         {/* Global Filter Bar */}
-        <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <div className="rounded-xl border border-line bg-surface p-4 shadow-sm">
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex items-center gap-1.5 text-xs font-extrabold text-fg-secondary">
               <Filter className="h-4 w-4 text-brand" />
@@ -559,7 +563,7 @@ export default function AdminAnalyticsHubPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-extrabold transition-all ${
                   isActive
-                    ? 'bg-brand text-white shadow-sm'
+                    ? 'bg-brand text-fg-inverted shadow-sm'
                     : 'bg-surface text-fg-secondary border border-line hover:bg-subtle'
                 }`}
               >
@@ -576,11 +580,25 @@ export default function AdminAnalyticsHubPage() {
           </div>
         )}
 
+        {loading && (
+          <div className="space-y-4">
+            <Skeleton className="h-20 w-full rounded-xl" />
+            <Skeleton className="h-96 w-full rounded-xl" />
+          </div>
+        )}
+
+        {!loading && !overviewData && (
+          <EmptyState
+            title={t('emptyTitle')}
+            description={t('emptyDesc')}
+          />
+        )}
+
         {/* TAB 1: EXECUTIVE DASHBOARD */}
         {activeTab === 'executive' && overviewData && (
           <div className="space-y-6">
             {/* Layer 1 & Layer 2 Summary */}
-            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+            <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-base font-extrabold text-fg-primary">
                   الطبقة 1 و 2: مخزون الفرص وجودة البيانات (Inventory & Quality Metrics)
@@ -643,7 +661,7 @@ export default function AdminAnalyticsHubPage() {
             </div>
 
             {/* Layer 4 & 5: Matching & Sales Funnel */}
-            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+            <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
               <h2 className="text-base font-extrabold text-fg-primary">
                 الطبقة 4 و 5: محرك المطابقة وقمع المبيعات (Matching & Sales Funnel Rates)
               </h2>
@@ -692,7 +710,7 @@ export default function AdminAnalyticsHubPage() {
             </div>
 
             {/* Layer 6: Economics & Revenue */}
-            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+            <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
               <h2 className="text-base font-extrabold text-fg-primary">
                 الطبقة 6: الاقتصاديات والإيرادات المحققة (Economics & Realized Revenue)
               </h2>
@@ -748,7 +766,7 @@ export default function AdminAnalyticsHubPage() {
             </div>
 
             {/* Deterministic Operational Anomaly Flags */}
-            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+            <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-warning-icon" />
                 <h2 className="text-base font-extrabold text-fg-primary">
@@ -774,7 +792,7 @@ export default function AdminAnalyticsHubPage() {
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="rounded bg-surface/80 px-2 py-0.5 font-mono text-[10px] font-bold">
+                          <span className="rounded bg-surface/80 px-2 py-0.5 font-mono text-xs font-bold">
                             {anom.code}
                           </span>
                           <span className="font-extrabold">
@@ -785,7 +803,7 @@ export default function AdminAnalyticsHubPage() {
                           {anom.explanationAr || anom.explanation}
                         </p>
                       </div>
-                      <div className="shrink-0 font-mono text-[11px] font-bold">
+                      <div className="shrink-0 font-mono text-xs font-bold">
                         Observed: {anom.observedValue} | Threshold: {anom.thresholdValue} |{' '}
                         {anom.numerator}/{anom.denominator}
                       </div>
@@ -802,7 +820,7 @@ export default function AdminAnalyticsHubPage() {
           <div className="space-y-6">
             {/* Funnel & Reasons */}
             {funnelData && (
-              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
                 <h2 className="text-base font-extrabold text-fg-primary">
                   تفصيل قمع المبيعات، المقامات، وأسباب الخسارة وعدم الصلاحية (Funnel & Reason Analysis)
                 </h2>
@@ -812,13 +830,13 @@ export default function AdminAnalyticsHubPage() {
                       key={st.stage}
                       className="rounded-xl border border-line bg-canvas p-3 text-center"
                     >
-                      <span className="block font-mono text-[10px] font-bold uppercase text-fg-muted">
+                      <span className="block font-mono text-xs font-bold uppercase text-fg-muted">
                         {st.stage}
                       </span>
                       <span className="mt-1 block text-xl font-extrabold text-fg-primary">
                         {st.count}
                       </span>
-                      <span className="mt-0.5 block font-mono text-[10px] text-brand">
+                      <span className="mt-0.5 block font-mono text-xs text-brand">
                         {st.conversionFromClaimed?.displayValue} من المشتراة
                       </span>
                     </div>
@@ -869,7 +887,7 @@ export default function AdminAnalyticsHubPage() {
 
             {/* Lead Performance Breakdowns (Section 36) */}
             {leadsData && (
-              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
                 <h2 className="text-base font-extrabold text-fg-primary">
                   أداء الفرص حسب درجة الفرصة، الجودة، الحداثة، ونمط الشراء (Lead Performance Breakdowns)
                 </h2>
@@ -933,7 +951,7 @@ export default function AdminAnalyticsHubPage() {
 
             {/* Origin Sources Table */}
             {sourcesData && (
-              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
                 <h2 className="text-base font-extrabold text-fg-primary">
                   أداء المصادر ونسب الإسناد (Primary Origin vs Secondary Enrichment & Verification)
                 </h2>
@@ -991,7 +1009,7 @@ export default function AdminAnalyticsHubPage() {
 
             {/* Niches, Locations & Services */}
             <div className="grid gap-6 lg:grid-cols-3">
-              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+              <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
                 <h3 className="text-sm font-extrabold text-fg-primary">
                   أداء القطاعات (Niches / Categories)
                 </h3>
@@ -1005,7 +1023,7 @@ export default function AdminAnalyticsHubPage() {
                         <span className="font-extrabold text-fg-primary">
                           {n.labelAr || n.niche}
                         </span>
-                        <span className="block text-[11px] text-fg-muted">
+                        <span className="block text-xs text-fg-muted">
                           {n.leads} فرصة | {n.claims} مشتراة
                         </span>
                       </div>
@@ -1013,7 +1031,7 @@ export default function AdminAnalyticsHubPage() {
                         <span className="block font-bold text-brand tabular-nums ltr-iso">
                           فوز: {n.winRate?.displayValue}
                         </span>
-                        <span className="block text-[11px] text-fg-muted tabular-nums ltr-iso">
+                        <span className="block text-xs text-fg-muted tabular-nums ltr-iso">
                           {n.revenueEgp?.toLocaleString()} ج.م
                         </span>
                       </div>
@@ -1022,7 +1040,7 @@ export default function AdminAnalyticsHubPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+              <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
                 <h3 className="text-sm font-extrabold text-fg-primary">
                   أداء المدن والمحافظات (Locations)
                 </h3>
@@ -1034,7 +1052,7 @@ export default function AdminAnalyticsHubPage() {
                     >
                       <div>
                         <span className="font-extrabold text-fg-primary">{loc.city}</span>
-                        <span className="block text-[11px] text-fg-muted">
+                        <span className="block text-xs text-fg-muted">
                           {loc.totalLeads} فرصة | {loc.claims} مشتراة
                         </span>
                       </div>
@@ -1042,7 +1060,7 @@ export default function AdminAnalyticsHubPage() {
                         <span className="block font-bold text-brand tabular-nums ltr-iso">
                           فوز: {loc.winRate?.displayValue}
                         </span>
-                        <span className="block text-[11px] text-fg-muted tabular-nums ltr-iso">
+                        <span className="block text-xs text-fg-muted tabular-nums ltr-iso">
                           شراء: {loc.claimRate?.displayValue}
                         </span>
                       </div>
@@ -1051,7 +1069,7 @@ export default function AdminAnalyticsHubPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+              <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
                 <h3 className="text-sm font-extrabold text-fg-primary">
                   أداء الخدمات المطلوبة (Required Services)
                 </h3>
@@ -1065,7 +1083,7 @@ export default function AdminAnalyticsHubPage() {
                         <span className="font-extrabold text-fg-primary">
                           {srv.labelAr || srv.service}
                         </span>
-                        <span className="block text-[11px] text-fg-muted">
+                        <span className="block text-xs text-fg-muted">
                           {srv.totalLeads} فرصة | {srv.claims} مشتراة
                         </span>
                       </div>
@@ -1073,7 +1091,7 @@ export default function AdminAnalyticsHubPage() {
                         <span className="block font-bold text-brand tabular-nums ltr-iso">
                           فوز: {srv.winRate?.displayValue}
                         </span>
-                        <span className="block text-[11px] text-fg-muted tabular-nums ltr-iso">
+                        <span className="block text-xs text-fg-muted tabular-nums ltr-iso">
                           {srv.revenueEgp?.toLocaleString()} ج.م
                         </span>
                       </div>
@@ -1087,7 +1105,7 @@ export default function AdminAnalyticsHubPage() {
 
         {/* TAB 3: DEVELOPERS PERFORMANCE */}
         {activeTab === 'developers' && developersData && (
-          <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+          <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
             <h2 className="text-base font-extrabold text-fg-primary">
               لوحة أداء المطورين والمشتركين (Developer Performance & Conversion Table)
             </h2>
@@ -1112,10 +1130,10 @@ export default function AdminAnalyticsHubPage() {
                     <tr key={dev.developerId}>
                       <td className="py-2.5 px-3">
                         <span className="font-bold text-fg-primary">{dev.name}</span>
-                        <span className="block text-[11px] text-fg-muted">{dev.email}</span>
+                        <span className="block text-xs text-fg-muted">{dev.email}</span>
                       </td>
                       <td className="py-2.5 px-3">
-                        <span className="rounded bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand">
+                        <span className="rounded bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand">
                           {dev.planName}
                         </span>
                       </td>
@@ -1153,7 +1171,7 @@ export default function AdminAnalyticsHubPage() {
         {/* TAB 4: DATA QUALITY DASHBOARD */}
         {activeTab === 'quality' && qualityData && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+            <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
               <h2 className="text-base font-extrabold text-fg-primary">
                 مؤشرات اكتمال البيانات والتكرارات والحداثة (Data Completeness, Deduplication & Freshness)
               </h2>
@@ -1191,7 +1209,7 @@ export default function AdminAnalyticsHubPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+            <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
               <h3 className="text-sm font-extrabold text-fg-primary">
                 سجل الفرص التي تتطلب معالجة جودة (Problem Leads Queue)
               </h3>
@@ -1233,10 +1251,10 @@ export default function AdminAnalyticsHubPage() {
         {activeTab === 'flywheel' && (
           <div className="space-y-6">
             {/* Governance Safeguard Callout */}
-            <div className="rounded-2xl border border-line-brand bg-brand-soft/40 p-5">
+            <div className="rounded-xl border border-line-brand bg-brand-soft/40 p-5">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                  <span className="rounded bg-brand-soft px-2 py-0.5 text-[10px] font-extrabold text-brand">
+                  <span className="rounded bg-brand-soft px-2 py-0.5 text-xs font-extrabold text-brand">
                     HUMAN-IN-THE-LOOP GOVERNANCE
                   </span>
                   <h2 className="mt-1 text-base font-extrabold text-brand">
@@ -1250,7 +1268,7 @@ export default function AdminAnalyticsHubPage() {
                 <button
                   onClick={handleGenerateRuleCandidates}
                   disabled={actionBusy === 'generate-candidates'}
-                  className="shrink-0 rounded-xl bg-brand px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-brand-hover"
+                  className="shrink-0 rounded-xl bg-brand px-4 py-2.5 text-xs font-extrabold text-fg-inverted shadow-sm hover:bg-brand-hover"
                 >
                   {actionBusy === 'generate-candidates'
                     ? 'جاري الفحص الحتمي...'
@@ -1260,7 +1278,7 @@ export default function AdminAnalyticsHubPage() {
             </div>
 
             {/* Rule Review Candidates Queue */}
-            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+            <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-base font-extrabold text-fg-primary">
                   طابور مراجعة القواعد (RuleReviewCandidate Queue)
@@ -1305,18 +1323,18 @@ export default function AdminAnalyticsHubPage() {
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="rounded bg-brand px-2 py-0.5 font-mono text-[10px] font-bold text-white">
+                          <span className="rounded bg-brand px-2 py-0.5 font-mono text-xs font-bold text-fg-inverted">
                             {cand.ruleType}
                           </span>
                           <span className="font-mono text-sm font-extrabold text-fg-primary">
                             {cand.ruleKey}
                           </span>
-                          <span className="rounded bg-subtle px-2 py-0.5 font-mono text-[10px] text-fg-secondary">
+                          <span className="rounded bg-subtle px-2 py-0.5 font-mono text-xs text-fg-secondary">
                             {cand.ruleVersion}
                           </span>
                         </div>
                         <span
-                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-extrabold ${
                             cand.status === 'APPROVED'
                               ? 'bg-brand-soft text-brand'
                               : cand.status === 'REJECTED'
@@ -1337,7 +1355,7 @@ export default function AdminAnalyticsHubPage() {
                         </p>
                       )}
 
-                      <div className="mt-2 flex flex-wrap items-center gap-4 font-mono text-[11px] text-fg-secondary">
+                      <div className="mt-2 flex flex-wrap items-center gap-4 font-mono text-xs text-fg-secondary">
                         <span>
                           حجم العينة: {cand.sampleSize} (الحد الأدنى: {cand.minimumSampleSize})
                         </span>
@@ -1371,21 +1389,21 @@ export default function AdminAnalyticsHubPage() {
                           <button
                             onClick={() => handleCandidateDecision(cand.id, 'APPROVED')}
                             disabled={actionBusy === cand.id}
-                            className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-hover"
+                            className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-fg-inverted hover:bg-brand-hover"
                           >
                             اعتماد (Approve)
                           </button>
                           <button
                             onClick={() => handleCandidateDecision(cand.id, 'DEFERRED')}
                             disabled={actionBusy === cand.id}
-                            className="rounded-lg bg-warning-text px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
+                            className="rounded-lg bg-warning-text px-3 py-1.5 text-xs font-bold text-fg-inverted hover:opacity-90"
                           >
                             تأجيل (Defer)
                           </button>
                           <button
                             onClick={() => handleCandidateDecision(cand.id, 'REJECTED')}
                             disabled={actionBusy === cand.id}
-                            className="rounded-lg bg-danger px-3 py-1.5 text-xs font-bold text-white hover:bg-danger-fill-hover"
+                            className="rounded-lg bg-danger px-3 py-1.5 text-xs font-bold text-fg-inverted hover:bg-danger-fill-hover"
                           >
                             رفض (Reject)
                           </button>
@@ -1399,7 +1417,7 @@ export default function AdminAnalyticsHubPage() {
 
             {/* Scoring, Matching & Quality Rule Performance Table */}
             {rulesData && (
-              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <div className="rounded-xl border border-line bg-surface p-6 shadow-sm">
                 <h3 className="text-base font-extrabold text-fg-primary">
                   جدول الأداء الإحصائي لقواعد التقييم والمطابقة والجودة (Rule Performance vs Baseline)
                 </h3>
@@ -1421,12 +1439,12 @@ export default function AdminAnalyticsHubPage() {
                     <tbody className="divide-y divide-line font-semibold">
                       {rulesData.allRules?.map((r: any) => (
                         <tr key={`${r.ruleType}-${r.ruleKey}`}>
-                          <td className="py-2.5 px-3 font-mono text-[11px] font-bold text-fg-secondary">
+                          <td className="py-2.5 px-3 font-mono text-xs font-bold text-fg-secondary">
                             {r.ruleType}
                           </td>
                           <td className="py-2.5 px-3">
                             <span className="font-mono font-bold text-fg-primary">{r.ruleKey}</span>
-                            <span className="block text-[11px] text-fg-muted">{r.ruleName}</span>
+                            <span className="block text-xs text-fg-muted">{r.ruleName}</span>
                           </td>
                           <td className="py-2.5 px-3 font-mono">
                             {r.points >= 0 ? `+${r.points}` : r.points}
@@ -1435,7 +1453,7 @@ export default function AdminAnalyticsHubPage() {
                           <td className="py-2.5 px-3 font-mono">
                             {r.sampleSize}{' '}
                             {r.sampleStatus === 'INSUFFICIENT_SAMPLE' && (
-                              <span className="text-[10px] text-warning-icon">
+                              <span className="text-xs text-warning-icon">
                                 (&lt;{r.minimumSampleSize})
                               </span>
                             )}
@@ -1465,7 +1483,7 @@ export default function AdminAnalyticsHubPage() {
                           </td>
                           <td className="py-2.5 px-3">
                             <span
-                              className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-extrabold ${
+                              className={`rounded-full px-2.5 py-0.5 font-mono text-xs font-extrabold ${
                                 r.comparison?.flaggedForReview
                                   ? 'bg-danger-bg text-danger-text'
                                   : r.sampleStatus === 'INSUFFICIENT_SAMPLE'
