@@ -71,7 +71,7 @@ export default function AdminPlansPage() {
         </div>
 
         {msg && (
-          <div className="rounded-xl border border-line-brand bg-brand-soft p-4 text-xs font-bold text-brand-dark">
+          <div className="rounded-xl border border-line-brand bg-brand-soft p-4 text-xs font-bold text-brand">
             {msg}
           </div>
         )}
@@ -90,7 +90,7 @@ export default function AdminPlansPage() {
                   className="rounded-2xl border border-line bg-surface p-6 shadow-sm space-y-4"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="rounded bg-surface-subtle px-2.5 py-0.5 text-xs font-bold text-fg-secondary">
+                    <span className="rounded bg-subtle px-2.5 py-0.5 text-xs font-bold text-fg-secondary">
                       {plan.nameEn} ({plan.slug})
                     </span>
                     <span className="text-xs font-bold text-brand">

@@ -250,7 +250,7 @@ export default function AdminRulesPage() {
                 isLoading={recalculating}
                 className="gap-1.5"
               >
-                <ArrowUpRight className="h-4 w-4" />
+                <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" />
                 <span>ترقية الإصدار (Bump Version)</span>
               </Button>
 

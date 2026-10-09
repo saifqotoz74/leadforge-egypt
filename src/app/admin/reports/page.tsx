@@ -184,8 +184,8 @@ export default function AdminReportsPage() {
             <div
               className={`rounded-xl border p-4 text-xs font-bold ${
                 msg.type === 'success'
-                  ? 'border-line-brand bg-brand-soft text-brand-dark'
-                  : 'border-red-200 bg-red-50 text-red-800'
+                  ? 'border-line-brand bg-brand-soft text-brand'
+                  : 'border-danger-border bg-danger-bg text-danger-text'
               }`}
             >
               {msg.text}
@@ -195,15 +195,15 @@ export default function AdminReportsPage() {
           {/* 6 Required Rates (Section 14) */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <div className="rounded-2xl border border-line-brand bg-brand-soft/50 p-4 text-center">
-              <span className="text-xs font-bold text-brand-dark">Lead Success Rate</span>
+              <span className="text-xs font-bold text-brand">Lead Success Rate</span>
               <p className="mt-2 text-2xl font-extrabold text-brand tabular-nums ltr-iso">
                 {data.rates.leadSuccessRate}%
               </p>
               <span className="text-[11px] text-brand">نسبة الفرص المفيدة</span>
             </div>
 
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-center">
-              <span className="text-xs font-bold text-red-800">Invalid Rate</span>
+            <div className="rounded-2xl border border-danger-border bg-danger-bg p-4 text-center">
+              <span className="text-xs font-bold text-danger-text">Invalid Rate</span>
               <p className="mt-2 text-2xl font-extrabold text-danger tabular-nums ltr-iso">
                 {data.rates.invalidRate}%
               </p>
@@ -235,7 +235,7 @@ export default function AdminReportsPage() {
             </div>
 
             <div className="rounded-2xl border border-line-brand bg-brand-soft/50 p-4 text-center">
-              <span className="text-xs font-bold text-brand-dark">Won Rate</span>
+              <span className="text-xs font-bold text-brand">Won Rate</span>
               <p className="mt-2 text-2xl font-extrabold text-brand tabular-nums ltr-iso">
                 {data.rates.wonRate}%
               </p>
@@ -273,7 +273,7 @@ export default function AdminReportsPage() {
               </div>
 
               <div className="lg:col-span-4 rounded-2xl border border-line-brand bg-brand-soft/40 p-6 shadow-sm space-y-3">
-                <h2 className="text-base font-extrabold text-brand-dark">
+                <h2 className="text-base font-extrabold text-brand">
                   ملخص المشاريع الناجحة (Won Projects Summary)
                 </h2>
                 <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between">
@@ -305,14 +305,14 @@ export default function AdminReportsPage() {
                 تقييمات المطورين لجودة الـ Leads
               </h2>
               <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-bold">
-                <div className="flex items-center justify-between rounded-xl bg-brand-soft p-3 text-brand-dark">
+                <div className="flex items-center justify-between rounded-xl bg-brand-soft p-3 text-brand">
                   <span className="flex items-center gap-1.5">
                     <ThumbsUp className="h-4 w-4" />
                     مفيدة (Yes)
                   </span>
                   <strong className="text-lg">{data.feedbackStats.usefulFeedbacks}</strong>
                 </div>
-                <div className="flex items-center justify-between rounded-xl bg-red-50 p-3 text-red-800">
+                <div className="flex items-center justify-between rounded-xl bg-danger-bg p-3 text-danger-text">
                   <span className="flex items-center gap-1.5">
                     <ThumbsDown className="h-4 w-4" />
                     غير مفيدة (No)
@@ -368,7 +368,7 @@ export default function AdminReportsPage() {
                   {Object.entries(data.distributions.byWebsiteStatus).map(([st, count]) => (
                     <div
                       key={st}
-                      className="flex items-center justify-between rounded-lg bg-brand-soft/60 px-3 py-2 font-bold text-brand-dark"
+                      className="flex items-center justify-between rounded-lg bg-brand-soft/60 px-3 py-2 font-bold text-brand"
                     >
                       <span>{WEBSITE_STATUS_LABELS[st]?.labelAr || st}</span>
                       <strong>{count}</strong>
@@ -428,7 +428,7 @@ export default function AdminReportsPage() {
                             <span
                               className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${
                                 PIPELINE_STATUS_LABELS[eng.currentStatus]?.badgeClass ||
-                                'bg-slate-100 text-fg-secondary'
+                                'bg-subtle text-fg-secondary'
                               }`}
                             >
                               {eng.currentStatus}
@@ -446,7 +446,7 @@ export default function AdminReportsPage() {
                                 setCorrectingEngagement(eng);
                                 setNewState(eng.currentStatus);
                               }}
-                              className="rounded-lg border border-line bg-surface px-2.5 py-1 text-[11px] font-bold text-fg-secondary hover:bg-slate-100"
+                              className="rounded-lg border border-line bg-surface px-2.5 py-1 text-[11px] font-bold text-fg-secondary hover:bg-subtle"
                             >
                               تصحيح الحالة
                             </button>
@@ -460,9 +460,9 @@ export default function AdminReportsPage() {
                 {correctingEngagement && (
                   <form
                     onSubmit={handleAdminCorrectStatus}
-                    className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 space-y-3 text-xs"
+                    className="mt-4 rounded-xl border border-warning-border bg-warning-bg p-4 space-y-3 text-xs"
                   >
-                    <div className="flex items-center justify-between font-extrabold text-amber-950">
+                    <div className="flex items-center justify-between font-extrabold text-warning-text">
                       <span>
                         تصحيح إداري لحالة الفرصة: {correctingEngagement.lead.businessName} (المطور:{' '}
                         {correctingEngagement.developer.name})
@@ -519,7 +519,7 @@ export default function AdminReportsPage() {
 
               <div className="lg:col-span-4 rounded-2xl border border-line bg-surface p-6 shadow-sm space-y-4">
                 <h2 className="flex items-center gap-2 text-base font-extrabold text-fg-primary">
-                  <ShieldAlert className="h-5 w-5 text-amber-600" />
+                  <ShieldAlert className="h-5 w-5 text-warning-icon" />
                   تنبيهات الحماية وجودة البلاغات (Abuse & Quality Signals)
                 </h2>
                 {data.engagementsOverview.suspiciousFlags.length === 0 ? (
@@ -531,16 +531,16 @@ export default function AdminReportsPage() {
                     {data.engagementsOverview.suspiciousFlags.map((flag) => (
                       <div
                         key={flag.id}
-                        className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 space-y-1"
+                        className="rounded-xl border border-warning-border bg-warning-bg p-3 space-y-1"
                       >
-                        <div className="flex items-center gap-1.5 font-extrabold text-amber-900">
+                        <div className="flex items-center gap-1.5 font-extrabold text-warning-text">
                           <AlertTriangle className="h-3.5 w-3.5" />
                           <span>{flag.action}</span>
                         </div>
                         <div className="text-[11px] text-fg-secondary">
                           المطور: {flag.user?.name || flag.user?.email || '—'}
                         </div>
-                        <div className="font-mono text-[10px] text-amber-800" dir="ltr">
+                        <div className="font-mono text-[10px] text-warning-text" dir="ltr">
                           {JSON.stringify(flag.details)}
                         </div>
                       </div>

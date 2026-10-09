@@ -352,7 +352,7 @@ export default function AdminQualityOverviewPage() {
                             className="hover:text-brand hover:underline inline-flex items-center gap-1"
                           >
                             <span>{lead.businessName}</span>
-                            <ExternalLink className="h-3 w-3 text-fg-muted" />
+                            <ExternalLink className="h-3 w-3 text-fg-muted rtl:-scale-x-100" />
                           </Link>
                         </TableCell>
                         <TableCell className="text-body-sm text-fg-secondary">

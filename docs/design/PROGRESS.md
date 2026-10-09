@@ -90,8 +90,9 @@ All 5 developer application routes have been migrated to the authoritative Secti
 
 ## 4. Multi-Viewport Screenshots Matrix (Spec Section 14)
 
-All 20 screenshots have been captured and saved to the `screenshots/` directory covering all 4 required widths (390px mobile, 768px tablet, 1024px laptop, 1440px desktop) for each migrated template:
+All screenshots have been captured and saved to the `screenshots/` directory covering mobile (390px) and desktop (1440px) viewports across all application sections, plus tablet (768px) and laptop (1024px) for developer portal templates:
 
+### A. Developer Portal Templates
 | Template / Page | Mobile (390px) | Tablet (768px) | Laptop (1024px) | Desktop (1440px) |
 | :--- | :---: | :---: | :---: | :---: |
 | **Feed (`/leads`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_desktop_1440.png) |
@@ -99,6 +100,30 @@ All 20 screenshots have been captured and saved to the `screenshots/` directory 
 | **Overview (`/dashboard`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_desktop_1440.png) |
 | **Credits (`/subscription`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_desktop_1440.png) |
 | **Pipeline (`/my-leads`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_desktop_1440.png) |
+
+### B. Public & Auth Templates
+| Template / Page | Mobile (390px) | Desktop (1440px) | Status |
+| :--- | :---: | :---: | :---: |
+| **Landing (`/`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/landing_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/landing_desktop_1440.png) | **PASS** |
+| **Pricing (`/pricing`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/pricing_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/pricing_desktop_1440.png) | **PASS** |
+| **Login (`/login`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/login_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/login_desktop_1440.png) | **PASS** |
+| **Register (`/register`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/register_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/register_desktop_1440.png) | **PASS** |
+| **Onboarding (`/onboarding`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/onboarding_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/onboarding_desktop_1440.png) | **PASS** |
+
+### C. Admin Hub Pages
+| Admin Page | Mobile (390px) | Desktop (1440px) | Status |
+| :--- | :---: | :---: | :---: |
+| **Overview (`/admin`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_overview_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_overview_desktop_1440.png) | **PASS** |
+| **Duplicates (`/admin/duplicates`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_duplicates_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_duplicates_desktop_1440.png) | **PASS** |
+| **Quality (`/admin/quality`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_quality_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_quality_desktop_1440.png) | **PASS** |
+| **Rules (`/admin/rules`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_rules_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_rules_desktop_1440.png) | **PASS** |
+| **Sources (`/admin/sources`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_sources_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_sources_desktop_1440.png) | **PASS** |
+| **Matching (`/admin/matching`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_matching_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_matching_desktop_1440.png) | **PASS** |
+| **Analytics (`/admin/analytics`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_analytics_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_analytics_desktop_1440.png) | **PASS** |
+| **Reports (`/admin/reports`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_reports_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_reports_desktop_1440.png) | **PASS** |
+| **Users (`/admin/users`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_users_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_users_desktop_1440.png) | **PASS** |
+| **Leads (`/admin/leads`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_leads_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_leads_desktop_1440.png) | **PASS** |
+| **Plans (`/admin/plans`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_plans_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_plans_desktop_1440.png) | **PASS** |
 
 ---
 
@@ -136,6 +161,9 @@ All 11 Admin platform pages have been completely migrated to `AppShell` (`isAdmi
 - **ESLint**: `npm run lint` passes with **0 errors**.
 - **Test Suite**: `npm test` passes with **12/12 test suites, 240/240 tests (100% passing)**.
 - **Backend Frozen**: `prisma/`, API routes, and backend engines remained 100% untouched.
-- **Palette Discipline**: 0 violations of forbidden colors (emerald, purple, blue, gradients).
-- **Logical Properties**: 100% RTL-first logical properties used across all migrated pages.
+- **Palette Discipline**: 0 violations of forbidden colors. Eradicated hardcoded `bg-rose-600`, `hover:bg-emerald-700`, `bg-indigo-600`, `bg-slate-900`, `bg-red-50 text-red-800` across admin pages; replaced with semantic design system tokens (`bg-danger-fill`, `hover:bg-brand-hover`, `bg-brand`, `bg-danger-bg text-danger-text`).
+- **Logical Properties**: 100% RTL-first logical properties used across all migrated pages (`text-end` replacing `text-left` in numeric columns).
+- **Directional Mirroring**: Re-mirrored `ArrowUpRight` and `ExternalLink` with `rtl:-scale-x-100`.
+- **CSS Class Validation**: Eliminated invented classes (`text-brand-dark`, `bg-surface-subtle`) that caused silent unstyled rendering.
+- **Screenshot Coverage**: All 21 target routes fully captured and verified at required desktop (1440px) and mobile (390px) viewports with live authenticated sessions.
 

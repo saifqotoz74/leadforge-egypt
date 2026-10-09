@@ -43,9 +43,9 @@ function RateCard({
 }) {
   if (!metric) return null;
   const colorMap = {
-    brand: 'border-line-brand bg-brand-soft/50 text-brand-dark',
-    danger: 'border-red-200 bg-red-50/60 text-red-800',
-    warning: 'border-amber-200 bg-amber-50/60 text-amber-800',
+    brand: 'border-line-brand bg-brand-soft/50 text-brand',
+    danger: 'border-danger-border bg-danger-bg text-danger-text',
+    warning: 'border-warning-border bg-warning-bg text-warning-text',
     neutral: 'border-line bg-surface text-fg-primary',
   };
 
@@ -66,7 +66,7 @@ function RateCard({
           </span>
         )}
         {metric.status !== 'VALID' && (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+          <span className="rounded-full bg-warning-bg px-2 py-0.5 text-[10px] font-bold text-warning-text">
             {metric.status}
           </span>
         )}
@@ -323,10 +323,10 @@ export default function AdminAnalyticsHubPage() {
         <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-lg bg-brand-soft px-2.5 py-1 text-xs font-extrabold text-brand-dark">
+              <span className="rounded-lg bg-brand-soft px-2.5 py-1 text-xs font-extrabold text-brand">
                 Phase 7 • Deterministic Analytics & Data Flywheel
               </span>
-              <span className="rounded-lg bg-surface-subtle px-2.5 py-1 font-mono text-xs font-semibold text-fg-secondary">
+              <span className="rounded-lg bg-subtle px-2.5 py-1 font-mono text-xs font-semibold text-fg-secondary">
                 Centralized Metric Dictionary
               </span>
             </div>
@@ -342,7 +342,7 @@ export default function AdminAnalyticsHubPage() {
             <button
               onClick={loadAnalytics}
               disabled={loading}
-              className="flex items-center gap-1.5 rounded-xl border border-line bg-canvas px-3.5 py-2 text-xs font-bold text-fg-secondary hover:bg-slate-100"
+              className="flex items-center gap-1.5 rounded-xl border border-line bg-canvas px-3.5 py-2 text-xs font-bold text-fg-secondary hover:bg-subtle"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               <span>تحديث البيانات</span>
@@ -560,7 +560,7 @@ export default function AdminAnalyticsHubPage() {
                 className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-extrabold transition-all ${
                   isActive
                     ? 'bg-brand text-white shadow-sm'
-                    : 'bg-surface text-fg-secondary border border-line hover:bg-surface-subtle'
+                    : 'bg-surface text-fg-secondary border border-line hover:bg-subtle'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -571,7 +571,7 @@ export default function AdminAnalyticsHubPage() {
         </div>
 
         {bannerMessage && (
-          <div className="rounded-xl border border-line-brand bg-brand-soft px-4 py-3 text-xs font-bold text-brand-dark">
+          <div className="rounded-xl border border-line-brand bg-brand-soft px-4 py-3 text-xs font-bold text-brand">
             {bannerMessage}
           </div>
         )}
@@ -588,7 +588,7 @@ export default function AdminAnalyticsHubPage() {
                 <button
                   onClick={handleMaterializeSnapshot}
                   disabled={actionBusy === 'snapshot'}
-                  className="rounded-xl border border-line-brand bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand-dark hover:bg-teal-100"
+                  className="rounded-xl border border-line-brand bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft-strong"
                 >
                   {actionBusy === 'snapshot'
                     ? 'جاري حفظ اللقطة...'
@@ -750,7 +750,7 @@ export default function AdminAnalyticsHubPage() {
             {/* Deterministic Operational Anomaly Flags */}
             <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                <AlertTriangle className="h-5 w-5 text-warning-icon" />
                 <h2 className="text-base font-extrabold text-fg-primary">
                   التنبيهات التشخيصية الحتمية (Deterministic Operational Anomaly Flags)
                 </h2>
@@ -766,9 +766,9 @@ export default function AdminAnalyticsHubPage() {
                       key={`${anom.code}-${idx}`}
                       className={`flex flex-col justify-between gap-2 rounded-xl border p-3.5 text-xs sm:flex-row sm:items-center ${
                         anom.severity === 'CRITICAL'
-                          ? 'border-red-300 bg-red-50 text-red-900'
+                          ? 'border-danger-border bg-danger-bg text-danger-text'
                           : anom.severity === 'WARNING'
-                            ? 'border-amber-300 bg-amber-50 text-amber-900'
+                            ? 'border-warning-border bg-warning-bg text-warning-text'
                             : 'border-line bg-surface text-fg-primary'
                       }`}
                     >
@@ -856,7 +856,7 @@ export default function AdminAnalyticsHubPage() {
                           className="flex items-center justify-between rounded-lg bg-canvas px-3 py-2 text-xs"
                         >
                           <span className="font-mono font-bold text-fg-primary">{r.reasonCode}</span>
-                          <span className="font-mono font-bold text-amber-700">
+                          <span className="font-mono font-bold text-warning-text">
                             {r.count} ({r.rate?.displayValue})
                           </span>
                         </div>
@@ -917,10 +917,10 @@ export default function AdminAnalyticsHubPage() {
                           key={acc.accessType}
                           className="flex items-center justify-between rounded-lg border border-line-brand bg-brand-soft/40 px-3 py-1.5 text-xs font-bold"
                         >
-                          <span className="font-mono text-brand-dark">
+                          <span className="font-mono text-brand">
                             نمط {acc.accessType} ({acc.leadsCount} فرصة / {acc.claimsCount} شراء)
                           </span>
-                          <span className="font-mono text-brand-dark">
+                          <span className="font-mono text-brand">
                             فوز: {acc.rates?.winRate?.displayValue} | إيراد: {acc.attributedRevenueEgp?.toLocaleString()} ج.م
                           </span>
                         </div>
@@ -968,7 +968,7 @@ export default function AdminAnalyticsHubPage() {
                               s.provenance?.enrichmentContributions ??
                               0}
                           </td>
-                          <td className="py-2.5 px-3 text-amber-700">{s.duplicates}</td>
+                          <td className="py-2.5 px-3 text-warning-text">{s.duplicates}</td>
                           <td className="py-2.5 px-3">
                             {s.claimRate?.displayValue} ({s.claimRate?.numerator}/
                             {s.claimRate?.denominator})
@@ -1009,11 +1009,11 @@ export default function AdminAnalyticsHubPage() {
                           {n.leads} فرصة | {n.claims} مشتراة
                         </span>
                       </div>
-                      <div className="text-left">
-                        <span className="block font-bold text-brand">
+                      <div className="text-end">
+                        <span className="block font-bold text-brand tabular-nums ltr-iso">
                           فوز: {n.winRate?.displayValue}
                         </span>
-                        <span className="block text-[11px] text-fg-muted">
+                        <span className="block text-[11px] text-fg-muted tabular-nums ltr-iso">
                           {n.revenueEgp?.toLocaleString()} ج.م
                         </span>
                       </div>
@@ -1038,11 +1038,11 @@ export default function AdminAnalyticsHubPage() {
                           {loc.totalLeads} فرصة | {loc.claims} مشتراة
                         </span>
                       </div>
-                      <div className="text-left">
-                        <span className="block font-bold text-brand">
+                      <div className="text-end">
+                        <span className="block font-bold text-brand tabular-nums ltr-iso">
                           فوز: {loc.winRate?.displayValue}
                         </span>
-                        <span className="block text-[11px] text-fg-muted">
+                        <span className="block text-[11px] text-fg-muted tabular-nums ltr-iso">
                           شراء: {loc.claimRate?.displayValue}
                         </span>
                       </div>
@@ -1069,11 +1069,11 @@ export default function AdminAnalyticsHubPage() {
                           {srv.totalLeads} فرصة | {srv.claims} مشتراة
                         </span>
                       </div>
-                      <div className="text-left">
-                        <span className="block font-bold text-brand">
+                      <div className="text-end">
+                        <span className="block font-bold text-brand tabular-nums ltr-iso">
                           فوز: {srv.winRate?.displayValue}
                         </span>
-                        <span className="block text-[11px] text-fg-muted">
+                        <span className="block text-[11px] text-fg-muted tabular-nums ltr-iso">
                           {srv.revenueEgp?.toLocaleString()} ج.م
                         </span>
                       </div>
@@ -1136,7 +1136,7 @@ export default function AdminAnalyticsHubPage() {
                         {dev.winRate?.denominator})
                       </td>
                       <td className="py-2.5 px-3 font-mono">{dev.creditsConsumed}</td>
-                      <td className="py-2.5 px-3 font-bold text-brand-dark">
+                      <td className="py-2.5 px-3 font-bold text-brand">
                         {dev.estimatedProjectValueEgp?.toLocaleString()} ج.م
                       </td>
                       <td className="py-2.5 px-3">
@@ -1236,10 +1236,10 @@ export default function AdminAnalyticsHubPage() {
             <div className="rounded-2xl border border-line-brand bg-brand-soft/40 p-5">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                  <span className="rounded bg-brand-soft px-2 py-0.5 text-[10px] font-extrabold text-brand-dark">
+                  <span className="rounded bg-brand-soft px-2 py-0.5 text-[10px] font-extrabold text-brand">
                     HUMAN-IN-THE-LOOP GOVERNANCE
                   </span>
-                  <h2 className="mt-1 text-base font-extrabold text-brand-dark">
+                  <h2 className="mt-1 text-base font-extrabold text-brand">
                     حلقة تحسين القواعد الحتمية وطابور المراجعة البشرية (Deterministic Rule Review Queue)
                   </h2>
                   <p className="mt-0.5 text-xs text-brand">
@@ -1305,32 +1305,32 @@ export default function AdminAnalyticsHubPage() {
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="rounded bg-slate-900 px-2 py-0.5 font-mono text-[10px] font-bold text-white">
+                          <span className="rounded bg-brand px-2 py-0.5 font-mono text-[10px] font-bold text-white">
                             {cand.ruleType}
                           </span>
                           <span className="font-mono text-sm font-extrabold text-fg-primary">
                             {cand.ruleKey}
                           </span>
-                          <span className="rounded bg-slate-200 px-2 py-0.5 font-mono text-[10px] text-fg-secondary">
+                          <span className="rounded bg-subtle px-2 py-0.5 font-mono text-[10px] text-fg-secondary">
                             {cand.ruleVersion}
                           </span>
                         </div>
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${
                             cand.status === 'APPROVED'
-                              ? 'bg-brand-soft text-brand-dark'
+                              ? 'bg-brand-soft text-brand'
                               : cand.status === 'REJECTED'
-                                ? 'bg-red-100 text-red-800'
+                                ? 'bg-danger-bg text-danger-text'
                                 : cand.status === 'DEFERRED'
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-surface-subtle text-fg-secondary'
+                                  ? 'bg-warning-bg text-warning-text'
+                                  : 'bg-subtle text-fg-secondary'
                           }`}
                         >
                           {cand.status}
                         </span>
                       </div>
 
-                      <p className="mt-2 font-bold text-brand-dark">{cand.recommendation}</p>
+                      <p className="mt-2 font-bold text-brand">{cand.recommendation}</p>
                       {cand.decision && (
                         <p className="mt-1 font-semibold text-fg-secondary">
                           قرار المراجع: {cand.decision} {cand.notes ? `— ${cand.notes}` : ''}
@@ -1378,14 +1378,14 @@ export default function AdminAnalyticsHubPage() {
                           <button
                             onClick={() => handleCandidateDecision(cand.id, 'DEFERRED')}
                             disabled={actionBusy === cand.id}
-                            className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600"
+                            className="rounded-lg bg-warning-text px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
                           >
                             تأجيل (Defer)
                           </button>
                           <button
                             onClick={() => handleCandidateDecision(cand.id, 'REJECTED')}
                             disabled={actionBusy === cand.id}
-                            className="rounded-lg bg-danger px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700"
+                            className="rounded-lg bg-danger px-3 py-1.5 text-xs font-bold text-white hover:bg-danger-fill-hover"
                           >
                             رفض (Reject)
                           </button>
@@ -1435,7 +1435,7 @@ export default function AdminAnalyticsHubPage() {
                           <td className="py-2.5 px-3 font-mono">
                             {r.sampleSize}{' '}
                             {r.sampleStatus === 'INSUFFICIENT_SAMPLE' && (
-                              <span className="text-[10px] text-amber-600">
+                              <span className="text-[10px] text-warning-icon">
                                 (&lt;{r.minimumSampleSize})
                               </span>
                             )}
@@ -1467,10 +1467,10 @@ export default function AdminAnalyticsHubPage() {
                             <span
                               className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-extrabold ${
                                 r.comparison?.flaggedForReview
-                                  ? 'bg-red-100 text-red-800'
+                                  ? 'bg-danger-bg text-danger-text'
                                   : r.sampleStatus === 'INSUFFICIENT_SAMPLE'
-                                    ? 'bg-slate-100 text-fg-secondary'
-                                    : 'bg-brand-soft text-brand-dark'
+                                    ? 'bg-subtle text-fg-secondary'
+                                    : 'bg-brand-soft text-brand'
                               }`}
                             >
                               {r.comparison?.flaggedForReview

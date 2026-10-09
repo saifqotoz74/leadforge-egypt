@@ -273,7 +273,7 @@ export default function AdminLeadsPage() {
                 setCsvOpen(true);
                 setImportReport(null);
               }}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-line-brand bg-brand-soft px-4 py-2.5 text-xs font-extrabold text-brand-dark hover:bg-teal-100"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-line-brand bg-brand-soft px-4 py-2.5 text-xs font-extrabold text-brand hover:bg-brand-soft-strong"
             >
               <Upload className="h-4 w-4" />
               استيراد CSV (CSV Import)
@@ -302,7 +302,7 @@ export default function AdminLeadsPage() {
         {/* Leads Table */}
         <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm overflow-x-auto">
           {loading ? (
-            <div className="h-64 animate-pulse rounded-xl bg-surface-subtle" />
+            <div className="h-64 animate-pulse rounded-xl bg-subtle" />
           ) : (
             <table className="w-full text-start text-xs">
               <thead>
@@ -330,7 +330,7 @@ export default function AdminLeadsPage() {
                       <p className="text-[11px] text-fg-muted">{lead.category}</p>
                     </td>
                     <td className="py-3 px-2">
-                      <span className="rounded bg-surface-subtle px-2 py-0.5 text-[11px]">
+                      <span className="rounded bg-subtle px-2 py-0.5 text-[11px]">
                         {lead.websiteStatus}
                       </span>
                     </td>
@@ -353,35 +353,35 @@ export default function AdminLeadsPage() {
                         <button
                           onClick={() => openEditModal(lead)}
                           title="تعديل"
-                          className="rounded-lg border border-line p-1.5 text-fg-secondary hover:bg-surface-subtle"
+                          className="rounded-lg border border-line p-1.5 text-fg-secondary hover:bg-subtle"
                         >
                           <Edit3 className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handleLeadAction(lead.id, 'VERIFY')}
                           title="فحص الموقع وتحديث التحقق"
-                          className="rounded-lg border border-line-brand bg-brand-soft p-1.5 text-brand-dark hover:bg-teal-100"
+                          className="rounded-lg border border-line-brand bg-brand-soft p-1.5 text-brand hover:bg-brand-soft-strong"
                         >
                           <RefreshCw className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => setAssignLead(lead)}
                           title="تخصيص لمطور"
-                          className="rounded-lg border border-line bg-surface p-1.5 text-fg-secondary hover:bg-surface-subtle"
+                          className="rounded-lg border border-line bg-surface p-1.5 text-fg-secondary hover:bg-subtle"
                         >
                           <UserPlus className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handleLeadAction(lead.id, 'MARK_INVALID')}
                           title="تعليم كغير صالح"
-                          className="rounded-lg border border-amber-200 bg-amber-50 p-1.5 text-amber-800 hover:bg-amber-100"
+                          className="rounded-lg border border-warning-border bg-warning-bg p-1.5 text-warning-text hover:opacity-90"
                         >
                           <ShieldAlert className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteLead(lead.id)}
                           title="حذف"
-                          className="rounded-lg border border-red-200 bg-red-50 p-1.5 text-red-800 hover:bg-red-100"
+                          className="rounded-lg border border-danger-border bg-danger-bg p-1.5 text-danger-text hover:opacity-90"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -574,7 +574,7 @@ export default function AdminLeadsPage() {
                 <button
                   type="button"
                   onClick={fillSampleCsv}
-                  className="rounded-lg bg-brand-soft px-3 py-1 text-xs font-bold text-brand-dark hover:bg-teal-100"
+                  className="rounded-lg bg-brand-soft px-3 py-1 text-xs font-bold text-brand hover:bg-brand-soft-strong"
                 >
                   تحميل بيانات CSV تجريبية
                 </button>
@@ -622,7 +622,7 @@ export default function AdminLeadsPage() {
 
                 {importReport && (
                   <div className="rounded-xl border border-line-brand bg-brand-soft/50 p-4">
-                    <p className="flex items-center gap-1.5 font-extrabold text-brand-dark">
+                    <p className="flex items-center gap-1.5 font-extrabold text-brand">
                       <CheckCircle2 className="h-4 w-4 text-brand" />
                       تقرير الاستيراد (Import Report):
                     </p>
@@ -640,8 +640,8 @@ export default function AdminLeadsPage() {
                         </strong>
                       </div>
                       <div className="rounded-lg bg-surface p-2">
-                        <span className="block text-[11px] text-amber-600">Duplicates</span>
-                        <strong className="text-base text-amber-700 tabular-nums ltr-iso">
+                        <span className="block text-[11px] text-warning-icon">Duplicates</span>
+                        <strong className="text-base text-warning-text tabular-nums ltr-iso">
                           {importReport.duplicates}
                         </strong>
                       </div>

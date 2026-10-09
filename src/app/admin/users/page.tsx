@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
 
         <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm overflow-x-auto">
           {loading ? (
-            <div className="h-48 animate-pulse bg-surface-subtle rounded-xl" />
+            <div className="h-48 animate-pulse bg-subtle rounded-xl" />
           ) : (
             <table className="w-full text-start text-xs">
               <thead>
@@ -163,8 +163,8 @@ export default function AdminUsersPage() {
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                           u.role === 'ADMIN'
-                            ? 'bg-brand-soft text-brand-dark'
-                            : 'bg-surface-subtle text-fg-secondary'
+                            ? 'bg-brand-soft text-brand'
+                            : 'bg-subtle text-fg-secondary'
                         }`}
                       >
                         {u.role}
@@ -174,8 +174,8 @@ export default function AdminUsersPage() {
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                           u.status === 'ACTIVE'
-                            ? 'bg-brand-soft text-brand-dark'
-                            : 'bg-red-50 text-red-800'
+                            ? 'bg-brand-soft text-brand'
+                            : 'bg-danger-bg text-danger-text'
                         }`}
                       >
                         {u.status === 'ACTIVE' ? 'نشط' : 'موقوف'}
@@ -198,9 +198,9 @@ export default function AdminUsersPage() {
                             setEditPlanId(u.subscription?.plan?.id || plans[0]?.id || '');
                             setEditCredits(u.subscription?.credits ?? 0);
                           }}
-                          className="inline-flex items-center gap-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[11px] font-bold text-fg-secondary hover:bg-surface-subtle"
+                          className="inline-flex items-center gap-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[11px] font-bold text-fg-secondary hover:bg-subtle"
                         >
-                          <Coins className="h-3.5 w-3.5 text-amber-500" />
+                          <Coins className="h-3.5 w-3.5 text-warning-icon" />
                           الباقة والرصيد
                         </button>
 
@@ -209,8 +209,8 @@ export default function AdminUsersPage() {
                             onClick={() => handleToggleSuspend(u)}
                             className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-bold ${
                               u.status === 'ACTIVE'
-                                ? 'bg-red-50 text-red-800 hover:bg-red-100'
-                                : 'bg-brand-soft text-brand-dark hover:bg-teal-100'
+                                ? 'bg-danger-bg text-danger-text hover:opacity-90'
+                                : 'bg-brand-soft text-brand hover:bg-brand-soft-strong'
                             }`}
                           >
                             {u.status === 'ACTIVE' ? (
@@ -280,7 +280,7 @@ export default function AdminUsersPage() {
                   <button
                     type="button"
                     onClick={() => setEditUser(null)}
-                    className="rounded-xl border border-line px-4 py-2 text-xs font-bold text-fg-secondary hover:bg-surface-subtle"
+                    className="rounded-xl border border-line px-4 py-2 text-xs font-bold text-fg-secondary hover:bg-subtle"
                   >
                     إلغاء
                   </button>

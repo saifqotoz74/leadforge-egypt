@@ -447,7 +447,7 @@ export default function AdminMatchingPage() {
             <button
               onClick={handleRecalculateAll}
               disabled={recalculating}
-              className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-brand-hover disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
               {recalculating ? 'جاري إعادة الحساب...' : 'إعادة حساب المطابقات (Recalculate)'}
@@ -472,8 +472,8 @@ export default function AdminMatchingPage() {
             onClick={() => setActiveTab('debugger')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
               activeTab === 'debugger'
-                ? 'bg-slate-900 text-white'
-                : 'bg-white text-fg-primary hover:bg-subtle'
+                ? 'bg-brand text-white shadow-xs'
+                : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
             }`}
           >
             <Bug className="h-4 w-4" />
@@ -483,8 +483,8 @@ export default function AdminMatchingPage() {
             onClick={() => setActiveTab('rules')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
               activeTab === 'rules'
-                ? 'bg-slate-900 text-white'
-                : 'bg-white text-fg-primary hover:bg-subtle'
+                ? 'bg-brand text-white shadow-xs'
+                : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
             }`}
           >
             <Sliders className="h-4 w-4" />
@@ -494,8 +494,8 @@ export default function AdminMatchingPage() {
             onClick={() => setActiveTab('config')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
               activeTab === 'config'
-                ? 'bg-slate-900 text-white'
-                : 'bg-white text-fg-primary hover:bg-subtle'
+                ? 'bg-brand text-white shadow-xs'
+                : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
             }`}
           >
             <ShieldCheck className="h-4 w-4" />
@@ -565,7 +565,7 @@ export default function AdminMatchingPage() {
                   <button
                     onClick={() => runPairInspection(selectedLeadId, selectedDeveloperId)}
                     disabled={runningDebugger}
-                    className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50"
+                    className="w-full rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-hover disabled:opacity-50"
                   >
                     {runningDebugger ? 'جاري الفحص...' : 'تشغيل فاحص المطابقة (Inspect Pair)'}
                   </button>
@@ -594,7 +594,7 @@ export default function AdminMatchingPage() {
                         className={`inline-block rounded-lg px-2.5 py-0.5 text-xs font-extrabold ${
                           debugReport.eligible
                             ? 'bg-brand text-white'
-                            : 'bg-rose-600 text-white'
+                            : 'bg-danger-fill text-white'
                         }`}
                       >
                         {debugReport.resultLabel} ({debugReport.eligible ? 'مؤهل للمطابقة' : 'مستبعد'})
@@ -650,7 +650,7 @@ export default function AdminMatchingPage() {
                           <th className="p-2.5 font-bold">السبب التفصيلي</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-line">
                         {debugReport.hardEligibilityChecks.map((chk, idx) => (
                           <tr key={idx} className="hover:bg-subtle/70">
                             <td className="p-2.5 font-bold text-fg-primary">{chk.dimension}</td>
@@ -709,7 +709,7 @@ export default function AdminMatchingPage() {
                               className={`rounded-lg px-2.5 py-1 text-xs font-extrabold ${
                                 rule.points >= 0
                                   ? 'bg-brand text-white'
-                                  : 'bg-amber-600 text-white'
+                                  : 'bg-warning-text text-white'
                               }`}
                             >
                               {rule.points >= 0 ? `+${rule.points}` : rule.points}
@@ -736,7 +736,7 @@ export default function AdminMatchingPage() {
                             </span>
                             <p className="mt-0.5 text-fg-secondary">{rule.reasonAr}</p>
                           </div>
-                          <span className="rounded bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-fg-primary">
+                          <span className="rounded bg-subtle px-2 py-0.5 text-[10px] font-bold text-fg-secondary">
                             {rule.outcome || '0 pts'}
                           </span>
                         </div>
@@ -788,7 +788,7 @@ export default function AdminMatchingPage() {
                                 {m.matchedCriteria.map((c) => `${c.key} (+${c.points})`).join(' • ')}
                               </p>
                             </div>
-                            <span className="rounded-lg bg-indigo-600 px-2.5 py-1 font-extrabold text-white">
+                            <span className="rounded-lg bg-brand px-2.5 py-1 font-extrabold text-white">
                               {m.matchStrength}%
                             </span>
                           </div>
@@ -851,7 +851,7 @@ export default function AdminMatchingPage() {
                       <th className="p-2.5 font-bold">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-line">
                     {rules.map((r) => (
                       <tr key={r.id} className="hover:bg-subtle">
                         <td className="p-2.5 font-mono text-[11px] font-bold text-fg-primary">
@@ -889,7 +889,7 @@ export default function AdminMatchingPage() {
                             className={`rounded-full px-3 py-1 text-[11px] font-bold ${
                               r.enabled
                                 ? 'bg-brand-soft text-brand'
-                                : 'bg-slate-200 text-fg-secondary'
+                                : 'bg-subtle text-fg-secondary'
                             }`}
                           >
                             {r.enabled ? 'مفعلة' : 'معطلة'}
@@ -1026,7 +1026,7 @@ export default function AdminMatchingPage() {
               </div>
               <button
                 type="submit"
-                className="rounded-xl bg-brand px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
+                className="rounded-xl bg-brand px-5 py-2.5 text-xs font-bold text-white hover:bg-brand-hover"
               >
                 إضافة القاعدة وحفظ الإصدار الجديد
               </button>
@@ -1159,7 +1159,7 @@ export default function AdminMatchingPage() {
 
               <button
                 type="submit"
-                className="rounded-xl bg-brand px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
+                className="rounded-xl bg-brand px-6 py-2.5 text-xs font-bold text-white hover:bg-brand-hover"
               >
                 حفظ السياسات وترقية إصدار المطابقة
               </button>

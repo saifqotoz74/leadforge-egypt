@@ -1,0 +1,82 @@
+{
+  "leads_desktop_1440": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 2
+  },
+  "leads_laptop_1024": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 2
+  },
+  "leads_tablet_768": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 2
+  },
+  "leads_mobile_390": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 2
+  },
+  "lead_detail_desktop_1440": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "lead_detail_laptop_1024": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "lead_detail_tablet_768": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "lead_detail_mobile_390": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "dashboard_desktop_1440": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "dashboard_laptop_1024": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "dashboard_tablet_768": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "dashboard_mobile_390": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "credits_desktop_1440": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "credits_laptop_1024": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "credits_tablet_768": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "credits_mobile_390": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 0
+  },
+  "pipeline_desktop_1440": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 2
+  },
+  "pipeline_laptop_1024": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 2
+  },
+  "pipeline_tablet_768": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 2
+  },
+  "pipeline_mobile_390": {
+    "noHorizontalScroll": true,
+    "primaryButtonCount": 2
+  }
+}

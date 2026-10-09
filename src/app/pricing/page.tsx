@@ -7,7 +7,7 @@ import { PublicNavbar, PublicFooter } from '@/components/PublicNavbar';
 import { PackageCard } from '@/components/domain/PackageCard';
 import { Banner } from '@/components/ui/Banner';
 import { DEFAULT_PLANS } from '@/lib/constants';
-import { ShieldCheck, ArrowLeft } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 interface PlanItem {
   id?: string;
