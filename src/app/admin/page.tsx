@@ -28,7 +28,7 @@ import {
   BarChart3,
   Users,
   Activity,
-  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 interface AdminOverviewData {
@@ -290,7 +290,7 @@ export default function AdminOverviewPage() {
                   >
                     <Briefcase className="h-4 w-4 text-brand" />
                     <span>{t('navLeads')}</span>
-                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
+                    <ChevronRight className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -299,7 +299,7 @@ export default function AdminOverviewPage() {
                   >
                     <CheckCircle2 className="h-4 w-4 text-brand" />
                     <span>{t('navQuality')}</span>
-                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
+                    <ChevronRight className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -308,7 +308,7 @@ export default function AdminOverviewPage() {
                   >
                     <Users className="h-4 w-4 text-brand" />
                     <span>{t('navUsers')}</span>
-                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
+                    <ChevronRight className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -317,7 +317,7 @@ export default function AdminOverviewPage() {
                   >
                     <Sliders className="h-4 w-4 text-brand" />
                     <span>{t('navRules')}</span>
-                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
+                    <ChevronRight className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -326,7 +326,7 @@ export default function AdminOverviewPage() {
                   >
                     <Database className="h-4 w-4 text-brand" />
                     <span>{t('navSources')}</span>
-                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
+                    <ChevronRight className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -335,7 +335,7 @@ export default function AdminOverviewPage() {
                   >
                     <Layers className="h-4 w-4 text-brand" />
                     <span>{t('navPlans')}</span>
-                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
+                    <ChevronRight className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -344,7 +344,7 @@ export default function AdminOverviewPage() {
                   >
                     <BarChart3 className="h-4 w-4 text-brand" />
                     <span>{t('navReports')}</span>
-                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
+                    <ChevronRight className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 
                   <Link
@@ -353,7 +353,7 @@ export default function AdminOverviewPage() {
                   >
                     <BarChart3 className="h-4 w-4 text-brand" />
                     <span>{t('navAnalytics')}</span>
-                    <ChevronLeft className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
+                    <ChevronRight className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
                 </div>
               </CardContent>

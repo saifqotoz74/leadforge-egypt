@@ -47,7 +47,7 @@ export function Pagination({
           aria-label="الصفحة السابقة"
           className="h-8 w-8 rounded-md flex items-center justify-center text-fg-secondary hover:text-fg-primary hover:bg-subtle disabled:opacity-40 disabled:pointer-events-none transition-colors"
         >
-          <ChevronRight className="w-4 h-4 rtl:-scale-x-100" />
+          <ChevronLeft className="w-4 h-4 rtl:-scale-x-100" />
         </button>
 
         {/* Page buttons */}
@@ -90,7 +90,7 @@ export function Pagination({
           aria-label="الصفحة التالية"
           className="h-8 w-8 rounded-md flex items-center justify-center text-fg-secondary hover:text-fg-primary hover:bg-subtle disabled:opacity-40 disabled:pointer-events-none transition-colors"
         >
-          <ChevronLeft className="w-4 h-4 rtl:-scale-x-100" />
+          <ChevronRight className="w-4 h-4 rtl:-scale-x-100" />
         </button>
       </div>
     </div>

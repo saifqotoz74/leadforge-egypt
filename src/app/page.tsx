@@ -13,7 +13,7 @@ import {
   Check,
   X,
   Sliders,
-  ArrowLeft,
+  ArrowRight,
   ChevronDown,
   Layers,
   PhoneCall,
@@ -73,7 +73,7 @@ export default function LandingPage() {
                   <Link href="/register">
                     <Button variant="primary" size="lg" className="gap-2">
                       <span>{tLanding('heroCtaPrimary')}</span>
-                      <ArrowLeft className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
+                      <ArrowRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
                     </Button>
                   </Link>
                   <a href="#score-lab">
@@ -717,7 +717,7 @@ export default function LandingPage() {
               <Link href="/register">
                 <Button variant="primary" size="lg" className="gap-2">
                   <span>{tLanding('finalCtaBtnRegister')}</span>
-                  <ArrowLeft className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
+                  <ArrowRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
                 </Button>
               </Link>
               <Link href="/pricing">

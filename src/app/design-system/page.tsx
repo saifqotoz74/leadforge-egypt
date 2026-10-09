@@ -68,8 +68,6 @@ import {
 
 import {
   Search,
-  ChevronRight,
-  ChevronLeft,
   ArrowRight,
   HelpCircle,
   Copy,

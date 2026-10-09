@@ -19,7 +19,7 @@ import {
   Settings,
   Compass,
   Briefcase,
-  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 interface DashboardData {
@@ -220,7 +220,7 @@ export default function DeveloperDashboardPage() {
                   className="inline-flex items-center gap-1 text-caption font-semibold text-fg-brand hover:underline"
                 >
                   <span>{tDash('viewAll')}</span>
-                  <ChevronLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
+                  <ChevronRight className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 </Link>
               </CardHeader>
 
@@ -305,7 +305,7 @@ export default function DeveloperDashboardPage() {
                   className="inline-flex items-center gap-1 text-caption font-semibold text-fg-brand hover:underline"
                 >
                   <span>{tDash('viewAll')}</span>
-                  <ChevronLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
+                  <ChevronRight className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 </Link>
               </CardHeader>
 
@@ -363,7 +363,7 @@ export default function DeveloperDashboardPage() {
                   className="inline-flex items-center gap-1 text-caption font-semibold text-fg-brand hover:underline"
                 >
                   <span>{tNav('pipeline')}</span>
-                  <ChevronLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
+                  <ChevronRight className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 </Link>
               </CardHeader>
 
