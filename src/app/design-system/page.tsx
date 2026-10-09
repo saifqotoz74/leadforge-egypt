@@ -1,0 +1,1101 @@
+'use client';
+
+import React, { useState } from 'react';
+import {
+  OpportunityBadge,
+  LeadTemperature,
+  QualityIndicator,
+  QualityState,
+  OwnershipTag,
+  OwnershipType,
+  StageBadge,
+  PipelineStage,
+  ScorePair,
+  ScoreBreakdown,
+  CreditChip,
+  LeadCard,
+  LeadRow,
+  PurchaseConfirm,
+  PackageCard,
+  PipelineColumn,
+  PipelineCard,
+  MergeCompare,
+  RuleWeightEditor,
+  Stepper,
+} from '@/components/domain';
+
+import {
+  Button,
+  IconButton,
+  Input,
+  Textarea,
+  Select,
+  MultiSelect,
+  Checkbox,
+  Radio,
+  Switch,
+  Dialog,
+  Drawer,
+  Popover,
+  Tooltip,
+  Toast,
+  Banner,
+  LockedField,
+  Tabs,
+  Pagination,
+  EmptyState,
+  Skeleton,
+  Avatar,
+  Badge,
+  Card,
+  Spinner,
+} from '@/components/ui';
+
+import {
+  Search,
+  ChevronRight,
+  ChevronLeft,
+  ArrowRight,
+  Sparkles,
+  HelpCircle,
+  Copy,
+  Sliders,
+  Check,
+  AlertTriangle,
+  Info,
+  Shield,
+  Layers,
+  Palette,
+  Type,
+  Maximize2,
+} from 'lucide-react';
+
+export default function DesignSystemPage() {
+  // Density and Direction toggles
+  const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
+  const [direction, setDirection] = useState<'rtl' | 'ltr'>('rtl');
+
+  // Interactive component states
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  const [purchaseModalState, setPurchaseModalState] = useState<'idle' | 'insufficient_balance' | 'success'>('idle');
+  const [isScoreDrawerOpen, setIsScoreDrawerOpen] = useState(false);
+
+  // Active toast simulation
+  const [activeToast, setActiveToast] = useState<{ message: string; variant: 'success' | 'error' | 'info' } | null>(null);
+
+  // Form states
+  const [inputValue, setInputValue] = useState('');
+  const [textareaValue, setTextareaValue] = useState('');
+  const [selectValue, setSelectValue] = useState('cairo');
+  const [selectedCities, setSelectedCities] = useState(['القاهرة', 'الجيزة']);
+  const [checkboxVal, setCheckboxVal] = useState(true);
+  const [radioVal, setRadioVal] = useState('opt1');
+  const [switchVal, setSwitchVal] = useState(true);
+
+  // Tab & Filter states
+  const [activeTab, setActiveTab] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Stepper state
+  const [stepperIndex, setStepperIndex] = useState(0);
+
+  const showToast = (message: string, variant: 'success' | 'error' | 'info' = 'success') => {
+    setActiveToast({ message, variant });
+  };
+
+  return (
+    <div
+      dir={direction}
+      data-density={density}
+      className="min-h-screen bg-page text-fg-primary p-4 sm:p-8 lg:p-12 transition-all font-sans"
+    >
+      {/* Toast Render if active */}
+      {activeToast && (
+        <div className="fixed top-5 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
+          <div className="pointer-events-auto">
+            <Toast
+              message={activeToast.message}
+              variant={activeToast.variant}
+              onClose={() => setActiveToast(null)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Dev-Only Banner & Top Control Panel */}
+      <div className="max-w-7xl mx-auto mb-10">
+        <div className="rounded-xl border border-line bg-surface p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-brand animate-pulse" />
+              <h1 className="text-h2 font-bold tracking-tight">
+                دليل نظام التصميم — LeadForge Design System
+              </h1>
+            </div>
+            <p className="text-body-sm text-fg-secondary">
+              توثيق مرئي حي لجميع الرموز والمكونات الأولية ومكونات النطاق في بيئة التطوير (Dev-Only).
+            </p>
+          </div>
+
+          {/* Interactive Mode Switches per Spec 12 & Phase 4 */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center rounded-lg border border-line bg-subtle p-1 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setDensity('comfortable')}
+                className={`px-3 py-1.5 rounded-md text-caption font-medium transition-all ${
+                  density === 'comfortable'
+                    ? 'bg-surface text-fg-primary shadow-xs font-semibold'
+                    : 'text-fg-secondary hover:text-fg-primary'
+                }`}
+              >
+                مريح (Comfortable)
+              </button>
+              <button
+                type="button"
+                onClick={() => setDensity('compact')}
+                className={`px-3 py-1.5 rounded-md text-caption font-medium transition-all ${
+                  density === 'compact'
+                    ? 'bg-surface text-fg-primary shadow-xs font-semibold'
+                    : 'text-fg-secondary hover:text-fg-primary'
+                }`}
+              >
+                مدمج (Compact)
+              </button>
+            </div>
+
+            <div className="inline-flex items-center rounded-lg border border-line bg-subtle p-1 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setDirection('rtl')}
+                className={`px-3 py-1.5 rounded-md text-caption font-medium transition-all ${
+                  direction === 'rtl'
+                    ? 'bg-surface text-fg-primary shadow-xs font-semibold'
+                    : 'text-fg-secondary hover:text-fg-primary'
+                }`}
+              >
+                RTL (العربية)
+              </button>
+              <button
+                type="button"
+                onClick={() => setDirection('ltr')}
+                className={`px-3 py-1.5 rounded-md text-caption font-medium transition-all ${
+                  direction === 'ltr'
+                    ? 'bg-surface text-fg-primary shadow-xs font-semibold'
+                    : 'text-fg-secondary hover:text-fg-primary'
+                }`}
+              >
+                LTR (English Test)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto flex flex-col gap-16">
+        {/* ========================================================= */}
+        {/* 1. COLOR TOKENS & CONTRAST RATIOS                         */}
+        {/* ========================================================= */}
+        <section className="flex flex-col gap-6" id="colors">
+          <div className="border-b border-line pb-3">
+            <h2 className="text-h2 font-bold text-fg-primary flex items-center gap-2">
+              <Palette className="h-6 w-6 text-fg-brand" />
+              <span>١. لوحة الألوان ورموز التصميم الدلالية (Tokens & Contrast)</span>
+            </h2>
+            <p className="text-body-sm text-fg-secondary mt-1">
+              عائلة التيل المصرية والمحايدات الدافئة. لا يوجد أخضر، لا يوجد بنفسجي، لا توجد تدرجات لونية.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <div>
+              <h3 className="text-label font-semibold text-fg-secondary mb-3">
+                عائلة التيل (Egyptian Teal Palette — Primary Brand)
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2">
+                {[
+                  { name: '50', hex: '#f0fdfa', text: 'text-teal-900', bg: 'bg-teal-50', ratio: '17.8:1' },
+                  { name: '100', hex: '#ccfbf1', text: 'text-teal-900', bg: 'bg-teal-100', ratio: '15.2:1' },
+                  { name: '200', hex: '#99f6e4', text: 'text-teal-900', bg: 'bg-teal-200', ratio: '12.4:1' },
+                  { name: '300', hex: '#5eead4', text: 'text-teal-900', bg: 'bg-teal-300', ratio: '9.8:1' },
+                  { name: '400', hex: '#2dd4bf', text: 'text-teal-950', bg: 'bg-teal-400', ratio: '7.6:1' },
+                  { name: '500', hex: '#14b8a6', text: 'text-white', bg: 'bg-teal-500', ratio: '3.8:1' },
+                  { name: '600', hex: '#0d9488', text: 'text-white', bg: 'bg-teal-600', ratio: '5.2:1 (AA)' },
+                  { name: '700', hex: '#0f766e', text: 'text-white', bg: 'bg-teal-700', ratio: '7.1:1 (AAA)' },
+                  { name: '800', hex: '#115e59', text: 'text-white', bg: 'bg-teal-800', ratio: '9.4:1 (AAA)' },
+                  { name: '900', hex: '#134e4a', text: 'text-white', bg: 'bg-teal-900', ratio: '11.8:1 (AAA)' },
+                ].map((c) => (
+                  <div key={c.name} className="flex flex-col gap-1">
+                    <div
+                      className={`h-16 rounded-lg ${c.bg} ${c.text} flex flex-col justify-between p-2 shadow-xs border border-line/40`}
+                    >
+                      <span className="text-caption font-bold">{c.name}</span>
+                      <span className="text-[10px] font-mono opacity-80">{c.hex}</span>
+                    </div>
+                    <span className="text-[10px] text-fg-muted text-center">{c.ratio}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-label font-semibold text-fg-secondary mb-3">
+                المحايدات الدافئة (Warm Sand Neutrals — Surfaces & Borders)
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2">
+                {[
+                  { name: '50', hex: '#fbfaf8', text: 'text-sand-900', bg: 'bg-sand-50' },
+                  { name: '100', hex: '#f7f5f0', text: 'text-sand-900', bg: 'bg-sand-100' },
+                  { name: '200', hex: '#eee9df', text: 'text-sand-900', bg: 'bg-sand-200' },
+                  { name: '300', hex: '#dfd7c7', text: 'text-sand-900', bg: 'bg-sand-300' },
+                  { name: '400', hex: '#c8bba4', text: 'text-sand-950', bg: 'bg-sand-400' },
+                  { name: '500', hex: '#ac9a7f', text: 'text-white', bg: 'bg-sand-500' },
+                  { name: '600', hex: '#8f7b62', text: 'text-white', bg: 'bg-sand-600' },
+                  { name: '700', hex: '#71604c', text: 'text-white', bg: 'bg-sand-700' },
+                  { name: '800', hex: '#524638', text: 'text-white', bg: 'bg-sand-800' },
+                  { name: '900', hex: '#332b22', text: 'text-white', bg: 'bg-sand-900' },
+                ].map((c) => (
+                  <div key={c.name} className="flex flex-col gap-1">
+                    <div
+                      className={`h-16 rounded-lg ${c.bg} ${c.text} flex flex-col justify-between p-2 shadow-xs border border-line/40`}
+                    >
+                      <span className="text-caption font-bold">{c.name}</span>
+                      <span className="text-[10px] font-mono opacity-80">{c.hex}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Semantic surface tokens */}
+            <div>
+              <h3 className="text-label font-semibold text-fg-secondary mb-3">
+                المساحات والأسطح الوظيفية (Semantic Surfaces)
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="p-4 rounded-lg bg-page border border-line flex flex-col gap-1">
+                  <span className="text-caption font-semibold">--bg-page</span>
+                  <span className="text-caption text-fg-muted font-mono">خلفية الصفحة العامة</span>
+                </div>
+                <div className="p-4 rounded-lg bg-surface border border-line shadow-xs flex flex-col gap-1">
+                  <span className="text-caption font-semibold">--bg-surface</span>
+                  <span className="text-caption text-fg-muted font-mono">البطاقات والحاويات</span>
+                </div>
+                <div className="p-4 rounded-lg bg-subtle border border-line flex flex-col gap-1">
+                  <span className="text-caption font-semibold">--bg-subtle</span>
+                  <span className="text-caption text-fg-muted font-mono">الحقول ورؤوس الجداول</span>
+                </div>
+                <div className="p-4 rounded-lg bg-brand-soft border border-line flex flex-col gap-1 text-fg-brand">
+                  <span className="text-caption font-semibold">--bg-brand-soft</span>
+                  <span className="text-caption text-fg-muted font-mono">التمييز التفاعلي</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================= */}
+        {/* 2. TYPOGRAPHY SCALE & NUMBERS                            */}
+        {/* ========================================================= */}
+        <section className="flex flex-col gap-6" id="typography">
+          <div className="border-b border-line pb-3">
+            <h2 className="text-h2 font-bold text-fg-primary flex items-center gap-2">
+              <Type className="h-6 w-6 text-fg-brand" />
+              <span>٢. مقياس الطباعة والخطوط (Typography Scale)</span>
+            </h2>
+            <p className="text-body-sm text-fg-secondary mt-1">
+              خط IBM Plex Sans Arabic للنصوص و IBM Plex Mono للأرقام الجدولية والمعادلات.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+            <div className="flex flex-col gap-1 border-b border-line pb-4">
+              <span className="text-caption text-fg-muted font-mono">Display (clamp 32px – 56px, 700)</span>
+              <div className="text-display font-bold">بوابة صفقات وخدمات الأعمال في مصر</div>
+            </div>
+
+            <div className="flex flex-col gap-1 border-b border-line pb-4">
+              <span className="text-caption text-fg-muted font-mono">H1 (clamp 26px – 32px, 700)</span>
+              <div className="text-h1 font-bold">لوحة إدارة الفرص والشركات المؤهلة</div>
+            </div>
+
+            <div className="flex flex-col gap-1 border-b border-line pb-4">
+              <span className="text-caption text-fg-muted font-mono">H2 (24px, 600)</span>
+              <div className="text-h2 font-semibold">استعراض الفرص والتحقق من البيانات</div>
+            </div>
+
+            <div className="flex flex-col gap-1 border-b border-line pb-4">
+              <span className="text-caption text-fg-muted font-mono">H3 (20px, 600)</span>
+              <div className="text-h3 font-semibold">تفاصيل نشاط الشركة وتقييم الفرصة</div>
+            </div>
+
+            <div className="flex flex-col gap-1 border-b border-line pb-4">
+              <span className="text-caption text-fg-muted font-mono">H4 (18px, 600)</span>
+              <div className="text-h4 font-semibold">مستشفى الكوثر التخصصي — التجمع الخامس</div>
+            </div>
+
+            <div className="flex flex-col gap-1 border-b border-line pb-4">
+              <span className="text-caption text-fg-muted font-mono">Body (16px, 400, line-height 1.7)</span>
+              <p className="text-body text-fg-secondary max-w-[70ch]">
+                نظام LeadForge يعتمد على معايير حتمية صارمة لاكتشاف واحتساب جودة الفرص التجارية دون أي تخمينات عشوائية أو أيقونات ذكاء اصطناعي مضللة.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-1 border-b border-line pb-4">
+              <span className="text-caption text-fg-muted font-mono">Body Small & Label (14px, 500 / 400)</span>
+              <div className="flex items-center gap-4">
+                <span className="text-label font-medium text-fg-primary">تصنيف النشاط التجاري</span>
+                <span className="text-body-sm text-fg-secondary">القاهرة الجديدة، التجمع الأول</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-caption text-fg-muted font-mono">Caption (12px, 400) & Tabular Numerals (.ltr-iso)</span>
+              <div className="flex items-center gap-4 text-caption text-fg-muted">
+                <span>تم التحديث منذ ٣ أيام</span>
+                <span className="ltr-iso font-mono font-semibold text-fg-primary tabular-nums">
+                  +150 نقطة / 01012345678
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================= */}
+        {/* 3. PRIMITIVES SHOWCASE (PHASE 2)                         */}
+        {/* ========================================================= */}
+        <section className="flex flex-col gap-6" id="primitives">
+          <div className="border-b border-line pb-3">
+            <h2 className="text-h2 font-bold text-fg-primary flex items-center gap-2">
+              <Sliders className="h-6 w-6 text-fg-brand" />
+              <span>٣. المكونات الأولية (UI Primitives in All States)</span>
+            </h2>
+            <p className="text-body-sm text-fg-secondary mt-1">
+              جميع عناصر الواجهة الأساسية: أزرار، حقول إدخال، نوافذ منبثقة، جداول، وتبويبات.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-8">
+            {/* BUTTONS */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-4">
+              <h3 className="text-h3 font-semibold text-fg-primary">الأزرار (Button Variants & Sizes)</h3>
+              
+              <div className="flex flex-wrap items-center gap-3">
+                <Button variant="primary" size="lg">تأكيد الشراء (Primary LG)</Button>
+                <Button variant="primary" size="md">زر أساسي (MD)</Button>
+                <Button variant="primary" size="sm">زر صغير (SM)</Button>
+                <Button variant="primary" size="md" isLoading>جاري المعالجة</Button>
+                <Button variant="primary" size="md" disabled>معطّل</Button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <Button variant="secondary" size="md">زر ثانوي (Secondary)</Button>
+                <Button variant="ghost" size="md">زر شفاف (Ghost)</Button>
+                <Button variant="danger" size="md">حذف السجل (Danger)</Button>
+                <Button variant="link" size="md">رابط نصي (Link)</Button>
+                <IconButton aria-label="نسخ الكود" size="md">
+                  <Copy className="h-4 w-4" />
+                </IconButton>
+              </div>
+            </div>
+
+            {/* FORM CONTROLS */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-4">
+              <h3 className="text-h3 font-semibold text-fg-primary">حقول الاستمارات والإدخال (Form Controls)</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Input
+                  label="اسم النشاط التجاري"
+                  placeholder="مثال: عيادات النور"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  helperText="الاسم التجاري المسجل في البطاقة الضريبية."
+                />
+
+                <Input
+                  label="رقم الهاتف المصري"
+                  placeholder="01012345678"
+                  error="أدخل رقم هاتف مصري صحيح يبدأ بـ 01."
+                  dir="ltr"
+                />
+
+                <Select
+                  label="المحافظة"
+                  value={selectValue}
+                  onChange={(e) => setSelectValue(e.target.value)}
+                  options={[
+                    { value: 'cairo', label: 'القاهرة' },
+                    { value: 'giza', label: 'الجيزة' },
+                    { value: 'alex', label: 'الإسكندرية' },
+                  ]}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                <MultiSelect
+                  label="المدن والمناطق المستهدفة"
+                  options={[
+                    { value: 'cairo', label: 'القاهرة' },
+                    { value: 'giza', label: 'الجيزة' },
+                    { value: 'new_cairo', label: 'القاهرة الجديدة' },
+                    { value: 'maadi', label: 'المعادي' },
+                    { value: 'zayed', label: 'الشيخ زايد' },
+                  ]}
+                  value={selectedCities}
+                  onChange={setSelectedCities}
+                />
+
+                <Textarea
+                  label="ملاحظات المطور (اختياري)"
+                  placeholder="أدخل أي ملاحظات إضافية حول الصفقة..."
+                  value={textareaValue}
+                  onChange={(e) => setTextareaValue(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-8 pt-3 border-t border-line">
+                <Checkbox
+                  id="chk1"
+                  label="تفعيل التنبيهات الفورية"
+                  checked={checkboxVal}
+                  onChange={(e) => setCheckboxVal(e.target.checked)}
+                />
+
+                <Radio
+                  name="radioGroup"
+                  value="opt1"
+                  label="خيار رئيسي"
+                  checked={radioVal === 'opt1'}
+                  onChange={() => setRadioVal('opt1')}
+                />
+
+                <Radio
+                  name="radioGroup"
+                  value="opt2"
+                  label="خيار بديل"
+                  checked={radioVal === 'opt2'}
+                  onChange={() => setRadioVal('opt2')}
+                />
+
+                <Switch
+                  checked={switchVal}
+                  onChange={(e) => setSwitchVal(e.target.checked)}
+                  label="تطبيق الفلترة التلقائية"
+                />
+              </div>
+            </div>
+
+            {/* BANNERS & NOTIFICATIONS */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-4">
+              <h3 className="text-h3 font-semibold text-fg-primary">اللافتات والتنبيهات (Banners & Feedback)</h3>
+
+              <Banner variant="info">
+                <span>تخضع جميع الفرص في هذا القسم للمراجعة الآلية والفحص الدوري.</span>
+              </Banner>
+
+              <Banner variant="warning">
+                <span>رصيدك الحالي أقل من سعر بعض الفرص الحصرية. يمكنك شحن رصيدك للمتابعة.</span>
+              </Banner>
+
+              <Banner variant="danger">
+                <span>تعذّر الاتصال بخادم المزامنة. يرجى التحقق من الاتصال وإعادة المحاولة.</span>
+              </Banner>
+
+              <div className="pt-2 flex items-center gap-3">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => showToast('تم نسخ رقم الهاتف بنجاح.', 'success')}
+                >
+                  إطلاق إشعار نجاح (Toast)
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => showToast('حدث خطأ أثناء الاتصال.', 'error')}
+                >
+                  إطلاق إشعار خطأ (Toast)
+                </Button>
+              </div>
+            </div>
+
+            {/* LOCKED FIELD DEMO */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-3">
+              <h3 className="text-h3 font-semibold text-fg-primary">حماية البيانات المغلقة (LockedField)</h3>
+              <p className="text-body-sm text-fg-secondary">
+                تُعرض حقول الاتصال معتمة مع أيقونة القفل للفرص التي لم يتم شراؤها بعد.
+              </p>
+
+              <div className="max-w-md flex flex-col gap-3 p-4 rounded-lg bg-subtle border border-line">
+                <div className="flex items-center justify-between">
+                  <span className="text-caption text-fg-secondary">رقم الهاتف:</span>
+                  <LockedField type="phone" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-caption text-fg-secondary">البريد الإلكتروني:</span>
+                  <LockedField type="email" />
+                </div>
+              </div>
+            </div>
+
+            {/* TABS & PAGINATION */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">التبويبات والترقيم (Tabs & Pagination)</h3>
+
+              <div>
+                <span className="text-caption text-fg-muted mb-2 block">نمط الخط السفلي (Underline Tabs):</span>
+                <Tabs
+                  variant="underline"
+                  tabs={[
+                    { id: 'all', label: 'جميع الفرص' },
+                    { id: 'hot', label: 'فرص ساخنة' },
+                    { id: 'exclusive', label: 'فرص حصرية' },
+                  ]}
+                  activeTab={activeTab}
+                  onChange={setActiveTab}
+                />
+              </div>
+
+              <div>
+                <span className="text-caption text-fg-muted mb-2 block">نمط الكبسولات المقسمة (Segmented Pills):</span>
+                <Tabs
+                  variant="segmented"
+                  tabs={[
+                    { id: 'grid', label: 'عرض كشبكة' },
+                    { id: 'table', label: 'عرض كجدول' },
+                  ]}
+                  activeTab="grid"
+                  onChange={() => {}}
+                />
+              </div>
+
+              <div className="pt-2">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={8}
+                  totalItems={80}
+                  pageSize={10}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================= */}
+        {/* 4. DOMAIN COMPONENTS SHOWCASE (PHASE 3)                    */}
+        {/* ========================================================= */}
+        <section className="flex flex-col gap-6" id="domain">
+          <div className="border-b border-line pb-3">
+            <h2 className="text-h2 font-bold text-fg-primary flex items-center gap-2">
+              <Shield className="h-6 w-6 text-fg-brand" />
+              <span>٤. مكونات النطاق المخصصة (Domain Components & Enums)</span>
+            </h2>
+            <p className="text-body-sm text-fg-secondary mt-1">
+              مطابقة دقيقة مع الـ Enums الحقيقية في قاعدة البيانات (AUDIT.md).
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-8">
+            {/* ENUM SHOWCASE: OPPORTUNITY TIER */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-4">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                شارات درجات الفرص والحرارة (LeadTemperature — Spec 6.1)
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-4 rounded-lg border border-line bg-subtle flex flex-col gap-2">
+                  <span className="text-caption font-mono text-fg-muted">COLD (1/4 dots)</span>
+                  <OpportunityBadge temperature="COLD" score={25} />
+                </div>
+                <div className="p-4 rounded-lg border border-line bg-subtle flex flex-col gap-2">
+                  <span className="text-caption font-mono text-fg-muted">WARM (2/4 dots)</span>
+                  <OpportunityBadge temperature="WARM" score={58} />
+                </div>
+                <div className="p-4 rounded-lg border border-line bg-subtle flex flex-col gap-2">
+                  <span className="text-caption font-mono text-fg-muted">HOT (3/4 dots)</span>
+                  <OpportunityBadge temperature="HOT" score={84} />
+                </div>
+                <div className="p-4 rounded-lg border border-line bg-subtle flex flex-col gap-2">
+                  <span className="text-caption font-mono text-fg-muted">PREMIUM (4/4 dots)</span>
+                  <OpportunityBadge temperature="PREMIUM" score={96} />
+                </div>
+              </div>
+            </div>
+
+            {/* ENUM SHOWCASE: QUALITY & FRESHNESS */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-4">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                مؤشرات جودة وحداثة البيانات (Freshness & Verification — Spec 6.2)
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
+                  <span className="text-[11px] font-mono text-fg-muted">FRESH</span>
+                  <QualityIndicator status="FRESH" timestamp={new Date()} />
+                </div>
+                <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
+                  <span className="text-[11px] font-mono text-fg-muted">AGING</span>
+                  <QualityIndicator status="AGING" timestamp={new Date(Date.now() - 86400000 * 5)} />
+                </div>
+                <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
+                  <span className="text-[11px] font-mono text-fg-muted">STALE</span>
+                  <QualityIndicator status="STALE" timestamp={new Date(Date.now() - 86400000 * 45)} />
+                </div>
+                <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
+                  <span className="text-[11px] font-mono text-fg-muted">UNVERIFIED</span>
+                  <QualityIndicator status="UNVERIFIED" />
+                </div>
+                <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
+                  <span className="text-[11px] font-mono text-fg-muted">VERIFIED</span>
+                  <QualityIndicator status="VERIFIED" timestamp={new Date()} />
+                </div>
+                <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
+                  <span className="text-[11px] font-mono text-fg-muted">REVERIFYING</span>
+                  <QualityIndicator status="REVERIFYING" />
+                </div>
+              </div>
+            </div>
+
+            {/* ENUM SHOWCASE: OWNERSHIP & STAGES */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-4">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                نوع التوزيع ومراحل الصفقات (Ownership & Pipeline Stages — Spec 6.3 & 6.4)
+              </h3>
+              
+              <div className="flex flex-wrap items-center gap-4 pb-3 border-b border-line">
+                <OwnershipTag type="EXCLUSIVE" />
+                <OwnershipTag type="SHARED" seatsRemaining={2} maxSeats={3} />
+                <OwnershipTag type="SHARED" seatsRemaining={0} maxSeats={3} />
+                <CreditChip balance={280} />
+                <CreditChip balance={5} />
+              </div>
+
+              <div>
+                <span className="text-caption text-fg-muted mb-2 block">حالات الصفقات في خط سير المبيعات (PipelineStatus):</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <StageBadge stage="NEW" />
+                  <StageBadge stage="CLAIMED" />
+                  <StageBadge stage="CONTACTED" />
+                  <StageBadge stage="INTERESTED" />
+                  <StageBadge stage="MEETING" />
+                  <StageBadge stage="PROPOSAL_SENT" />
+                  <StageBadge stage="NEGOTIATION" />
+                  <StageBadge stage="WON" />
+                  <StageBadge stage="LOST" />
+                  <StageBadge stage="INVALID" />
+                </div>
+              </div>
+            </div>
+
+            {/* SCORE PAIR & SCORE BREAKDOWN */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                كتل تقييم الفرصة وتفكيك القواعد (ScorePair & ScoreBreakdown — Spec 7.9)
+              </h3>
+
+              <ScorePair
+                opportunityScore={85}
+                temperature="HOT"
+                qualityScore={90}
+                qualityStatus="VERIFIED"
+                freshnessTimestamp={new Date()}
+                onWhyClick={() => setIsScoreDrawerOpen(true)}
+              />
+
+              <div className="max-w-2xl">
+                <ScoreBreakdown
+                  totalScore={85}
+                  rules={[
+                    { label: 'النشاط لا يمتلك موقعاً إلكترونياً مسجلاً', points: 30, maxWeight: 35 },
+                    { label: 'تقييم ممتاز على خرائط جوجل مع تفاعل نشط', points: 25, maxWeight: 30 },
+                    { label: 'يمتلك النشاط أكثر من فرعين تجاريين', points: 20, maxWeight: 25 },
+                    { label: 'رقم هاتف محمول مخصص للتواصل المباشر', points: 15, maxWeight: 20 },
+                    { label: 'تحديث بيانات الموقع منذ أكثر من ٩٠ يوماً', points: -5, maxWeight: 20 },
+                  ]}
+                />
+              </div>
+            </div>
+
+            {/* LEAD CARD & LEAD ROW */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                بطاقة الفرصة وصف الجدول (LeadCard & LeadRow — Spec 7.8)
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <LeadCard
+                  id="lead-1"
+                  companyName="مستشفى الشروق التخصصي"
+                  category="رعاية صحية ومستشفيات"
+                  location="القاهرة الجديدة"
+                  temperature="HOT"
+                  score={88}
+                  ownershipType="EXCLUSIVE"
+                  qualityStatus="VERIFIED"
+                  qualityTimestamp={new Date()}
+                  price={60}
+                  signals={['بدون موقع', 'تقييمات مرتفعة', 'عدة فروع']}
+                  onViewLead={() => setIsPurchaseModalOpen(true)}
+                />
+
+                <LeadCard
+                  id="lead-2"
+                  companyName="سلسلة مطاعم كرم الشام"
+                  category="مطاعم ومأكولات"
+                  location="مدينة نصر"
+                  temperature="PREMIUM"
+                  score={95}
+                  ownershipType="SHARED"
+                  seatsRemaining={2}
+                  maxSeats={3}
+                  qualityStatus="FRESH"
+                  qualityTimestamp={new Date()}
+                  price={45}
+                  signals={['طلب متزايد', 'توسع سريع']}
+                  onViewLead={() => setIsPurchaseModalOpen(true)}
+                />
+
+                <LeadCard
+                  id="lead-3"
+                  companyName="مكتب الأندلس للمحاماة والاستشارات"
+                  category="خدمات قانونية"
+                  location="المعادي"
+                  temperature="WARM"
+                  score={62}
+                  ownershipType="EXCLUSIVE"
+                  qualityStatus="AGING"
+                  qualityTimestamp={new Date(Date.now() - 86400000 * 10)}
+                  price={35}
+                  signals={['بدون بريد تجاري']}
+                  onViewLead={() => setIsPurchaseModalOpen(true)}
+                />
+              </div>
+
+              <div className="pt-4 overflow-x-auto border border-line rounded-lg bg-surface">
+                <table className="w-full text-start">
+                  <thead>
+                    <tr className="border-b border-line bg-subtle text-caption font-semibold text-fg-secondary">
+                      <th className="px-4 py-2.5 text-start">اسم النشاط</th>
+                      <th className="px-4 py-2.5 text-start">درجة الفرصة</th>
+                      <th className="px-4 py-2.5 text-start">الجودة</th>
+                      <th className="px-4 py-2.5 text-start">التوزيع</th>
+                      <th className="px-4 py-2.5 text-end">السعر</th>
+                      <th className="px-4 py-2.5 text-end">الإجراء</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <LeadRow
+                      id="lead-tbl-1"
+                      companyName="مستشفى الشروق التخصصي"
+                      category="رعاية صحية"
+                      location="القاهرة الجديدة"
+                      temperature="HOT"
+                      score={88}
+                      ownershipType="EXCLUSIVE"
+                      qualityStatus="VERIFIED"
+                      qualityTimestamp={new Date()}
+                      price={60}
+                      onViewLead={() => setIsPurchaseModalOpen(true)}
+                    />
+                    <LeadRow
+                      id="lead-tbl-2"
+                      companyName="سلسلة مطاعم كرم الشام"
+                      category="مطاعم"
+                      location="مدينة نصر"
+                      temperature="PREMIUM"
+                      score={95}
+                      ownershipType="SHARED"
+                      seatsRemaining={1}
+                      maxSeats={3}
+                      qualityStatus="FRESH"
+                      qualityTimestamp={new Date()}
+                      price={45}
+                      onViewLead={() => setIsPurchaseModalOpen(true)}
+                    />
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* PACKAGE CARDS (HOSTINGER CALIBRATION) */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                باقات شحن الرصيد (PackageCard — Hostinger Calibration Layout)
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <PackageCard
+                  id="pkg-basic"
+                  name="الباقة الأساسية"
+                  points={50}
+                  priceEGP={500}
+                  features={[
+                    '٥٠ نقطة صالحة لكافة الفرص',
+                    'وصول فوري لبيانات الاتصال',
+                    'دعم فني عبر البريد الإلكتروني',
+                  ]}
+                  onSelectPackage={() => showToast('تم اختيار الباقة الأساسية', 'info')}
+                />
+
+                <PackageCard
+                  id="pkg-pro"
+                  name="الباقة الاحترافية"
+                  points={200}
+                  priceEGP={1600}
+                  isRecommended
+                  recommendedReason="الأنسب للشركات المستقلة وفرق المبيعات النشطة"
+                  features={[
+                    '٢٠٠ نقطة مع أفضل قيمة لكل نقطة',
+                    'أولوية الوصول للفرص الحصرية المميزة',
+                    'تنبيهات فورية بمجرد توفر فرص مطابقة',
+                    'دعم فني مباشر عبر واتساب',
+                  ]}
+                  onSelectPackage={() => showToast('تم اختيار الباقة الاحترافية', 'success')}
+                />
+
+                <PackageCard
+                  id="pkg-growth"
+                  name="باقة النمو المتقدم"
+                  points={500}
+                  priceEGP={3500}
+                  features={[
+                    '٥٠٠ نقطة مخصصة لفرق العمل الكبيرة',
+                    'تصدير مباشر لبيانات الاتصال إلى CRM',
+                    'مستشار حساب مخصص',
+                    'ضمان استرداد النقاط في حال تعذر الوصول',
+                  ]}
+                  onSelectPackage={() => showToast('تم اختيار باقة النمو', 'info')}
+                />
+              </div>
+            </div>
+
+            {/* PIPELINE & KANBAN */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                لوحة متابعة الصفقات (Pipeline Columns & Cards — Spec 7.13)
+              </h3>
+
+              <div className="flex gap-4 overflow-x-auto pb-4">
+                <PipelineColumn title="تم الشراء (جديدة)" count={2}>
+                  <PipelineCard
+                    lead={{
+                      id: 'p-1',
+                      businessName: 'مستشفى الشروق',
+                      temperature: 'HOT',
+                      score: 88,
+                      stage: 'CLAIMED',
+                      lastActivityDate: new Date(),
+                    }}
+                    stages={['CLAIMED', 'CONTACTED', 'MEETING', 'WON']}
+                  />
+                  <PipelineCard
+                    lead={{
+                      id: 'p-2',
+                      businessName: 'معامل البرج فرع زايد',
+                      temperature: 'WARM',
+                      score: 72,
+                      stage: 'CLAIMED',
+                      lastActivityDate: new Date(Date.now() - 86400000 * 2),
+                    }}
+                    stages={['CLAIMED', 'CONTACTED', 'MEETING', 'WON']}
+                  />
+                </PipelineColumn>
+
+                <PipelineColumn title="تم التواصل" count={1}>
+                  <PipelineCard
+                    lead={{
+                      id: 'p-3',
+                      businessName: 'كرم الشام مدينة نصر',
+                      temperature: 'PREMIUM',
+                      score: 95,
+                      stage: 'CONTACTED',
+                      lastActivityDate: new Date(Date.now() - 86400000),
+                    }}
+                    stages={['CLAIMED', 'CONTACTED', 'MEETING', 'WON']}
+                  />
+                </PipelineColumn>
+
+                <PipelineColumn title="اجتماع مجدول" count={1}>
+                  <PipelineCard
+                    lead={{
+                      id: 'p-4',
+                      businessName: 'الأندلس للاستشارات',
+                      temperature: 'WARM',
+                      score: 65,
+                      stage: 'MEETING',
+                      lastActivityDate: new Date(),
+                    }}
+                    stages={['CLAIMED', 'CONTACTED', 'MEETING', 'WON']}
+                  />
+                </PipelineColumn>
+              </div>
+            </div>
+
+            {/* DUPLICATE MERGE COMPARE */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                مقارنة السجلات المكررة للإدارة (MergeCompare — Spec 7.14)
+              </h3>
+
+              <MergeCompare
+                recordA={{
+                  id: 'REC-001',
+                  businessName: 'مستشفى الشروق التخصصي',
+                  phone: '01012345678',
+                  email: 'info@shorouk-hospital.com',
+                  category: 'مستشفيات ورعاية صحية',
+                  city: 'القاهرة الجديدة',
+                  address: 'شارع التسعين الشمالي، التجمع الخامس',
+                  source: 'سجل تجاري إلكتروني',
+                }}
+                recordB={{
+                  id: 'REC-002',
+                  businessName: 'مستشفى الشروق التخصصي فرع التجمع',
+                  phone: '01012345678',
+                  email: 'contact@shoroukhospital.eg',
+                  category: 'مستشفيات',
+                  city: 'القاهرة',
+                  address: 'التسعين الشمالي، بجوار مجمع البنوك',
+                  source: 'خرائط جوجل',
+                }}
+                matchLevel="المستوى الرابع (مطابقة دقيقة برقم الهاتف)"
+                ruleMatched="RULE_EXACT_PHONE_MATCH"
+                onMerge={(target) => showToast(`تم اعتماد السجل (${target}) ودمج البيانات`, 'success')}
+                onNotDuplicate={() => showToast('تم تأكيد أن السجلين لنشاطين مختلفين', 'info')}
+                onSkip={() => showToast('تم تخطي المراجعة مؤقتاً', 'info')}
+              />
+            </div>
+
+            {/* RULE WEIGHT EDITOR */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                محرر أوزان القواعد الحتمية (RuleWeightEditor — Spec 7.14)
+              </h3>
+
+              <RuleWeightEditor
+                initialRules={[
+                  {
+                    id: 'r1',
+                    name: 'عدم وجود موقع إلكتروني',
+                    conditionDescription: 'النشاط لا يمتلك رابط موقع مسجل وصالح',
+                    expressionCode: 'websiteStatus == NONE',
+                    weight: 30,
+                    originalWeight: 30,
+                  },
+                  {
+                    id: 'r2',
+                    name: 'تقييم خرائط جوجل أعلى من 4.2',
+                    conditionDescription: 'عدد التقييمات أكثر من 15 مع متوسط إيجابي',
+                    expressionCode: 'rating >= 4.2 && reviews >= 15',
+                    weight: 25,
+                    originalWeight: 25,
+                  },
+                  {
+                    id: 'r3',
+                    name: 'تعدد الفروع التجارية',
+                    conditionDescription: 'النشاط يمتلك فرعين تجاريين أو أكثر',
+                    expressionCode: 'branchCount >= 2',
+                    weight: 20,
+                    originalWeight: 20,
+                  },
+                ]}
+                onSave={async () => {
+                  showToast('تم حفظ أوزان القواعد وتحديث محرك التقييم بنجاح', 'success');
+                }}
+              />
+            </div>
+
+            {/* STEPPER ONBOARDING */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                خطوات الإعداد والتهيئة (Stepper — Spec 7.15)
+              </h3>
+
+              <Stepper
+                currentStep={stepperIndex}
+                onNext={() => setStepperIndex((prev) => Math.min(2, prev + 1))}
+                onPrev={() => setStepperIndex((prev) => Math.max(0, prev - 1))}
+                steps={[
+                  {
+                    title: 'تحديد التخصص والخدمات التي تقدمها',
+                    helper: 'اختر مجالات خبرتك البرمجية ليتم ربطك بالشركات التي تحتاج خدماتك بالتحديد.',
+                    content: (
+                      <div className="flex flex-col gap-3 py-2">
+                        <Checkbox id="s1" label="تطوير المواقع والمنصات الإلكترونية" checked />
+                        <Checkbox id="s2" label="تطبيقات الهواتف الذكية (iOS & Android)" checked />
+                        <Checkbox id="s3" label="أنظمة إدارة وتخطيط الموارد (ERP & CRM)" />
+                      </div>
+                    ),
+                  },
+                  {
+                    title: 'تحديد النطاق الجغرافي المستهدف',
+                    helper: 'اختر المحافظات والمدن التي تفضل العمل مع عملاء بداخلها.',
+                    content: (
+                      <div className="flex flex-col gap-3 py-2">
+                        <Checkbox id="g1" label="محافظة القاهرة" checked />
+                        <Checkbox id="g2" label="محافظة الجيزة" checked />
+                        <Checkbox id="g3" label="محافظة الإسكندرية" />
+                      </div>
+                    ),
+                  },
+                  {
+                    title: 'مراجعة الفرص المتطابقة مع ملفك',
+                    helper: 'تم فحص قاعدة البيانات وتصفية الفرص المناسبة لمجالك الجغرافي والتقني.',
+                    content: (
+                      <div className="p-4 rounded-lg bg-subtle border border-line text-body-sm text-fg-primary">
+                        تم العثور على <strong className="text-fg-brand font-semibold">١٨ فرصة نشطة</strong> تطابق خياراتك بالكامل.
+                      </div>
+                    ),
+                  },
+                ]}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* ========================================================= */}
+      {/* INTERACTIVE MODALS & DRAWERS                              */}
+      {/* ========================================================= */}
+      <PurchaseConfirm
+        isOpen={isPurchaseModalOpen}
+        onClose={() => setIsPurchaseModalOpen(false)}
+        lead={{
+          id: 'lead-sample',
+          name: 'مستشفى الشروق التخصصي',
+          temperature: 'HOT',
+          score: 88,
+          ownershipType: 'EXCLUSIVE',
+          price: 60,
+          phone: '01012345678',
+          email: 'admin@shorouk-hospital.com',
+        }}
+        userBalance={purchaseModalState === 'insufficient_balance' ? 30 : 180}
+        onConfirmPurchase={async () => {
+          await new Promise((res) => setTimeout(res, 800));
+        }}
+        onTopUpRedirect={() => showToast('الانتقال إلى صفحة شحن الرصيد', 'info')}
+      />
+
+      <Drawer
+        isOpen={isScoreDrawerOpen}
+        onClose={() => setIsScoreDrawerOpen(false)}
+        title="لماذا هذه الدرجة؟"
+      >
+        <div className="p-6">
+          <ScoreBreakdown
+            totalScore={85}
+            rules={[
+              { label: 'النشاط لا يمتلك موقعاً إلكترونياً مسجلاً', points: 30, maxWeight: 35 },
+              { label: 'تقييم ممتاز على خرائط جوجل مع تفاعل نشط', points: 25, maxWeight: 30 },
+              { label: 'يمتلك النشاط أكثر من فرعين تجاريين', points: 20, maxWeight: 25 },
+              { label: 'رقم هاتف محمول مخصص للتواصل المباشر', points: 15, maxWeight: 20 },
+              { label: 'تحديث بيانات الموقع منذ أكثر من ٩٠ يوماً', points: -5, maxWeight: 20 },
+            ]}
+          />
+        </div>
+      </Drawer>
+    </div>
+  );
+}
