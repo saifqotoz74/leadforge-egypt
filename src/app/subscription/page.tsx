@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatTile } from '@/components/domain/StatTile';
@@ -11,8 +12,10 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Banner } from '@/components/ui/Banner';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import Link from 'next/link';
 import { fmtDate, fmtNumber } from '@/lib/format';
-import { CreditCard, CheckCircle2 } from 'lucide-react';
+import { CreditCard, ArrowRight } from 'lucide-react';
 
 interface PlanItem {
   id: string;
@@ -48,6 +51,7 @@ interface PaymentRecord {
 }
 
 export default function SubscriptionPage() {
+  const t = useTranslations('credits');
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [plans, setPlans] = useState<PlanItem[]>([]);
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
@@ -99,11 +103,11 @@ export default function SubscriptionPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setMsg({ type: 'danger', text: data.error || 'تعذر تفعيل الباقة.' });
+        setMsg({ type: 'danger', text: data.error || t('activateError') });
       } else {
         setMsg({
           type: 'info',
-          text: `تم تفعيل ${confirmPlan.name} بنجاح! رصيدك الحالي: ${data.subscription.credits} نقطة.`,
+          text: t('activateSuccess', { name: confirmPlan.name, credits: fmtNumber(data.subscription?.credits ?? 0) }),
         });
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('leadforge:user-updated'));
@@ -119,7 +123,7 @@ export default function SubscriptionPage() {
   return (
     <AppShell
       density="comfortable"
-      pageTitle="الرصيد والباقات"
+      pageTitle={t('title')}
       userCredits={subscription?.credits}
     >
       {loading ? (
@@ -140,12 +144,23 @@ export default function SubscriptionPage() {
         <div className="flex flex-col gap-8">
           {/* Template T6 PageHeader */}
           <PageHeader
-            title="الرصيد والباقات"
-            description="إدارة رصيد النقاط، باقات الاشتراك، وسجل الحركات والمدفوعات."
+            title={t('title')}
+            description={t('desc')}
             breadcrumbs={[
-              { label: 'لوحة القيادة', href: '/dashboard' },
-              { label: 'الرصيد والباقات' },
+              { label: t('bcDashboard'), href: '/dashboard' },
+              { label: t('bcCredits') },
             ]}
+            actions={
+              <Link href="/leads">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  startIcon={<ArrowRight className="w-4 h-4 rtl:-scale-x-100" />}
+                >
+                  {t('bcDashboard')}
+                </Button>
+              </Link>
+            }
           />
 
           {/* Feedback Message Banner */}
@@ -154,31 +169,31 @@ export default function SubscriptionPage() {
           {/* Active Balance and Subscription Summary (StatTiles per Spec 7.11) */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatTile
-              label="الرصيد المتبقي"
+              label={t('remainingBalance')}
               value={subscription?.credits ?? 0}
-              unit="نقطة"
-              statusText="رصيد جاهز للاستخدام"
+              unit={t('pointsUnit')}
+              statusText={t('readyToUse')}
             />
             <StatTile
-              label="الرصيد الممنوح"
+              label={t('grantedBalance')}
               value={subscription?.totalCreditsGranted ?? 0}
-              unit="نقطة شهرياً"
-              statusText={`باقة ${subscription?.plan?.name || 'المجانية'}`}
+              unit={t('pointsMonthly')}
+              statusText={t('planPrefix', { name: subscription?.plan?.name || t('freePlan') })}
             />
             <StatTile
-              label="المستهلك هذا الشهر"
+              label={t('consumedThisMonth')}
               value={subscription?.creditsUsed ?? 0}
-              unit="نقطة"
-              statusText="عمليات شراء واقتناص"
+              unit={t('pointsUnit')}
+              statusText={t('consumedDesc')}
             />
             <StatTile
-              label="تاريخ التجديد القادم"
+              label={t('nextRenewalDate')}
               value={
                 subscription?.currentPeriodEnd
                   ? fmtDate(new Date(subscription.currentPeriodEnd))
                   : '—'
               }
-              statusText="تجديد تلقائي"
+              statusText={t('autoRenewal')}
             />
           </div>
 
@@ -186,10 +201,10 @@ export default function SubscriptionPage() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <h2 className="text-h2 font-semibold text-fg-primary">
-                باقات شحن وتجديد الرصيد
+                {t('plansTitle')}
               </h2>
               <p className="text-body-sm text-fg-secondary">
-                اختر الباقة المناسبة لفريقك، تُضاف النقاط فورياً بعد الدفع.
+                {t('plansDesc')}
               </p>
             </div>
 
@@ -207,9 +222,9 @@ export default function SubscriptionPage() {
                     isRecommended={isCurrent || plan.slug === 'pro'}
                     recommendedReason={
                       isCurrent
-                        ? 'باقتك الحالية النشطة'
+                        ? t('currentActivePlan')
                         : plan.slug === 'pro'
-                        ? 'الأكثر طلباً للشركات والمستقلين'
+                        ? t('mostPopular')
                         : undefined
                     }
                     onSelectPackage={() => setConfirmPlan(plan)}
@@ -223,10 +238,10 @@ export default function SubscriptionPage() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <h2 className="text-h2 font-semibold text-fg-primary">
-                كشف حساب النقاط (Credit Ledger)
+                {t('ledgerTitle')}
               </h2>
               <p className="text-body-sm text-fg-secondary">
-                سجل تدقيق غير قابل للتعديل يوثق جميع عمليات الشحن والاستهلاك والاسترداد.
+                {t('ledgerDesc')}
               </p>
             </div>
 
@@ -238,25 +253,28 @@ export default function SubscriptionPage() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-fg-brand" />
-                <CardTitle>سجل المعاملات المدفوعة (Payment History)</CardTitle>
+                <CardTitle>{t('paymentsTitle')}</CardTitle>
               </div>
             </CardHeader>
 
             {payments.length === 0 ? (
-              <p className="py-6 text-center text-body-sm text-fg-secondary">
-                لا توجد معاملات مدفوعة مسجلة بعد.
-              </p>
+              <div className="py-6">
+                <EmptyState
+                  title={t('noPayments')}
+                  description={t('ledgerDesc')}
+                />
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-start border-collapse text-body-sm">
                   <thead>
                     <tr className="border-b border-line bg-subtle text-caption font-semibold text-fg-secondary h-11">
-                      <th className="py-2.5 px-4 text-start">رقم المرجع</th>
-                      <th className="py-2.5 px-4 text-start">الباقة</th>
-                      <th className="py-2.5 px-4 text-start">المبلغ المدفوع</th>
-                      <th className="py-2.5 px-4 text-start">النقاط المضافة</th>
-                      <th className="py-2.5 px-4 text-start">الحالة</th>
-                      <th className="py-2.5 px-4 text-end">التاريخ</th>
+                      <th className="py-2.5 px-4 text-start">{t('colRef')}</th>
+                      <th className="py-2.5 px-4 text-start">{t('colPlan')}</th>
+                      <th className="py-2.5 px-4 text-start">{t('colAmount')}</th>
+                      <th className="py-2.5 px-4 text-start">{t('colCredits')}</th>
+                      <th className="py-2.5 px-4 text-start">{t('colStatus')}</th>
+                      <th className="py-2.5 px-4 text-end">{t('colDate')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">
@@ -265,10 +283,10 @@ export default function SubscriptionPage() {
                         <td className="py-2.5 px-4 font-mono text-fg-primary">{p.providerRef}</td>
                         <td className="py-2.5 px-4 font-medium text-fg-primary">{p.plan?.name}</td>
                         <td className="py-2.5 px-4 ltr-iso font-mono tabular-nums text-fg-primary">
-                          {fmtNumber(p.amountEgp)} ج.م
+                          {fmtNumber(p.amountEgp)} {t('egp')}
                         </td>
                         <td className="py-2.5 px-4 ltr-iso font-mono font-semibold tabular-nums text-fg-brand">
-                          +{fmtNumber(p.creditsGranted)} نقطة
+                          +{fmtNumber(p.creditsGranted)} {t('pointsUnit')}
                         </td>
                         <td className="py-2.5 px-4">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-brand-soft text-fg-brand text-caption font-semibold">
@@ -290,7 +308,7 @@ export default function SubscriptionPage() {
           <Dialog
             isOpen={confirmPlan !== null}
             onClose={() => setConfirmPlan(null)}
-            title={confirmPlan ? `تأكيد الاشتراك في ${confirmPlan.name}` : ''}
+            title={confirmPlan ? t('confirmTitle', { name: confirmPlan.name }) : ''}
             footer={
               <div className="flex items-center justify-end gap-3 w-full">
                 <Button
@@ -298,14 +316,14 @@ export default function SubscriptionPage() {
                   onClick={() => setConfirmPlan(null)}
                   disabled={processing}
                 >
-                  إلغاء
+                  {t('cancel')}
                 </Button>
                 <Button
                   variant="primary"
                   onClick={handleConfirmUpgrade}
                   isLoading={processing}
                 >
-                  تأكيد وتفعيل الباقة
+                  {t('confirmBtn')}
                 </Button>
               </div>
             }
@@ -313,13 +331,14 @@ export default function SubscriptionPage() {
             {confirmPlan && (
               <div className="flex flex-col gap-3 py-2 text-body">
                 <p className="text-fg-primary leading-relaxed">
-                  سيتم تفعيل باقة <strong>{confirmPlan.name}</strong> بتكلفة{' '}
-                  <strong className="ltr-iso font-mono">{fmtNumber(confirmPlan.priceEgp)} ج.م</strong> شهرياً،
-                  وضبط رصيدك إلى{' '}
-                  <strong className="ltr-iso font-mono text-fg-brand">{fmtNumber(confirmPlan.monthlyCredits)} نقطة</strong>.
+                  {t('confirmBody', {
+                    name: confirmPlan.name,
+                    price: fmtNumber(confirmPlan.priceEgp),
+                    credits: fmtNumber(confirmPlan.monthlyCredits),
+                  })}
                 </p>
                 <div className="p-3 rounded-lg bg-subtle border border-line text-body-sm text-fg-secondary">
-                  تُضاف النقاط فورياً بعد تأكيد العملية عبر مزود الدفع المحلي المعتمد.
+                  {t('instantNote')}
                 </div>
               </div>
             )}

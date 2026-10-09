@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { LeadCard } from '@/components/domain/LeadCard';
@@ -26,7 +28,7 @@ import {
   SCORE_RANGES,
 } from '@/lib/constants';
 import { fmtNumber } from '@/lib/format';
-import { LayoutGrid, Table as TableIcon } from 'lucide-react';
+import { LayoutGrid, Table as TableIcon, ArrowRight } from 'lucide-react';
 
 interface LeadItem {
   id: string;
@@ -88,6 +90,8 @@ function mapQualityStatus(lead: LeadItem): QualityState {
 }
 
 export default function LeadDiscoveryPage() {
+  const t = useTranslations('leads');
+  const tCommon = useTranslations('common');
   const [leads, setLeads] = useState<LeadItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -247,10 +251,10 @@ export default function LeadDiscoveryPage() {
         ALL_CITIES;
 
   const quickFilters: QuickFilter[] = [
-    { id: 'matchedOnly', label: 'مطابقة لملفي', isActive: matchedOnly },
-    { id: 'exclusive', label: 'فرص حصرية', isActive: ownershipType === 'EXCLUSIVE' },
-    { id: 'hot', label: 'فرص ساخنة', isActive: temperature === 'HOT' || temperature === 'PREMIUM' },
-    { id: 'hasPhone', label: 'هاتف متوفر', isActive: hasPhone },
+    { id: 'matchedOnly', label: t('matchedOnly'), isActive: matchedOnly },
+    { id: 'exclusive', label: t('exclusiveLeads'), isActive: ownershipType === 'EXCLUSIVE' },
+    { id: 'hot', label: t('hotLeads'), isActive: temperature === 'HOT' || temperature === 'PREMIUM' },
+    { id: 'hasPhone', label: t('phoneAvailable'), isActive: hasPhone },
   ];
 
   function handleToggleQuickFilter(id: string) {
@@ -265,32 +269,43 @@ export default function LeadDiscoveryPage() {
   }
 
   const viewTabs: TabItem[] = [
-    { id: 'grid', label: 'شبكة', icon: <LayoutGrid className="w-4 h-4" /> },
-    { id: 'table', label: 'جدول', icon: <TableIcon className="w-4 h-4" /> },
+    { id: 'grid', label: t('viewCards'), icon: <LayoutGrid className="w-4 h-4" /> },
+    { id: 'table', label: t('viewTable'), icon: <TableIcon className="w-4 h-4" /> },
   ];
 
   return (
     <AppShell
       density="compact"
-      pageTitle="استعراض الفرص"
+      pageTitle={t('pageTitle')}
       userCredits={userCredits}
     >
       <div className="flex flex-col gap-6">
         {/* Template T3 PageHeader */}
         <PageHeader
-          title="استعراض الفرص"
-          description="تصفح الأنشطة التجارية المؤهلة في مصر وافتح بيانات التواصل مع العملاء المناسبين لخدماتك."
+          title={t('title')}
+          description={t('description')}
           breadcrumbs={[
-            { label: 'لوحة القيادة', href: '/dashboard' },
-            { label: 'استعراض الفرص' },
+            { label: t('breadcrumbsDashboard'), href: '/dashboard' },
+            { label: t('pageTitle') },
           ]}
+          actions={
+            <Link href="/my-leads">
+              <Button
+                variant="secondary"
+                size="sm"
+                startIcon={<ArrowRight className="w-4 h-4 rtl:-scale-x-100" />}
+              >
+                {t('tabMyPipeline')}
+              </Button>
+            </Link>
+          }
         />
 
         {/* Template T3 FilterBar */}
         <FilterBar
           searchQuery={search}
           onSearchChange={setSearch}
-          searchPlaceholder="بحث باسم النشاط أو المنطقة..."
+          searchPlaceholder={t('searchPlaceholder')}
           quickFilters={quickFilters}
           onToggleQuickFilter={handleToggleQuickFilter}
           onOpenAdvancedFilters={() => setIsFilterDrawerOpen(true)}
@@ -302,11 +317,11 @@ export default function LeadDiscoveryPage() {
         {/* Results Header: Count + Segmented View Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
           <p className="text-body-sm text-fg-secondary">
-            إجمالي الفرص المطابقة:{' '}
+            {t('totalMatched')}{' '}
             <span className="ltr-iso font-mono font-semibold tabular-nums text-fg-brand">
               {fmtNumber(leads.length)}
             </span>{' '}
-            نشاط تجاري
+            {t('businesses', { count: leads.length })}
           </p>
 
           <Tabs
@@ -353,10 +368,10 @@ export default function LeadDiscoveryPage() {
         ) : leads.length === 0 ? (
           <EmptyState
             variant="no-results"
-            title="لا توجد فرص مطابقة الآن"
-            description="عدّل المدن أو التخصصات أو فلاتر البحث لتظهر فرص أكثر."
+            title={t('noResults')}
+            description={t('noResultsHint')}
             action={{
-              label: 'مسح الفلاتر',
+              label: t('resetFilters'),
               onClick: resetFilters,
             }}
           />
@@ -394,12 +409,12 @@ export default function LeadDiscoveryPage() {
             <table className="w-full text-start border-collapse text-body-sm">
               <thead>
                 <tr className="border-b border-line bg-subtle text-caption font-semibold text-fg-secondary h-11">
-                  <th className="py-2.5 px-4 text-start">النشاط التجاري</th>
-                  <th className="py-2.5 px-4 text-start">تقييم الفرصة</th>
-                  <th className="py-2.5 px-4 text-start">جودة البيانات</th>
-                  <th className="py-2.5 px-4 text-start">نوع التوزيع</th>
-                  <th className="py-2.5 px-4 text-end">التكلفة</th>
-                  <th className="py-2.5 px-4 text-end">الإجراء</th>
+                  <th className="py-2.5 px-4 text-start">{t('thBusiness')}</th>
+                  <th className="py-2.5 px-4 text-start">{t('thScore')}</th>
+                  <th className="py-2.5 px-4 text-start">{t('thQuality')}</th>
+                  <th className="py-2.5 px-4 text-start">{t('thOwnership')}</th>
+                  <th className="py-2.5 px-4 text-end">{t('thCost')}</th>
+                  <th className="py-2.5 px-4 text-end">{t('thAction')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -437,18 +452,18 @@ export default function LeadDiscoveryPage() {
         <Drawer
           isOpen={isFilterDrawerOpen}
           onClose={() => setIsFilterDrawerOpen(false)}
-          title="فلاتر متقدمة"
+          title={t('filterDrawerTitle')}
           footer={
             <div className="flex items-center justify-between w-full gap-3">
               <Button variant="ghost" size="sm" onClick={resetFilters}>
-                إعادة ضبط
+                {t('resetFilters')}
               </Button>
               <Button
                 variant="primary"
                 size="sm"
                 onClick={() => setIsFilterDrawerOpen(false)}
               >
-                تطبيق الفلاتر
+                {t('applyFilters')}
               </Button>
             </div>
           }
@@ -456,52 +471,52 @@ export default function LeadDiscoveryPage() {
           <div className="flex flex-col gap-4 py-2 overflow-y-auto">
             {/* Search */}
             <Input
-              label="بحث باسم النشاط أو المنطقة"
+              label={t('searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="مثال: عيادة، مطعم..."
+              placeholder={t('searchPlaceholder')}
             />
 
             {/* Governorate */}
             <Select
-              label="المحافظة"
+              label={t('governorateLabel')}
               value={governorate}
               onChange={(e) => {
                 setGovernorate(e.target.value);
                 setCity('ALL');
               }}
               options={[
-                { value: 'ALL', label: 'جميع المحافظات' },
+                { value: 'ALL', label: t('allGovernorates') },
                 ...ALL_GOVERNORATES.map((g) => ({ value: g, label: g })),
               ]}
             />
 
             {/* City */}
             <Select
-              label="المدينة"
+              label={t('cityLabel')}
               value={city}
               onChange={(e) => setCity(e.target.value)}
               options={[
-                { value: 'ALL', label: 'جميع المدن' },
+                { value: 'ALL', label: t('allCities') },
                 ...availableCities.map((c) => ({ value: c, label: c })),
               ]}
             />
 
             {/* Area */}
             <Input
-              label="المنطقة أو الحي"
+              label={t('areaLabel')}
               value={area}
               onChange={(e) => setArea(e.target.value)}
-              placeholder="مثال: مدينة نصر، سموحة..."
+              placeholder="مدينة نصر، سموحة..."
             />
 
             {/* Category */}
             <Select
-              label="نوع النشاط التجاري"
+              label={t('categoryLabel')}
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               options={[
-                { value: 'ALL', label: 'جميع الأنشطة' },
+                { value: 'ALL', label: t('allCategories') },
                 ...BUSINESS_CATEGORIES.map((c) => ({
                   value: c.value,
                   label: `${c.labelAr} (${c.value})`,
@@ -511,11 +526,11 @@ export default function LeadDiscoveryPage() {
 
             {/* Service */}
             <Select
-              label="الخدمة المطلوبة"
+              label={t('serviceLabel')}
               value={service}
               onChange={(e) => setService(e.target.value)}
               options={[
-                { value: 'ALL', label: 'جميع الخدمات' },
+                { value: 'ALL', label: t('allServices') },
                 { value: 'WEBSITE_DEVELOPMENT', label: 'تطوير موقع إلكتروني' },
                 { value: 'WEBSITE_REDESIGN', label: 'إعادة تصميم وتطوير موقع' },
                 { value: 'ECOMMERCE', label: 'متجر إلكتروني' },
@@ -528,11 +543,11 @@ export default function LeadDiscoveryPage() {
 
             {/* Website Status */}
             <Select
-              label="حالة الموقع الإلكتروني"
+              label={t('websiteStatusLabel')}
               value={websiteStatus}
               onChange={(e) => setWebsiteStatus(e.target.value)}
               options={[
-                { value: 'ALL', label: 'الكل' },
+                { value: 'ALL', label: t('allStatuses') },
                 { value: 'NO_WEBSITE', label: 'بدون موقع إلكتروني' },
                 { value: 'POOR_WEBSITE', label: 'موقع قديم أو ضعيف' },
                 { value: 'HAS_WEBSITE', label: 'يمتلك موقعاً' },
@@ -542,73 +557,73 @@ export default function LeadDiscoveryPage() {
 
             {/* Score Range */}
             <Select
-              label="نطاق تقييم الفرصة"
+              label={t('scoreRangeLabel')}
               value={scoreRange}
               onChange={(e) => setScoreRange(e.target.value)}
               options={[
-                { value: '', label: 'جميع الدرجات (0 – 100)' },
+                { value: '', label: t('allScores') },
                 ...SCORE_RANGES.map((sr) => ({ value: sr.value, label: sr.labelAr })),
               ]}
             />
 
             {/* Min Match Strength */}
             <Select
-              label="الحد الأدنى لقوة التطابق"
+              label={t('matchStrengthLabel')}
               value={minMatchStrength}
               onChange={(e) => setMinMatchStrength(e.target.value)}
               options={[
-                { value: '', label: 'الكل (0% – 100%)' },
-                { value: '85', label: 'تطابق ممتاز (85%+)' },
-                { value: '70', label: 'تطابق قوي (70%+)' },
-                { value: '50', label: 'تطابق مقبول (50%+)' },
+                { value: '', label: t('allMatch') },
+                { value: '85', label: t('matchExcellent') },
+                { value: '70', label: t('matchStrong') },
+                { value: '50', label: t('matchAcceptable') },
               ]}
             />
 
             {/* Min Quality Score */}
             <Select
-              label="مستوى جودة البيانات"
+              label={t('qualityScoreLabel')}
               value={minQualityScore}
               onChange={(e) => setMinQualityScore(e.target.value)}
               options={[
-                { value: '', label: 'كل مستويات الجودة' },
-                { value: '85', label: 'ممتازة (85+)' },
-                { value: '70', label: 'عالية (70+)' },
-                { value: '50', label: 'متوسطة (50+)' },
+                { value: '', label: t('allQuality') },
+                { value: '85', label: t('qualityExcellent') },
+                { value: '70', label: t('qualityHigh') },
+                { value: '50', label: t('qualityMedium') },
               ]}
             />
 
             {/* Freshness Status */}
             <Select
-              label="حالة الحداثة والتحقق"
+              label={t('freshnessLabel')}
               value={freshnessStatus}
               onChange={(e) => setFreshnessStatus(e.target.value)}
               options={[
-                { value: 'ALL', label: 'كل الحالات' },
-                { value: 'FRESH', label: 'حديثة جداً' },
-                { value: 'RECENT', label: 'محدثة قريباً' },
+                { value: 'ALL', label: t('allFreshness') },
+                { value: 'FRESH', label: t('freshVery') },
+                { value: 'RECENT', label: t('freshRecent') },
               ]}
             />
 
             {/* Sort Order */}
             <Select
-              label="الترتيب حسب"
+              label={t('sortByLabel')}
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               options={[
-                { value: 'MATCH_STRENGTH', label: 'الأعلى تطابقاً ثم الجودة' },
-                { value: 'SCORE_DESC', label: 'الأعلى فرصة بيعية' },
-                { value: 'QUALITY_DESC', label: 'الأعلى جودة بيانات' },
-                { value: 'NEWEST', label: 'الأحدث إضافة' },
+                { value: 'MATCH_STRENGTH', label: t('sortMatch') },
+                { value: 'SCORE_DESC', label: t('sortScore') },
+                { value: 'QUALITY_DESC', label: t('sortQuality') },
+                { value: 'NEWEST', label: t('sortNewest') },
               ]}
             />
 
             {/* Temperature */}
             <Select
-              label="تصنيف الفرصة"
+              label={t('temperatureLabel')}
               value={temperature}
               onChange={(e) => setTemperature(e.target.value)}
               options={[
-                { value: 'ALL', label: 'جميع التصنيفات' },
+                { value: 'ALL', label: t('allTemperatures') },
                 { value: 'PREMIUM', label: 'فرصة مميزة' },
                 { value: 'HOT', label: 'فرصة ساخنة' },
                 { value: 'WARM', label: 'فرصة دافئة' },
@@ -618,7 +633,7 @@ export default function LeadDiscoveryPage() {
 
             {/* Ownership Type */}
             <div className="flex flex-col gap-1.5 pt-1">
-              <label className="text-label text-fg-primary">نوع الملكية والتوزيع</label>
+              <label className="text-label text-fg-primary">{t('ownershipLabel')}</label>
               <div className="grid grid-cols-3 gap-2">
                 <Button
                   type="button"
@@ -626,7 +641,7 @@ export default function LeadDiscoveryPage() {
                   size="sm"
                   onClick={() => setOwnershipType('ALL')}
                 >
-                  الكل
+                  {tCommon('all')}
                 </Button>
                 <Button
                   type="button"
@@ -634,7 +649,7 @@ export default function LeadDiscoveryPage() {
                   size="sm"
                   onClick={() => setOwnershipType('EXCLUSIVE')}
                 >
-                  حصري
+                  {t('exclusive')}
                 </Button>
                 <Button
                   type="button"
@@ -642,7 +657,7 @@ export default function LeadDiscoveryPage() {
                   size="sm"
                   onClick={() => setOwnershipType('SHARED')}
                 >
-                  مشترك
+                  {t('shared')}
                 </Button>
               </div>
             </div>
@@ -650,17 +665,17 @@ export default function LeadDiscoveryPage() {
             {/* Checkboxes */}
             <div className="flex flex-col gap-2.5 pt-2 border-t border-line">
               <Checkbox
-                label="هاتف متاح"
+                label={t('phoneAvailable')}
                 checked={hasPhone}
                 onChange={(e) => setHasPhone(e.target.checked)}
               />
               <Checkbox
-                label="بريد إلكتروني متاح"
+                label={t('emailAvailable')}
                 checked={hasEmail}
                 onChange={(e) => setHasEmail(e.target.checked)}
               />
               <Checkbox
-                label="حساب تواصل اجتماعي متاح"
+                label={t('socialAvailable')}
                 checked={hasSocial}
                 onChange={(e) => setHasSocial(e.target.checked)}
               />

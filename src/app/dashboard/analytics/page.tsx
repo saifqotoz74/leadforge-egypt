@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatTile } from '@/components/domain/StatTile';
@@ -8,8 +9,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import Link from 'next/link';
 import { fmtNumber, formatEGP } from '@/lib/format';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, ArrowRight } from 'lucide-react';
 
 interface MetricRateDto {
   numerator: number;
@@ -55,6 +58,7 @@ interface AnalyticsDataDto {
 }
 
 export default function DeveloperAnalyticsPage() {
+  const t = useTranslations('analytics');
   const [preset, setPreset] = useState<string>('all_time');
   const [loading, setLoading] = useState<boolean>(true);
   const [data, setData] = useState<AnalyticsDataDto | null>(null);
@@ -78,11 +82,11 @@ export default function DeveloperAnalyticsPage() {
   const perf = data?.performance;
 
   return (
-    <AppShell density="compact" pageTitle="تحليلات الأداء">
+    <AppShell density="compact" pageTitle={t('pageTitle')}>
       <div className="flex flex-col gap-6">
         <PageHeader
-          title="تحليلات الأداء ومعدلات التحويل"
-          description="مؤشرات دقيقة ومحمية لحسابك مع توضيح البسط والمقام لكل مرحلة مبيعات"
+          title={t('title')}
+          description={t('description')}
           actions={
             <div className="flex items-center gap-3">
               <div className="w-48">
@@ -90,14 +94,24 @@ export default function DeveloperAnalyticsPage() {
                   value={preset}
                   onChange={(e) => setPreset(e.target.value)}
                   options={[
-                    { value: 'all_time', label: 'كل الفترات' },
-                    { value: 'last_7_days', label: 'آخر 7 أيام' },
-                    { value: 'last_30_days', label: 'آخر 30 يوماً' },
-                    { value: 'last_90_days', label: 'آخر 90 يوماً' },
-                    { value: 'month_to_date', label: 'الشهر الحالي' },
+                    { value: 'all_time', label: t('allTime') },
+                    { value: 'last_7_days', label: t('last7Days') },
+                    { value: 'last_30_days', label: t('last30Days') },
+                    { value: 'last_90_days', label: t('last90Days') },
+                    { value: 'month_to_date', label: t('monthToDate') },
                   ]}
                 />
               </div>
+
+              <Link href="/dashboard">
+                <Button
+                  variant="ghost"
+                  size="md"
+                  startIcon={<ArrowRight className="h-4 w-4 rtl:-scale-x-100" />}
+                >
+                  {t('bcDashboard')}
+                </Button>
+              </Link>
 
               <Button
                 variant="secondary"
@@ -107,7 +121,7 @@ export default function DeveloperAnalyticsPage() {
                 className="gap-1.5"
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                <span>تحديث</span>
+                <span>{t('refresh')}</span>
               </Button>
             </div>
           }
@@ -124,44 +138,44 @@ export default function DeveloperAnalyticsPage() {
             {/* Top StatTiles */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatTile
-                label="إجمالي الفرص المشتراة"
+                label={t('totalClaimed')}
                 value={fmtNumber(perf.leadsClaimed)}
-                statusText={`متوسط المطابقة: ${perf.averageMatchStrength != null ? fmtNumber(perf.averageMatchStrength) + '%' : '—'}`}
+                statusText={t('avgMatch', { val: perf.averageMatchStrength != null ? fmtNumber(perf.averageMatchStrength) + '%' : '—' })}
               />
 
               <StatTile
-                label="الصفقات الناجحة"
+                label={t('totalWins')}
                 value={fmtNumber(perf.totalWins)}
-                statusText={`معدل الفوز: ${perf.winRate?.displayValue || '—'} (${perf.winRate?.numerator ?? 0}/${perf.winRate?.denominator ?? 0})`}
+                statusText={t('winRate', { val: perf.winRate?.displayValue || '—', num: perf.winRate?.numerator ?? 0, den: perf.winRate?.denominator ?? 0 })}
               />
 
               <StatTile
-                label="قيمة المشاريع المكتسبة"
+                label={t('projectValue')}
                 value={formatEGP(perf.estimatedProjectValueEgp || 0)}
-                statusText="إجمالي قيمة العقود التقديرية"
+                statusText={t('projectValueDesc')}
               />
 
               <StatTile
-                label="النقاط المستهلكة الصافية"
+                label={t('netCredits')}
                 value={fmtNumber(perf.creditsConsumed)}
-                statusText={`الرصيد الحالي: ${fmtNumber(perf.creditsBalance)} نقطة`}
+                statusText={t('currentBalance', { val: fmtNumber(perf.creditsBalance) })}
               />
             </div>
 
             {/* Funnel Stage Conversion Rates */}
             <Card>
               <CardHeader>
-                <CardTitle>قمع المبيعات ومعدلات التحويل بين المراحل</CardTitle>
+                <CardTitle>{t('funnelTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                   {[
-                    { label: 'معدل التواصل (Contact / Claimed)', metric: perf.contactRate },
-                    { label: 'معدل الرد (Replied / Contacted)', metric: perf.replyRate },
-                    { label: 'معدل الاهتمام (Interested / Replied)', metric: perf.interestRate },
-                    { label: 'معدل الاجتماعات (Meetings / Interested)', metric: perf.meetingRate },
+                    { label: t('contactRate'), metric: perf.contactRate },
+                    { label: t('replyRate'), metric: perf.replyRate },
+                    { label: t('interestRate'), metric: perf.interestRate },
+                    { label: t('meetingRate'), metric: perf.meetingRate },
                     {
-                      label: 'إغلاق الاجتماعات (Won / Meetings)',
+                      label: t('winRateMeetings'),
                       metric: perf.winRateOfMeetings,
                     },
                   ].map((item) => (
@@ -176,7 +190,7 @@ export default function DeveloperAnalyticsPage() {
                         </span>
                       </div>
                       <p className="mt-2 text-h3 font-bold font-mono tabular-nums text-brand">
-                        {item.metric?.displayValue || 'INSUFFICIENT_DATA'}
+                        {item.metric?.displayValue || t('insufficientData')}
                       </p>
                     </div>
                   ))}
@@ -188,12 +202,12 @@ export default function DeveloperAnalyticsPage() {
             <div className="grid gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>الأداء بحسب القطاع التجاري</CardTitle>
+                  <CardTitle>{t('byNicheTitle')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col gap-2">
                     {!data.byNiche || data.byNiche.length === 0 ? (
-                      <p className="text-body-sm text-fg-muted">لا توجد بيانات كافية بعد.</p>
+                      <EmptyState title={t('noData')} description={t('desc')} />
                     ) : (
                       data.byNiche.map((n) => (
                         <div
@@ -203,12 +217,12 @@ export default function DeveloperAnalyticsPage() {
                           <div>
                             <span className="font-semibold text-fg-primary">{n.labelAr}</span>
                             <span className="block text-caption text-fg-muted">
-                              مشتراة: {fmtNumber(n.claimed)} • تواصل: {fmtNumber(n.contacted)} • اجتماعات: {fmtNumber(n.meetings)}
+                              {t('breakdownMetrics', { claimed: fmtNumber(n.claimed), contacted: fmtNumber(n.contacted), meetings: fmtNumber(n.meetings) })}
                             </span>
                           </div>
                           <div className="text-end">
                             <span className="block font-bold text-brand">
-                              فوز: {fmtNumber(n.wins)}
+                              {t('winCount', { count: fmtNumber(n.wins) })}
                             </span>
                             <span className="block text-caption text-fg-muted font-mono ltr-iso">
                               {formatEGP(n.estimatedValueEgp || 0)}
@@ -223,12 +237,12 @@ export default function DeveloperAnalyticsPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>الأداء بحسب المدينة</CardTitle>
+                  <CardTitle>{t('byCityTitle')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col gap-2">
                     {!data.byCity || data.byCity.length === 0 ? (
-                      <p className="text-body-sm text-fg-muted">لا توجد بيانات كافية بعد.</p>
+                      <p className="text-body-sm text-fg-muted">{t('noData')}</p>
                     ) : (
                       data.byCity.map((c) => (
                         <div
@@ -238,12 +252,12 @@ export default function DeveloperAnalyticsPage() {
                           <div>
                             <span className="font-semibold text-fg-primary">{c.city}</span>
                             <span className="block text-caption text-fg-muted">
-                              مشتراة: {fmtNumber(c.claimed)} • تواصل: {fmtNumber(c.contacted)} • اجتماعات: {fmtNumber(c.meetings)}
+                              {t('breakdownMetrics', { claimed: fmtNumber(c.claimed), contacted: fmtNumber(c.contacted), meetings: fmtNumber(c.meetings) })}
                             </span>
                           </div>
                           <div className="text-end">
                             <span className="block font-bold text-brand">
-                              فوز: {fmtNumber(c.wins)}
+                              {t('winCount', { count: fmtNumber(c.wins) })}
                             </span>
                             <span className="block text-caption text-fg-muted font-mono ltr-iso">
                               {formatEGP(c.estimatedValueEgp || 0)}

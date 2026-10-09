@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { PipelineColumn } from '@/components/domain/PipelineColumn';
@@ -90,6 +91,8 @@ const ALL_PIPELINE_STAGES: PipelineStage[] = [
 
 export default function MyLeadsPage() {
   const router = useRouter();
+  const t = useTranslations('pipeline');
+  const tCommon = useTranslations('common');
   const [leads, setLeads] = useState<ClaimedLeadItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
@@ -175,30 +178,41 @@ export default function MyLeadsPage() {
       ? leads
       : leads.filter((l) => (l.myClaim?.pipelineStatus || 'NEW') === statusFilter);
 
+  const boardStages: { stage: PipelineStage; label: string }[] = [
+    { stage: 'NEW', label: t('stageNew') },
+    { stage: 'CLAIMED', label: t('stageClaimed') },
+    { stage: 'CONTACTED', label: t('stageContacted') },
+    { stage: 'MEETING', label: t('stageMeeting') },
+    { stage: 'PROPOSAL_SENT', label: t('stageProposal') },
+    { stage: 'NEGOTIATION', label: t('stageNegotiation') },
+    { stage: 'WON', label: t('stageWon') },
+    { stage: 'LOST', label: t('stageLost') },
+  ];
+
   const viewTabs: TabItem[] = [
-    { id: 'board', label: 'لوحة المراحل (Kanban)', icon: <Kanban className="w-4 h-4" /> },
-    { id: 'list', label: 'قائمة الصفقات', icon: <ListFilter className="w-4 h-4" /> },
+    { id: 'board', label: t('boardView'), icon: <Kanban className="w-4 h-4" /> },
+    { id: 'list', label: t('listView'), icon: <ListFilter className="w-4 h-4" /> },
   ];
 
   return (
     <AppShell
       density="compact"
-      pageTitle="صفقاتي (Pipeline)"
+      pageTitle={t('pageTitle')}
       userCredits={userCredits}
     >
       <div className="flex flex-col gap-6">
         {/* Template T5 PageHeader */}
         <PageHeader
-          title="صفقاتي ومتابعة العملاء (Pipeline)"
-          description="تتبع وإدارة مراحل التفاوض مع العملاء الذين قمت بفتح بياناتهم."
+          title={t('title')}
+          description={t('description')}
           breadcrumbs={[
-            { label: 'لوحة القيادة', href: '/dashboard' },
-            { label: 'صفقاتي' },
+            { label: t('breadcrumbsDashboard'), href: '/dashboard' },
+            { label: t('pageTitle') },
           ]}
           actions={
             <Link href="/leads">
               <Button variant="primary" size="sm">
-                + اقتناص عملاء جدد
+                {t('findNewLeads')}
               </Button>
             </Link>
           }
@@ -207,11 +221,11 @@ export default function MyLeadsPage() {
         {/* View Switcher and Filter Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <p className="text-body-sm text-fg-secondary">
-            إجمالي الصفقات المفتوحة:{' '}
+            {t('totalOpenDeals')}{' '}
             <span className="ltr-iso font-mono font-semibold tabular-nums text-fg-brand">
               {fmtNumber(leads.length)}
             </span>{' '}
-            عميل
+            {t('clients', { count: leads.length })}
           </p>
 
           <Tabs
@@ -236,17 +250,17 @@ export default function MyLeadsPage() {
         ) : leads.length === 0 ? (
           <EmptyState
             variant="first-use"
-            title="لم تشترِ أي فرصة بعد"
-            description="ابدأ بتصفح الفرص المطابقة لملفك وافتح بيانات التواصل مع العملاء."
+            title={t('noLeadsTitle')}
+            description={t('noLeadsDesc')}
             action={{
-              label: 'تصفح الفرص',
+              label: t('browseLeads'),
               onClick: () => router.push('/leads'),
             }}
           />
         ) : viewMode === 'board' ? (
           /* Template T5 Kanban Board View (Spec 7.13) */
           <div className="flex gap-4 overflow-x-auto pb-6 items-start">
-            {BOARD_STAGES.map(({ stage, label }) => {
+            {boardStages.map(({ stage, label }) => {
               const stageLeads = leads.filter(
                 (l) => (l.myClaim?.pipelineStatus || 'NEW') === stage
               );
@@ -294,7 +308,7 @@ export default function MyLeadsPage() {
                 size="sm"
                 onClick={() => setStatusFilter('ALL')}
               >
-                الكل ({fmtNumber(leads.length)})
+                {t('allCount', { count: fmtNumber(leads.length) })}
               </Button>
               {Object.entries(PIPELINE_STATUS_LABELS).map(([key, info]) => {
                 const count = leads.filter(
@@ -316,10 +330,10 @@ export default function MyLeadsPage() {
             {filteredLeads.length === 0 ? (
               <EmptyState
                 variant="no-results"
-                title="لا توجد صفقات في هذه المرحلة"
-                description="لم يتم العثور على صفقات تطابق المرحلة المحددة."
+                title={t('noLeadsInStageTitle')}
+                description={t('noLeadsInStageDesc')}
                 action={{
-                  label: 'عرض جميع الصفقات',
+                  label: t('viewAllDeals'),
                   onClick: () => setStatusFilter('ALL'),
                 }}
               />
@@ -369,14 +383,14 @@ export default function MyLeadsPage() {
                             {lead.myClaim?.nextFollowUpAt && (
                               <span className="inline-flex items-center gap-1 text-fg-secondary">
                                 <Calendar className="w-3.5 h-3.5" />
-                                متابعة: {fmtDate(new Date(lead.myClaim.nextFollowUpAt))}
+                                {t('followUp')} {fmtDate(new Date(lead.myClaim.nextFollowUpAt))}
                               </span>
                             )}
                           </div>
 
                           {lead.myClaim?.notes && (
                             <p className="mt-1 p-2 rounded bg-subtle text-caption text-fg-secondary">
-                              <strong>ملاحظات:</strong> {lead.myClaim.notes}
+                              <strong>{t('notes')}</strong> {lead.myClaim.notes}
                             </p>
                           )}
                         </div>
@@ -414,7 +428,7 @@ export default function MyLeadsPage() {
                               )
                             }
                           >
-                            {lead.myFeedback ? 'تم التقييم' : 'تقييم الفرصة'}
+                            {lead.myFeedback ? t('feedbackDone') : t('giveFeedback')}
                           </Button>
 
                           <Link href={`/leads/${lead.id}`}>
@@ -423,7 +437,7 @@ export default function MyLeadsPage() {
                               size="sm"
                               startIcon={<ExternalLink className="w-3.5 h-3.5 rtl:-scale-x-100" />}
                             >
-                              التفاصيل
+                              {t('details')}
                             </Button>
                           </Link>
                         </div>
@@ -442,7 +456,7 @@ export default function MyLeadsPage() {
           onClose={() => setFeedbackModalLead(null)}
           title={
             feedbackModalLead
-              ? `تقييم فرصة: ${feedbackModalLead.businessName}`
+              ? t('feedbackDialogTitle', { name: feedbackModalLead.businessName })
               : ''
           }
           footer={
@@ -452,14 +466,14 @@ export default function MyLeadsPage() {
                 onClick={() => setFeedbackModalLead(null)}
                 disabled={submittingFeedback}
               >
-                إلغاء
+                {t('cancel')}
               </Button>
               <Button
                 variant="primary"
                 onClick={handleSubmitFeedback}
                 isLoading={submittingFeedback}
               >
-                حفظ التقييم
+                {t('saveFeedback')}
               </Button>
             </div>
           }
@@ -467,7 +481,7 @@ export default function MyLeadsPage() {
           {feedbackModalLead && (
             <form onSubmit={handleSubmitFeedback} className="flex flex-col gap-4 py-2">
               <div className="flex flex-col gap-2">
-                <span className="text-label text-fg-primary">هل كانت بيانات الفرصة مفيدة؟</span>
+                <span className="text-label text-fg-primary">{t('wasUseful')}</span>
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     type="button"
@@ -476,7 +490,7 @@ export default function MyLeadsPage() {
                     onClick={() => setFbUseful(true)}
                     startIcon={<ThumbsUp className="w-3.5 h-3.5" />}
                   >
-                    نعم
+                    {t('yes')}
                   </Button>
                   <Button
                     type="button"
@@ -485,14 +499,14 @@ export default function MyLeadsPage() {
                     onClick={() => setFbUseful(false)}
                     startIcon={<ThumbsDown className="w-3.5 h-3.5" />}
                   >
-                    لا
+                    {t('no')}
                   </Button>
                 </div>
               </div>
 
               {!fbUseful && (
                 <Select
-                  label="سبب عدم الفائدة"
+                  label={t('unhelpfulReason')}
                   value={fbReason}
                   onChange={(e) => setFbReason(e.target.value)}
                   options={Object.entries(FEEDBACK_REASON_LABELS).map(([k, label]) => ({
@@ -503,10 +517,10 @@ export default function MyLeadsPage() {
               )}
 
               <Input
-                label="ملاحظات إضافية"
+                label={t('additionalNotes')}
                 value={fbComment}
                 onChange={(e) => setFbComment(e.target.value)}
-                placeholder="أضف أي تفاصيل تساعد في تحسين جودة البيانات..."
+                placeholder={t('additionalNotesPlaceholder')}
               />
             </form>
           )}

@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { ScorePair } from '@/components/domain/ScorePair';
@@ -20,6 +21,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { LockedField } from '@/components/ui/LockedField';
 import { Banner } from '@/components/ui/Banner';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   CATEGORY_LABELS_AR,
   FEEDBACK_REASON_LABELS,
@@ -42,6 +44,7 @@ import {
   MessageSquare,
   ThumbsUp,
   ThumbsDown,
+  ArrowRight,
 } from 'lucide-react';
 
 interface LeadDetailData {
@@ -170,6 +173,8 @@ function mapQualityStatus(lead: LeadDetailData): QualityState {
 }
 
 export default function LeadDetailPage() {
+  const t = useTranslations('lead');
+  const tCommon = useTranslations('common');
   const params = useParams();
   const router = useRouter();
   const leadId = String(params.id || '');
@@ -308,9 +313,9 @@ export default function LeadDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'danger', text: data.error || 'تعذر تحديث الحالة.' });
+        setActionMsg({ type: 'danger', text: data.error || t('statusUpdateError') });
       } else {
-        setActionMsg({ type: 'info', text: 'تم تحديث مرحلة الصفقة بنجاح.' });
+        setActionMsg({ type: 'info', text: t('statusUpdateSuccess') });
         await loadLead();
       }
     } finally {
@@ -334,10 +339,10 @@ export default function LeadDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'danger', text: data.error || 'تعذر تسجيل محاولة التواصل.' });
+        setActionMsg({ type: 'danger', text: data.error || t('contactAttemptError') });
       } else {
         setContactNote('');
-        setActionMsg({ type: 'info', text: 'تم تسجيل محاولة التواصل بنجاح.' });
+        setActionMsg({ type: 'info', text: t('contactAttemptSuccess') });
         await loadLead();
       }
     } finally {
@@ -363,9 +368,9 @@ export default function LeadDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'danger', text: data.error || 'تعذر حفظ التقييم.' });
+        setActionMsg({ type: 'danger', text: data.error || t('feedbackError') });
       } else {
-        setActionMsg({ type: 'info', text: 'تم تسجيل التقييم لجودة هذه الفرصة بنجاح.' });
+        setActionMsg({ type: 'info', text: t('feedbackSuccess') });
         await loadLead();
       }
     } finally {
@@ -381,9 +386,9 @@ export default function LeadDetailPage() {
     }
   }
 
-  if (loading || !lead) {
+  if (loading) {
     return (
-      <AppShell density="comfortable" pageTitle="تفاصيل الفرصة">
+      <AppShell density="comfortable" pageTitle={t('pageTitle')}>
         <div className="flex flex-col gap-6">
           <Skeleton className="h-10 w-48 rounded" />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -395,6 +400,23 @@ export default function LeadDetailPage() {
               <Skeleton className="h-72 w-full rounded-xl" />
             </div>
           </div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <AppShell density="comfortable" pageTitle={t('pageTitle')}>
+        <div className="py-12">
+          <EmptyState
+            title={t('emptyTitle')}
+            description={t('emptyDesc')}
+            action={{
+              label: t('breadcrumbsLeads'),
+              onClick: () => router.push('/leads'),
+            }}
+          />
         </div>
       </AppShell>
     );
@@ -430,10 +452,21 @@ export default function LeadDetailPage() {
             lead.area ? `، ${lead.area}` : ''
           }`}
           breadcrumbs={[
-            { label: 'لوحة القيادة', href: '/dashboard' },
-            { label: 'استعراض الفرص', href: '/leads' },
+            { label: t('breadcrumbsDashboard'), href: '/dashboard' },
+            { label: t('breadcrumbsLeads'), href: '/leads' },
             { label: lead.businessName },
           ]}
+          actions={
+            <Link href="/leads">
+              <Button
+                variant="ghost"
+                size="sm"
+                startIcon={<ArrowRight className="w-4 h-4 rtl:-scale-x-100" />}
+              >
+                {t('breadcrumbsLeads')}
+              </Button>
+            </Link>
+          }
         />
 
         {/* Global Feedback Banner */}
@@ -460,7 +493,7 @@ export default function LeadDetailPage() {
             {/* 2. "Why?" ScoreBreakdown per Spec 7.9 */}
             {showBreakdown && (
               <ScoreBreakdown
-                title="لماذا هذه الدرجة؟"
+                title={t('whyScore')}
                 rules={derivedRules}
                 totalScore={lead.score}
               />
@@ -469,22 +502,22 @@ export default function LeadDetailPage() {
             {/* 3. Business Details (Locked or Revealed per Spec 1.1, 7.4 & Template T4) */}
             <Card>
               <CardHeader>
-                <CardTitle>بيانات التواصل والنشاط</CardTitle>
+                <CardTitle>{t('contactAndBusiness')}</CardTitle>
                 {lead.isClaimedByMe ? (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-soft text-brand text-caption font-semibold">
                     <CheckCircle2 className="w-4 h-4" />
-                    تم فتح البيانات
+                    {t('dataUnlocked')}
                   </span>
                 ) : (
                   <span className="text-caption text-fg-secondary">
-                    بيانات مقفلة حتى الشراء
+                    {t('dataLocked')}
                   </span>
                 )}
               </CardHeader>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
                 {/* Phone */}
                 <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
-                  <span className="text-caption text-fg-secondary">رقم الهاتف</span>
+                  <span className="text-caption text-fg-secondary">{t('phoneNumber')}</span>
                   {lead.isClaimedByMe && lead.phone ? (
                     <div className="flex items-center justify-between">
                       <a
@@ -499,7 +532,7 @@ export default function LeadDetailPage() {
                         onClick={() => handleCopy(lead.phone!, 'phone')}
                         startIcon={<Copy className="w-3.5 h-3.5" />}
                       >
-                        {copiedField === 'phone' ? 'تم النسخ' : 'نسخ'}
+                        {copiedField === 'phone' ? t('copied') : t('copy')}
                       </Button>
                     </div>
                   ) : (
@@ -509,7 +542,7 @@ export default function LeadDetailPage() {
 
                 {/* Email */}
                 <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
-                  <span className="text-caption text-fg-secondary">البريد الإلكتروني</span>
+                  <span className="text-caption text-fg-secondary">{t('emailAddress')}</span>
                   {lead.isClaimedByMe && lead.email ? (
                     <div className="flex items-center justify-between">
                       <a
@@ -524,7 +557,7 @@ export default function LeadDetailPage() {
                         onClick={() => handleCopy(lead.email!, 'email')}
                         startIcon={<Copy className="w-3.5 h-3.5" />}
                       >
-                        {copiedField === 'email' ? 'تم النسخ' : 'نسخ'}
+                        {copiedField === 'email' ? t('copied') : t('copy')}
                       </Button>
                     </div>
                   ) : (
@@ -534,7 +567,7 @@ export default function LeadDetailPage() {
 
                 {/* Website */}
                 <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
-                  <span className="text-caption text-fg-secondary">الموقع الإلكتروني</span>
+                  <span className="text-caption text-fg-secondary">{t('website')}</span>
                   {lead.website ? (
                     <a
                       href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
@@ -545,13 +578,13 @@ export default function LeadDetailPage() {
                       {lead.website}
                     </a>
                   ) : (
-                    <span className="text-body-sm text-fg-muted">لا يوجد موقع مسجل</span>
+                    <span className="text-body-sm text-fg-muted">{t('noWebsite')}</span>
                   )}
                 </div>
 
                 {/* Location */}
                 <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
-                  <span className="text-caption text-fg-secondary">العنوان والموقع الجغرافي</span>
+                  <span className="text-caption text-fg-secondary">{t('locationAddress')}</span>
                   <p className="text-body-sm text-fg-primary truncate">
                     {lead.address || `${lead.governorate} — ${lead.city}`}
                   </p>
@@ -563,31 +596,31 @@ export default function LeadDetailPage() {
             {lead.websiteAnalysis && (
               <Card>
                 <CardHeader>
-                  <CardTitle>التحليل الفني للموقع</CardTitle>
+                  <CardTitle>{t('techAnalysis')}</CardTitle>
                 </CardHeader>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 text-body-sm">
                   <div className="p-3 rounded-lg bg-subtle">
-                    <span className="text-caption text-fg-secondary block">تشفير HTTPS</span>
+                    <span className="text-caption text-fg-secondary block">{t('httpsEncryption')}</span>
                     <span className="font-semibold text-fg-primary">
-                      {lead.websiteAnalysis.isHttps && lead.websiteAnalysis.sslValid ? 'مفعل' : 'غير مفعل'}
+                      {lead.websiteAnalysis.isHttps && lead.websiteAnalysis.sslValid ? t('enabled') : t('disabled')}
                     </span>
                   </div>
                   <div className="p-3 rounded-lg bg-subtle">
-                    <span className="text-caption text-fg-secondary block">توافق الموبايل</span>
+                    <span className="text-caption text-fg-secondary block">{t('mobileCompatibility')}</span>
                     <span className="font-semibold text-fg-primary">
-                      {lead.websiteAnalysis.hasMobileViewport ? 'متوافق' : 'غير متوافق'}
+                      {lead.websiteAnalysis.hasMobileViewport ? t('compatible') : t('incompatible')}
                     </span>
                   </div>
                   <div className="p-3 rounded-lg bg-subtle">
-                    <span className="text-caption text-fg-secondary block">سرعة الاستجابة</span>
+                    <span className="text-caption text-fg-secondary block">{t('responseTime')}</span>
                     <span className="ltr-iso font-mono font-semibold text-fg-primary">
                       {lead.websiteAnalysis.responseTimeMs ? `${lead.websiteAnalysis.responseTimeMs} ms` : '—'}
                     </span>
                   </div>
                   <div className="p-3 rounded-lg bg-subtle">
-                    <span className="text-caption text-fg-secondary block">هيكل الموقع</span>
+                    <span className="text-caption text-fg-secondary block">{t('siteStructure')}</span>
                     <span className="font-semibold text-fg-primary">
-                      {lead.websiteAnalysis.isOldBasicStructure ? 'يحتاج تحديث' : 'قياسي حديث'}
+                      {lead.websiteAnalysis.isOldBasicStructure ? t('needsUpdate') : t('standardModern')}
                     </span>
                   </div>
                 </div>
@@ -600,12 +633,12 @@ export default function LeadDetailPage() {
                 {/* Pipeline Stage Management */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>متابعة مرحلة الصفقة (CRM)</CardTitle>
+                    <CardTitle>{t('pipelineTitle')}</CardTitle>
                   </CardHeader>
                   <form onSubmit={handleSaveStatus} className="flex flex-col gap-4 py-2">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Select
-                        label="مرحلة المتابعة"
+                        label={t('stageLabel')}
                         value={pipelineStatus}
                         onChange={(e) => setPipelineStatus(e.target.value)}
                         options={Object.entries(PIPELINE_STATUS_LABELS).map(([k, v]) => ({
@@ -615,7 +648,7 @@ export default function LeadDetailPage() {
                       />
 
                       <Input
-                        label="تاريخ المتابعة القادمة"
+                        label={t('nextFollowUp')}
                         type="date"
                         value={nextFollowUpAt}
                         onChange={(e) => setNextFollowUpAt(e.target.value)}
@@ -623,10 +656,10 @@ export default function LeadDetailPage() {
                     </div>
 
                     <Textarea
-                      label="ملاحظات المتابعة والتفاوض"
+                      label={t('followUpNotes')}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      placeholder="سجل ملاحظات مكالمتك مع العميل وتفاصيل الاتفاق..."
+                      placeholder={t('followUpPlaceholder')}
                       rows={3}
                     />
 
@@ -636,7 +669,7 @@ export default function LeadDetailPage() {
                         variant="primary"
                         isLoading={savingStatus}
                       >
-                        حفظ حالة الصفقة
+                        {t('saveStage')}
                       </Button>
                     </div>
                   </form>
@@ -645,11 +678,11 @@ export default function LeadDetailPage() {
                 {/* Structured Feedback Form */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>تقييم جودة الفرصة</CardTitle>
+                    <CardTitle>{t('qualityFeedbackTitle')}</CardTitle>
                   </CardHeader>
                   <form onSubmit={handleSaveFeedback} className="flex flex-col gap-4 py-2">
                     <div className="flex items-center gap-4">
-                      <span className="text-label text-fg-primary">هل كانت بيانات الفرصة مفيدة؟</span>
+                      <span className="text-label text-fg-primary">{t('wasUseful')}</span>
                       <div className="flex items-center gap-2">
                         <Button
                           type="button"
@@ -658,7 +691,7 @@ export default function LeadDetailPage() {
                           onClick={() => setUseful(true)}
                           startIcon={<ThumbsUp className="w-3.5 h-3.5" />}
                         >
-                          نعم
+                          {t('yes')}
                         </Button>
                         <Button
                           type="button"
@@ -667,16 +700,16 @@ export default function LeadDetailPage() {
                           onClick={() => setUseful(false)}
                           startIcon={<ThumbsDown className="w-3.5 h-3.5" />}
                         >
-                          لا
+                          {t('no')}
                         </Button>
                       </div>
                     </div>
 
                     <Textarea
-                      label="تعليق إضافي حول دقة البيانات"
+                      label={t('feedbackCommentLabel')}
                       value={feedbackComment}
                       onChange={(e) => setFeedbackComment(e.target.value)}
-                      placeholder="ملاحظات حول جودة الهاتف أو اهتمام العميل..."
+                      placeholder={t('feedbackCommentPlaceholder')}
                       rows={2}
                     />
 
@@ -686,7 +719,7 @@ export default function LeadDetailPage() {
                         variant="secondary"
                         isLoading={savingFeedback}
                       >
-                        إرسال التقييم
+                        {t('sendFeedback')}
                       </Button>
                     </div>
                   </form>
@@ -695,7 +728,7 @@ export default function LeadDetailPage() {
                 {/* Deal Timeline & Activity per Spec 7.13 */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>سجل الملاحظات والنشاط (Timeline)</CardTitle>
+                    <CardTitle>{t('timelineTitle')}</CardTitle>
                   </CardHeader>
                   <div className="p-4">
                     <DealTimeline
@@ -705,7 +738,7 @@ export default function LeadDetailPage() {
                               {
                                 id: 'note-claim',
                                 type: 'NOTE' as const,
-                                author: 'ملاحظة أولية',
+                                author: t('noteInitial'),
                                 content: lead.myClaim.notes,
                                 createdAt: lead.myClaim.claimedAt,
                               },
@@ -716,8 +749,8 @@ export default function LeadDetailPage() {
                               {
                                 id: 'contact-claim',
                                 type: 'STATUS_CHANGE' as const,
-                                author: 'محاولة تواصل',
-                                content: 'آخر تواصل مسجل مع العميل',
+                                author: t('noteContact'),
+                                content: t('noteContactContent'),
                                 createdAt: lead.myClaim.lastContactedAt,
                               },
                             ]
@@ -733,7 +766,7 @@ export default function LeadDetailPage() {
                           }),
                         });
                         if (res.ok) {
-                          setActionMsg({ type: 'info', text: 'تم تسجيل الملاحظة بنجاح.' });
+                          setActionMsg({ type: 'info', text: t('noteSuccess') });
                           await loadLead();
                         }
                       }}
@@ -744,13 +777,13 @@ export default function LeadDetailPage() {
                           body: JSON.stringify({
                             channel: 'PHONE',
                             result: 'WRONG_NUMBER',
-                            note: 'إبلاغ عن رقم خاطئ',
+                            note: t('wrongNumberReport'),
                           }),
                         });
                         if (res.ok) {
                           setActionMsg({
                             type: 'info',
-                            text: 'سنرسل إشارة لإعادة التحقق من الرقم. لن يُحذف الرقم فوراً.',
+                            text: t('wrongNumberSignal'),
                           });
                           await loadLead();
                         }
@@ -767,19 +800,19 @@ export default function LeadDetailPage() {
             <div className="sticky top-20 flex flex-col gap-5 p-6 rounded-xl border border-line bg-surface shadow-xs">
               {/* Price Section */}
               <div className="flex flex-col gap-1 pb-4 border-b border-line">
-                <span className="text-caption text-fg-secondary">تكلفة فتح البيانات</span>
+                <span className="text-caption text-fg-secondary">{t('costUnlock')}</span>
                 <div className="flex items-baseline gap-2">
                   <span className="ltr-iso font-mono text-display font-bold leading-none tabular-nums text-fg-primary">
                     {fmtNumber(price)}
                   </span>
-                  <span className="text-body text-fg-secondary font-medium">نقطة رصيد</span>
+                  <span className="text-body text-fg-secondary font-medium">{t('pointCredits')}</span>
                 </div>
                 <span className="text-caption text-fg-muted mt-1">
-                  الميزانية المقدرة:{' '}
+                  {t('estimatedBudget')}{' '}
                   <span className="ltr-iso font-mono font-medium text-fg-secondary">
                     {fmtNumber(lead.estimatedBudget)}
                   </span>{' '}
-                  ج.م
+                  {t('egp')}
                 </span>
               </div>
 
@@ -796,8 +829,8 @@ export default function LeadDetailPage() {
                 />
                 <p className="text-body-sm text-fg-secondary leading-relaxed">
                   {lead.exclusive
-                    ? 'ستكون الجهة الوحيدة التي تحصل على بيانات هذه الفرصة.'
-                    : `يمكن لعدد أقصى من ${lead.maxPurchasers || 3} مطورين الحصول على هذه الفرصة.`}
+                    ? t('exclusiveExplanation')
+                    : t('sharedExplanation', { count: lead.maxPurchasers || 3 })}
                 </p>
               </div>
 
@@ -809,7 +842,7 @@ export default function LeadDetailPage() {
                   fullWidth
                   disabled
                 >
-                  الفرصة مملوكة لديك
+                  {t('alreadyOwned')}
                 </Button>
               ) : (
                 <Button
@@ -822,13 +855,13 @@ export default function LeadDetailPage() {
                     Boolean(lead.saleabilityStatus && lead.saleabilityStatus !== 'AVAILABLE')
                   }
                 >
-                  شراء بيانات الفرصة
+                  {t('purchaseLead')}
                 </Button>
               )}
 
               {/* Trust & Reassurance Line per Spec 4 & 7.10 */}
               <p className="text-caption text-fg-muted text-center">
-                العملية نهائية ومحمية بنظام النقاط المعتمد.
+                {t('trustReassurance')}
               </p>
             </div>
           </div>
@@ -837,15 +870,15 @@ export default function LeadDetailPage() {
         {/* Mobile Sticky Bottom Bar per Spec Section 8 */}
         <div className="lg:hidden fixed bottom-0 inset-x-0 bg-surface border-t border-line p-4 flex items-center justify-between z-20 shadow-md">
           <div className="flex flex-col">
-            <span className="text-caption text-fg-secondary">التكلفة</span>
+            <span className="text-caption text-fg-secondary">{t('costUnlock')}</span>
             <span className="ltr-iso font-mono font-bold text-body text-fg-primary">
-              {fmtNumber(price)} نقطة
+              {fmtNumber(price)} {t('points')}
             </span>
           </div>
 
           {lead.isClaimedByMe ? (
             <Button variant="secondary" size="md" disabled>
-              تم الشراء
+              {t('purchased')}
             </Button>
           ) : (
             <Button
@@ -857,7 +890,7 @@ export default function LeadDetailPage() {
                 Boolean(lead.saleabilityStatus && lead.saleabilityStatus !== 'AVAILABLE')
               }
             >
-              شراء الفرصة
+              {t('purchaseLead')}
             </Button>
           )}
         </div>

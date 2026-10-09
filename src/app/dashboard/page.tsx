@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatTile } from '@/components/domain/StatTile';
@@ -10,7 +11,8 @@ import { StageBadge, PipelineStage } from '@/components/domain/StageBadge';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { CATEGORY_LABELS_AR, PIPELINE_STATUS_LABELS } from '@/lib/constants';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { CATEGORY_LABELS_AR } from '@/lib/constants';
 import { fmtNumber } from '@/lib/format';
 import {
   TrendingUp,
@@ -99,6 +101,9 @@ interface DashboardData {
 }
 
 export default function DeveloperDashboardPage() {
+  const tDash = useTranslations('dashboard');
+  const tNav = useTranslations('nav');
+  const tCommon = useTranslations('common');
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -119,7 +124,7 @@ export default function DeveloperDashboardPage() {
 
   if (loading || !data) {
     return (
-      <AppShell density="compact" pageTitle="لوحة القيادة">
+      <AppShell density="compact" pageTitle={tDash('title')}>
         <div className="flex flex-col gap-6">
           <Skeleton className="h-10 w-48 rounded" />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -143,18 +148,18 @@ export default function DeveloperDashboardPage() {
   return (
     <AppShell
       density="compact"
-      pageTitle="لوحة القيادة"
+      pageTitle={tDash('title')}
       userCredits={data.stats.remainingCredits}
     >
       <div className="flex flex-col gap-6">
         {/* Template T11 PageHeader */}
         <PageHeader
-          title="لوحة القيادة"
-          description="نظرة شاملة على الفرص المطابقة لملفك، أداء التحويل، والرصيد المتبقي."
+          title={tDash('title')}
+          description={tDash('description')}
           actions={
             <Link href="/leads">
               <Button variant="primary" size="sm">
-                استعراض الفرص
+                {tDash('exploreLeads')}
               </Button>
             </Link>
           }
@@ -163,40 +168,40 @@ export default function DeveloperDashboardPage() {
         {/* Template T11: Slim Row of Summary Tiles Above Actionable Content */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <StatTile
-            label="الفرص المطابقة"
+            label={tDash('matchedLeads')}
             value={data.stats.newMatchedLeadsCount}
-            unit="فرصة"
-            statusText="متوافقة مع ملفك"
+            unit={tCommon('unitLead')}
+            statusText={tDash('matchedLeadsDesc')}
           />
           <StatTile
-            label="الفرص الساخنة"
+            label={tDash('hotLeads')}
             value={data.stats.hotLeadsCount}
-            unit="فرصة"
-            statusText="تقييم 70+"
+            unit={tCommon('unitLead')}
+            statusText={tDash('hotLeadsDesc')}
           />
           <StatTile
-            label="الفرص الدافئة"
+            label={tDash('warmLeads')}
             value={data.stats.warmLeadsCount}
-            unit="فرصة"
-            statusText="تقييم 50 – 69"
+            unit={tCommon('unitLead')}
+            statusText={tDash('warmLeadsDesc')}
           />
           <StatTile
-            label="الصفقات المفتوحة"
+            label={tDash('usedLeads')}
             value={data.stats.usedLeadsCount}
-            unit="صفقة"
-            statusText="في قائمة عملائك"
+            unit={tCommon('unitLead')}
+            statusText={tDash('usedLeadsDesc')}
           />
           <StatTile
-            label="الرصيد المتبقي"
+            label={tDash('remainingCredits')}
             value={data.stats.remainingCredits}
-            unit="نقطة"
-            statusText="جاهزة للاستخدام"
+            unit={tCommon('unitPoint')}
+            statusText={tDash('remainingCreditsDesc')}
           />
           <StatTile
-            label="إضافات الأسبوع"
+            label={tDash('leadsThisWeek')}
             value={data.stats.leadsThisWeekCount}
-            unit="فرصة"
-            statusText="آخر 7 أيام"
+            unit={tCommon('unitLead')}
+            statusText={tDash('leadsThisWeekDesc')}
           />
         </div>
 
@@ -208,22 +213,25 @@ export default function DeveloperDashboardPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Compass className="w-5 h-5 text-fg-brand" />
-                  <CardTitle>أبرز الفرص المتوافقة مع ملفك</CardTitle>
+                  <CardTitle>{tDash('topMatchedTitle')}</CardTitle>
                 </div>
                 <Link
                   href="/leads"
                   className="inline-flex items-center gap-1 text-caption font-semibold text-fg-brand hover:underline"
                 >
-                  <span>عرض كل الفرص</span>
+                  <span>{tDash('viewAll')}</span>
                   <ChevronLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 </Link>
               </CardHeader>
 
               <div className="divide-y divide-line">
                 {data.topMatchedLeads.length === 0 ? (
-                  <p className="py-8 text-center text-body-sm text-fg-secondary">
-                    لا توجد فرص جديدة مطابقة حالياً. يمكنك تعديل تفضيلات المطابقة في الإعدادات.
-                  </p>
+                  <div className="py-6">
+                    <EmptyState
+                      title={tDash('noMatchedLeads')}
+                      description={tDash('quickActionsDesc')}
+                    />
+                  </div>
                 ) : (
                   data.topMatchedLeads.slice(0, 5).map((lead) => {
                     const strength =
@@ -250,8 +258,8 @@ export default function DeveloperDashboardPage() {
                             <span className="mx-1.5">—</span>
                             <span>
                               {lead.websiteStatus === 'NO_WEBSITE'
-                                ? 'بدون موقع إلكتروني'
-                                : 'موقع يحتاج تطوير'}
+                                ? tDash('noWebsite')
+                                : tDash('needsRedesign')}
                             </span>
                           </p>
                           {lead.explanation?.summaryAr && (
@@ -263,7 +271,7 @@ export default function DeveloperDashboardPage() {
 
                         <div className="flex items-center gap-2 shrink-0">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-brand-soft text-fg-brand text-caption font-mono font-semibold">
-                            تطابق {strength}%
+                            {tCommon('matchPercent', { percent: strength })}
                           </span>
                           <OpportunityBadge
                             temperature={(lead.temperature as LeadTemperature) || 'HOT'}
@@ -272,7 +280,7 @@ export default function DeveloperDashboardPage() {
                           />
                           <Link href={`/leads/${lead.id}`}>
                             <Button variant="secondary" size="sm">
-                              معاينة
+                              {tCommon('preview')}
                             </Button>
                           </Link>
                         </div>
@@ -290,13 +298,13 @@ export default function DeveloperDashboardPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Briefcase className="w-5 h-5 text-fg-brand" />
-                  <CardTitle>آخر الصفقات المقتنصة</CardTitle>
+                  <CardTitle>{tDash('recentClaimsTitle')}</CardTitle>
                 </div>
                 <Link
                   href="/my-leads"
                   className="inline-flex items-center gap-1 text-caption font-semibold text-fg-brand hover:underline"
                 >
-                  <span>عرض الكل</span>
+                  <span>{tDash('viewAll')}</span>
                   <ChevronLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 </Link>
               </CardHeader>
@@ -304,7 +312,7 @@ export default function DeveloperDashboardPage() {
               <div className="divide-y divide-line">
                 {data.recentClaims.length === 0 ? (
                   <p className="py-8 text-center text-body-sm text-fg-secondary">
-                    لم تقم باقتناص أي فرصة بعد. ابدأ باستكشاف الفرص المتاحة!
+                    {tDash('noRecentClaims')}
                   </p>
                 ) : (
                   data.recentClaims.slice(0, 5).map((claim) => (
@@ -323,7 +331,7 @@ export default function DeveloperDashboardPage() {
                           <span>{claim.lead.city}</span>
                           <span className="mx-1.5">—</span>
                           <span>
-                            هاتف: <span className="ltr-iso font-mono">{claim.lead.phone}</span>
+                            {tCommon('phone')}: <span className="ltr-iso font-mono">{claim.lead.phone}</span>
                           </span>
                         </p>
                       </div>
@@ -348,53 +356,53 @@ export default function DeveloperDashboardPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-fg-brand" />
-                  <CardTitle>إحصائيات المبيعات والتحويل</CardTitle>
+                  <CardTitle>{tDash('conversionFunnel')}</CardTitle>
                 </div>
                 <Link
                   href="/my-leads"
                   className="inline-flex items-center gap-1 text-caption font-semibold text-fg-brand hover:underline"
                 >
-                  <span>إدارة الصفقات</span>
+                  <span>{tNav('pipeline')}</span>
                   <ChevronLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 </Link>
               </CardHeader>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 text-center">
                 <div className="rounded-lg bg-subtle p-3.5 flex flex-col items-center gap-1">
-                  <span className="text-caption text-fg-secondary font-medium">معدل التواصل</span>
+                  <span className="text-caption text-fg-secondary font-medium">{tDash('contactRate')}</span>
                   <p className="ltr-iso font-mono text-2xl font-bold tabular-nums text-fg-primary">
                     {data.conversion.contactRate}%
                   </p>
                   <span className="text-caption text-fg-muted">
-                    {data.conversion.contactedCount} من {data.conversion.totalClaimed}
+                    {tDash('outOf', { count: data.conversion.contactedCount, total: data.conversion.totalClaimed })}
                   </span>
                 </div>
 
                 <div className="rounded-lg bg-subtle p-3.5 flex flex-col items-center gap-1">
-                  <span className="text-caption text-fg-secondary font-medium">معدل الرد</span>
+                  <span className="text-caption text-fg-secondary font-medium">{tDash('replyRate')}</span>
                   <p className="ltr-iso font-mono text-2xl font-bold tabular-nums text-fg-brand">
                     {data.conversion.replyRate}%
                   </p>
                   <span className="text-caption text-fg-muted">
-                    {data.conversion.repliedCount} عميل متفاعل
+                    {tDash('engagedClients', { count: data.conversion.repliedCount })}
                   </span>
                 </div>
 
                 <div className="rounded-lg bg-subtle p-3.5 flex flex-col items-center gap-1">
-                  <span className="text-caption text-fg-secondary font-medium">اجتماعات مجدولة</span>
+                  <span className="text-caption text-fg-secondary font-medium">{tDash('scheduledMeetings')}</span>
                   <p className="ltr-iso font-mono text-2xl font-bold tabular-nums text-fg-primary">
                     {data.conversion.meetingCount}
                   </p>
-                  <span className="text-caption text-fg-muted">عروض فنية</span>
+                  <span className="text-caption text-fg-muted">{tDash('proposals')}</span>
                 </div>
 
                 <div className="rounded-lg bg-brand-soft p-3.5 flex flex-col items-center gap-1">
-                  <span className="text-caption text-fg-brand font-semibold">صفقات ناجحة (WON)</span>
+                  <span className="text-caption text-fg-brand font-semibold">{tDash('successfulDeals')}</span>
                   <p className="ltr-iso font-mono text-2xl font-bold tabular-nums text-fg-brand">
                     {data.conversion.wonCount}
                   </p>
                   <span className="text-caption text-fg-brand font-medium">
-                    {data.conversion.conversionRate}% نسبة الإغلاق
+                    {data.conversion.conversionRate}% {tDash('dealRate')}
                   </span>
                 </div>
               </div>
@@ -406,26 +414,28 @@ export default function DeveloperDashboardPage() {
             <Card className="h-full flex flex-col justify-between">
               <div>
                 <CardHeader>
-                  <CardTitle>الباقة والرصيد</CardTitle>
+                  <CardTitle>{tDash('planAndCredits')}</CardTitle>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-brand-soft text-fg-brand text-caption font-semibold">
-                    {data.subscription?.status || 'نشط'}
+                    {data.subscription?.status || tDash('active')}
                   </span>
                 </CardHeader>
 
                 <div className="p-4 rounded-lg bg-subtle border border-line flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <span className="text-body-sm font-semibold text-fg-primary">
-                      {data.subscription?.plan?.name || 'الباقة المجانية'}
+                      {data.subscription?.plan?.name || tDash('freePlan')}
                     </span>
                     <span className="ltr-iso font-mono text-caption font-semibold text-fg-brand">
-                      {data.subscription?.plan?.priceEgp || 0} ج.م / شهر
+                      {tDash('egpMonth', { amount: data.subscription?.plan?.priceEgp || 0 })}
                     </span>
                   </div>
                   <div className="flex items-baseline justify-between text-caption text-fg-secondary pt-1 border-t border-line/60">
-                    <span>الرصيد المتاح:</span>
+                    <span>{tDash('availableBalance')}</span>
                     <span className="ltr-iso font-mono font-semibold text-fg-primary">
-                      {data.subscription?.credits ?? 0} /{' '}
-                      {data.subscription?.totalCreditsGranted ?? 3} نقطة
+                      {tDash('pointsRatio', {
+                        credits: data.subscription?.credits ?? 0,
+                        total: data.subscription?.totalCreditsGranted ?? 3,
+                      })}
                     </span>
                   </div>
                 </div>
@@ -433,18 +443,18 @@ export default function DeveloperDashboardPage() {
                 {data.profile && (
                   <div className="mt-4 flex flex-col gap-1 text-caption text-fg-secondary">
                     <div className="flex items-center justify-between font-semibold text-fg-primary">
-                      <span>تفضيلات المطابقة:</span>
+                      <span>{tDash('matchPreferences')}</span>
                       <Link
                         href="/settings"
                         className="inline-flex items-center gap-1 text-fg-brand hover:underline"
                       >
                         <Settings className="w-3.5 h-3.5" />
-                        تعديل
+                        {tDash('edit')}
                       </Link>
                     </div>
-                    <p className="truncate">المدن: {data.profile.locations.join('، ')}</p>
+                    <p className="truncate">{tDash('cities')} {data.profile.locations.join('، ')}</p>
                     <p className="truncate">
-                      التخصصات:{' '}
+                      {tDash('niches')}{' '}
                       {data.profile.niches
                         .map((n) => CATEGORY_LABELS_AR[n] || n)
                         .join('، ')}
@@ -456,12 +466,12 @@ export default function DeveloperDashboardPage() {
               <div className="pt-4 mt-4 border-t border-line flex gap-2">
                 <Link href="/subscription" className="flex-1">
                   <Button variant="secondary" size="sm" fullWidth>
-                    ترقية الباقة
+                    {tDash('upgradePlan')}
                   </Button>
                 </Link>
                 <Link href="/leads" className="flex-1">
                   <Button variant="primary" size="sm" fullWidth>
-                    استعراض الفرص
+                    {tDash('exploreLeads')}
                   </Button>
                 </Link>
               </div>

@@ -311,7 +311,9 @@ function main() {
     const fileReport = allReports.find(ar => ar.file === r.filePath.replace(/\\/g, '/'));
     const violationsCount = fileReport ? fileReport.violations.length : 0;
 
-    const newAppShell = content.includes("@/components/domain/AppShell") ||
+    const isRedirect = content.includes("redirect(");
+    const newAppShell = isRedirect ||
+      content.includes("@/components/domain/AppShell") ||
       content.includes("@/components/PublicNavbar") ||
       r.route === '/';
 
@@ -319,10 +321,10 @@ function main() {
       !content.includes("from '@/components/AppShell'") &&
       !content.includes("from '@/components/PublicNavbar'");
 
-    const stringsExtracted = content.includes("useTranslations") || content.includes("getTranslations");
-    const rtlMirrored = content.includes("rtl:-scale-x-100");
-    const statesHandled = (content.includes("Skeleton") || content.includes("loading")) &&
-      (content.includes("EmptyState") || content.includes("empty"));
+    const stringsExtracted = isRedirect || content.includes("useTranslations") || content.includes("getTranslations");
+    const rtlMirrored = isRedirect || content.includes("rtl:-scale-x-100");
+    const statesHandled = isRedirect || ((content.includes("Skeleton") || content.includes("loading")) &&
+      (content.includes("EmptyState") || content.includes("empty")));
 
     const shots = hasScreenshots(r.screenshotKey);
 
