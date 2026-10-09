@@ -1,6 +1,7 @@
 import React from 'react';
 import { Menu, Bell } from 'lucide-react';
 import { CreditChip } from './CreditChip';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
 export interface TopBarProps {
   onToggleSidebar?: () => void;
@@ -54,6 +55,9 @@ export const TopBar: React.FC<TopBarProps> = ({
           <CreditChip balance={userCredits} />
         )}
 
+        {/* LanguageSwitcher per Spec 3.8 */}
+        <LanguageSwitcher size="sm" />
+
         {/* Notifications Icon */}
         <button
           type="button"
@@ -66,9 +70,9 @@ export const TopBar: React.FC<TopBarProps> = ({
           )}
         </button>
 
-        {/* Avatar circle 36px, bg --teal-100, initials --teal-700 font-semibold per Spec 7.16 */}
+        {/* Avatar circle 36px, bg-brand-soft, text-brand */}
         <div
-          className="h-9 w-9 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-semibold text-caption select-none border border-teal-200"
+          className="h-9 w-9 rounded-full bg-brand-soft text-brand flex items-center justify-center font-semibold text-caption select-none border border-line-brand"
           title={userName}
           role="img"
           aria-label={userName}

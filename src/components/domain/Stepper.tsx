@@ -68,7 +68,7 @@ export const Stepper: React.FC<StepperProps> = ({
         >
           <div
             className="h-full rounded-full bg-brand-accent transition-all duration-300"
-            style={{ width: `${progressPercentage}%` }}
+            style={{ width: `${progressPercentage}%` /* design-allow: dynamic progress bar width */ }}
           />
         </div>
       </div>

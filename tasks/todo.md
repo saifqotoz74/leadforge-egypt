@@ -7,18 +7,18 @@
 - [x] **Checkpoint 1**: Review initial violation count and matrix before modifying any page.
 
 ## Phase 2: Language Infrastructure & Shared Component Translation (Part B Step 2)
-- [ ] Task 2.1: Install `next-intl` (compatible with Next 14.2 App Router) and configure `next.config.mjs`.
-- [ ] Task 2.2: Implement `src/i18n/request.ts` (cookie `lf_locale`, default `ar`) and Root Layout integration (`lang`, `dir`, `NextIntlClientProvider`).
-- [ ] Task 2.3: Implement `src/components/ui/LanguageSwitcher.tsx` (segmented control `العربية` / `English`).
-- [ ] Task 2.4: Update `src/app/globals.css` with corrected `.ltr-iso` (no text-align), `.ltr-field`, and English line-height overrides.
-- [ ] Task 2.5: Upgrade `src/lib/format.ts` to be locale-aware (`ar-EG-u-nu-latn` vs `en-GB-u-nu-latn` / `en-US`).
-- [ ] Task 2.6: Create `src/lib/i18n-enums.ts` providing `useEnumLabel` and server `getEnumLabel` mapping all 33 Prisma enums.
-- [ ] Task 2.7: Create `src/lib/api-errors.ts` providing `mapApiError()`.
-- [ ] Task 2.8: Create `src/messages/ar.json` and matching `src/messages/en.json` starter catalogs.
-- [ ] Task 2.9: Create `docs/i18n/GLOSSARY.md`, `docs/i18n/ALLOWLIST.md`, and `docs/i18n/MISSING_KEYS.md`.
-- [ ] Task 2.10: Build `scripts/check-i18n.mjs` and add `"check:i18n"` script to `package.json`.
-- [ ] Task 2.11: Convert shared components (`AppShell`, `PublicNavbar`, `PublicFooter`, `Sidebar`, `TopBar`, primitives) to use message catalog and mirror directional icons (`rtl:-scale-x-100`).
-- [ ] **Checkpoint 2**: Verify `check:i18n`, `check:design`, tests, and review converted sample page with user.
+- [x] Task 2.1: Install `next-intl` (compatible with Next 14.2 App Router) and configure `next.config.mjs`.
+- [x] Task 2.2: Implement `src/i18n/request.ts` (cookie `lf_locale`, default `ar`) and Root Layout integration (`lang`, `dir`, `NextIntlClientProvider`).
+- [x] Task 2.3: Implement `src/components/ui/LanguageSwitcher.tsx` (segmented control `العربية` / `English`).
+- [x] Task 2.4: Update `src/app/globals.css` with corrected `.ltr-iso` (no text-align), `.ltr-field`, and English line-height overrides.
+- [x] Task 2.5: Upgrade `src/lib/format.ts` to be locale-aware (`ar-EG-u-nu-latn` vs `en-GB-u-nu-latn` / `en-US`).
+- [x] Task 2.6: Create `src/lib/i18n-enums.ts` providing `useEnumLabel` and server `getEnumLabel` mapping all 33 Prisma enums.
+- [x] Task 2.7: Create `src/lib/api-errors.ts` providing `mapApiError()`.
+- [x] Task 2.8: Create `src/messages/ar.json` and matching `src/messages/en.json` starter catalogs.
+- [x] Task 2.9: Create `docs/i18n/GLOSSARY.md`, `docs/i18n/ALLOWLIST.md`, and `docs/i18n/MISSING_KEYS.md`.
+- [x] Task 2.10: Build `scripts/check-i18n.mjs` and add `"check:i18n"` script to `package.json`.
+- [x] Task 2.11: Convert shared components (`AppShell`, `PublicNavbar`, `PublicFooter`, `Sidebar`, `TopBar`, primitives) to use message catalog and mirror directional icons (`rtl:-scale-x-100`).
+- [x] **Checkpoint 2**: Verify `check:i18n`, `check:design`, tests, and review converted sample page with user.
 
 ## Phase 3: Route Group Conversions (Conformance + String Extraction)
 - [ ] Task 3.1: Convert Developer App routes (`/leads`, `/leads/[id]`, `/dashboard`, `/dashboard/analytics`, `/credits`, `/pipeline`, `/subscription`, `/my-leads`).

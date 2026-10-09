@@ -20,7 +20,7 @@ export function Skeleton({
       className={`bg-subtle animate-pulse ${
         circle ? 'rounded-full' : 'rounded-md'
       } ${className}`}
-      style={{
+      style={{ /* design-allow: dynamic skeleton dimensions */
         width,
         height,
         ...style,

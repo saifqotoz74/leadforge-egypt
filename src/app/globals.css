@@ -33,8 +33,40 @@
 .ltr-iso {
   direction: ltr;
   unicode-bidi: isolate;
-  text-align: end;
   font-variant-numeric: tabular-nums;
+}
+
+html[dir="rtl"] .ltr-field {
+  text-align: right;
+}
+
+html[dir="ltr"] .ltr-field {
+  text-align: left;
+}
+
+/* English line height overrides per Spec Addendum 01 Section 1 */
+html[lang="en"] body {
+  line-height: 1.6;
+}
+html[lang="en"] .text-body-lg {
+  line-height: 1.65;
+}
+html[lang="en"] .text-body-sm {
+  line-height: 1.55;
+}
+html[lang="en"] h1,
+html[lang="en"] h2,
+html[lang="en"] h3,
+html[lang="en"] h4,
+html[lang="en"] .text-display,
+html[lang="en"] .text-h1,
+html[lang="en"] .text-h2,
+html[lang="en"] .text-h3,
+html[lang="en"] .text-h4 {
+  line-height: 1.25;
+}
+html[lang="en"] .text-label {
+  line-height: 1.35;
 }
 
 .tabular {

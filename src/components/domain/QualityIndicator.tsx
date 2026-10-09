@@ -32,7 +32,7 @@ const QUALITY_CONFIG: Record<
     label: 'حديث',
     icon: () => null,
     isDot: true,
-    iconColor: 'bg-teal-500',
+    iconColor: 'bg-brand-accent',
     textColor: 'text-fg-secondary',
   },
   AGING: {

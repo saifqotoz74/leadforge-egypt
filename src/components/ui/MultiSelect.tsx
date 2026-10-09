@@ -93,7 +93,7 @@ export function MultiSelect({
             setIsOpen(!isOpen);
           }
         }}
-        className={`min-h-[2.5rem] w-full p-1.5 ps-3 pe-9 rounded-md bg-surface text-fg-primary text-body border transition-colors flex flex-wrap items-center gap-1.5 cursor-pointer outline-none ${
+        className={`min-h-10 w-full p-1.5 ps-3 pe-9 rounded-md bg-surface text-fg-primary text-body border transition-colors flex flex-wrap items-center gap-1.5 cursor-pointer outline-none ${
           hasError
             ? 'border-danger-icon focus:ring-2 focus:ring-danger-icon/30'
             : 'border-line-strong hover:border-fg-muted focus:border-brand focus:ring-2 focus:ring-brand-accent/40'

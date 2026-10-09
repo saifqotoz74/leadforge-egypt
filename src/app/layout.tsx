@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Sans_Arabic, IBM_Plex_Mono } from 'next/font/google';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
 
 const sans = IBM_Plex_Sans_Arabic({
@@ -17,20 +19,23 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'LeadForge Egypt | منصة الفرص البيعية المؤهلة لمطوري المواقع في مصر',
+  title: 'LeadForge Egypt | فرص عملاء حقيقية لمطوري المواقع',
   description:
-    'منصة SaaS احترافية لمطوري الويب وشركات البرمجة في مصر للحصول على عملاء محتملين مؤهلين (Qualified Web Development Leads) بنظام تقييم ومطابقة قياسي.',
+    'منصة SaaS مصرية لمطوري الويب لتقييم ومطابقة فرص العملاء المحتملين بقواعد رياضية محددة وشفافة بدون تخمين.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="ar"
-      dir="rtl"
+      lang={locale}
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
       className={`${sans.variable} ${mono.variable}`}
       data-density="comfortable"
     >
@@ -46,7 +51,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
     </html>
   );
 }

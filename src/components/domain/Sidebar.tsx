@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   LayoutDashboard,
   Compass,
@@ -21,68 +24,12 @@ import {
   X,
 } from 'lucide-react';
 
-export interface NavItemConfig {
-  href: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-export interface NavGroupConfig {
-  title?: string;
-  items: NavItemConfig[];
-}
-
 export interface SidebarProps {
   isAdmin?: boolean;
   isOpen?: boolean;
   onClose?: () => void;
   className?: string;
 }
-
-export const DEVELOPER_NAV: NavGroupConfig[] = [
-  {
-    items: [
-      { href: '/dashboard', label: 'لوحة القيادة', icon: LayoutDashboard },
-      { href: '/leads', label: 'استعراض الفرص', icon: Compass },
-      { href: '/my-leads', label: 'صفقاتي', icon: Kanban },
-    ],
-  },
-  {
-    title: 'الحساب والإعدادات',
-    items: [
-      { href: '/subscription', label: 'الرصيد والباقات', icon: CreditCard },
-      { href: '/settings', label: 'تفضيلات المطابقة', icon: Settings },
-    ],
-  },
-];
-
-export const ADMIN_NAV: NavGroupConfig[] = [
-  {
-    items: [
-      { href: '/admin', label: 'نظرة عامة', icon: ShieldAlert },
-      { href: '/admin/leads', label: 'سجل الفرص', icon: Database },
-      { href: '/admin/duplicates', label: 'مراجعة التكرار', icon: CopyCheck },
-      { href: '/admin/quality', label: 'جودة البيانات', icon: CheckCircle2 },
-    ],
-  },
-  {
-    title: 'المحركات والقواعد',
-    items: [
-      { href: '/admin/matching', label: 'محرك المطابقة', icon: Sliders },
-      { href: '/admin/rules', label: 'قواعد التقييم', icon: Scale },
-      { href: '/admin/sources', label: 'المصادر والجمع', icon: Globe2 },
-    ],
-  },
-  {
-    title: 'الإدارة والتقارير',
-    items: [
-      { href: '/admin/users', label: 'المستخدمون', icon: Users2 },
-      { href: '/admin/plans', label: 'إعدادات الباقات', icon: Package },
-      { href: '/admin/reports', label: 'سجل التدقيق', icon: FileSpreadsheet },
-      { href: '/admin/analytics', label: 'تحليلات المنظومة', icon: BarChart3 },
-    ],
-  },
-];
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isAdmin = false,
@@ -91,7 +38,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
   className = '',
 }) => {
   const pathname = usePathname();
-  const navGroups = isAdmin ? ADMIN_NAV : DEVELOPER_NAV;
+  const tNav = useTranslations('nav');
+
+  const developerNavGroups = [
+    {
+      items: [
+        { href: '/dashboard', label: tNav('dashboard'), icon: LayoutDashboard },
+        { href: '/leads', label: tNav('exploreLeads'), icon: Compass },
+        { href: '/my-leads', label: tNav('pipeline'), icon: Kanban },
+      ],
+    },
+    {
+      title: tNav('settings'),
+      items: [
+        { href: '/subscription', label: tNav('credits'), icon: CreditCard },
+        { href: '/settings', label: tNav('settings'), icon: Settings },
+      ],
+    },
+  ];
+
+  const adminNavGroups = [
+    {
+      items: [
+        { href: '/admin', label: tNav('adminOverview'), icon: ShieldAlert },
+        { href: '/admin/leads', label: tNav('adminLeads'), icon: Database },
+        { href: '/admin/duplicates', label: tNav('adminDuplicates'), icon: CopyCheck },
+        { href: '/admin/quality', label: tNav('adminQuality'), icon: CheckCircle2 },
+      ],
+    },
+    {
+      title: 'المحركات والقواعد',
+      items: [
+        { href: '/admin/matching', label: tNav('adminMatching'), icon: Sliders },
+        { href: '/admin/rules', label: tNav('adminRules'), icon: Scale },
+        { href: '/admin/sources', label: tNav('adminSources'), icon: Globe2 },
+      ],
+    },
+    {
+      title: 'الإدارة والتقارير',
+      items: [
+        { href: '/admin/users', label: tNav('adminUsers'), icon: Users2 },
+        { href: '/admin/plans', label: tNav('adminPlans'), icon: Package },
+        { href: '/admin/reports', label: tNav('adminReports'), icon: FileSpreadsheet },
+        { href: '/admin/analytics', label: tNav('adminAnalytics'), icon: BarChart3 },
+      ],
+    },
+  ];
+
+  const navGroups = isAdmin ? adminNavGroups : developerNavGroups;
 
   return (
     <>
@@ -99,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-overlay lg:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-inverse/50 lg:hidden transition-opacity"
           aria-hidden="true"
         />
       )}
@@ -122,8 +116,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               LeadForge
             </span>
             {isAdmin && (
-              <span className="px-1.5 py-0.5 rounded text-caption font-medium bg-sand-200 text-sand-800">
-                إدارة
+              <span className="px-1.5 py-0.5 rounded text-caption font-medium bg-subtle text-fg-secondary border border-line">
+                {tNav('admin')}
               </span>
             )}
           </Link>
@@ -158,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     key={item.href}
                     href={item.href}
                     onClick={onClose}
-                    className={`h-[var(--nav-item-h)] px-3 rounded-md flex items-center gap-3 text-label transition-colors font-medium ${
+                    className={`h-nav px-3 rounded-md flex items-center gap-3 text-label transition-colors font-medium ${
                       isActive
                         ? 'bg-brand-soft text-fg-brand font-semibold'
                         : 'text-fg-secondary hover:bg-subtle hover:text-fg-primary'

@@ -37,7 +37,7 @@ export const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
             {...props}
           />
           <div className="w-11 h-6 bg-line-strong rounded-full transition-colors peer-checked:bg-brand peer-focus-visible:ring-2 peer-focus-visible:ring-brand-accent/40" />
-          <div className="absolute start-0.5 top-0.5 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5 rtl:peer-checked:-translate-x-5 shadow-xs pointer-events-none" />
+          <div className="absolute start-0.5 top-0.5 w-5 h-5 bg-surface rounded-full transition-transform peer-checked:translate-x-5 rtl:peer-checked:-translate-x-5 shadow-xs pointer-events-none" />
         </div>
       </label>
     );

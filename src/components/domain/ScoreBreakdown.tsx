@@ -63,9 +63,9 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
                 >
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${
-                      isNegative ? 'bg-amber-300' : 'bg-brand-accent'
+                      isNegative ? 'bg-warning-icon' : 'bg-brand-accent'
                     }`}
-                    style={{ width: `${percentage}%` }}
+                    style={{ width: `${percentage}%` /* design-allow: dynamic bar width */ }}
                   />
                 </div>
               </div>

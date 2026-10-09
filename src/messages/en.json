@@ -1,0 +1,344 @@
+{
+  "common": {
+    "appName": "LeadForge Egypt",
+    "tagline": "Qualified web development sales opportunities",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "confirm": "Confirm",
+    "close": "Close",
+    "retry": "Retry",
+    "loading": "Loading...",
+    "empty": "No data available",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "details": "Details",
+    "selectedCount": "{count, plural, =0 {No items selected} one {1 item selected} other {# items selected}}",
+    "points": "{count, plural, =0 {0 points} one {1 point} other {# points}}",
+    "egp": "{amount} EGP",
+    "demoNotice": "Illustrative example",
+    "demoWeightsNotice": "Illustrative example: weights shown for demonstration only.",
+    "deterministicNotice": "Same inputs produce identical outputs every time."
+  },
+  "nav": {
+    "home": "Home",
+    "pricing": "Pricing & Plans",
+    "exploreLeads": "Explore Leads",
+    "dashboard": "Dashboard",
+    "pipeline": "Deal Pipeline",
+    "credits": "Top Up",
+    "ledger": "Account Ledger",
+    "settings": "Settings",
+    "admin": "System Administration",
+    "login": "Sign In",
+    "register": "Create Account",
+    "logout": "Sign Out",
+    "adminOverview": "Overview",
+    "adminLeads": "Leads Directory",
+    "adminDuplicates": "Deduplication",
+    "adminQuality": "Data Quality",
+    "adminMatching": "Matching",
+    "adminRules": "Scoring Rules",
+    "adminSources": "Data Sources",
+    "adminUsers": "Users",
+    "adminPlans": "Plans",
+    "adminReports": "Reports",
+    "adminAnalytics": "Analytics"
+  },
+  "auth": {
+    "loginTitle": "Sign In",
+    "loginSubtitle": "Enter your account credentials to continue",
+    "registerTitle": "Create New Account",
+    "registerSubtitle": "Start accessing verified, rule-evaluated web leads",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "name@company.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "nameLabel": "Full Name",
+    "companyLabel": "Company / Studio Name",
+    "phoneLabel": "Phone Number",
+    "roleLabel": "Role",
+    "developerRole": "Freelance Web Developer / Agency",
+    "adminRole": "System Administrator",
+    "submitLogin": "Sign In",
+    "submitRegister": "Create Account",
+    "haveAccount": "Already have an account?",
+    "noAccount": "Don't have an account?",
+    "goToLogin": "Sign In",
+    "goToRegister": "Create Account"
+  },
+  "enums": {
+    "LeadTemperature": {
+      "COLD": "Cold",
+      "WARM": "Warm",
+      "HOT": "Hot",
+      "PREMIUM": "Premium"
+    },
+    "FreshnessState": {
+      "FRESH": "Fresh",
+      "RECENT": "Recent",
+      "NEEDS_VERIFICATION": "Needs Verification",
+      "STALE": "Stale",
+      "VERY_STALE": "Very Stale",
+      "UNKNOWN": "Unknown"
+    },
+    "VerificationStatus": {
+      "UNVERIFIED": "Unverified",
+      "PARTIALLY_VERIFIED": "Partially Verified",
+      "VERIFIED": "Verified",
+      "FAILED_VERIFICATION": "Failed Verification"
+    },
+    "VerificationRecordStatus": {
+      "VERIFIED": "Verified",
+      "FAILED": "Failed",
+      "UNKNOWN": "Unknown",
+      "NEEDS_REVERIFICATION": "Needs Re-verification"
+    },
+    "QualityStatus": {
+      "VERY_LOW": "Very Low",
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "EXCELLENT": "Excellent"
+    },
+    "LeadAvailabilityStatus": {
+      "AVAILABLE": "Available for Claim",
+      "CLAIMED_FULL": "All purchaser slots claimed",
+      "REQUIRES_VERIFICATION": "This lead is undergoing re-verification",
+      "STALE": "This lead is stale and undergoing re-verification",
+      "INVALID": "This lead is unavailable (Invalid Data)",
+      "CLOSED": "This lead is unavailable (Business Closed)",
+      "DUPLICATE": "This lead is a duplicate",
+      "NOT_SALEABLE": "This lead is not saleable",
+      "ARCHIVED": "This lead is archived"
+    },
+    "LeadOwnershipType": {
+      "EXCLUSIVE": "Exclusive",
+      "SHARED": "Shared"
+    },
+    "WebsiteStatus": {
+      "NO_WEBSITE": "No Website",
+      "HAS_WEBSITE": "Has Website",
+      "POOR_WEBSITE": "Outdated or Weak Website",
+      "UNKNOWN": "Unknown Website Status"
+    },
+    "PipelineStatus": {
+      "NEW": "New",
+      "CLAIMED": "Claimed",
+      "CONTACTED": "Contacted",
+      "REPLIED": "Replied",
+      "INTERESTED": "Interested",
+      "MEETING": "Meeting",
+      "PROPOSAL_SENT": "Proposal Sent",
+      "NEGOTIATION": "Negotiation",
+      "WON": "Won",
+      "LOST": "Lost",
+      "NOT_INTERESTED": "Not Interested",
+      "INVALID": "Invalid Data"
+    },
+    "EngagementStatus": {
+      "CLAIMED": "Claimed",
+      "CONTACTED": "Contacted",
+      "REPLIED": "Replied",
+      "INTERESTED": "Interested",
+      "MEETING": "Meeting",
+      "PROPOSAL_SENT": "Proposal Sent",
+      "NEGOTIATION": "Negotiation",
+      "WON": "Won",
+      "LOST": "Lost",
+      "NOT_INTERESTED": "Not Interested",
+      "INVALID": "Invalid Data"
+    },
+    "UserRole": {
+      "DEVELOPER": "Developer",
+      "ADMIN": "System Administrator"
+    },
+    "UserStatus": {
+      "ACTIVE": "Active",
+      "SUSPENDED": "Suspended"
+    },
+    "SubscriptionStatus": {
+      "ACTIVE": "Active",
+      "CANCELLED": "Cancelled",
+      "EXPIRED": "Expired",
+      "PAST_DUE": "Past Due"
+    },
+    "VerificationType": {
+      "PHONE": "Phone",
+      "EMAIL": "Email",
+      "WEBSITE": "Website",
+      "BUSINESS_STATUS": "Business Status",
+      "ADDRESS": "Address",
+      "IDENTITY": "Business Identity",
+      "CATEGORY": "Category",
+      "LOCATION": "Location",
+      "FEEDBACK": "Customer Feedback",
+      "FULL": "Full Verification"
+    },
+    "BusinessOperationalStatus": {
+      "OPEN": "Open",
+      "CLOSED": "Permanently Closed",
+      "TEMPORARILY_CLOSED": "Temporarily Closed",
+      "UNKNOWN": "Unknown"
+    },
+    "FeedbackCategory": {
+      "CONTACT": "Contact Details",
+      "BUSINESS": "Business Status",
+      "SALES": "Sales Pipeline",
+      "LEAD_QUALITY": "Lead Quality"
+    },
+    "ContactChannel": {
+      "PHONE": "Phone Call",
+      "WHATSAPP": "WhatsApp",
+      "EMAIL": "Email",
+      "SMS": "SMS",
+      "SOCIAL": "Social Media",
+      "OTHER": "Other Channel"
+    },
+    "ContactAttemptResult": {
+      "NO_ANSWER": "No Answer",
+      "ANSWERED": "Answered",
+      "INVALID_NUMBER": "Invalid Number",
+      "MESSAGE_SENT": "Message Sent",
+      "REPLIED": "Replied",
+      "BOUNCED": "Bounced",
+      "BLOCKED": "Blocked",
+      "OTHER": "Other Result"
+    },
+    "FeedbackReason": {
+      "WRONG_PHONE": "Wrong Phone Number",
+      "BUSINESS_CLOSED": "Business Closed",
+      "ALREADY_HAS_WEBSITE": "Already Has Modern Website",
+      "NOT_INTERESTED": "Not Interested in Web Services",
+      "DUPLICATE": "Duplicate Lead",
+      "WRONG_CATEGORY": "Incorrect Category",
+      "WRONG_LOCATION": "Incorrect Location",
+      "OTHER": "Other Reason"
+    },
+    "SourceType": {
+      "MANUAL": "Manual Entry",
+      "CSV_IMPORT": "CSV Import",
+      "OPEN_DATA": "Open Data",
+      "DIRECTORY": "Business Directory",
+      "WEBSITE": "Web Crawl",
+      "GOOGLE_BUSINESS": "Google Business Profile"
+    },
+    "ImportRecordStatus": {
+      "DISCOVERED": "Discovered",
+      "FETCHED": "Fetched",
+      "VALIDATED": "Validated",
+      "NORMALIZED": "Normalized",
+      "PROCESSED": "Processed",
+      "VALID": "Valid",
+      "DUPLICATE": "Duplicate",
+      "INVALID": "Invalid",
+      "POSSIBLE_DUPLICATE": "Possible Duplicate",
+      "CONFLICT": "Conflict",
+      "FAILED": "Failed",
+      "SKIPPED": "Skipped",
+      "DEAD_LETTER": "Dead Letter"
+    },
+    "SourceRecordStatus": {
+      "ACTIVE": "Active",
+      "DUPLICATE": "Duplicate",
+      "REJECTED": "Rejected",
+      "CONFLICT": "Conflict",
+      "STALE": "Stale",
+      "MERGED": "Merged",
+      "UNMERGED": "Unmerged"
+    },
+    "DeduplicationDecisionType": {
+      "UNIQUE": "Unique",
+      "DUPLICATE_CONFIRMED": "Confirmed Duplicate",
+      "POSSIBLE_DUPLICATE": "Possible Duplicate",
+      "CONFLICT": "Conflict"
+    },
+    "DuplicateCandidateStatus": {
+      "PENDING": "Pending Review",
+      "CONFIRMED_MERGED": "Confirmed & Merged",
+      "KEPT_SEPARATE": "Kept Separate",
+      "MARKED_INVALID": "Marked Invalid",
+      "RESOLVED": "Resolved"
+    },
+    "ScoringTrigger": {
+      "LEAD_CREATED": "Lead Created",
+      "LEAD_UPDATED": "Lead Updated",
+      "SOURCE_REFRESH": "Source Refresh",
+      "MANUAL_RECALCULATION": "Manual Recalculation",
+      "ADMIN_RECALCULATION": "Admin Recalculation",
+      "SCHEDULED_RECALCULATION": "Scheduled Recalculation"
+    },
+    "MatchingRuleCategory": {
+      "SERVICE": "Service Specialization",
+      "NICHE": "Business Niche",
+      "LOCATION": "Geographic Location",
+      "BUDGET": "Budget",
+      "LEAD_TYPE": "Lead Type",
+      "QUALITY": "Data Quality",
+      "FRESHNESS": "Data Freshness",
+      "PREFERENCE": "Developer Preference",
+      "PERFORMANCE": "Performance & Conversion"
+    },
+    "ServiceMatchMode": {
+      "ALL_REQUIRED": "All Required",
+      "ANY_REQUIRED": "Any Required"
+    },
+    "UnknownDataPolicy": {
+      "ALLOW_WITH_PENALTY": "Allow with Penalty",
+      "REQUIRE_VERIFICATION": "Require Verification",
+      "FAIL": "Fail Eligibility"
+    },
+    "RequiresVerificationMatchPolicy": {
+      "EXCLUDE": "Exclude",
+      "VERIFIED_DEVELOPERS_ONLY": "Verified Developers Only",
+      "INCLUDE_WITH_WARNING": "Include with Warning"
+    },
+    "ClaimStatus": {
+      "PENDING": "Pending",
+      "ACTIVE": "Active",
+      "REFUNDED": "Refunded",
+      "EXPIRED": "Expired",
+      "CANCELLED": "Cancelled",
+      "FAILED": "Failed"
+    },
+    "CreditTransactionType": {
+      "PURCHASE": "Credit Top-Up",
+      "CLAIM": "Lead Purchase",
+      "REFUND": "Credit Refund",
+      "BONUS": "Bonus Grant",
+      "ADMIN_ADJUSTMENT": "Admin Adjustment",
+      "EXPIRATION": "Credit Expiration",
+      "CORRECTION": "Balance Correction"
+    },
+    "RuleReviewType": {
+      "SCORING": "Scoring Rules",
+      "MATCHING": "Matching Rules",
+      "QUALITY": "Quality Rules"
+    },
+    "RuleReviewStatus": {
+      "OPEN": "Open",
+      "UNDER_REVIEW": "Under Review",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "DEFERRED": "Deferred"
+    }
+  },
+  "errors": {
+    "generic": "An unexpected error occurred. Please try again.",
+    "unauthorized": "Please sign in to access this page.",
+    "forbidden": "You do not have permission to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "insufficientCredits": "Insufficient credits to complete this purchase.",
+    "leadUnavailable": "This lead is no longer available for purchase.",
+    "duplicatePurchase": "You have already purchased this lead.",
+    "network": "Unable to connect to server. Check your internet connection.",
+    "rateLimited": "Request limit exceeded. Please wait a moment."
+  }
+}

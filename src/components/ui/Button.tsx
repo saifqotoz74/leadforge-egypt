@@ -21,7 +21,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   ghost:
     'bg-transparent text-fg-primary border-0 hover:bg-subtle active:bg-line',
   danger:
-    'bg-danger-fill text-white border-0 hover:bg-danger-fill-hover active:bg-red-700 shadow-xs',
+    'bg-danger-fill text-fg-on-brand border-0 hover:bg-danger-fill-hover active:bg-danger-fill-hover shadow-xs',
   link:
     'bg-transparent text-brand border-0 p-0 h-auto hover:underline underline-offset-2',
 };

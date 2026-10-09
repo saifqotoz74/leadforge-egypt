@@ -70,7 +70,7 @@ export function Pagination({
                   type="button"
                   onClick={() => onPageChange(page)}
                   aria-current={isCurrent ? 'page' : undefined}
-                  className={`h-8 min-w-[2rem] px-2 rounded-md text-caption font-medium tabular transition-colors ${
+                  className={`h-8 min-w-8 px-2 rounded-md text-caption font-medium tabular transition-colors ${
                     isCurrent
                       ? 'bg-brand-soft-strong text-brand font-semibold'
                       : 'text-fg-secondary hover:text-fg-primary hover:bg-subtle'

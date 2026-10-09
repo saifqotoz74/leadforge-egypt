@@ -1,0 +1,344 @@
+{
+  "common": {
+    "appName": "LeadForge Egypt",
+    "tagline": "فرص مبيعات مؤهلة لمطوري المواقع",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "back": "رجوع",
+    "confirm": "تأكيد",
+    "close": "إغلاق",
+    "retry": "إعادة المحاولة",
+    "loading": "جاري التحميل...",
+    "empty": "لا توجد بيانات",
+    "search": "بحث",
+    "filter": "تصفية",
+    "all": "الكل",
+    "view": "عرض",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "actions": "إجراءات",
+    "status": "الحالة",
+    "date": "التاريخ",
+    "details": "التفاصيل",
+    "selectedCount": "{count, plural, =0 {لا شيء محدد} one {عنصر واحد محدد} two {عنصران محددان} few {# عناصر محددة} many {# عنصراً محدداً} other {# عنصر محدد}}",
+    "points": "{count, plural, =0 {0 نقطة} one {نقطة واحدة} two {نقطتان} few {# نقاط} many {# نقطة} other {# نقطة}}",
+    "egp": "{amount} ج.م",
+    "demoNotice": "مثال توضيحي",
+    "demoWeightsNotice": "مثال توضيحي: الأوزان هنا للشرح فقط.",
+    "deterministicNotice": "نفس المدخلات تعطي نفس النتيجة دائماً."
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "pricing": "الباقات والأسعار",
+    "exploreLeads": "استكشاف الفرص",
+    "dashboard": "لوحة التحكم",
+    "pipeline": "مسار الصفقات",
+    "credits": "شحن الرصيد",
+    "ledger": "كشف الحساب",
+    "settings": "الإعدادات",
+    "admin": "إدارة النظام",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "logout": "تسجيل الخروج",
+    "adminOverview": "نظرة عامة",
+    "adminLeads": "سجل الفرص",
+    "adminDuplicates": "منع التكرار",
+    "adminQuality": "جودة البيانات",
+    "adminMatching": "مطابقة الفرص",
+    "adminRules": "قواعد التقييم",
+    "adminSources": "مصادر البيانات",
+    "adminUsers": "المستخدمين",
+    "adminPlans": "الباقات",
+    "adminReports": "التقارير",
+    "adminAnalytics": "التحليلات"
+  },
+  "auth": {
+    "loginTitle": "تسجيل الدخول",
+    "loginSubtitle": "أدخل بيانات حسابك للمتابعة إلى المنصة",
+    "registerTitle": "إنشاء حساب جديد",
+    "registerSubtitle": "ابدأ الوصول إلى فرص عملاء حقيقية ومفحوصة",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "name@company.com",
+    "passwordLabel": "كلمة المرور",
+    "passwordPlaceholder": "••••••••",
+    "nameLabel": "الاسم الكامل",
+    "companyLabel": "اسم الشركة / الاستوديو",
+    "phoneLabel": "رقم الهاتف",
+    "roleLabel": "الدور",
+    "developerRole": "مطور مواقع مستقل / وكالة",
+    "adminRole": "مدير النظام",
+    "submitLogin": "تسجيل الدخول",
+    "submitRegister": "إنشاء الحساب",
+    "haveAccount": "لديك حساب بالفعل؟",
+    "noAccount": "ليس لديك حساب؟",
+    "goToLogin": "تسجيل الدخول",
+    "goToRegister": "إنشاء حساب جديد"
+  },
+  "enums": {
+    "LeadTemperature": {
+      "COLD": "باردة",
+      "WARM": "دافئة",
+      "HOT": "ساخنة",
+      "PREMIUM": "ممتازة"
+    },
+    "FreshnessState": {
+      "FRESH": "حديث",
+      "RECENT": "حديث نسبياً",
+      "NEEDS_VERIFICATION": "يحتاج تحقق",
+      "STALE": "قديم",
+      "VERY_STALE": "قديم جداً",
+      "UNKNOWN": "غير معروف"
+    },
+    "VerificationStatus": {
+      "UNVERIFIED": "غير موثّق",
+      "PARTIALLY_VERIFIED": "موثّق جزئياً",
+      "VERIFIED": "موثّق",
+      "FAILED_VERIFICATION": "فشل التحقق"
+    },
+    "VerificationRecordStatus": {
+      "VERIFIED": "موثّق",
+      "FAILED": "فشل التحقق",
+      "UNKNOWN": "غير معروف",
+      "NEEDS_REVERIFICATION": "قيد إعادة التحقق"
+    },
+    "QualityStatus": {
+      "VERY_LOW": "منخفضة جداً",
+      "LOW": "منخفضة",
+      "MEDIUM": "متوسطة",
+      "HIGH": "عالية",
+      "EXCELLENT": "ممتازة"
+    },
+    "LeadAvailabilityStatus": {
+      "AVAILABLE": "متاح للشراء",
+      "CLAIMED_FULL": "اكتمل عدد المشترين لهذه الفرصة",
+      "REQUIRES_VERIFICATION": "هذه الفرصة قيد إعادة التحقق",
+      "STALE": "هذه الفرصة قديمة وقيد إعادة التحقق",
+      "INVALID": "هذه الفرصة غير متاحة (بيانات غير صالحة)",
+      "CLOSED": "هذه الفرصة غير متاحة (نشاط مغلق)",
+      "DUPLICATE": "هذه الفرصة مكررة",
+      "NOT_SALEABLE": "هذه الفرصة غير قابلة للبيع",
+      "ARCHIVED": "هذه الفرصة مؤرشفة"
+    },
+    "LeadOwnershipType": {
+      "EXCLUSIVE": "حصري",
+      "SHARED": "مشترك"
+    },
+    "WebsiteStatus": {
+      "NO_WEBSITE": "لا يوجد موقع إلكتروني",
+      "HAS_WEBSITE": "يمتلك موقعاً إلكترونياً",
+      "POOR_WEBSITE": "موقع قديم أو ضعيف تقنياً",
+      "UNKNOWN": "حالة الموقع غير معروفة"
+    },
+    "PipelineStatus": {
+      "NEW": "جديدة",
+      "CLAIMED": "تم الشراء",
+      "CONTACTED": "تم التواصل",
+      "REPLIED": "تم الرد",
+      "INTERESTED": "مهتم",
+      "MEETING": "اجتماع",
+      "PROPOSAL_SENT": "تم إرسال العرض",
+      "NEGOTIATION": "تفاوض",
+      "WON": "تمت الصفقة",
+      "LOST": "لم تتم",
+      "NOT_INTERESTED": "غير مهتم",
+      "INVALID": "بيانات غير صالحة"
+    },
+    "EngagementStatus": {
+      "CLAIMED": "تم الشراء",
+      "CONTACTED": "تم التواصل",
+      "REPLIED": "تم الرد",
+      "INTERESTED": "مهتم",
+      "MEETING": "اجتماع",
+      "PROPOSAL_SENT": "تم إرسال العرض",
+      "NEGOTIATION": "تفاوض",
+      "WON": "تمت الصفقة",
+      "LOST": "لم تتم",
+      "NOT_INTERESTED": "غير مهتم",
+      "INVALID": "بيانات غير صالحة"
+    },
+    "UserRole": {
+      "DEVELOPER": "مطور",
+      "ADMIN": "مدير النظام"
+    },
+    "UserStatus": {
+      "ACTIVE": "نشط",
+      "SUSPENDED": "معلّق"
+    },
+    "SubscriptionStatus": {
+      "ACTIVE": "نشط",
+      "CANCELLED": "ملغي",
+      "EXPIRED": "منتهي",
+      "PAST_DUE": "متأخر السداد"
+    },
+    "VerificationType": {
+      "PHONE": "الهاتف",
+      "EMAIL": "البريد الإلكتروني",
+      "WEBSITE": "الموقع الإلكتروني",
+      "BUSINESS_STATUS": "حالة النشاط",
+      "ADDRESS": "العنوان",
+      "IDENTITY": "الهوية التجارية",
+      "CATEGORY": "التصنيف",
+      "LOCATION": "الموقع الجغرافي",
+      "FEEDBACK": "ملاحظات العملاء",
+      "FULL": "تحقق شامل"
+    },
+    "BusinessOperationalStatus": {
+      "OPEN": "يعمل حالياً",
+      "CLOSED": "مغلق نهائياً",
+      "TEMPORARILY_CLOSED": "مغلق مؤقتاً",
+      "UNKNOWN": "غير معروف"
+    },
+    "FeedbackCategory": {
+      "CONTACT": "بيانات التواصل",
+      "BUSINESS": "طبيعة النشاط",
+      "SALES": "مسار المبيعات",
+      "LEAD_QUALITY": "جودة الفرصة"
+    },
+    "ContactChannel": {
+      "PHONE": "اتصال هاتفي",
+      "WHATSAPP": "واتساب",
+      "EMAIL": "بريد إلكتروني",
+      "SMS": "رسالة نصية",
+      "SOCIAL": "شبكات اجتماعية",
+      "OTHER": "قناة أخرى"
+    },
+    "ContactAttemptResult": {
+      "NO_ANSWER": "لا يوجد رد",
+      "ANSWERED": "تم الرد",
+      "INVALID_NUMBER": "الرقم غير صحيح",
+      "MESSAGE_SENT": "تم إرسال الرسالة",
+      "REPLIED": "تم الرد كتابياً",
+      "BOUNCED": "تعذر التسليم",
+      "BLOCKED": "محظور",
+      "OTHER": "نتيجة أخرى"
+    },
+    "FeedbackReason": {
+      "WRONG_PHONE": "رقم الهاتف غير صحيح",
+      "BUSINESS_CLOSED": "النشاط التجاري مغلق",
+      "ALREADY_HAS_WEBSITE": "يمتلك موقعاً حديثاً بالفعل",
+      "NOT_INTERESTED": "غير مهتم بخدمات الويب",
+      "DUPLICATE": "عميل مكرر",
+      "WRONG_CATEGORY": "تصنيف النشاط غير صحيح",
+      "WRONG_LOCATION": "الموقع الجغرافي غير صحيح",
+      "OTHER": "سبب آخر"
+    },
+    "SourceType": {
+      "MANUAL": "إدخال يدوي",
+      "CSV_IMPORT": "استيراد ملف CSV",
+      "OPEN_DATA": "بيانات مفتوحة",
+      "DIRECTORY": "دليل أعمال",
+      "WEBSITE": "مسح موقع",
+      "GOOGLE_BUSINESS": "نشاط تجاري موثق"
+    },
+    "ImportRecordStatus": {
+      "DISCOVERED": "مكتشف",
+      "FETCHED": "تم الجلب",
+      "VALIDATED": "تم التحقق",
+      "NORMALIZED": "تمت المعالجة",
+      "PROCESSED": "مكتمل",
+      "VALID": "صالح",
+      "DUPLICATE": "مكرر",
+      "INVALID": "غير صالح",
+      "POSSIBLE_DUPLICATE": "اشتباه تكرار",
+      "CONFLICT": "تعارض بيانات",
+      "FAILED": "فشل",
+      "SKIPPED": "تم التخطي",
+      "DEAD_LETTER": "سجل متعثر"
+    },
+    "SourceRecordStatus": {
+      "ACTIVE": "نشط",
+      "DUPLICATE": "مكرر",
+      "REJECTED": "مرفوض",
+      "CONFLICT": "تعارض",
+      "STALE": "قديم",
+      "MERGED": "مدمج",
+      "UNMERGED": "ملغي الدمج"
+    },
+    "DeduplicationDecisionType": {
+      "UNIQUE": "فريد",
+      "DUPLICATE_CONFIRMED": "تكرار مؤكد",
+      "POSSIBLE_DUPLICATE": "اشتباه تكرار",
+      "CONFLICT": "تعارض"
+    },
+    "DuplicateCandidateStatus": {
+      "PENDING": "قيد المراجعة",
+      "CONFIRMED_MERGED": "تم الدمج",
+      "KEPT_SEPARATE": "إبقاء منفصل",
+      "MARKED_INVALID": "غير صالح",
+      "RESOLVED": "تمت المعالجة"
+    },
+    "ScoringTrigger": {
+      "LEAD_CREATED": "إنشاء فرصة",
+      "LEAD_UPDATED": "تحديث فرصة",
+      "SOURCE_REFRESH": "تحديث المصدر",
+      "MANUAL_RECALCULATION": "إعادة احتساب يدوية",
+      "ADMIN_RECALCULATION": "إعادة احتساب إدارية",
+      "SCHEDULED_RECALCULATION": "إعادة احتساب مجدولة"
+    },
+    "MatchingRuleCategory": {
+      "SERVICE": "تخصص وخدمات",
+      "NICHE": "مجال النشاط",
+      "LOCATION": "موقع جغرافي",
+      "BUDGET": "ميزانية",
+      "LEAD_TYPE": "نوع الفرصة",
+      "QUALITY": "جودة البيانات",
+      "FRESHNESS": "حداثة البيانات",
+      "PREFERENCE": "تفضيلات المطور",
+      "PERFORMANCE": "أداء ومعدل تحويل"
+    },
+    "ServiceMatchMode": {
+      "ALL_REQUIRED": "جميع الخدمات مطلوبة",
+      "ANY_REQUIRED": "أي خدمة مطلوبة"
+    },
+    "UnknownDataPolicy": {
+      "ALLOW_WITH_PENALTY": "سماح مع خفض الدرجة",
+      "REQUIRE_VERIFICATION": "إلزام التحقق",
+      "FAIL": "رفض الأهلية"
+    },
+    "RequiresVerificationMatchPolicy": {
+      "EXCLUDE": "استبعاد",
+      "VERIFIED_DEVELOPERS_ONLY": "للمطورين الموثقين فقط",
+      "INCLUDE_WITH_WARNING": "تضمين مع تحذير"
+    },
+    "ClaimStatus": {
+      "PENDING": "قيد المعالجة",
+      "ACTIVE": "نشط",
+      "REFUNDED": "مسترد",
+      "EXPIRED": "منتهي",
+      "CANCELLED": "ملغي",
+      "FAILED": "فشل"
+    },
+    "CreditTransactionType": {
+      "PURCHASE": "شراء باقة",
+      "CLAIM": "شراء فرصة",
+      "REFUND": "استرداد نقاط",
+      "BONUS": "مكافأة",
+      "ADMIN_ADJUSTMENT": "تعديل إداري",
+      "EXPIRATION": "انتهاء صلاحية",
+      "CORRECTION": "تصحيح رصيد"
+    },
+    "RuleReviewType": {
+      "SCORING": "قواعد التقييم",
+      "MATCHING": "قواعد المطابقة",
+      "QUALITY": "قواعد الجودة"
+    },
+    "RuleReviewStatus": {
+      "OPEN": "مفتوح",
+      "UNDER_REVIEW": "قيد المراجعة",
+      "APPROVED": "معتمد",
+      "REJECTED": "مرفوض",
+      "DEFERRED": "مؤجل"
+    }
+  },
+  "errors": {
+    "generic": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+    "unauthorized": "يرجى تسجيل الدخول للوصول إلى هذه الصفحة.",
+    "forbidden": "ليس لديك الصلاحية الكافية لتنفيذ هذا الإجراء.",
+    "notFound": "العنصر المطلوب غير موجود.",
+    "insufficientCredits": "رصيد النقاط غير كافٍ لإتمام عملية الشراء.",
+    "leadUnavailable": "هذه الفرصة لم تعد متاحة للشراء.",
+    "duplicatePurchase": "لقد قمت بشراء هذه الفرصة بالفعل.",
+    "network": "تعذر الاتصال بالخادم. تحقق من اتصال الإنترنت.",
+    "rateLimited": "تم تجاوز الحد المسموح من الطلبات. يرجى الانتظار قليلاً."
+  }
+}

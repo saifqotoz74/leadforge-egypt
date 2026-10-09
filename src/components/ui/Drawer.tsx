@@ -49,7 +49,7 @@ export function Drawer({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-neutral-900/50 backdrop-blur-none transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-inverse/50 transition-opacity animate-in fade-in duration-200"
         onClick={() => !isSubmitting && onClose()}
         aria-hidden="true"
       />
