@@ -147,7 +147,7 @@ export default function DesignSystemPage() {
         <div className="rounded-xl border border-line bg-surface p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-brand animate-pulse" />
+              <span className="h-2.5 w-2.5 rounded-full bg-brand" />
               <h1 className="text-h2 font-bold tracking-tight">
                 دليل نظام التصميم — LeadForge Design System
               </h1>

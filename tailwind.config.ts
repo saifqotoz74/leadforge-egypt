@@ -3,64 +3,84 @@ import type { Config } from 'tailwindcss';
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
-    extend: {
-      colors: {
-        page: 'var(--bg-page)',
-        surface: 'var(--bg-surface)',
-        subtle: 'var(--bg-subtle)',
-        inverse: 'var(--bg-inverse)',
-        brand: {
-          DEFAULT: 'var(--brand)',
-          hover: 'var(--brand-hover)',
-          pressed: 'var(--brand-pressed)',
-          accent: 'var(--brand-accent)',
-          soft: 'var(--bg-brand-soft)',
-          'soft-strong': 'var(--bg-brand-soft-strong)',
-        },
-        fg: {
-          primary: 'var(--text-primary)',
-          secondary: 'var(--text-secondary)',
-          muted: 'var(--text-muted)',
-          brand: 'var(--text-brand)',
-          'on-brand': 'var(--text-on-brand)',
-          inverse: 'var(--text-inverse)',
-        },
-        line: {
-          DEFAULT: 'var(--border-default)',
-          strong: 'var(--border-strong)',
-          brand: 'var(--border-brand)',
-        },
-        warning: {
-          bg: 'var(--warning-bg)',
-          border: 'var(--warning-border)',
-          text: 'var(--warning-text)',
-          icon: 'var(--warning-icon)',
-        },
-        danger: {
-          bg: 'var(--danger-bg)',
-          border: 'var(--danger-border)',
-          text: 'var(--danger-text)',
-          icon: 'var(--danger-icon)',
-          fill: 'var(--danger-fill)',
-          'fill-hover': 'var(--danger-fill-hover)',
-        },
-        info: {
-          bg: 'var(--info-bg)',
-          border: 'var(--info-border)',
-          text: 'var(--info-text)',
-          icon: 'var(--info-icon)',
-        },
-        tier: {
-          'cold-bg': 'var(--tier-cold-bg)',
-          'cold-fg': 'var(--tier-cold-fg)',
-          'warm-bg': 'var(--tier-warm-bg)',
-          'warm-fg': 'var(--tier-warm-fg)',
-          'hot-bg': 'var(--tier-hot-bg)',
-          'hot-fg': 'var(--tier-hot-fg)',
-          'premium-bg': 'var(--tier-premium-bg)',
-          'premium-fg': 'var(--tier-premium-fg)',
-        },
+    // Phase 5 Lockdown: colors, borderRadius, and boxShadow replace root theme
+    // Only token-backed utilities and standard utilities exist.
+    colors: {
+      transparent: 'transparent',
+      current: 'currentColor',
+      page: 'var(--bg-page)',
+      surface: 'var(--bg-surface)',
+      subtle: 'var(--bg-subtle)',
+      inverse: 'var(--bg-inverse)',
+      brand: {
+        DEFAULT: 'var(--brand)',
+        hover: 'var(--brand-hover)',
+        pressed: 'var(--brand-pressed)',
+        accent: 'var(--brand-accent)',
+        soft: 'var(--bg-brand-soft)',
+        'soft-strong': 'var(--bg-brand-soft-strong)',
       },
+      fg: {
+        primary: 'var(--text-primary)',
+        secondary: 'var(--text-secondary)',
+        muted: 'var(--text-muted)',
+        brand: 'var(--text-brand)',
+        'on-brand': 'var(--text-on-brand)',
+        inverse: 'var(--text-inverse)',
+      },
+      line: {
+        DEFAULT: 'var(--border-default)',
+        strong: 'var(--border-strong)',
+        brand: 'var(--border-brand)',
+      },
+      warning: {
+        bg: 'var(--warning-bg)',
+        border: 'var(--warning-border)',
+        text: 'var(--warning-text)',
+        icon: 'var(--warning-icon)',
+      },
+      danger: {
+        bg: 'var(--danger-bg)',
+        border: 'var(--danger-border)',
+        text: 'var(--danger-text)',
+        icon: 'var(--danger-icon)',
+        fill: 'var(--danger-fill)',
+        'fill-hover': 'var(--danger-fill-hover)',
+      },
+      info: {
+        bg: 'var(--info-bg)',
+        border: 'var(--info-border)',
+        text: 'var(--info-text)',
+        icon: 'var(--info-icon)',
+      },
+      tier: {
+        'cold-bg': 'var(--tier-cold-bg)',
+        'cold-fg': 'var(--tier-cold-fg)',
+        'warm-bg': 'var(--tier-warm-bg)',
+        'warm-fg': 'var(--tier-warm-fg)',
+        'hot-bg': 'var(--tier-hot-bg)',
+        'hot-fg': 'var(--tier-hot-fg)',
+        'premium-bg': 'var(--tier-premium-bg)',
+        'premium-fg': 'var(--tier-premium-fg)',
+      },
+    },
+    borderRadius: {
+      none: '0px',
+      full: '9999px',
+      sm: '0.5rem',   // 8px
+      md: '0.75rem',  // 12px
+      lg: '1rem',     // 16px
+      xl: '1.5rem',   // 24px
+    },
+    boxShadow: {
+      none: 'none',
+      xs: 'var(--shadow-xs)',
+      sm: 'var(--shadow-sm)',
+      md: 'var(--shadow-md)',
+      lg: 'var(--shadow-lg)',
+      focus: 'var(--ring-focus)',
+    },
+    extend: {
       fontFamily: {
         sans: ['var(--font-sans)', 'IBM Plex Sans Arabic', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'IBM Plex Mono', 'monospace'],
@@ -77,19 +97,6 @@ const config: Config = {
         label: ['0.875rem', { lineHeight: '1.4', fontWeight: '500' }],
         caption: ['0.75rem', { lineHeight: '1.5' }],
       },
-      borderRadius: {
-        sm: '0.5rem',   // 8px
-        md: '0.75rem',  // 12px
-        lg: '1rem',     // 16px
-        xl: '1.5rem',   // 24px
-      },
-      boxShadow: {
-        xs: 'var(--shadow-xs)',
-        sm: 'var(--shadow-sm)',
-        md: 'var(--shadow-md)',
-        lg: 'var(--shadow-lg)',
-        focus: 'var(--ring-focus)',
-      },
       height: {
         control: 'var(--control-h)',
         row: 'var(--row-h)',
@@ -104,7 +111,7 @@ const config: Config = {
         slow: '320ms',
       },
       transitionTimingFunction: {
-        DEFAULT: 'cubic-bezier(0.2, 0, 0, 1)',
+        DEFAULT: 'cubic-bezier(0.2, 0, 1)',
         out: 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
       zIndex: {

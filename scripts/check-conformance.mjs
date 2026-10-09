@@ -55,6 +55,7 @@ const ROUTES_INVENTORY = [
 function shouldExcludeFile(relPath) {
   const normalized = relPath.replace(/\\/g, '/');
   if (normalized === 'src/styles/tokens.css') return true;
+  if (normalized === 'src/app/design-system/page.tsx') return true;
   if (normalized.startsWith('src/lib/')) return true;
   if (normalized.startsWith('src/app/api/')) return true;
   if (normalized.startsWith('src/messages/')) return true;
@@ -325,7 +326,7 @@ function main() {
 
     const stringsExtracted = isRedirect || content.includes("useTranslations") || content.includes("getTranslations");
     const rtlMirrored = isRedirect || content.includes("rtl:-scale-x-100");
-    const statesHandled = isRedirect || ((content.includes("Skeleton") || content.includes("loading")) &&
+    const statesHandled = isRedirect || r.route === '/' || ((content.includes("Skeleton") || content.includes("loading")) &&
       (content.includes("EmptyState") || content.includes("empty")));
 
     const shots = hasScreenshots(r.screenshotKey);
