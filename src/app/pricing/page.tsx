@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PublicNavbar, PublicFooter } from '@/components/PublicNavbar';
-import { PackageCard } from '@/components/domain/PackageCard';
+import { PublicNavbar, PublicFooter, PackageCard } from '@/components/domain';
 import { Banner } from '@/components/ui/Banner';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { DEFAULT_PLANS } from '@/lib/constants';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, CreditCard } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface PlanItem {
   id?: string;
@@ -22,10 +23,12 @@ interface PlanItem {
 
 export default function PricingPage() {
   const router = useRouter();
+  const tPricing = useTranslations('pricing');
   const [plans, setPlans] = useState<PlanItem[]>(DEFAULT_PLANS);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentPlanSlug, setCurrentPlanSlug] = useState<string | null>(null);
   const [, setSubscribingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
@@ -42,6 +45,8 @@ export default function PricingPage() {
         }
       } catch {
         // Public visitor
+      } finally {
+        setLoading(false);
       }
     }
     loadSubscriptionState();
@@ -66,16 +71,16 @@ export default function PricingPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setMessage({ type: 'error', text: data.error || 'تعذّر الاشتراك في الباقة. حاول مرة أخرى.' });
+        setMessage({ type: 'error', text: data.error || tPricing('subscriptionError') });
       } else {
         setCurrentPlanSlug(plan.slug);
         setMessage({
           type: 'success',
-          text: `تم تفعيل ${plan.name} بنجاح وإضافة ${plan.monthlyCredits} نقطة رصيد إلى حسابك.`,
+          text: tPricing('subscriptionSuccess', { plan: plan.name, credits: plan.monthlyCredits }),
         });
       }
     } catch {
-      setMessage({ type: 'error', text: 'تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة.' });
+      setMessage({ type: 'error', text: tPricing('networkError') });
     } finally {
       setSubscribingId(null);
     }
@@ -88,15 +93,15 @@ export default function PricingPage() {
       <main className="mx-auto max-w-7xl flex-1 px-4 py-12 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-3xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-line bg-subtle px-3.5 py-1.5 text-caption font-semibold text-fg-secondary mb-4">
-            <ShieldCheck className="h-4 w-4 text-brand" />
-            <span>تسعير واضح وشفاف • 1 نقطة رصيد = فرصة بيعية مؤهلة واحدة</span>
+            <ShieldCheck className="h-4 w-4 text-brand rtl:-scale-x-100" />
+            <span>{tPricing('badge')}</span>
           </div>
 
           <h1 className="text-display font-bold text-fg-primary">
-            خطط اشتراك مصممة لمطوري الويب في مصر
+            {tPricing('title')}
           </h1>
           <p className="mt-3 text-body-lg text-fg-secondary">
-            ابدأ باقتناص الفرص المؤهلة، وقم بالترقية في أي وقت للحصول على نقاط إضافية وإمكانية شراء الفرص الحصرية.
+            {tPricing('subtitle')}
           </p>
         </div>
 
@@ -106,7 +111,7 @@ export default function PricingPage() {
               variant={message.type === 'success' ? 'info' : 'danger'}
               action={
                 message.type === 'success'
-                  ? { label: 'استعراض الفرص الآن', href: '/leads' }
+                  ? { label: tPricing('exploreLeadsAction'), href: '/leads' }
                   : undefined
               }
             >
@@ -115,34 +120,57 @@ export default function PricingPage() {
           </div>
         )}
 
-        {/* Hostinger-calibrated package cards grid per Spec 7.12 */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 items-stretch">
-          {plans.map((plan) => {
-            const isRecommended = plan.slug === 'pro';
-            const isCurrent = currentPlanSlug === plan.slug;
+        {loading ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 items-stretch">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="rounded-xl border border-line bg-surface p-6 space-y-4">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-10 w-1/2" />
+                <div className="space-y-2 pt-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-4/6" />
+                </div>
+                <Skeleton className="h-10 w-full mt-6" />
+              </div>
+            ))}
+          </div>
+        ) : plans.length === 0 ? (
+          <EmptyState
+            icon={<CreditCard className="w-12 h-12 text-brand stroke-[1.5]" />}
+            title={tPricing('emptyPlansTitle')}
+            description={tPricing('emptyPlansSubtitle')}
+          />
+        ) : (
+          /* Hostinger-calibrated package cards grid per Spec 7.12 */
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 items-stretch">
+            {plans.map((plan) => {
+              const isRecommended = plan.slug === 'pro';
+              const isCurrent = currentPlanSlug === plan.slug;
 
-            return (
-              <PackageCard
-                key={plan.slug}
-                id={plan.id || plan.slug}
-                name={plan.name}
-                points={plan.monthlyCredits}
-                priceEGP={plan.priceEgp}
-                features={plan.features}
-                isRecommended={isRecommended}
-                recommendedReason={isRecommended ? 'الخيار الأنسب للشركات والمستقلين النشطين' : undefined}
-                reassuranceText={
-                  isCurrent
-                    ? 'هذه باقتك المفعلة حالياً'
-                    : plan.priceEgp === 0
-                    ? 'بدون بطاقة ائتمان، تفعيل فوري'
-                    : 'تُضاف النقاط فوراً إلى حسابك بعد الدفع'
-                }
-                onSelectPackage={handleSelectPlan}
-              />
-            );
-          })}
-        </div>
+              return (
+                <PackageCard
+                  key={plan.slug}
+                  id={plan.id || plan.slug}
+                  name={plan.name}
+                  points={plan.monthlyCredits}
+                  priceEGP={plan.priceEgp}
+                  features={plan.features}
+                  isRecommended={isRecommended}
+                  recommendedReason={isRecommended ? tPricing('recommendedReason') : undefined}
+                  reassuranceText={
+                    isCurrent
+                      ? tPricing('currentPlanNotice')
+                      : plan.priceEgp === 0
+                      ? tPricing('freePlanNotice')
+                      : tPricing('paidPlanNotice')
+                  }
+                  onSelectPackage={handleSelectPlan}
+                />
+              );
+            })}
+          </div>
+        )}
       </main>
 
       <PublicFooter />

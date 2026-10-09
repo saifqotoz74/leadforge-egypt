@@ -3,14 +3,16 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PublicNavbar, PublicFooter } from '@/components/PublicNavbar';
+import { PublicNavbar, PublicFooter } from '@/components/domain';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Banner } from '@/components/ui/Banner';
 import { ShieldCheck, LogIn, KeyRound, UserCheck } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function LoginPage() {
   const router = useRouter();
+  const tAuth = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,6 +20,11 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      setError(tAuth('emptyCredentials'));
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -30,7 +37,7 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'فشل تسجيل الدخول. تحقق من صحة البيانات.');
+        setError(data.error || tAuth('loginError'));
       } else {
         if (data.user?.role === 'ADMIN') {
           router.push('/admin');
@@ -39,7 +46,7 @@ export default function LoginPage() {
         }
       }
     } catch {
-      setError('تعذّر الاتصال. تحقق من الإنترنت ثم أعد المحاولة.');
+      setError(tAuth('networkError'));
     } finally {
       setLoading(false);
     }
@@ -62,25 +69,26 @@ export default function LoginPage() {
       <PublicNavbar />
 
       <main className="flex flex-1 items-center justify-center p-4 sm:p-6 lg:p-8">
-        {/* Template T1 Auth: Centered card 440px, radius-xl (24px), padding 32, on --bg-page */}
-        <div className="w-full max-w-auth rounded-2xl border border-line bg-surface p-8 shadow-xs">
+        {/* Template T1 Auth: Centered card 440px, radius-xl (24px via rounded-xl), padding 32, on --bg-page */}
+        <div className="w-full max-w-auth rounded-xl border border-line bg-surface p-8 shadow-xs">
           {/* Wordmark Block */}
           <div className="flex flex-col items-center text-center gap-2 mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white shadow-xs">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand text-fg-inverted shadow-xs">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <h1 className="text-h2 font-bold text-fg-primary">
-              تسجيل الدخول
+              {tAuth('loginTitle')}
             </h1>
             <p className="text-body-sm text-fg-secondary">
-              مرحباً بعودتك إلى منصة <span className="font-semibold text-fg-primary">LeadForge Egypt</span>
+              {tAuth('welcomeBack')}{' '}
+              <span className="font-semibold text-fg-primary">LeadForge Egypt</span>
             </p>
           </div>
 
           {/* Quick Demo Credentials Box */}
           <div className="mb-6 rounded-xl border border-line bg-subtle p-3.5">
             <p className="text-caption font-semibold text-fg-primary">
-              حسابات المعاينة السريعة (Demo):
+              {tAuth('demoAccountsTitle')}:
             </p>
             <div className="mt-2.5 grid grid-cols-2 gap-2">
               <Button
@@ -91,7 +99,7 @@ export default function LoginPage() {
                 className="w-full text-caption gap-1.5"
               >
                 <UserCheck className="h-3.5 w-3.5 text-brand" />
-                <span>حساب مطور</span>
+                <span>{tAuth('demoDeveloper')}</span>
               </Button>
               <Button
                 type="button"
@@ -101,7 +109,7 @@ export default function LoginPage() {
                 className="w-full text-caption gap-1.5"
               >
                 <KeyRound className="h-3.5 w-3.5 text-brand" />
-                <span>حساب مدير</span>
+                <span>{tAuth('demoAdmin')}</span>
               </Button>
             </div>
           </div>
@@ -114,7 +122,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
-              label="البريد الإلكتروني"
+              label={tAuth('emailLabel')}
               type="email"
               required
               value={email}
@@ -125,7 +133,7 @@ export default function LoginPage() {
             />
 
             <Input
-              label="كلمة المرور"
+              label={tAuth('passwordLabel')}
               type="password"
               required
               value={password}
@@ -144,19 +152,19 @@ export default function LoginPage() {
                 className="w-full"
               >
                 <LogIn className="h-4 w-4 me-2 rtl:-scale-x-100" />
-                <span>تسجيل الدخول</span>
+                <span>{tAuth('submitLogin')}</span>
               </Button>
             </div>
           </form>
 
           <div className="mt-6 border-t border-line pt-4 text-center">
             <p className="text-body-sm text-fg-secondary">
-              ليس لديك حساب مطور بعد؟{' '}
+              {tAuth('noAccount')}{' '}
               <Link
                 href="/register"
                 className="font-semibold text-brand hover:underline"
               >
-                إنشاء حساب جديد
+                {tAuth('goToRegister')}
               </Link>
             </p>
           </div>

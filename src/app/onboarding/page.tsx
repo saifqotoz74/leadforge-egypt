@@ -2,20 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PublicNavbar, PublicFooter } from '@/components/PublicNavbar';
-import { Stepper, StepItem } from '@/components/domain/Stepper';
+import { PublicNavbar, PublicFooter, Stepper, StepItem } from '@/components/domain';
 import { Banner } from '@/components/ui/Banner';
 import { Input } from '@/components/ui/Input';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Check } from 'lucide-react';
 import {
   ALL_CITIES,
   BUSINESS_CATEGORIES,
   DEVELOPER_SERVICES,
 } from '@/lib/constants';
+import { useTranslations } from 'next-intl';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const tOnboard = useTranslations('onboarding');
   const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,6 +56,8 @@ export default function OnboardingPage() {
         }
       } catch {
         // Fall back to defaults
+      } finally {
+        setLoading(false);
       }
     }
     loadCurrentProfile();
@@ -67,6 +72,11 @@ export default function OnboardingPage() {
   }
 
   async function handleFinalSubmit() {
+    if (services.length === 0 || locations.length === 0) {
+      setError(tOnboard('emptySelectionError'));
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
     try {
@@ -88,26 +98,26 @@ export default function OnboardingPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || 'تعذّر حفظ التفضيلات. حاول مرة أخرى.');
+        setError(data.error || tOnboard('saveError'));
         setIsSubmitting(false);
       } else {
         // Spec 7.15: The last step must land on the first real matches
         router.push('/leads');
       }
     } catch {
-      setError('تعذّر الاتصال بالخادم. تحقق من الإنترنت.');
+      setError(tOnboard('networkError'));
       setIsSubmitting(false);
     }
   }
 
   const steps: StepItem[] = [
     {
-      title: 'خدمات واستشارات الويب',
-      helper: 'اختر نوع الخدمات والحلول البرمجية التي تقدمها لتلقي الفرص الملائمة لمهاراتك.',
+      title: tOnboard('step1Title'),
+      helper: tOnboard('step1Helper'),
       content: (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <label className="text-label text-fg-primary">الخدمات الأساسية</label>
+            <label className="text-label text-fg-primary">{tOnboard('step1Label')}</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {DEVELOPER_SERVICES.map((srv) => {
                 const selected = services.includes(srv.value);
@@ -123,7 +133,7 @@ export default function OnboardingPage() {
                     }`}
                   >
                     <span>{srv.labelAr}</span>
-                    {selected && <Check className="h-4 w-4 text-brand" />}
+                    {selected && <Check className="h-4 w-4 text-brand rtl:-scale-x-100" />}
                   </button>
                 );
               })}
@@ -133,12 +143,12 @@ export default function OnboardingPage() {
       ),
     },
     {
-      title: 'التوزيع الجغرافي والأنشطة المستهدفة',
-      helper: 'حدد المدن وقطاعات الأعمال التي ترغب في استهدافها.',
+      title: tOnboard('step2Title'),
+      helper: tOnboard('step2Helper'),
       content: (
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-label text-fg-primary">المدن والمحافظات</label>
+            <label className="text-label text-fg-primary">{tOnboard('step2Locations')}</label>
             <div className="flex flex-wrap gap-2">
               {ALL_CITIES.map((city) => {
                 const selected = locations.includes(city);
@@ -153,7 +163,7 @@ export default function OnboardingPage() {
                         : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                     }`}
                   >
-                    {selected && <Check className="h-3 w-3" />}
+                    {selected && <Check className="h-3 w-3 rtl:-scale-x-100" />}
                     <span>{city}</span>
                   </button>
                 );
@@ -162,7 +172,7 @@ export default function OnboardingPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-label text-fg-primary">قطاعات وأنشطة العملاء</label>
+            <label className="text-label text-fg-primary">{tOnboard('step2Niches')}</label>
             <div className="flex flex-wrap gap-2">
               {BUSINESS_CATEGORIES.map((cat) => {
                 const selected = niches.includes(cat.value);
@@ -177,7 +187,7 @@ export default function OnboardingPage() {
                         : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                     }`}
                   >
-                    {selected && <Check className="h-3 w-3" />}
+                    {selected && <Check className="h-3 w-3 rtl:-scale-x-100" />}
                     <span>{cat.labelAr}</span>
                   </button>
                 );
@@ -188,24 +198,24 @@ export default function OnboardingPage() {
       ),
     },
     {
-      title: 'الميزانية ونوع الفرص البيعية',
-      helper: 'اضبط الحد الأدنى للميزانية التقديرية ونوع حقوق الملكية للفرص.',
+      title: tOnboard('step3Title'),
+      helper: tOnboard('step3Helper'),
       content: (
         <div className="flex flex-col gap-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
-              label="اسم الشركة / الاستوديو (اختياري)"
+              label={tOnboard('companyLabel')}
               type="text"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="مثال: استوديو النيل للحلول البرمجية"
+              placeholder={tOnboard('companyPlaceholder')}
             />
             <Input
-              label="رقم الهاتف للتواصل (اختياري)"
+              label={tOnboard('phoneLabel')}
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="01012345678"
+              placeholder={tOnboard('phonePlaceholder')}
               dir="ltr"
               className="text-start"
             />
@@ -213,7 +223,7 @@ export default function OnboardingPage() {
 
           <div className="flex flex-col gap-2">
             <label className="text-label text-fg-primary">
-              الحد الأدنى لميزانية المشروع (بالجنيه المصري)
+              {tOnboard('minBudgetLabel')}
             </label>
             <div className="grid grid-cols-3 gap-2">
               {[3000, 5000, 10000].map((b) => (
@@ -227,19 +237,19 @@ export default function OnboardingPage() {
                       : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                   }`}
                 >
-                  <span className="ltr-iso">{b.toLocaleString()}</span> ج.م
+                  <span className="ltr-iso">{b.toLocaleString()}</span> {tOnboard('currencyEg')}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-label text-fg-primary">نوع تملك الفرص</label>
+            <label className="text-label text-fg-primary">{tOnboard('leadTypeLabel')}</label>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { value: 'BOTH', label: 'كلاهما (موصى به)' },
-                { value: 'SHARED', label: 'فرص مشتركة فقط' },
-                { value: 'EXCLUSIVE', label: 'فرص حصرية فقط' },
+                { value: 'BOTH', label: tOnboard('leadTypeBoth') },
+                { value: 'SHARED', label: tOnboard('leadTypeShared') },
+                { value: 'EXCLUSIVE', label: tOnboard('leadTypeExclusive') },
               ].map((opt) => (
                 <button
                   key={opt.value}
@@ -266,29 +276,41 @@ export default function OnboardingPage() {
       <PublicNavbar />
 
       <main className="flex flex-1 items-center justify-center p-4 sm:p-6 lg:p-8">
-        <div className="w-full max-w-onboarding mx-auto rounded-2xl border border-line bg-surface p-6 sm:p-8 shadow-xs">
+        <div className="w-full max-w-onboarding mx-auto rounded-xl border border-line bg-surface p-6 sm:p-8 shadow-xs">
           {error && (
             <div className="mb-6">
               <Banner variant="danger">{error}</Banner>
             </div>
           )}
 
-          <Stepper
-            steps={steps}
-            currentStep={currentStep}
-            onNext={() => {
-              if (currentStep < steps.length - 1) {
-                setCurrentStep((prev) => prev + 1);
-              } else {
-                handleFinalSubmit();
-              }
-            }}
-            onPrev={() => {
-              if (currentStep > 0) setCurrentStep((prev) => prev - 1);
-            }}
-            isSubmitting={isSubmitting}
-            finalStepLabel="عرض الفرص المطابقة"
-          />
+          {loading ? (
+            <div className="space-y-6">
+              <Skeleton className="h-8 w-48 mx-auto" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <div className="space-y-4 pt-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          ) : (
+            <Stepper
+              steps={steps}
+              currentStep={currentStep}
+              onNext={() => {
+                if (currentStep < steps.length - 1) {
+                  setCurrentStep((prev) => prev + 1);
+                } else {
+                  handleFinalSubmit();
+                }
+              }}
+              onPrev={() => {
+                if (currentStep > 0) setCurrentStep((prev) => prev - 1);
+              }}
+              isSubmitting={isSubmitting}
+              finalStepLabel={tOnboard('finishButton')}
+            />
+          )}
         </div>
       </main>
 

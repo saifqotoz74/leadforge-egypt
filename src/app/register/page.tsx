@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PublicNavbar, PublicFooter } from '@/components/PublicNavbar';
+import { PublicNavbar, PublicFooter } from '@/components/domain';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Banner } from '@/components/ui/Banner';
@@ -12,9 +12,11 @@ import {
   DEVELOPER_SERVICES,
 } from '@/lib/constants';
 import { ShieldCheck, UserPlus, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const tAuth = useTranslations('auth');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,6 +37,11 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setError(tAuth('emptyCredentials'));
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -59,12 +66,12 @@ export default function RegisterPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'تعذّر إنشاء الحساب. تحقق من صحة البيانات.');
+        setError(data.error || tAuth('networkError'));
       } else {
         router.push('/onboarding');
       }
     } catch {
-      setError('تعذّر الاتصال. تحقق من الإنترنت ثم أعد المحاولة.');
+      setError(tAuth('networkError'));
     } finally {
       setLoading(false);
     }
@@ -75,18 +82,18 @@ export default function RegisterPage() {
       <PublicNavbar />
 
       <main className="flex flex-1 items-center justify-center p-4 sm:p-6 lg:p-8">
-        {/* Template T1 Auth / Register: Centered card max-w-auth / 520px, radius-xl (24px), padding 32, on --bg-page */}
-        <div className="w-full max-w-[32.5rem] rounded-2xl border border-line bg-surface p-8 shadow-xs">
+        {/* Template T1 Auth / Register: Centered card max-w-auth (520px), radius-xl (rounded-xl), padding 32, on --bg-page */}
+        <div className="w-full max-w-auth rounded-xl border border-line bg-surface p-8 shadow-xs">
           {/* Wordmark Block */}
           <div className="flex flex-col items-center text-center gap-2 mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white shadow-xs">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand text-fg-inverted shadow-xs">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <h1 className="text-h2 font-bold text-fg-primary">
-              إنشاء حساب مطور جديد
+              {tAuth('registerTitle')}
             </h1>
             <p className="text-body-sm text-fg-secondary">
-              انضم إلى <span className="font-semibold text-fg-primary">LeadForge Egypt</span> واحصل على فرص بيع مؤهلة فورياً
+              {tAuth('registerSubtitleLead')}
             </p>
           </div>
 
@@ -99,7 +106,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
-                label="الاسم بالكامل"
+                label={tAuth('nameLabel')}
                 type="text"
                 required
                 value={name}
@@ -108,7 +115,7 @@ export default function RegisterPage() {
               />
 
               <Input
-                label="اسم الشركة / الاستوديو (اختياري)"
+                label={`${tAuth('companyLabel')} (${tAuth('optional')})`}
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
@@ -118,7 +125,7 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
-                label="البريد الإلكتروني"
+                label={tAuth('emailLabel')}
                 type="email"
                 required
                 value={email}
@@ -129,7 +136,7 @@ export default function RegisterPage() {
               />
 
               <Input
-                label="رقم الهاتف (اختياري)"
+                label={`${tAuth('phoneLabel')} (${tAuth('optional')})`}
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -140,7 +147,7 @@ export default function RegisterPage() {
             </div>
 
             <Input
-              label="كلمة المرور"
+              label={tAuth('passwordLabel')}
               type="password"
               required
               value={password}
@@ -148,13 +155,13 @@ export default function RegisterPage() {
               placeholder="••••••••"
               dir="ltr"
               className="text-start"
-              helperText="6 أحرف على الأقل"
+              helperText={tAuth('passwordHelper')}
             />
 
             {/* Quick Service Selection */}
             <div className="flex flex-col gap-2 pt-1">
               <label className="text-label text-fg-primary">
-                الخدمات التي تقدمها
+                {tAuth('servicesTitle')}
               </label>
               <div className="flex flex-wrap gap-1.5">
                 {DEVELOPER_SERVICES.slice(0, 5).map((service) => {
@@ -181,7 +188,7 @@ export default function RegisterPage() {
             {/* Quick Location Selection */}
             <div className="flex flex-col gap-2 pt-1">
               <label className="text-label text-fg-primary">
-                المدن المستهدفة
+                {tAuth('locationsTitle')}
               </label>
               <div className="flex flex-wrap gap-1.5">
                 {ALL_CITIES.slice(0, 6).map((city) => {
@@ -213,20 +220,20 @@ export default function RegisterPage() {
                 isLoading={loading}
                 className="w-full"
               >
-                <UserPlus className="h-4 w-4 me-2" />
-                <span>إنشاء الحساب ومتابعة الإعداد</span>
+                <UserPlus className="h-4 w-4 me-2 rtl:-scale-x-100" />
+                <span>{tAuth('submitRegisterAndContinue')}</span>
               </Button>
             </div>
           </form>
 
           <div className="mt-6 border-t border-line pt-4 text-center">
             <p className="text-body-sm text-fg-secondary">
-              لديك حساب بالفعل؟{' '}
+              {tAuth('haveAccount')}{' '}
               <Link
                 href="/login"
                 className="font-semibold text-brand hover:underline"
               >
-                تسجيل الدخول
+                {tAuth('goToLogin')}
               </Link>
             </p>
           </div>

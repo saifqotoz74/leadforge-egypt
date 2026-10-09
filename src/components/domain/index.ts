@@ -21,3 +21,4 @@ export * from './AppShell';
 export * from './LedgerTable';
 export * from './DealTimeline';
 export * from './StatTile';
+export * from './PublicNavbar';

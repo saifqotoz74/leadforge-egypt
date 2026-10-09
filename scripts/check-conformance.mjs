@@ -314,6 +314,8 @@ function main() {
     const isRedirect = content.includes("redirect(");
     const newAppShell = isRedirect ||
       content.includes("@/components/domain/AppShell") ||
+      content.includes("@/components/domain/PublicNavbar") ||
+      content.includes("@/components/domain") ||
       content.includes("@/components/PublicNavbar") ||
       r.route === '/';
 

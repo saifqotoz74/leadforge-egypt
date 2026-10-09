@@ -10,6 +10,7 @@ import { Select } from '@/components/ui/Select';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Banner } from '@/components/ui/Banner';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   ALL_CITIES,
   BUSINESS_CATEGORIES,
@@ -17,8 +18,10 @@ import {
 } from '@/lib/constants';
 import { fmtNumber } from '@/lib/format';
 import { Save, Compass, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function SettingsPage() {
+  const tSettings = useTranslations('settings');
   const [name, setName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [phone, setPhone] = useState('');
@@ -143,32 +146,32 @@ export default function SettingsPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setMessage({ type: 'error', text: data.error || 'تعذّر حفظ الإعدادات.' });
+        setMessage({ type: 'error', text: data.error || tSettings('saveError') });
       } else {
         setMessage({
           type: 'success',
-          text: 'تم حفظ تفضيلات الملف الشخصي وإعادة حساب المطابقات بنجاح.',
+          text: tSettings('saveSuccess'),
         });
       }
     } catch {
-      setMessage({ type: 'error', text: 'تعذّر الاتصال بالخادم. تحقق من الإنترنت.' });
+      setMessage({ type: 'error', text: tSettings('networkError') });
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <AppShell density="comfortable" pageTitle="تفضيلات المطابقة">
+    <AppShell density="comfortable" pageTitle={tSettings('pageTitle')}>
       {loading ? (
         <div className="space-y-6">
           <Skeleton className="h-12 w-64" />
-          <Skeleton className="h-96 w-full rounded-2xl" />
+          <Skeleton className="h-96 w-full rounded-xl" />
         </div>
       ) : (
         <div className="flex flex-col gap-6 max-w-4xl mx-auto">
           <PageHeader
-            title="تفضيلات المطابقة والملف الشخصي"
-            description="حدد معايير الأهلية وتفضيلاتك لاحتساب درجات مطابقة الفرص تلقائياً"
+            title={tSettings('headerTitle')}
+            description={tSettings('headerDescription')}
             actions={
               <Button
                 variant="secondary"
@@ -177,11 +180,11 @@ export default function SettingsPage() {
                 isLoading={previewing}
                 className="gap-2"
               >
-                <Compass className="h-4 w-4" />
+                <Compass className="h-4 w-4 rtl:-scale-x-100" />
                 <span>
                   {previewCount !== null
-                    ? `المطابقة: ${fmtNumber(previewCount)} عميل مؤهل`
-                    : 'معاينة عدد الفرص المتطابقة'}
+                    ? tSettings('previewResult', { count: fmtNumber(previewCount) })
+                    : tSettings('previewButton')}
                 </span>
               </Button>
             }
@@ -197,23 +200,23 @@ export default function SettingsPage() {
             {/* Basic Info Card */}
             <Card>
               <CardHeader>
-                <CardTitle>بيانات المطور الأساسية</CardTitle>
+                <CardTitle>{tSettings('basicInfoTitle')}</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-3">
                 <Input
-                  label="الاسم الكامل"
+                  label={tSettings('nameLabel')}
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
                 <Input
-                  label="اسم الشركة / الاستوديو"
+                  label={tSettings('companyLabel')}
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="استوديو البرمجة"
+                  placeholder={tSettings('companyPlaceholder')}
                 />
                 <Input
-                  label="رقم الهاتف"
+                  label={tSettings('phoneLabel')}
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -226,7 +229,7 @@ export default function SettingsPage() {
             {/* Services Card */}
             <Card>
               <CardHeader>
-                <CardTitle>1. الخدمات المقدمة (Services)</CardTitle>
+                <CardTitle>{tSettings('servicesTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -243,7 +246,7 @@ export default function SettingsPage() {
                             : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                         }`}
                       >
-                        {active && <Check className="h-3 w-3" />}
+                        {active && <Check className="h-3 w-3 rtl:-scale-x-100" />}
                         <span>{srv.labelAr}</span>
                       </button>
                     );
@@ -255,9 +258,9 @@ export default function SettingsPage() {
             {/* Locations Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle>2. المدن والمحافظات المستهدفة</CardTitle>
+                <CardTitle>{tSettings('locationsTitle')}</CardTitle>
                 <Checkbox
-                  label="قبول جميع محافظات مصر"
+                  label={tSettings('allLocationsLabel')}
                   checked={allLocationsMode}
                   onChange={(e) => setAllLocationsMode(e.target.checked)}
                 />
@@ -277,7 +280,7 @@ export default function SettingsPage() {
                             : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                         }`}
                       >
-                        {active && <Check className="h-3 w-3" />}
+                        {active && <Check className="h-3 w-3 rtl:-scale-x-100" />}
                         <span>{c}</span>
                       </button>
                     );
@@ -289,9 +292,9 @@ export default function SettingsPage() {
             {/* Niches Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle>3. الأنشطة التجارية والقطاعات</CardTitle>
+                <CardTitle>{tSettings('nichesTitle')}</CardTitle>
                 <Checkbox
-                  label="قبول جميع الأنشطة"
+                  label={tSettings('allNichesLabel')}
                   checked={allNichesMode}
                   onChange={(e) => setAllNichesMode(e.target.checked)}
                 />
@@ -311,7 +314,7 @@ export default function SettingsPage() {
                             : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                         }`}
                       >
-                        {active && <Check className="h-3 w-3" />}
+                        {active && <Check className="h-3 w-3 rtl:-scale-x-100" />}
                         <span>{cat.labelAr}</span>
                       </button>
                     );
@@ -320,7 +323,7 @@ export default function SettingsPage() {
 
                 <div className="pt-2 border-t border-line">
                   <label className="block text-caption font-semibold text-warning-text mb-2">
-                    استبعاد أنشطة محددة:
+                    {tSettings('excludedNichesLabel')}
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {BUSINESS_CATEGORIES.map((cat) => {
@@ -336,7 +339,7 @@ export default function SettingsPage() {
                               : 'border-line bg-surface text-fg-muted hover:bg-subtle'
                           }`}
                         >
-                          {excluded && <span>✕ مستبعد:</span>}
+                          {excluded && <span>✕ {tSettings('excludedPrefix')}</span>}
                           <span>{cat.labelAr}</span>
                         </button>
                       );
@@ -349,11 +352,11 @@ export default function SettingsPage() {
             {/* Budget & Preference Criteria */}
             <Card>
               <CardHeader>
-                <CardTitle>4. الميزانية ونوع الملكية</CardTitle>
+                <CardTitle>{tSettings('budgetTitle')}</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-4">
                 <Input
-                  label="الحد الأدنى للميزانية (ج.م)"
+                  label={tSettings('minBudgetLabel')}
                   type="number"
                   min={0}
                   step={1000}
@@ -362,7 +365,7 @@ export default function SettingsPage() {
                 />
 
                 <Input
-                  label="الحد الأقصى للميزانية (ج.م)"
+                  label={tSettings('maxBudgetLabel')}
                   type="number"
                   min={1000}
                   step={5000}
@@ -371,7 +374,7 @@ export default function SettingsPage() {
                 />
 
                 <Select
-                  label="حالة الموقع المستهدفة"
+                  label={tSettings('websitePrefLabel')}
                   value={
                     leadPreferences.length >= 2
                       ? 'BOTH'
@@ -383,22 +386,22 @@ export default function SettingsPage() {
                     else setLeadPreferences([v]);
                   }}
                   options={[
-                    { value: 'BOTH', label: 'بدون موقع أو موقع قديم' },
-                    { value: 'NO_WEBSITE', label: 'بدون موقع إلكتروني فقط' },
-                    { value: 'POOR_WEBSITE', label: 'موقع قديم / ضعيف فقط' },
+                    { value: 'BOTH', label: tSettings('websitePrefBoth') },
+                    { value: 'NO_WEBSITE', label: tSettings('websitePrefNoSite') },
+                    { value: 'POOR_WEBSITE', label: tSettings('websitePrefPoorSite') },
                   ]}
                 />
 
                 <Select
-                  label="نوع الملكية المفضلة"
+                  label={tSettings('leadTypeLabel')}
                   value={leadType}
                   onChange={(e) =>
                     setLeadType(e.target.value as 'BOTH' | 'EXCLUSIVE' | 'SHARED')
                   }
                   options={[
-                    { value: 'BOTH', label: 'الحصرية والمشتركة معاً' },
-                    { value: 'EXCLUSIVE', label: 'فرص حصرية فقط' },
-                    { value: 'SHARED', label: 'فرص مشتركة فقط' },
+                    { value: 'BOTH', label: tSettings('leadTypeBoth') },
+                    { value: 'EXCLUSIVE', label: tSettings('leadTypeExclusive') },
+                    { value: 'SHARED', label: tSettings('leadTypeShared') },
                   ]}
                 />
               </CardContent>
@@ -407,7 +410,7 @@ export default function SettingsPage() {
             {/* Account Status Switch & Save Button */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-line bg-surface">
               <Checkbox
-                label="الحساب مفعل وجاهز لاستقبال ترشيحات الفرص الجديدة"
+                label={tSettings('acceptingLeadsLabel')}
                 checked={isAcceptingLeads}
                 onChange={(e) => setIsAcceptingLeads(e.target.checked)}
               />
@@ -419,8 +422,8 @@ export default function SettingsPage() {
                 isLoading={saving}
                 className="gap-2"
               >
-                <Save className="h-4 w-4" />
-                <span>حفظ إعدادات المطابقة</span>
+                <Save className="h-4 w-4 rtl:-scale-x-100" />
+                <span>{tSettings('saveButton')}</span>
               </Button>
             </div>
           </form>
