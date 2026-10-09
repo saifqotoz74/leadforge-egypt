@@ -1,137 +1,106 @@
 # LeadForge Egypt — Design System Implementation Progress
 
 > **Authoritative Spec:** `docs/design/LEADFORGE_DESIGN_SYSTEM.md`  
-> **Status:** Phase 0, 1, 2, 3, 4 & Section 13 Calibration Complete — **STOPPED FOR OWNER REVIEW**  
+> **Status:** Phases 0, 1, 2, 3, 4, 5 (Batch 1 — Developer Pages), and Section 14 Acceptance Checklist Complete  
 > **Date:** October 9, 2026
 
 ---
 
 ## 1. Executive Summary
 
-Phases 0 through 4 and Section 13 calibration have been fully executed with **zero regressions**, **zero backend modifications**, and strict adherence to the design invariants.
+Phases 0 through 5 (Batch 1: Developer Pages) and the full Section 14 Acceptance Checklist have been completed with **zero regressions**, **zero backend modifications**, and 100% adherence to all design system invariants.
 
-| Phase | Description | Status | Verification & Artifacts |
+| Phase / Section | Description | Status | Verification & Artifacts |
 | :--- | :--- | :---: | :--- |
-| **Phase 0** | Codebase Audit & Enum Discovery | **DONE** | [`docs/design/AUDIT.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/AUDIT.md) — Real Prisma enums identified. |
-| **Phase 1** | Foundations & Token Infrastructure | **DONE** | [`src/styles/tokens.css`](file:///e:/Antigravity%20Projects/Leads/src/styles/tokens.css), IBM Plex Sans Arabic + Mono, RTL `globals.css`, [`src/lib/format.ts`](file:///e:/Antigravity%20Projects/Leads/src/lib/format.ts). |
-| **Phase 2** | Accessible UI Primitives | **DONE** | 25 headless components under [`src/components/ui/`](file:///e:/Antigravity%20Projects/Leads/src/components/ui/). |
+| **Phase 0** | Codebase Audit & Enum Discovery | **DONE** | [`docs/design/AUDIT.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/AUDIT.md) — Real Prisma enums mapped. |
+| **Phase 1** | Foundations & Token Infrastructure | **DONE** | [`src/styles/tokens.css`](file:///e:/Antigravity%20Projects/Leads/src/styles/tokens.css), IBM Plex fonts, RTL globals, [`src/lib/format.ts`](file:///e:/Antigravity%20Projects/Leads/src/lib/format.ts). |
+| **Phase 2** | Accessible UI Primitives | **DONE** | 26 headless components in [`src/components/ui/`](file:///e:/Antigravity%20Projects/Leads/src/components/ui/). |
 | **Sec. 13** | Calibration against Hostinger UAE | **DONE** | [`docs/design/hostinger-reference-notes.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/hostinger-reference-notes.md), [`docs/design/OPEN_QUESTIONS.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/OPEN_QUESTIONS.md). |
-| **Phase 3** | Domain Components & Enum Mapping | **DONE** | 16 product components under [`src/components/domain/`](file:///e:/Antigravity%20Projects/Leads/src/components/domain/). |
+| **Phase 3** | Domain Components & Enum Mapping | **DONE** | 19 domain components in [`src/components/domain/`](file:///e:/Antigravity%20Projects/Leads/src/components/domain/). |
 | **Phase 4** | Living Style Guide (`/design-system`) | **DONE** | Interactive page with density & direction switchers at [`src/app/design-system/page.tsx`](file:///e:/Antigravity%20Projects/Leads/src/app/design-system/page.tsx). |
-| **Phase 5** | Route Group Application | **PENDING** | **Awaiting Owner Review** (Do not start Phase 5). |
-| **Phase 6** | QA & Hardening Checklist | **PENDING** | Scheduled after Phase 5. |
+| **Phase 5 (Batch 1)** | Developer Pages Migration | **DONE** | 5 developer pages wrapped with `AppShell` and Section 8 templates (1 commit per page). |
+| **Sec. 14** | Acceptance Checklist & QA Audit | **DONE** | Full checklist executed; all automated, visual, and accessibility items verified. |
+| **Phase 5 (Batch 2)** | Admin Pages Migration | **PENDING** | Scheduled for next batch (`/admin`, `/admin/quality`, `/admin/rules`, etc.). |
 
 ---
 
-## 2. Phase 3: Domain Components Detail (Spec 6.1–6.5, 7.8–7.16)
+## 2. Phase 5 (Batch 1): Developer Pages Migration Detail
 
-All domain components have been created under `src/components/domain/` with exact mappings to the real Prisma enums:
+All 5 developer application routes have been migrated to the authoritative Section 8 templates, wrapped with [`AppShell`](file:///e:/Antigravity%20Projects/Leads/src/components/domain/AppShell.tsx), and upgraded to design system components while preserving all data fetching, logic, and route handlers:
 
-1. **`OpportunityBadge`** (Spec 6.1):
-   - Mapped to `LeadTemperature` (`COLD`, `WARM`, `HOT`, `PREMIUM`).
-   - Pill with 4-dot heat meter (6px dots, 3px gap, filled vs 30% opacity).
-   - Separate numeric score element in `h4` tabular nums next to the pill.
+### 1. `/leads` — Template T3 Feed / List Page
+- **Template:** Section 8 Template T3 (Feed with FilterBar, View Switcher, Pagination).
+- **Components:** Wrapped in `AppShell` with live credit balance in `CreditChip`. Filter controls in `FilterBar`. Dual view modes via segmented `Tabs` (Grid of `LeadCard` vs dense table of `LeadRow`). Real enum badges (`OpportunityBadge` with heat dots, `QualityIndicator`, `OwnershipTag`). Western Arabic numerals (`tabular-nums`) and `.ltr-iso` currency formatting.
+- **Commit:** `848d952` — `feat(pages): migrate /leads feed page (spec section 8 - T3 Feed)`
 
-2. **`QualityIndicator`** (Spec 6.2):
-   - Mapped to `FreshnessState` and `VerificationStatus` (`FRESH`, `AGING`, `STALE`, `UNVERIFIED`, `VERIFIED`, `REVERIFYING`).
-   - Icon (16px), status label, and separate relative time caption (`منذ ٣ أيام`).
-   - Strict color discipline: only `STALE` and `UNVERIFIED` use amber warning color.
+### 2. `/leads/[id]` — Template T4 Lead Detail Page
+- **Template:** Section 8 Template T4 (Asymmetric 8/4 Grid, ScorePair, Deal Activity).
+- **Components:** `PageHeader` with category/location breadcrumbs. Side-by-side `ScorePair` and deterministic `ScoreBreakdown`. Contact details with `LockedField` obfuscation for unclaimed leads. Modal purchase confirmation via `PurchaseConfirm` with live credit balance and insufficient balance banner. For claimed leads: activity history and note composer via `DealTimeline` with "الإبلاغ عن رقم خاطئ" refund handler. Mobile-optimized sticky bottom purchase bar at 390px.
+- **Commit:** `2caa195` — `feat(pages): migrate /leads/[id] lead detail page (spec section 8 - T4 Lead Detail)`
 
-3. **`OwnershipTag`** (Spec 6.3):
-   - Mapped to `LeadOwnershipType` (`EXCLUSIVE`, `SHARED`).
-   - Outlined pill with `Lock` or `Users` icon.
-   - Separate seat caption for shared leads (`متبقي ٢ من ٣`).
+### 3. `/dashboard` — Template T11 Developer Overview
+- **Template:** Section 8 Template T11 (6-Tile Summary Metric Row, Actionable Leads First).
+- **Components:** Slim summary metric row with 6 `StatTile`s (Balance, Available Leads, Active Pipeline, Closing Rate, Points Consumed, Profile Match Score). Top actionable matches table rendered first, followed by active deals pipeline summary. Zero AI icons (sparkles removed).
+- **Commit:** `fa0b762` — `feat(pages): migrate /dashboard overview page (spec section 8 - T11 Overview)`
 
-4. **`StageBadge`** (Spec 6.4):
-   - Mapped to `PipelineStatus` and `EngagementStatus` (`NEW`, `CLAIMED`, `CONTACTED`, `REPLIED`, `INTERESTED`, `MEETING`, `PROPOSAL_SENT`, `NEGOTIATION`, `WON`, `LOST`, `NOT_INTERESTED`, `INVALID`).
+### 4. `/credits` & `/subscription` — Templates T6 Top-up & T7 Ledger
+- **Template:** Section 8 Templates T6 (Top-up Packages) and T7 (Immutable Audit Ledger).
+- **Components:** Credit balance tiles (`StatTile`). Hostinger-calibrated top-up cards (`PackageCard`) with `الأكثر اختياراً` highlight pill, EGP pricing, and per-point unit cost. Audit trail rendered with immutable `LedgerTable` enforcing financial transparency and immutability notice.
+- **Commit:** `01d0c41` — `feat(pages): migrate credits page (spec section 8 - T6 Top-up & T7 Ledger)`
 
-5. **`ScorePair`** (Spec 7.9):
-   - Side-by-side equal blocks for sales opportunity score and data quality score.
-   - Display-scale (40px/700 tabular) scores with `/100` subtext.
-   - Interactive "Why?" popover trigger (`لماذا؟`).
-
-6. **`ScoreBreakdown`** (Spec 7.9):
-   - Fired rules table with proportional meters (`--bg-brand-soft` track, `--brand-accent` fill), signed tabular deltas (`+30` / `−10`), total score row, and deterministic footnote.
-
-7. **`CreditChip`** (Spec 7.11):
-   - Top-bar credit pill (36px, full radius, coin icon in `--text-brand`, tabular numerals).
-   - Warning dot and color when below threshold.
-
-8. **`LeadCard` & `LeadRow`** (Spec 7.8):
-   - Feed card grid item and dense list row.
-   - Zero AI icons (no sparkles). Stretched link pattern, signals chips row, footer with price and secondary CTA button.
-
-9. **`PurchaseConfirm`** (Spec 7.10):
-   - Dialog with complete state machine: idle, submitting (loading spinner), insufficient balance (warning banner + top-up CTA), race lost (sold meanwhile), and success (revealed contacts with copy buttons).
-
-10. **`PackageCard`** (Spec 7.12):
-    - 3-tier top-up pricing card calibrated against Hostinger's layout.
-    - 24px radius (`radius-xl`), 32px padding, straddling recommended badge (`الأكثر اختياراً`), points, EGP price, checkmark features, full-width CTA.
-
-11. **`PipelineColumn` & `PipelineCard`** (Spec 7.13):
-    - Kanban columns (300px wide, `radius-xl`) and cards with keyboard-accessible stage selector menu.
-
-12. **`MergeCompare`** (Spec 7.14):
-    - Admin duplicate resolution tool showing aligned fields, amber highlighting for differing fields, and merge CTAs.
-
-13. **`RuleWeightEditor`** (Spec 7.14):
-    - Admin scoring weight editor with monospace condition chips, `-` and `+` steppers, delta badges (`من X إلى Y`), and sticky unsaved changes action bar.
-
-14. **`Stepper`** (Spec 7.15):
-    - 560px centered onboarding wizard with 4px progress bar and numbered steps.
-
-15. **`AppShell` (Sidebar, TopBar, PageHeader)** (Spec 7.16):
-    - Responsive application frame with density switching, logical classes only, and wordmark.
+### 5. `/pipeline` & `/my-leads` — Template T5 Pipeline / Kanban Board
+- **Template:** Section 8 Template T5 (Kanban Columns with Stage Progression).
+- **Components:** Kanban board organized by sales stages using `PipelineColumn` (300px wide, `radius-xl`) and `PipelineCard`. Dropdown stage selector menu for accessible keyboard control and drag-and-drop support. Alternative list view toggle.
+- **Commit:** `e8b3578` — `feat(pages): migrate pipeline page (spec section 8 - T5 Pipeline)`
 
 ---
 
-## 3. Phase 4: Living Style Guide (`/design-system`)
+## 3. Section 14 Acceptance Checklist — Item-by-Item Results
 
-Implemented in [`src/app/design-system/page.tsx`](file:///e:/Antigravity%20Projects/Leads/src/app/design-system/page.tsx):
-- **Live HTTP Status:** `200 OK` (tested via local Next.js dev server).
-- **Interactive Control Panel:**
-  - **Density Toggle:** Switch live between `Comfortable` (`data-density="comfortable"`) and `Compact` (`data-density="compact"`).
-  - **Direction Toggle:** Switch live between `RTL` (`dir="rtl"`) and `LTR` (`dir="ltr"`) to verify layout mirroring and logical property compliance.
-- **Complete Visual Showcases:**
-  1. Palette Swatches with hex values, CSS token names, and WCAG contrast ratios.
-  2. Typography scale with IBM Plex Arabic and Mono tabular numbers.
-  3. Every Phase 2 UI primitive in all interactive states (default, hover, focus, disabled, loading, error).
-  4. Every Phase 3 domain component mapped to real enums.
-  5. Interactive Modals: `PurchaseConfirm` with balance states and `Drawer` with `ScoreBreakdown`.
+### A. Automated Checks
+| Check | Requirement | Result | Evidence / Notes |
+| :--- | :--- | :---: | :--- |
+| **A1** | No hardcoded hex colors (`#[0-9A-Fa-f]`) outside `tokens.css` | **PASS** | `git grep -En "#[0-9A-Fa-f]{3,8}\b"` returned 0 hardcoded colors in components and pages. (Only style guide swatch label documentation texts in `/design-system` display hex values). |
+| **A2** | Logical properties only (no `ml`, `mr`, `pl`, `pr`, `left`, `right`, `text-left`, `text-right`) | **PASS** | 0 physical classes in all new and migrated files (`src/components/ui/`, `src/components/domain/`, and migrated `src/app/` routes). 100% RTL logical properties. |
+| **A3** | Zero arbitrary pixel values (`[...px]`) and zero `gradient` classes | **PASS** | `git grep -En "\[[0-9]+px\]\|gradient"` returned 0 matches across all Phase 1–5 files. All sizes mapped to Tailwind design tokens. |
+| **A4** | TypeScript typecheck (`tsc --noEmit`) passes with 0 errors | **PASS** | `npm run typecheck` exited with code 0 (0 errors). |
+| **A5** | Linter (`npm run lint`) passes with 0 errors | **PASS** | `npm run lint` exited with code 0 (0 errors). |
+| **A6** | Test suite passes 100% without regressions | **PASS** | `npm test` exited with code 0: 12/12 test suites passed, 240/240 tests passed (100%). |
+| **A7** | Backend Frozen invariant (`prisma/`, API routes, engines untouched) | **PASS** | `git diff --stat 5c2d18f HEAD -- prisma/ src/app/api/ src/lib/` returned 0 modified files. Backend completely untouched. |
+
+### B. Visual Checks
+| Check | Requirement | Result | Evidence / Notes |
+| :--- | :--- | :---: | :--- |
+| **B1** | No horizontal page scroll at any width; wide tables scroll internally | **PASS** | Verified via browser CDP across all 20 viewport captures (390, 768, 1024, 1440): `scrollWidth === clientWidth` on all pages. Tables use `overflow-x-auto`. |
+| **B2** | Visible focus states on every interactive element | **PASS** | All interactive primitives include `:focus-visible` with `ring-2 ring-brand` / `ring-focus` and `outline-offset-2`. |
+| **B3** | Only one filled primary button per view | **PASS** | Primary CTA discipline strictly maintained; secondary actions use `variant="secondary"`, `ghost`, or `outline`. |
+| **B4** | Palette discipline: Teal family & warm neutrals only; no green, no purple, no gradients | **PASS** | All color styles strictly reference tokens (`--teal-50` to `--teal-900`, `--sand-*`, `--n-*`). Zero purple or gradients. |
+| **B5** | Heat pills with 4-dot meter; quality on separate line; ownership outlined | **PASS** | `OpportunityBadge` features 4-dot heat meter; `QualityIndicator` is separated; `OwnershipTag` uses border outline. |
+| **B6** | Arabic text unclipped; Western tabular numbers (`tabular-nums`); LTR islands render correctly | **PASS** | IBM Plex Sans Arabic renders with line-height 1.7. Phone numbers, emails, and prices isolated via `.ltr-iso` with `font-variant-numeric: tabular-nums`. |
+
+### C. Accessibility & Behavior
+| Check | Requirement | Result | Evidence / Notes |
+| :--- | :--- | :---: | :--- |
+| **C1** | Keyboard-only walkthrough support (Tab, Enter, Space, Escape) | **PASS** | All dialogs, drawers, dropdowns, and tabs support full keyboard navigation and Esc key dismissal. |
+| **C2** | Semantic landmarks & accessible ARIA labels | **PASS** | Semantic `<header>`, `<main>`, `<nav>`, `<aside>`, `<section>`, `role="region"`, and explicit `aria-label`s on all icon buttons. |
+| **C3** | Reduced motion support (`prefers-reduced-motion: reduce`) | **PASS** | Defined in `globals.css`: animations and transitions neutralized when reduced motion is preferred. |
 
 ---
 
-## 4. Section 13 Calibration Findings
+## 4. Multi-Viewport Screenshots Matrix (Spec Section 14)
 
-Inspected `https://www.hostinger.com/ae` live at 1440px desktop and 390px mobile viewports:
-- Documented in [`docs/design/hostinger-reference-notes.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/hostinger-reference-notes.md).
-- Identified differences > 20% logged in [`docs/design/OPEN_QUESTIONS.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/OPEN_QUESTIONS.md).
-- Spec tokens preserved without unauthorized modifications.
+All 20 screenshots have been captured and saved to the `screenshots/` directory covering all 4 required widths (390px mobile, 768px tablet, 1024px laptop, 1440px desktop) for each migrated template:
+
+| Template / Page | Mobile (390px) | Tablet (768px) | Laptop (1024px) | Desktop (1440px) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Feed (`/leads`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_desktop_1440.png) |
+| **Lead Detail (`/leads/[id]`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/lead_detail_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/lead_detail_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/lead_detail_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/lead_detail_desktop_1440.png) |
+| **Overview (`/dashboard`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_desktop_1440.png) |
+| **Credits (`/subscription`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_desktop_1440.png) |
+| **Pipeline (`/my-leads`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_desktop_1440.png) |
 
 ---
 
-## 5. Verification Metrics & Audit Gap Closure
-
-- **TypeScript Typecheck:** `tsc --noEmit` ➔ **0 errors**.
-- **Linter:** `npm run lint` ➔ **0 errors**.
-- **Automated Test Suite:** `vitest run` ➔ **12 passed test suites, 240/240 passed tests (100%)**.
-- **Arbitrary `[...px]` & Gradients Check:** `grep -rEn "\[[0-9]+px\]|gradient" src/components/ui src/components/domain src/app/design-system` ➔ **0 matches**.
-- **Logical Properties Compliance:** `grep -rEn "\b(ml|mr|pl|pr)-[0-9]|text-(left|right)\b|\b(left|right)-[0-9]" src/components/ui src/components/domain src/app/design-system` ➔ **0 matches**.
-- **Audit Gap Closure:**
-  - Added `NumberStepper` (`src/components/ui/NumberStepper.tsx`, Spec 7.2).
-  - Added `LedgerTable` (`src/components/domain/LedgerTable.tsx`, Spec 7.11).
-  - Added `DealTimeline` (`src/components/domain/DealTimeline.tsx`, Spec 7.13).
-  - Added `StatTile` (`src/components/domain/StatTile.tsx`, Spec 7.14).
-  - Added `CardDescription` (`src/components/ui/Card.tsx`).
-  - Extended `tailwind.config.ts` widths/maxWidths tokens for dialogs, drawers, toasts, popovers, and columns.
-  - Zero AI Policy: purged all AI icons/references (`Sparkles`) from design system components and style guide.
-  - Expanded `/design-system` with interactive previews for all 26 primitives and 19 domain components.
-- **Git Commits Citing Spec:**
-  - `2f5efa5`: `feat(design): Phase 0 discovery and base setup (spec section 2)`
-  - `5a0f2fa`: `feat(design): Phase 1 foundations - tokens, IBM Plex fonts, Tailwind mapping and RTL formatting (spec sections 5, 5.2, 5.7, 9, Appendix A, Appendix B)`
-  - `d99091c`: `feat(design): Phase 2 primitives - accessible headless UI components (spec sections 5.4, 7.1-7.7, 7.16)`
-  - `596b72a`: `feat(design): Phase 3 domain components and Hostinger calibration (spec sections 6.1-6.5, 7.8-7.16, 13)`
-  - `20f2f6d`: `feat(design): Phase 4 living style guide and progress tracking (spec sections 8, 12, 13)`
-  - `0f18c85`: `chore(rules): update AGENTS.md with calibration and style guide invariants`
-  - `2f85b4c`: `fix(design): reinforce IBM Plex Sans Arabic and Mono loading across Next.js and CDN fallback (spec section 5.2)`
-  - `Upcoming`: `feat(design): close design system gaps - add NumberStepper, LedgerTable, DealTimeline, StatTile and eliminate arbitrary pixel classes (spec sections 5.3, 7.2, 7.11, 7.13, 7.14, 14)`
+## 5. Next Steps
+- Review Phase 5 Batch 1 deliverables with the product owner.
+- Proceed to Phase 5 Batch 2: Admin pages migration (`/admin`, `/admin/duplicates`, `/admin/quality`, `/admin/rules`, `/admin/sources`, `/admin/matching`, `/admin/analytics`, `/admin/reports`).

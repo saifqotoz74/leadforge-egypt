@@ -94,13 +94,13 @@ export const DealTimeline: React.FC<DealTimelineProps> = ({
           <div key={ev.id} className="relative flex flex-col gap-1">
             {/* 8px dot with brand-accent on the rail */}
             <div
-              className="absolute -start-[28px] top-1.5 h-2 w-2 rounded-full bg-brand-accent ring-4 ring-surface"
+              className="absolute -start-7 top-1.5 h-2 w-2 rounded-full bg-brand-accent ring-4 ring-surface"
               aria-hidden="true"
             />
 
             <div className="flex items-center gap-2 text-caption text-fg-secondary">
               <span className="font-semibold text-fg-primary">{ev.author}</span>
-              <span>•</span>
+              <span className="text-fg-muted">—</span>
               <span className="font-mono">{fmtDateTime(ev.createdAt)}</span>
             </div>
 
