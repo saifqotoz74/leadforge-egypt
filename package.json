@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit",
     "check:design": "node scripts/check-conformance.mjs",
     "check:i18n": "node scripts/check-i18n.mjs",
+    "check:all": "npm run check:i18n && npm run check:design && npm run typecheck",
+    "precommit": "npm run check:i18n && npm run check:design",
     "db:generate": "prisma generate",
     "db:migrate": "tsx prisma/migrate.ts",
     "db:seed": "tsx prisma/seed.ts",
