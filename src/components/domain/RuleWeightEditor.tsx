@@ -1,0 +1,174 @@
+import React, { useState } from 'react';
+import { Minus, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { fmtNumber } from '@/lib/format';
+
+export interface ScoringRule {
+  id: string;
+  name: string;
+  conditionDescription: string;
+  expressionCode: string;
+  weight: number;
+  originalWeight: number;
+}
+
+export interface RuleWeightEditorProps {
+  initialRules: ScoringRule[];
+  onSave: (updatedRules: ScoringRule[]) => Promise<void>;
+  className?: string;
+}
+
+export const RuleWeightEditor: React.FC<RuleWeightEditorProps> = ({
+  initialRules,
+  onSave,
+  className = '',
+}) => {
+  const [rules, setRules] = useState<ScoringRule[]>(initialRules);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const unsavedCount = rules.filter(
+    (r) => r.weight !== r.originalWeight
+  ).length;
+
+  const handleWeightChange = (id: string, delta: number) => {
+    setRules((prev) =>
+      prev.map((r) => {
+        if (r.id !== id) return r;
+        const newWeight = Math.max(0, Math.min(100, r.weight + delta));
+        return { ...r, weight: newWeight };
+      })
+    );
+  };
+
+  const handleReset = () => {
+    setRules(initialRules.map((r) => ({ ...r, weight: r.originalWeight })));
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await onSave(rules);
+      // Update originalWeight after successful save
+      setRules((prev) => prev.map((r) => ({ ...r, originalWeight: r.weight })));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className={`relative flex flex-col gap-4 ${className}`}>
+      {/* Rules Table */}
+      <div className="overflow-x-auto rounded-lg border border-line bg-surface shadow-xs">
+        <table className="w-full text-start border-collapse">
+          <thead>
+            <tr className="border-b border-line bg-subtle text-caption font-semibold text-fg-secondary">
+              <th className="py-3 px-4 text-start">القاعدة</th>
+              <th className="py-3 px-4 text-start">الشرط البرمجي</th>
+              <th className="py-3 px-4 text-center">الوزن (النقاط)</th>
+              <th className="py-3 px-4 text-end">التغيير</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {rules.map((rule) => {
+              const isChanged = rule.weight !== rule.originalWeight;
+
+              return (
+                <tr key={rule.id} className="hover:bg-brand-soft/30 transition-colors">
+                  {/* Name & Plain description */}
+                  <td className="py-3 px-4 align-top">
+                    <div className="flex flex-col">
+                      <span className="text-body font-semibold text-fg-primary">
+                        {rule.name}
+                      </span>
+                      <span className="text-body-sm text-fg-secondary mt-0.5">
+                        {rule.conditionDescription}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* Monospace expression chip per Spec 7.14 */}
+                  <td className="py-3 px-4 align-top whitespace-nowrap">
+                    <code className="inline-block rounded-sm bg-subtle px-2 py-1 font-mono text-caption text-fg-primary border border-line/60">
+                      {rule.expressionCode}
+                    </code>
+                  </td>
+
+                  {/* Stepper controls */}
+                  <td className="py-3 px-4 align-middle text-center whitespace-nowrap">
+                    <div className="inline-flex items-center gap-1.5 border border-line rounded-md bg-surface p-1 shadow-xs">
+                      <button
+                        type="button"
+                        onClick={() => handleWeightChange(rule.id, -5)}
+                        disabled={rule.weight <= 0}
+                        className="h-7 w-7 rounded flex items-center justify-center text-fg-secondary hover:text-fg-primary hover:bg-subtle disabled:opacity-30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand"
+                        title="إنقاص الوزن"
+                        aria-label="إنقاص الوزن 5 نقاط"
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </button>
+
+                      <span className="ltr-iso font-mono font-bold text-body tabular-nums min-w-[36px] text-center text-fg-primary">
+                        {fmtNumber(rule.weight)}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => handleWeightChange(rule.id, 5)}
+                        disabled={rule.weight >= 100}
+                        className="h-7 w-7 rounded flex items-center justify-center text-fg-secondary hover:text-fg-primary hover:bg-subtle disabled:opacity-30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand"
+                        title="زيادة الوزن"
+                        aria-label="زيادة الوزن 5 نقاط"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </td>
+
+                  {/* Delta Chip: من old إلى new */}
+                  <td className="py-3 px-4 align-middle text-end whitespace-nowrap">
+                    {isChanged ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sand-100 border border-sand-300 text-caption font-medium text-sand-800">
+                        <span>من</span>
+                        <span className="ltr-iso font-mono tabular-nums">{fmtNumber(rule.originalWeight)}</span>
+                        <span>إلى</span>
+                        <span className="ltr-iso font-mono tabular-nums font-bold">{fmtNumber(rule.weight)}</span>
+                      </span>
+                    ) : (
+                      <span className="text-caption text-fg-muted">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Sticky Bottom Bar for unsaved changes per Spec 7.14 */}
+      {unsavedCount > 0 && (
+        <div className="sticky bottom-4 z-30 rounded-xl border border-line bg-surface p-4 shadow-lg flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-warning-icon shrink-0" />
+            <span className="text-body font-semibold text-fg-primary">
+              {fmtNumber(unsavedCount)} تغييرات غير محفوظة
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="md" onClick={handleReset} disabled={isSaving}>
+              تراجع
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              isLoading={isSaving}
+              onClick={handleSave}
+            >
+              حفظ التغييرات
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

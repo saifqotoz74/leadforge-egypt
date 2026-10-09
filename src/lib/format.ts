@@ -62,3 +62,9 @@ export const fmtTimeAgo = (d: Date | string | number): string => {
   const diffYears = Math.floor(diffDays / 365);
   return fmtRelative(-diffYears, 'year');
 };
+
+export const formatNumber = fmtNumber;
+export const formatDate = fmtDate;
+export const formatRelativeTime = fmtTimeAgo;
+export const formatEGP = (amount: number): string => `${fmtNumber(amount)} ج.م`;
+
