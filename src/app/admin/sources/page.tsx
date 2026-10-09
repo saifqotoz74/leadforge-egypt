@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
+import { AppShell } from '@/components/domain/AppShell';
 import {
   Activity,
   AlertTriangle,
@@ -503,31 +503,31 @@ export default function AdminSourcesPage() {
     switch (status) {
       case 'HEALTHY':
         return (
-          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+          <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-caption font-semibold text-brand">
             سليم (HEALTHY)
           </span>
         );
       case 'DEGRADED':
         return (
-          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+          <span className="rounded-full bg-warning-bg px-2.5 py-0.5 text-caption font-semibold text-warning-text">
             متراجع (DEGRADED)
           </span>
         );
       case 'FAILING':
         return (
-          <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-800">
+          <span className="rounded-full bg-danger-bg px-2.5 py-0.5 text-caption font-semibold text-danger-text">
             متعطل (FAILING)
           </span>
         );
       case 'NOT_CONFIGURED':
         return (
-          <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold text-purple-800">
+          <span className="rounded-full bg-subtle px-2.5 py-0.5 text-caption font-semibold text-fg-secondary">
             غير مهيأ (NOT_CONFIGURED)
           </span>
         );
       default:
         return (
-          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-600">
+          <span className="rounded-full bg-subtle px-2.5 py-0.5 text-caption font-medium text-fg-muted">
             متوقف (DISABLED)
           </span>
         );
@@ -538,31 +538,31 @@ export default function AdminSourcesPage() {
     switch (status) {
       case 'COMPLETED':
         return (
-          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+          <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-caption font-semibold text-brand">
             COMPLETED
           </span>
         );
       case 'PARTIALLY_COMPLETED':
         return (
-          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+          <span className="rounded-full bg-warning-bg px-2.5 py-0.5 text-caption font-semibold text-warning-text">
             PARTIALLY_COMPLETED
           </span>
         );
       case 'FAILED':
         return (
-          <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-800">
+          <span className="rounded-full bg-danger-bg px-2.5 py-0.5 text-caption font-semibold text-danger-text">
             FAILED
           </span>
         );
       case 'CANCELLED':
         return (
-          <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-[11px] font-bold text-slate-700">
+          <span className="rounded-full bg-subtle px-2.5 py-0.5 text-caption font-medium text-fg-muted">
             CANCELLED
           </span>
         );
       default:
         return (
-          <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-bold text-blue-800">
+          <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-caption font-medium text-brand">
             {status}
           </span>
         );
@@ -570,15 +570,15 @@ export default function AdminSourcesPage() {
   }
 
   return (
-    <AppShell isAdminView>
+    <AppShell isAdmin={true} density="compact" pageTitle="مصادر البيانات والجمع">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:flex-row lg:items-center">
+        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-line bg-white p-6 shadow-sm lg:flex-row lg:items-center">
           <div>
-            <h1 className="text-xl font-extrabold text-slate-900">
+            <h1 className="text-xl font-extrabold text-fg-primary">
               منظومة الإمداد المستمر وجمع البيانات الإنتاجية (Phase 8 Ingestion & Collectors)
             </h1>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-fg-secondary">
               محرك جمع حتمي 100% بمعايير الإيداع الآمن (Idempotency)، قواطع الدائرة (Circuit Breakers)،
               طابور المعالجة المعلقة (Dead-Letter Queue)، والإمداد التلقائي للسوق المصري
             </p>
@@ -587,16 +587,16 @@ export default function AdminSourcesPage() {
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-50"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-extrabold text-fg-primary hover:bg-subtle"
             >
-              <Plus className="h-4 w-4 text-emerald-600" />
+              <Plus className="h-4 w-4 text-brand" />
               <span>إضافة مصدر جديد</span>
             </button>
 
             <button
               onClick={handleTriggerReplenishment}
               disabled={actionLoading === 'trigger-replenishment'}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-extrabold text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-xs font-extrabold text-white hover:bg-emerald-700 disabled:opacity-50"
             >
               <TrendingUp className="h-4 w-4" />
               <span>
@@ -609,7 +609,7 @@ export default function AdminSourcesPage() {
             <button
               onClick={loadAllData}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-subtle px-3 py-2 text-xs font-bold text-fg-primary hover:bg-subtle"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               <span>تحديث</span>
@@ -619,39 +619,39 @@ export default function AdminSourcesPage() {
 
         {/* KPI Summary Cards */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-500">المصادر السليمة</span>
-            <p className="mt-1 text-xl font-extrabold text-emerald-700">
+          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-fg-secondary">المصادر السليمة</span>
+            <p className="mt-1 text-xl font-extrabold text-brand">
               {summary.healthySources ?? 0} / {summary.totalSources ?? sources.length}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-500">غير مهيأة (Credentials)</span>
-            <p className="mt-1 text-xl font-extrabold text-purple-700">
+          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-fg-secondary">غير مهيأة (Credentials)</span>
+            <p className="mt-1 text-xl font-extrabold text-brand">
               {summary.notConfiguredSources ?? 0}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-500">إجمالي مهام الجمع</span>
-            <p className="mt-1 text-xl font-extrabold text-slate-900">
+          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-fg-secondary">إجمالي مهام الجمع</span>
+            <p className="mt-1 text-xl font-extrabold text-fg-primary">
               {summary.totalJobs ?? jobs.length}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-500">المهام المكتملة</span>
-            <p className="mt-1 text-xl font-extrabold text-emerald-700">
+          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-fg-secondary">المهام المكتملة</span>
+            <p className="mt-1 text-xl font-extrabold text-brand">
               {summary.completedJobs ?? 0}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-500">طابور Dead-Letter</span>
-            <p className="mt-1 text-xl font-extrabold text-amber-700">
+          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-fg-secondary">طابور Dead-Letter</span>
+            <p className="mt-1 text-xl font-extrabold text-warning-text">
               {summary.unresolvedDeadLetters ?? deadLetters.length}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-500">التنبيهات النشطة</span>
-            <p className="mt-1 text-xl font-extrabold text-rose-700">
+          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
+            <span className="text-[11px] font-bold text-fg-secondary">التنبيهات النشطة</span>
+            <p className="mt-1 text-xl font-extrabold text-danger-text">
               {summary.activeAlertsCount ?? alerts.length}
             </p>
           </div>
@@ -661,22 +661,22 @@ export default function AdminSourcesPage() {
           <div
             className={`rounded-xl border p-4 text-xs font-bold ${
               bannerMessage.type === 'success'
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-                : 'border-rose-200 bg-rose-50 text-rose-900'
+                ? 'border-line-brand bg-brand-soft text-brand'
+                : 'border-danger-border bg-danger-bg text-danger-text'
             }`}
           >
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2">
                 {bannerMessage.type === 'success' ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  <CheckCircle2 className="h-4 w-4 text-brand" />
                 ) : (
-                  <AlertTriangle className="h-4 w-4 text-rose-600" />
+                  <AlertTriangle className="h-4 w-4 text-danger-text" />
                 )}
                 {bannerMessage.text}
               </span>
               <button
                 onClick={() => setBannerMessage(null)}
-                className="text-slate-500 hover:text-slate-800"
+                className="text-fg-secondary hover:text-fg-primary"
               >
                 إغلاق
               </button>
@@ -685,13 +685,13 @@ export default function AdminSourcesPage() {
         )}
 
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+        <div className="flex flex-wrap gap-2 border-b border-line pb-3">
           <button
             onClick={() => setActiveTab('sources')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
               activeTab === 'sources'
                 ? 'bg-slate-900 text-white'
-                : 'bg-white text-slate-600 hover:bg-slate-100'
+                : 'bg-white text-fg-secondary hover:bg-subtle'
             }`}
           >
             <Database className="h-4 w-4" />
@@ -703,7 +703,7 @@ export default function AdminSourcesPage() {
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
               activeTab === 'jobs'
                 ? 'bg-slate-900 text-white'
-                : 'bg-white text-slate-600 hover:bg-slate-100'
+                : 'bg-white text-fg-secondary hover:bg-subtle'
             }`}
           >
             <Clock className="h-4 w-4" />
@@ -715,7 +715,7 @@ export default function AdminSourcesPage() {
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
               activeTab === 'deadletter'
                 ? 'bg-slate-900 text-white'
-                : 'bg-white text-slate-600 hover:bg-slate-100'
+                : 'bg-white text-fg-secondary hover:bg-subtle'
             }`}
           >
             <ShieldAlert className="h-4 w-4" />
@@ -727,7 +727,7 @@ export default function AdminSourcesPage() {
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
               activeTab === 'supply'
                 ? 'bg-slate-900 text-white'
-                : 'bg-white text-slate-600 hover:bg-slate-100'
+                : 'bg-white text-fg-secondary hover:bg-subtle'
             }`}
           >
             <Activity className="h-4 w-4" />
@@ -741,15 +741,15 @@ export default function AdminSourcesPage() {
             {sources.map((src) => (
               <div
                 key={src.id}
-                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                className="flex flex-col justify-between rounded-2xl border border-line bg-white p-5 shadow-sm"
               >
                 <div>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="rounded bg-slate-100 px-2.5 py-0.5 font-mono text-[11px] font-bold text-slate-700">
+                      <span className="rounded bg-subtle px-2.5 py-0.5 font-mono text-[11px] font-bold text-fg-primary">
                         {src.collectorVersion || src.type}
                       </span>
-                      <span className="rounded bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">
+                      <span className="rounded bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand">
                         أولوية #{src.priority}
                       </span>
                     </div>
@@ -763,36 +763,36 @@ export default function AdminSourcesPage() {
                     </div>
                   </div>
 
-                  <h2 className="mt-3 flex items-center gap-2 text-base font-extrabold text-slate-900">
-                    <Database className="h-4 w-4 text-emerald-600" />
+                  <h2 className="mt-3 flex items-center gap-2 text-base font-extrabold text-fg-primary">
+                    <Database className="h-4 w-4 text-brand" />
                     <span>{src.name}</span>
                   </h2>
-                  <p className="mt-1 text-xs text-slate-500">{src.description}</p>
+                  <p className="mt-1 text-xs text-fg-secondary">{src.description}</p>
 
                   {/* Funnel & Quality Metrics */}
                   {src.funnelStats && (
-                    <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl bg-slate-50 p-3 text-center text-[11px]">
+                    <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl bg-subtle p-3 text-center text-[11px]">
                       <div>
-                        <span className="block text-slate-400">مجلوب</span>
-                        <span className="font-extrabold text-slate-800">
+                        <span className="block text-fg-muted">مجلوب</span>
+                        <span className="font-extrabold text-fg-primary">
                           {src.funnelStats.fetched}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-slate-400">مقبول</span>
-                        <span className="font-extrabold text-emerald-700">
+                        <span className="block text-fg-muted">مقبول</span>
+                        <span className="font-extrabold text-brand">
                           {src.funnelStats.accepted}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-slate-400">مكرر ({src.rates?.duplicateRate ?? 0}%)</span>
-                        <span className="font-extrabold text-amber-700">
+                        <span className="block text-fg-muted">مكرر ({src.rates?.duplicateRate ?? 0}%)</span>
+                        <span className="font-extrabold text-warning-text">
                           {src.funnelStats.duplicate}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-slate-400">قابل للبيع</span>
-                        <span className="font-extrabold text-blue-700">
+                        <span className="block text-fg-muted">قابل للبيع</span>
+                        <span className="font-extrabold text-brand">
                           {src.funnelStats.saleable}
                         </span>
                       </div>
@@ -800,10 +800,10 @@ export default function AdminSourcesPage() {
                   )}
 
                   {/* Cost & Schedule Info */}
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-fg-secondary">
                     <span>
                       الجدولة:{' '}
-                      <strong className="text-slate-700">
+                      <strong className="text-fg-primary">
                         {src.scheduleIntervalMinutes
                           ? `كل ${src.scheduleIntervalMinutes} دقيقة`
                           : src.scheduleCron || 'يدوي فقط'}
@@ -811,7 +811,7 @@ export default function AdminSourcesPage() {
                     </span>
                     <span>
                       تكلفة الفرصة الصالحة:{' '}
-                      <strong className="text-slate-700">
+                      <strong className="text-fg-primary">
                         {src.economics?.costPerSaleableLead.status === 'OK' &&
                         src.economics.costPerSaleableLead.value !== null
                           ? `${src.economics.costPerSaleableLead.value} ج.م`
@@ -821,8 +821,8 @@ export default function AdminSourcesPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs">
-                  <div className="text-[11px] text-slate-400">
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-xs">
+                  <div className="text-[11px] text-fg-muted">
                     آخر نجاح:{' '}
                     {src.lastSuccessAt
                       ? new Date(src.lastSuccessAt).toLocaleString('ar-EG')
@@ -835,7 +835,7 @@ export default function AdminSourcesPage() {
                       <button
                         onClick={() => handleResetCircuit(src)}
                         disabled={actionLoading === `reset-${src.id}`}
-                        className="inline-flex items-center gap-1 rounded-lg bg-amber-100 px-2.5 py-1.5 font-bold text-amber-900 hover:bg-amber-200"
+                        className="inline-flex items-center gap-1 rounded-lg bg-warning-bg px-2.5 py-1.5 font-bold text-amber-900 hover:bg-amber-200"
                       >
                         <RotateCcw className="h-3.5 w-3.5" />
                         <span>إعادة ضبط القاطع</span>
@@ -856,7 +856,7 @@ export default function AdminSourcesPage() {
                           acquisitionCostPerRunEgp: '',
                         });
                       }}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 font-bold text-slate-600 hover:bg-slate-50"
+                      className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 font-bold text-fg-secondary hover:bg-subtle"
                     >
                       <Settings className="h-3.5 w-3.5" />
                       <span>الإعدادات</span>
@@ -865,7 +865,7 @@ export default function AdminSourcesPage() {
                     <button
                       onClick={() => handleToggleSource(src)}
                       disabled={actionLoading === `toggle-${src.id}`}
-                      className="rounded-lg border border-slate-300 px-2.5 py-1.5 font-bold text-slate-700 hover:bg-slate-50"
+                      className="rounded-lg border border-line px-2.5 py-1.5 font-bold text-fg-primary hover:bg-subtle"
                     >
                       {src.enabled ? 'إيقاف' : 'تفعيل'}
                     </button>
@@ -877,7 +877,7 @@ export default function AdminSourcesPage() {
                         src.configurationStatus === 'NOT_CONFIGURED' ||
                         actionLoading === `run-${src.id}`
                       }
-                      className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 font-bold text-white hover:bg-emerald-700 disabled:opacity-40"
+                      className="inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 font-bold text-white hover:bg-emerald-700 disabled:opacity-40"
                     >
                       <Play className="h-3.5 w-3.5" />
                       <span>
@@ -893,9 +893,9 @@ export default function AdminSourcesPage() {
 
         {/* TAB 2: INGESTION JOBS */}
         {activeTab === 'jobs' && (
-          <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="space-y-4 rounded-2xl border border-line bg-white p-6 shadow-sm">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-              <h2 className="text-base font-extrabold text-slate-900">
+              <h2 className="text-base font-extrabold text-fg-primary">
                 سجل مهام جمع واستيراد البيانات (Ingestion Jobs)
               </h2>
 
@@ -903,7 +903,7 @@ export default function AdminSourcesPage() {
                 <select
                   value={jobStatusFilter}
                   onChange={(e) => setJobStatusFilter(e.target.value)}
-                  className="rounded-lg border border-slate-300 px-3 py-1.5 font-bold text-slate-700"
+                  className="rounded-lg border border-line px-3 py-1.5 font-bold text-fg-primary"
                 >
                   <option value="">كل الحالات</option>
                   <option value="COMPLETED">COMPLETED</option>
@@ -916,7 +916,7 @@ export default function AdminSourcesPage() {
                 <select
                   value={jobSourceFilter}
                   onChange={(e) => setJobSourceFilter(e.target.value)}
-                  className="rounded-lg border border-slate-300 px-3 py-1.5 font-bold text-slate-700"
+                  className="rounded-lg border border-line px-3 py-1.5 font-bold text-fg-primary"
                 >
                   <option value="">كل المصادر</option>
                   {sources.map((s) => (
@@ -929,9 +929,9 @@ export default function AdminSourcesPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs">
+              <table className="w-full text-start text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-500">
+                  <tr className="border-b border-line text-fg-secondary">
                     <th className="py-2.5 px-3">المصدر والنسخة</th>
                     <th className="py-2.5 px-3">النوع</th>
                     <th className="py-2.5 px-3">الحالة</th>
@@ -947,14 +947,14 @@ export default function AdminSourcesPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-semibold">
                   {jobs.map((job) => (
-                    <tr key={job.id} className="hover:bg-slate-50">
+                    <tr key={job.id} className="hover:bg-subtle">
                       <td className="py-3 px-3">
-                        <span className="block font-bold text-slate-900">{job.sourceName}</span>
-                        <span className="font-mono text-[10px] text-slate-400">
+                        <span className="block font-bold text-fg-primary">{job.sourceName}</span>
+                        <span className="font-mono text-[10px] text-fg-muted">
                           {job.collectorVersion || 'v1'}
                         </span>
                       </td>
-                      <td className="py-3 px-3 font-mono text-[11px] text-slate-600">
+                      <td className="py-3 px-3 font-mono text-[11px] text-fg-secondary">
                         {job.triggerType || 'MANUAL'}
                       </td>
                       <td className="py-3 px-3">{renderJobStatusBadge(job.status)}</td>
@@ -962,30 +962,30 @@ export default function AdminSourcesPage() {
                         {job.discoveredCount || job.totalRecords} /{' '}
                         {job.fetchedCount || job.totalRecords}
                       </td>
-                      <td className="py-3 px-3 text-emerald-700">
+                      <td className="py-3 px-3 text-brand">
                         {job.validCount} ({job.insertedCount || job.validCount} جديد،{' '}
                         {job.updatedCount || 0} محدث)
                       </td>
-                      <td className="py-3 px-3 text-amber-700">
+                      <td className="py-3 px-3 text-warning-text">
                         {job.duplicateCount} / {job.conflictCount || 0}
                       </td>
-                      <td className="py-3 px-3 text-rose-700">
+                      <td className="py-3 px-3 text-danger-text">
                         {job.invalidCount} / {job.failedCount || 0}
                       </td>
-                      <td className="py-3 px-3 font-bold text-blue-700">
+                      <td className="py-3 px-3 font-bold text-brand">
                         {job.saleableCount || 0}
                       </td>
-                      <td className="py-3 px-3 font-mono text-slate-600">
+                      <td className="py-3 px-3 font-mono text-fg-secondary">
                         {job.durationMs ? `${job.durationMs}ms` : '—'}
                       </td>
-                      <td className="py-3 px-3 text-slate-500">
+                      <td className="py-3 px-3 text-fg-secondary">
                         {new Date(job.createdAt).toLocaleString('ar-EG')}
                       </td>
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleInspectJob(job.id)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100"
+                            className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1 text-[11px] font-bold text-fg-primary hover:bg-subtle"
                           >
                             <Eye className="h-3 w-3" />
                             <span>التفاصيل</span>
@@ -993,7 +993,7 @@ export default function AdminSourcesPage() {
                           {(job.status === 'RUNNING' || job.status === 'PROCESSING') && (
                             <button
                               onClick={() => handleCancelJob(job.id)}
-                              className="inline-flex items-center gap-1 rounded-lg bg-rose-100 px-2.5 py-1 text-[11px] font-bold text-rose-800 hover:bg-rose-200"
+                              className="inline-flex items-center gap-1 rounded-lg bg-danger-bg px-2.5 py-1 text-[11px] font-bold text-danger-text hover:bg-rose-200"
                             >
                               <XCircle className="h-3 w-3" />
                               <span>إلغاء</span>
@@ -1011,13 +1011,13 @@ export default function AdminSourcesPage() {
 
         {/* TAB 3: DEAD-LETTER QUEUE */}
         {activeTab === 'deadletter' && (
-          <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="space-y-4 rounded-2xl border border-line bg-white p-6 shadow-sm">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
-                <h2 className="text-base font-extrabold text-slate-900">
+                <h2 className="text-base font-extrabold text-fg-primary">
                   طابور السجلات المعلقة والفاشلة (Dead-Letter Queue)
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-fg-secondary">
                   السجلات التي استنفدت محاولات إعادة التشغيل أو واجهت أخطاء معالجة وتحتاج إلى مراجعة أو إعادة تشغيل
                 </p>
               </div>
@@ -1025,7 +1025,7 @@ export default function AdminSourcesPage() {
               <select
                 value={dlStatusFilter}
                 onChange={(e) => setDlStatusFilter(e.target.value)}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700"
+                className="rounded-lg border border-line px-3 py-1.5 text-xs font-bold text-fg-primary"
               >
                 <option value="">كل الحالات</option>
                 <option value="DEAD_LETTER">معلق (DEAD_LETTER)</option>
@@ -1036,14 +1036,14 @@ export default function AdminSourcesPage() {
             </div>
 
             {deadLetters.length === 0 ? (
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-8 text-center text-xs font-bold text-slate-500">
+              <div className="rounded-xl border border-line bg-subtle p-8 text-center text-xs font-bold text-fg-secondary">
                 لا توجد سجلات معلقة في طابور Dead-Letter حالياً.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs">
+                <table className="w-full text-start text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-500">
+                    <tr className="border-b border-line text-fg-secondary">
                       <th className="py-2.5 px-3">المصدر</th>
                       <th className="py-2.5 px-3">المرحلة / رمز الخطأ</th>
                       <th className="py-2.5 px-3">سبب الفشل</th>
@@ -1055,17 +1055,17 @@ export default function AdminSourcesPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-semibold">
                     {deadLetters.map((dl) => (
-                      <tr key={dl.id} className="hover:bg-slate-50">
+                      <tr key={dl.id} className="hover:bg-subtle">
                         <td className="py-3 px-3">
-                          <span className="block font-bold text-slate-900">{dl.sourceName}</span>
-                          <span className="font-mono text-[10px] text-slate-400">
+                          <span className="block font-bold text-fg-primary">{dl.sourceName}</span>
+                          <span className="font-mono text-[10px] text-fg-muted">
                             {dl.externalId || dl.collectorVersion}
                           </span>
                         </td>
-                        <td className="py-3 px-3 font-mono text-[11px] text-rose-700">
+                        <td className="py-3 px-3 font-mono text-[11px] text-danger-text">
                           {dl.failureStage} / {dl.errorCode}
                         </td>
-                        <td className="py-3 px-3 text-slate-700">{dl.errorMessage}</td>
+                        <td className="py-3 px-3 text-fg-primary">{dl.errorMessage}</td>
                         <td className="py-3 px-3 font-mono">
                           {dl.retryCount} / {dl.maxRetries}
                         </td>
@@ -1073,18 +1073,18 @@ export default function AdminSourcesPage() {
                           <span
                             className={`rounded px-2 py-0.5 text-[11px] font-bold ${
                               dl.status === 'DEAD_LETTER'
-                                ? 'bg-amber-100 text-amber-900'
+                                ? 'bg-warning-bg text-amber-900'
                                 : dl.status === 'RETRIED_RESOLVED' || dl.status === 'RESOLVED' || dl.status === 'RETRIED'
-                                  ? 'bg-emerald-100 text-emerald-800'
+                                  ? 'bg-brand-soft text-brand'
                                   : dl.status === 'RETRIED_FAILED'
-                                    ? 'bg-rose-100 text-rose-800'
-                                    : 'bg-slate-200 text-slate-700'
+                                    ? 'bg-danger-bg text-danger-text'
+                                    : 'bg-slate-200 text-fg-primary'
                             }`}
                           >
                             {dl.status}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-slate-500">
+                        <td className="py-3 px-3 text-fg-secondary">
                           {new Date(dl.lastFailedAt).toLocaleString('ar-EG')}
                         </td>
                         <td className="py-3 px-3">
@@ -1093,14 +1093,14 @@ export default function AdminSourcesPage() {
                               <button
                                 onClick={() => handleDeadLetterAction(dl.id, 'RETRY')}
                                 disabled={actionLoading === `dl-${dl.id}-RETRY`}
-                                className="rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
+                                className="rounded-lg bg-brand px-2.5 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
                               >
                                 إعادة المحاولة
                               </button>
                               <button
                                 onClick={() => handleDeadLetterAction(dl.id, 'MARK_INVALID')}
                                 disabled={actionLoading === `dl-${dl.id}-MARK_INVALID`}
-                                className="rounded-lg border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100"
+                                className="rounded-lg border border-line px-2.5 py-1 text-[11px] font-bold text-fg-primary hover:bg-subtle"
                               >
                                 غير صالح
                               </button>
@@ -1120,12 +1120,12 @@ export default function AdminSourcesPage() {
         {activeTab === 'supply' && (
           <div className="space-y-6">
             {/* Operational Alerts */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-base font-extrabold text-slate-900">
+            <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
+              <h2 className="text-base font-extrabold text-fg-primary">
                 التنبيهات التشغيلية الحتمية (Deterministic Operational Alerts)
               </h2>
               {alerts.length === 0 ? (
-                <p className="mt-3 text-xs font-bold text-emerald-700">
+                <p className="mt-3 text-xs font-bold text-brand">
                   جميع المصادر تعمل ضمن الحدود الطبيعية دون أي تنبيهات حرجة.
                 </p>
               ) : (
@@ -1135,8 +1135,8 @@ export default function AdminSourcesPage() {
                       key={`${alert.code}-${idx}`}
                       className={`flex items-center justify-between rounded-xl border p-3.5 text-xs ${
                         alert.severity === 'CRITICAL'
-                          ? 'border-rose-200 bg-rose-50 text-rose-900'
-                          : 'border-amber-200 bg-amber-50 text-amber-900'
+                          ? 'border-danger-border bg-danger-bg text-danger-text'
+                          : 'border-warning-border bg-warning-bg text-amber-900'
                       }`}
                     >
                       <div>
@@ -1155,22 +1155,22 @@ export default function AdminSourcesPage() {
             </div>
 
             {/* Inventory Replenishment Rules */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
               <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
                 <div>
-                  <h2 className="text-base font-extrabold text-slate-900">
+                  <h2 className="text-base font-extrabold text-fg-primary">
                     قواعد الإمداد المستمر وموازنة المخزون القابل للبيع (Inventory Replenishment)
                   </h2>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-fg-secondary">
                     مراقبة الفرص المتاحة القابلة للبيع (SALEABLE + AVAILABLE) حسب القطاع والمدينة والخدمة المطلوبة
                   </p>
                 </div>
               </div>
 
               <div className="mt-4 overflow-x-auto">
-                <table className="w-full text-right text-xs">
+                <table className="w-full text-start text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-500">
+                    <tr className="border-b border-line text-fg-secondary">
                       <th className="py-2.5 px-3">القطاع (Category)</th>
                       <th className="py-2.5 px-3">المدينة / المحافظة</th>
                       <th className="py-2.5 px-3">الخدمة المطلوبة</th>
@@ -1183,25 +1183,25 @@ export default function AdminSourcesPage() {
                   <tbody className="divide-y divide-slate-100 font-semibold">
                     {replenishmentDecisions.map((d) => (
                       <tr key={d.ruleId}>
-                        <td className="py-3 px-3 font-bold text-slate-900">{d.category}</td>
+                        <td className="py-3 px-3 font-bold text-fg-primary">{d.category}</td>
                         <td className="py-3 px-3">{d.city || d.governorate || 'كل المدن'}</td>
                         <td className="py-3 px-3 font-mono text-[11px]">
                           {d.requiredService || 'الكل'}
                         </td>
                         <td className="py-3 px-3">{d.minRequired}</td>
-                        <td className="py-3 px-3 text-emerald-700">{d.currentAvailable}</td>
+                        <td className="py-3 px-3 text-brand">{d.currentAvailable}</td>
                         <td className="py-3 px-3">
                           {d.needsReplenishment ? (
-                            <span className="rounded bg-rose-100 px-2 py-0.5 font-bold text-rose-800">
+                            <span className="rounded bg-danger-bg px-2 py-0.5 font-bold text-danger-text">
                               عجز -{d.deficit}
                             </span>
                           ) : (
-                            <span className="rounded bg-emerald-100 px-2 py-0.5 font-bold text-emerald-800">
+                            <span className="rounded bg-brand-soft px-2 py-0.5 font-bold text-brand">
                               مكتمل
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-3 text-[11px] text-slate-600">
+                        <td className="py-3 px-3 text-[11px] text-fg-secondary">
                           {d.selectedSources.length > 0
                             ? d.selectedSources.map((s) => s.sourceName).join(' ، ')
                             : '—'}
@@ -1222,28 +1222,28 @@ export default function AdminSourcesPage() {
               onSubmit={handleCreateSource}
               className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
             >
-              <h3 className="text-base font-extrabold text-slate-900">
+              <h3 className="text-base font-extrabold text-fg-primary">
                 إضافة مصدر بيانات جديد
               </h3>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700">اسم المصدر</label>
+                <label className="block text-xs font-bold text-fg-primary">اسم المصدر</label>
                 <input
                   type="text"
                   required
                   value={newSourceForm.name}
                   onChange={(e) => setNewSourceForm({ ...newSourceForm, name: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
                   placeholder="مثال: دليل العيادات الطبية بالقاهرة"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700">نوع المجمّع</label>
+                <label className="block text-xs font-bold text-fg-primary">نوع المجمّع</label>
                 <select
                   value={newSourceForm.type}
                   onChange={(e) => setNewSourceForm({ ...newSourceForm, type: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
                 >
                   <option value="OPEN_DATA">OPEN_DATA (open-data-v1)</option>
                   <option value="DIRECTORY">DIRECTORY (directory-v1)</option>
@@ -1255,31 +1255,31 @@ export default function AdminSourcesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700">الوصف</label>
+                <label className="block text-xs font-bold text-fg-primary">الوصف</label>
                 <input
                   type="text"
                   value={newSourceForm.description}
                   onChange={(e) =>
                     setNewSourceForm({ ...newSourceForm, description: e.target.value })
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700">الأولوية</label>
+                  <label className="block text-xs font-bold text-fg-primary">الأولوية</label>
                   <input
                     type="number"
                     value={newSourceForm.priority}
                     onChange={(e) =>
                       setNewSourceForm({ ...newSourceForm, priority: Number(e.target.value) })
                     }
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label className="block text-xs font-bold text-fg-primary">
                     فترة الجدولة (دقائق)
                   </label>
                   <input
@@ -1291,7 +1291,7 @@ export default function AdminSourcesPage() {
                         scheduleIntervalMinutes: Number(e.target.value),
                       })
                     }
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
                   />
                 </div>
               </div>
@@ -1300,13 +1300,13 @@ export default function AdminSourcesPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700"
+                  className="rounded-lg border border-line px-4 py-2 text-xs font-bold text-fg-primary"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white"
+                  className="rounded-lg bg-brand px-4 py-2 text-xs font-bold text-white"
                 >
                   حفظ المصدر
                 </button>
@@ -1322,24 +1322,24 @@ export default function AdminSourcesPage() {
               onSubmit={handleSaveEditSource}
               className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
             >
-              <h3 className="text-base font-extrabold text-slate-900">
+              <h3 className="text-base font-extrabold text-fg-primary">
                 إعدادات المصدر: {editingSource.name}
               </h3>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700">الأولوية</label>
+                  <label className="block text-xs font-bold text-fg-primary">الأولوية</label>
                   <input
                     type="number"
                     value={editForm.priority}
                     onChange={(e) =>
                       setEditForm({ ...editForm, priority: Number(e.target.value) })
                     }
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label className="block text-xs font-bold text-fg-primary">
                     فترة الجدولة (دقائق)
                   </label>
                   <input
@@ -1348,14 +1348,14 @@ export default function AdminSourcesPage() {
                     onChange={(e) =>
                       setEditForm({ ...editForm, scheduleIntervalMinutes: e.target.value })
                     }
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label className="block text-xs font-bold text-fg-primary">
                     الحد الأقصى للسجلات / تشغيل
                   </label>
                   <input
@@ -1364,18 +1364,18 @@ export default function AdminSourcesPage() {
                     onChange={(e) =>
                       setEditForm({ ...editForm, maxRecordsPerRun: Number(e.target.value) })
                     }
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700">حجم الدفعة (Batch)</label>
+                  <label className="block text-xs font-bold text-fg-primary">حجم الدفعة (Batch)</label>
                   <input
                     type="number"
                     value={editForm.batchSize}
                     onChange={(e) =>
                       setEditForm({ ...editForm, batchSize: Number(e.target.value) })
                     }
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
                   />
                 </div>
               </div>
@@ -1384,13 +1384,13 @@ export default function AdminSourcesPage() {
                 <button
                   type="button"
                   onClick={() => setEditingSource(null)}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700"
+                  className="rounded-lg border border-line px-4 py-2 text-xs font-bold text-fg-primary"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white"
+                  className="rounded-lg bg-brand px-4 py-2 text-xs font-bold text-white"
                 >
                   حفظ التعديلات
                 </button>
@@ -1403,35 +1403,35 @@ export default function AdminSourcesPage() {
         {selectedJobDetail && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
             <div className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h3 className="text-base font-extrabold text-slate-900">
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <h3 className="text-base font-extrabold text-fg-primary">
                   تفاصيل المهمة: {String(selectedJobDetail.sourceName || '')}
                 </h3>
                 <button
                   onClick={() => setSelectedJobDetail(null)}
-                  className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700"
+                  className="rounded-lg bg-subtle px-3 py-1 text-xs font-bold text-fg-primary"
                 >
                   إغلاق
                 </button>
               </div>
 
               <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
-                <div className="rounded-lg bg-slate-50 p-3">
-                  <span className="text-slate-400">معرف المهمة</span>
-                  <p className="mt-1 font-mono font-bold text-slate-800">
+                <div className="rounded-lg bg-subtle p-3">
+                  <span className="text-fg-muted">معرف المهمة</span>
+                  <p className="mt-1 font-mono font-bold text-fg-primary">
                     {String(selectedJobDetail.id)}
                   </p>
                 </div>
-                <div className="rounded-lg bg-slate-50 p-3">
-                  <span className="text-slate-400">نسخة المجمّع والعقد</span>
-                  <p className="mt-1 font-mono font-bold text-slate-800">
+                <div className="rounded-lg bg-subtle p-3">
+                  <span className="text-fg-muted">نسخة المجمّع والعقد</span>
+                  <p className="mt-1 font-mono font-bold text-fg-primary">
                     {String(selectedJobDetail.collectorVersion || 'v1')} /{' '}
                     {String(selectedJobDetail.contractVersion || 'INGESTION_CONTRACT_V1')}
                   </p>
                 </div>
-                <div className="rounded-lg bg-slate-50 p-3">
-                  <span className="text-slate-400">نقطة الاستئناف (Checkpoint)</span>
-                  <p className="mt-1 font-mono font-bold text-slate-800">
+                <div className="rounded-lg bg-subtle p-3">
+                  <span className="text-fg-muted">نقطة الاستئناف (Checkpoint)</span>
+                  <p className="mt-1 font-mono font-bold text-fg-primary">
                     {selectedJobDetail.checkpoint
                       ? `Offset: ${(selectedJobDetail.checkpoint as { offset?: number }).offset ?? 0}`
                       : 'لا يوجد'}
@@ -1440,19 +1440,19 @@ export default function AdminSourcesPage() {
               </div>
 
               {Boolean(selectedJobDetail.errorSummary) && (
-                <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900">
+                <div className="mt-4 rounded-xl border border-danger-border bg-danger-bg p-3 text-xs text-danger-text">
                   <strong>ملخص الأخطاء ({String(selectedJobDetail.errorCode || 'ERROR')}):</strong>{' '}
                   {String(selectedJobDetail.errorSummary)}
                 </div>
               )}
 
               <div className="mt-4">
-                <h4 className="text-xs font-extrabold text-slate-700">
+                <h4 className="text-xs font-extrabold text-fg-primary">
                   السجلات المعالجة داخل المهمة
                 </h4>
-                <div className="mt-2 max-h-60 overflow-y-auto rounded-xl border border-slate-200">
-                  <table className="w-full text-right text-[11px]">
-                    <thead className="bg-slate-50 text-slate-500">
+                <div className="mt-2 max-h-60 overflow-y-auto rounded-xl border border-line">
+                  <table className="w-full text-start text-[11px]">
+                    <thead className="bg-subtle text-fg-secondary">
                       <tr>
                         <th className="py-2 px-3">#</th>
                         <th className="py-2 px-3">المعرف الخارجي</th>
@@ -1480,7 +1480,7 @@ export default function AdminSourcesPage() {
                               {rec.lifecycleStage || rec.status}
                             </td>
                             <td className="py-2 px-3 font-bold">{rec.status}</td>
-                            <td className="py-2 px-3 text-slate-500">
+                            <td className="py-2 px-3 text-fg-secondary">
                               {rec.errorMessage || '—'}
                             </td>
                           </tr>
