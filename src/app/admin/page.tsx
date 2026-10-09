@@ -2,20 +2,29 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AppShell } from '@/components/AppShell';
+import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { StatTile } from '@/components/domain/StatTile';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import {
-  Users,
-  UserCheck,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/Table';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { fmtNumber, formatEGP, fmtDate } from '@/lib/format';
+import {
   Briefcase,
-  Flame,
   CheckCircle2,
-  Trophy,
-  Banknote,
   Sliders,
   Database,
   Layers,
   BarChart3,
-  ShieldCheck,
+  Users,
   Activity,
 } from 'lucide-react';
 
@@ -129,343 +138,329 @@ export default function AdminOverviewPage() {
   }
 
   return (
-    <AppShell isAdminView>
+    <AppShell isAdmin={true} density="compact" pageTitle="نظرة عامة على المنظومة">
       {loading || !data ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div
-              key={i}
-              className="h-28 animate-pulse rounded-2xl border border-slate-200 bg-white p-5"
-            />
+            <Skeleton key={i} className="h-28 rounded-xl" />
           ))}
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* Overview Metrics (Section 17) */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>إجمالي المطورين</span>
-                <Users className="h-4 w-4 text-blue-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                {data.overview.totalUsers}
-              </p>
-              <span className="text-[11px] text-slate-400">Total Users</span>
-            </div>
+        <div className="flex flex-col gap-6">
+          <PageHeader
+            title="نظرة عامة على المنظومة والعمليات"
+            description="متابعة مؤشرات الأداء اللحظية، محركات الفحص، وسلامة دفاتر الرصيد"
+            actions={
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={runIntegrityScan}
+                isLoading={scanningIntegrity}
+                className="gap-1.5"
+              >
+                <Activity className="h-4 w-4" />
+                <span>فحص سلامة الرصيد والبيانات</span>
+              </Button>
+            }
+          />
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>المشتركون النشطون</span>
-                <UserCheck className="h-4 w-4 text-emerald-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-emerald-700">
-                {data.overview.activeSubscribers}
-              </p>
-              <span className="text-[11px] text-slate-400">Active Subscribers</span>
-            </div>
+          {/* Slim Overview Metrics Row with StatTiles per Template T11 */}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+            <StatTile
+              label="إجمالي المطورين"
+              value={fmtNumber(data.overview.totalUsers)}
+              statusText="الحسابات المسجلة"
+            />
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>إجمالي الـ Leads</span>
-                <Briefcase className="h-4 w-4 text-indigo-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                {data.overview.totalLeads}
-              </p>
-              <span className="text-[11px] text-slate-400">Total Leads</span>
-            </div>
+            <StatTile
+              label="المشتركون النشطون"
+              value={fmtNumber(data.overview.activeSubscribers)}
+              statusText="اشتراكات فعالة"
+            />
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>الفرص الساخنة</span>
-                <Flame className="h-4 w-4 text-rose-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-rose-700">
-                {data.overview.hotLeads}
-              </p>
-              <span className="text-[11px] text-slate-400">Hot & Premium Leads</span>
-            </div>
+            <StatTile
+              label="إجمالي الفرص"
+              value={fmtNumber(data.overview.totalLeads)}
+              statusText="بقاعدة البيانات"
+            />
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>الـ Leads المشتراة</span>
-                <CheckCircle2 className="h-4 w-4 text-teal-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                {data.overview.leadsClaimed}
-              </p>
-              <span className="text-[11px] text-slate-400">Leads Claimed</span>
-            </div>
+            <StatTile
+              label="الفرص الساخنة"
+              value={fmtNumber(data.overview.hotLeads)}
+              statusText="HOT & PREMIUM"
+            />
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>الصفقات الناجحة</span>
-                <Trophy className="h-4 w-4 text-amber-500" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-emerald-700">
-                {data.overview.leadsWon}
-              </p>
-              <span className="text-[11px] text-slate-400">Leads Won</span>
-            </div>
+            <StatTile
+              label="الفرص المشتراة"
+              value={fmtNumber(data.overview.leadsClaimed)}
+              statusText="تم شراؤها"
+            />
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>إجمالي الإيرادات</span>
-                <Banknote className="h-4 w-4 text-emerald-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                {data.overview.revenueEgp.toLocaleString()}{' '}
-                <span className="text-xs font-bold">ج.م</span>
-              </p>
-              <span className="text-[11px] text-slate-400">Total Revenue</span>
-            </div>
+            <StatTile
+              label="الصفقات الناجحة"
+              value={fmtNumber(data.overview.leadsWon)}
+              statusText="صفقات مغلقة"
+            />
+
+            <StatTile
+              label="إجمالي الإيرادات"
+              value={formatEGP(data.overview.revenueEgp)}
+              statusText="عبر الباقات"
+            />
           </div>
 
-          {/* Quality & Funnel Summary + Quick Links */}
+          {/* Quality & Funnel Rates + Navigation Modules */}
           <div className="grid gap-6 lg:grid-cols-12">
-            <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-base font-extrabold text-slate-900">
-                مؤشرات جودة الفرص ومعدلات التحويل (Feedback & Funnel Rates)
-              </h2>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <div className="rounded-xl bg-emerald-50 p-3.5 text-center">
-                  <span className="text-xs font-bold text-emerald-800">
-                    نسبة نجاح الفرص (Success Rate)
-                  </span>
-                  <p className="mt-1 text-2xl font-extrabold text-emerald-700">
-                    {data.rates.leadSuccessRate}%
-                  </p>
-                </div>
-                <div className="rounded-xl bg-rose-50 p-3.5 text-center">
-                  <span className="text-xs font-bold text-rose-800">
-                    نسبة غير الصالح (Invalid Rate)
-                  </span>
-                  <p className="mt-1 text-2xl font-extrabold text-rose-700">
-                    {data.rates.invalidRate}%
-                  </p>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-3.5 text-center">
-                  <span className="text-xs font-bold text-slate-700">
-                    معدل التواصل (Contact Rate)
-                  </span>
-                  <p className="mt-1 text-2xl font-extrabold text-slate-900">
-                    {data.rates.contactRate}%
-                  </p>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-3.5 text-center">
-                  <span className="text-xs font-bold text-slate-700">
-                    معدل الرد (Reply Rate)
-                  </span>
-                  <p className="mt-1 text-2xl font-extrabold text-blue-700">
-                    {data.rates.replyRate}%
-                  </p>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-3.5 text-center">
-                  <span className="text-xs font-bold text-slate-700">
-                    معدل الاجتماعات (Meeting Rate)
-                  </span>
-                  <p className="mt-1 text-2xl font-extrabold text-purple-700">
-                    {data.rates.meetingRate}%
-                  </p>
-                </div>
-                <div className="rounded-xl bg-emerald-50 p-3.5 text-center">
-                  <span className="text-xs font-bold text-emerald-800">
-                    معدل الفوز (Won Rate)
-                  </span>
-                  <p className="mt-1 text-2xl font-extrabold text-emerald-700">
-                    {data.rates.wonRate}%
-                  </p>
-                </div>
-              </div>
-            </div>
+            <Card className="lg:col-span-7">
+              <CardHeader>
+                <CardTitle>مؤشرات جودة الفرص ومعدلات التحويل</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
+                    <span className="text-caption font-medium text-fg-secondary">
+                      نسبة نجاح الفرص
+                    </span>
+                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-brand">
+                      {fmtNumber(data.rates.leadSuccessRate)}%
+                    </p>
+                  </div>
 
-            <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-base font-extrabold text-slate-900">
-                وحدات التحكم الإدارية السريعة
-              </h2>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-bold">
-                <Link
-                  href="/admin/leads"
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 p-3.5 text-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40"
-                >
-                  <Briefcase className="h-4 w-4 text-emerald-600" />
-                  <span>إدارة الـ Leads + CSV</span>
-                </Link>
-                <Link
-                  href="/admin/quality"
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 p-3.5 text-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40"
-                >
-                  <CheckCircle2 className="h-4 w-4 text-teal-600" />
-                  <span>جودة البيانات والتحقق</span>
-                </Link>
-                <Link
-                  href="/admin/users"
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 p-3.5 text-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40"
-                >
-                  <Users className="h-4 w-4 text-blue-600" />
-                  <span>إدارة المستخدمين</span>
-                </Link>
-                <Link
-                  href="/admin/rules"
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 p-3.5 text-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40"
-                >
-                  <Sliders className="h-4 w-4 text-purple-600" />
-                  <span>قواعد التقييم (Rules)</span>
-                </Link>
-                <Link
-                  href="/admin/sources"
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 p-3.5 text-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40"
-                >
-                  <Database className="h-4 w-4 text-amber-600" />
-                  <span>مصادر البيانات</span>
-                </Link>
-                <Link
-                  href="/admin/plans"
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 p-3.5 text-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40"
-                >
-                  <Layers className="h-4 w-4 text-indigo-600" />
-                  <span>الباقات والأسعار</span>
-                </Link>
-                <Link
-                  href="/admin/reports"
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 p-3.5 text-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40"
-                >
-                  <BarChart3 className="h-4 w-4 text-rose-600" />
-                  <span>التقارير التفصيلية</span>
-                </Link>
-                <Link
-                  href="/admin/analytics"
-                  className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/50 p-3.5 text-emerald-900 hover:border-emerald-500 hover:bg-emerald-50"
-                >
-                  <BarChart3 className="h-4 w-4 text-emerald-600" />
-                  <span>التحليلات وحلقة البيانات (Phase 7)</span>
-                </Link>
-              </div>
-            </div>
+                  <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
+                    <span className="text-caption font-medium text-fg-secondary">
+                      نسبة غير الصالح
+                    </span>
+                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-warning-text">
+                      {fmtNumber(data.rates.invalidRate)}%
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
+                    <span className="text-caption font-medium text-fg-secondary">
+                      معدل التواصل
+                    </span>
+                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-fg-primary">
+                      {fmtNumber(data.rates.contactRate)}%
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
+                    <span className="text-caption font-medium text-fg-secondary">
+                      معدل الرد
+                    </span>
+                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-fg-primary">
+                      {fmtNumber(data.rates.replyRate)}%
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
+                    <span className="text-caption font-medium text-fg-secondary">
+                      معدل الاجتماعات
+                    </span>
+                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-fg-primary">
+                      {fmtNumber(data.rates.meetingRate)}%
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-subtle p-3.5 text-center border border-line">
+                    <span className="text-caption font-medium text-fg-secondary">
+                      معدل الفوز
+                    </span>
+                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-brand">
+                      {fmtNumber(data.rates.wonRate)}%
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-5">
+              <CardHeader>
+                <CardTitle>وحدات الإدارة والمحركات</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3 text-body-sm font-medium">
+                  <Link
+                    href="/admin/leads"
+                    className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
+                  >
+                    <Briefcase className="h-4 w-4 text-brand" />
+                    <span>سجل الفرص</span>
+                  </Link>
+
+                  <Link
+                    href="/admin/quality"
+                    className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
+                  >
+                    <CheckCircle2 className="h-4 w-4 text-brand" />
+                    <span>جودة البيانات</span>
+                  </Link>
+
+                  <Link
+                    href="/admin/users"
+                    className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
+                  >
+                    <Users className="h-4 w-4 text-brand" />
+                    <span>المستخدمون</span>
+                  </Link>
+
+                  <Link
+                    href="/admin/rules"
+                    className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
+                  >
+                    <Sliders className="h-4 w-4 text-brand" />
+                    <span>قواعد التقييم</span>
+                  </Link>
+
+                  <Link
+                    href="/admin/sources"
+                    className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
+                  >
+                    <Database className="h-4 w-4 text-brand" />
+                    <span>مصادر البيانات</span>
+                  </Link>
+
+                  <Link
+                    href="/admin/plans"
+                    className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
+                  >
+                    <Layers className="h-4 w-4 text-brand" />
+                    <span>إعدادات الباقات</span>
+                  </Link>
+
+                  <Link
+                    href="/admin/reports"
+                    className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
+                  >
+                    <BarChart3 className="h-4 w-4 text-brand" />
+                    <span>سجل التدقيق</span>
+                  </Link>
+
+                  <Link
+                    href="/admin/analytics"
+                    className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
+                  >
+                    <BarChart3 className="h-4 w-4 text-brand" />
+                    <span>تحليلات المنظومة</span>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Phase 9 Operational Observability, Security & Integrity Hardening */}
+          {/* Operational Observability and Integrity */}
           {observability && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                  <h2 className="text-base font-extrabold text-slate-900">
-                    المراقبة التشغيلية وأمان المنصة وسلامة البيانات (Phase 9 Security &amp; Reliability)
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={runIntegrityScan}
-                  disabled={scanningIntegrity}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50"
-                >
-                  <Activity className="h-3.5 w-3.5" />
-                  <span>
-                    {scanningIntegrity
-                      ? 'جاري فحص سلامة البيانات...'
-                      : 'فحص سلامة الرصيد والبيانات (Integrity Scan)'}
-                  </span>
-                </button>
-              </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>سلامة المنظومة والمراقبة التشغيلية</CardTitle>
+                <span className="text-caption font-mono ltr-iso text-fg-muted">
+                  Uptime: {fmtNumber(observability.systemHealth.liveness.uptimeSeconds)}s
+                </span>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-xl border border-line bg-subtle p-3.5">
+                    <span className="text-caption font-medium text-fg-secondary">
+                      جاهزية النظام وقاعدة البيانات
+                    </span>
+                    <p
+                      className={`mt-1 text-label font-bold ${
+                        observability.systemHealth.readiness.ready
+                          ? 'text-brand'
+                          : 'text-danger-text'
+                      }`}
+                    >
+                      {observability.systemHealth.readiness.status}
+                    </p>
+                    <span className="text-caption text-fg-muted font-mono ltr-iso">
+                      Latency: {fmtNumber(observability.systemHealth.readiness.components.database.latencyMs ?? 1)}ms
+                    </span>
+                  </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                  <span className="text-xs font-bold text-slate-600">
-                    جاهزية النظام (Readiness &amp; DB)
-                  </span>
-                  <p
-                    className={`mt-1 text-lg font-extrabold ${
-                      observability.systemHealth.readiness.ready ? 'text-emerald-700' : 'text-rose-700'
-                    }`}
-                  >
-                    {observability.systemHealth.readiness.status}
-                  </p>
-                  <span className="text-[11px] text-slate-500">
-                    DB Latency: {observability.systemHealth.readiness.components.database.latencyMs ?? 1}ms
-                  </span>
-                </div>
+                  <div className="rounded-xl border border-line bg-subtle p-3.5">
+                    <span className="text-caption font-medium text-fg-secondary">
+                      سلامة دفتر الرصيد
+                    </span>
+                    <p
+                      className={`mt-1 text-label font-bold ${
+                        observability.dataIntegrity?.healthy
+                          ? 'text-brand'
+                          : 'text-warning-text'
+                      }`}
+                    >
+                      {observability.dataIntegrity?.healthy
+                        ? 'سليم 100%'
+                        : `تنبيه (${fmtNumber(observability.dataIntegrity?.totalViolations ?? 0)} تعارض)`}
+                    </p>
+                    <span className="text-caption text-fg-muted">
+                      {observability.dataIntegrity?.totalViolations ?? 0} مخالفات
+                    </span>
+                  </div>
 
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                  <span className="text-xs font-bold text-slate-600">
-                    سلامة دفتر الرصيد والـ Claims (Integrity)
-                  </span>
-                  <p
-                    className={`mt-1 text-lg font-extrabold ${
-                      observability.dataIntegrity?.healthy
-                        ? 'text-emerald-700'
-                        : 'text-rose-700'
-                    }`}
-                  >
-                    {observability.dataIntegrity?.healthy
-                      ? 'سليم 100% (ALL_HEALTHY)'
-                      : `تنبيه (${observability.dataIntegrity?.totalViolations ?? 0} تعارض)`}
-                  </p>
-                  <span className="text-[11px] text-slate-500">
-                    Violations: {observability.dataIntegrity?.totalViolations ?? 0}
-                  </span>
-                </div>
+                  <div className="rounded-xl border border-line bg-subtle p-3.5">
+                    <span className="text-caption font-medium text-fg-secondary">
+                      كفاءة الذاكرة المؤقتة (Cache)
+                    </span>
+                    <p className="mt-1 text-label font-bold font-mono tabular-nums text-brand">
+                      {fmtNumber(observability.performanceAndQueries.cache.hitRatePct)}% Hit Rate
+                    </p>
+                    <span className="text-caption text-fg-muted">
+                      {fmtNumber(observability.performanceAndQueries.cache.entriesCount)} مدخلات فعالة
+                    </span>
+                  </div>
 
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                  <span className="text-xs font-bold text-slate-600">
-                    أداء الذاكرة المؤقتة (Tenant Cache)
-                  </span>
-                  <p className="mt-1 text-lg font-extrabold text-indigo-700">
-                    {observability.performanceAndQueries.cache.hitRatePct}% Hit Rate
-                  </p>
-                  <span className="text-[11px] text-slate-500">
-                    Active Entries: {observability.performanceAndQueries.cache.entriesCount}
-                  </span>
+                  <div className="rounded-xl border border-line bg-subtle p-3.5">
+                    <span className="text-caption font-medium text-fg-secondary">
+                      إشارات الحماية وإساءة الاستخدام
+                    </span>
+                    <p className="mt-1 text-label font-bold font-mono tabular-nums text-fg-primary">
+                      {fmtNumber(observability.securityAndAbuse.flaggedAbuseSignalsCount)}
+                    </p>
+                    <span className="text-caption text-fg-muted">
+                      إشارات مشبوهة مرصودة
+                    </span>
+                  </div>
                 </div>
-
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                  <span className="text-xs font-bold text-slate-600">
-                    تنبيهات الحماية وإساءة الاستخدام (Abuse Alerts)
-                  </span>
-                  <p className="mt-1 text-lg font-extrabold text-slate-900">
-                    {observability.securityAndAbuse.flaggedAbuseSignalsCount}
-                  </p>
-                  <span className="text-[11px] text-slate-500">
-                    Uptime: {observability.systemHealth.liveness.uptimeSeconds}s
-                  </span>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
 
-          {/* Audit Logs */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-base font-extrabold text-slate-900">
-              سجل العمليات الأمنية والإدارية (Recent Audit Logs)
-            </h2>
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-right text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-500">
-                    <th className="py-2 px-3">العملية (Action)</th>
-                    <th className="py-2 px-3">الكيان (Entity)</th>
-                    <th className="py-2 px-3">المستخدم</th>
-                    <th className="py-2 px-3">التوقيت</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-semibold">
-                  {data.recentAuditLogs.map((log) => (
-                    <tr key={log.id}>
-                      <td className="py-2.5 px-3 font-mono text-emerald-700">{log.action}</td>
-                      <td className="py-2.5 px-3">{log.entityType}</td>
-                      <td className="py-2.5 px-3">
-                        {log.user ? `${log.user.name} (${log.user.email})` : 'System'}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-500">
-                        {new Date(log.createdAt).toLocaleString('ar-EG')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {/* Recent Audit Logs Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>سجل العمليات الإدارية والتدقيق الأمني</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>العملية (Action)</TableHead>
+                      <TableHead>الكيان (Entity)</TableHead>
+                      <TableHead>المستخدم</TableHead>
+                      <TableHead>التوقيت</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.recentAuditLogs.map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell className="font-mono text-caption text-brand">
+                          {log.action}
+                        </TableCell>
+                        <TableCell>{log.entityType}</TableCell>
+                        <TableCell>
+                          {log.user ? `${log.user.name} (${log.user.email})` : 'النظام'}
+                        </TableCell>
+                        <TableCell className="text-fg-muted font-mono ltr-iso text-caption">
+                          {fmtDate(new Date(log.createdAt))}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </AppShell>
