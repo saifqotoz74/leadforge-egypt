@@ -2,31 +2,46 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { AppShell } from '@/components/AppShell';
+import { useParams, useRouter } from 'next/navigation';
+import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { ScorePair } from '@/components/domain/ScorePair';
+import { ScoreBreakdown, ScoreRuleItem } from '@/components/domain/ScoreBreakdown';
+import { OwnershipTag, OwnershipType } from '@/components/domain/OwnershipTag';
+import { PurchaseConfirm } from '@/components/domain/PurchaseConfirm';
+import { DealTimeline } from '@/components/domain/DealTimeline';
+import { OpportunityBadge, LeadTemperature } from '@/components/domain/OpportunityBadge';
+import { QualityState } from '@/components/domain/QualityIndicator';
+import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
+import { LockedField } from '@/components/ui/LockedField';
+import { Banner } from '@/components/ui/Banner';
+import { Skeleton } from '@/components/ui/Skeleton';
 import {
   CATEGORY_LABELS_AR,
   FEEDBACK_REASON_LABELS,
   PIPELINE_STATUS_LABELS,
-  TEMPERATURE_LABELS,
   WEBSITE_STATUS_LABELS,
 } from '@/lib/constants';
+import { fmtNumber, fmtDate } from '@/lib/format';
 import {
-  ArrowRight,
-  CheckCircle2,
-  XCircle,
-  Globe,
   Phone,
   Mail,
   MapPin,
+  Globe,
   Star,
+  CheckCircle2,
+  Copy,
   Clock,
-  Sparkles,
+  Layers,
+  Calendar,
+  Send,
+  MessageSquare,
   ThumbsUp,
   ThumbsDown,
-  ShieldCheck,
-  Layers,
-  Save,
 } from 'lucide-react';
 
 interface LeadDetailData {
@@ -61,7 +76,6 @@ interface LeadDetailData {
     version?: string;
     rawScore?: number;
     normalizedScore?: number;
-    classification?: string;
   } | null;
   qualityScore?: number;
   qualityStatus?: string;
@@ -70,18 +84,7 @@ interface LeadDetailData {
   verificationStatus?: string;
   saleabilityStatus?: string;
   businessStatus?: string;
-  qualityFlags?: string[];
-  qualitySummary?: string | null;
-  verifications?: {
-    id: string;
-    verificationType: string;
-    status: string;
-    details?: Record<string, unknown> | null;
-    checkedAt: string;
-    expiresAt?: string | null;
-  }[];
-  status: string;
-  confidence: string;
+  status?: string;
   qualificationReasons: string[];
   qualificationRules: {
     ruleId: string;
@@ -89,16 +92,6 @@ interface LeadDetailData {
     name: string;
     nameEn: string;
     weight: number;
-  }[];
-  scoreHistory?: {
-    id: string;
-    previousScore?: number | null;
-    newScore: number;
-    previousClassification?: string | null;
-    newClassification: string;
-    scoringVersion: string;
-    trigger: string;
-    calculatedAt: string;
   }[];
   websiteAnalysis?: {
     url: string | null;
@@ -121,7 +114,6 @@ interface LeadDetailData {
       reasonEn: string;
       points: number;
     }[];
-    analyzedAt?: string;
   } | null;
   leadType: string;
   exclusive: boolean;
@@ -130,18 +122,7 @@ interface LeadDetailData {
   source: string;
   sourceList: string[];
   lastVerifiedAt: string;
-  freshness: {
-    status: string;
-    labelAr: string;
-    daysSinceVerified: number;
-    badgeClass: string;
-  };
-  matchEvaluation: {
-    isMatch: boolean;
-    matchPercentage: number;
-    matchedCriteria: string[];
-    unmatchedCriteria: string[];
-  };
+  creditCost?: number;
   isClaimedByMe: boolean;
   myClaim?: {
     id: string;
@@ -150,66 +131,26 @@ interface LeadDetailData {
     lastContactedAt?: string | null;
     nextFollowUpAt?: string | null;
     claimedAt: string;
-    statusHistories?: {
-      id: string;
-      previousStatus?: string | null;
-      newStatus: string;
-      reasonCode?: string | null;
-      note?: string | null;
-      notes?: string | null;
-      actorType?: string;
-      createdAt: string;
-    }[];
-  } | null;
+  };
   myEngagement?: {
-    id: string;
     currentStatus: string;
-    finalOutcome?: string | null;
-    outcomeReasonCode?: string | null;
-    outcomeReasonNote?: string | null;
-    estimatedProjectValue?: number | null;
-    currency?: string;
-    wonReason?: string | null;
-    lostReasonCode?: string | null;
-    invalidReasonCode?: string | null;
-    claimedAt: string;
-    firstContactedAt?: string | null;
-    lastContactedAt?: string | null;
-  } | null;
+  };
   myFeedback?: {
-    id: string;
     useful: boolean;
-    reason?: string | null;
     category?: string;
-    reasonCode?: string | null;
-    rating?: number | null;
-    confidence?: string;
-    comment?: string | null;
+    reasonCode?: string;
+    reason?: string;
+    rating?: number;
+    comment?: string;
   } | null;
-  myFeedbacks?: {
-    id: string;
-    useful: boolean;
-    category: string;
-    reasonCode?: string | null;
-    rating?: number | null;
-    confidence: string;
-    comment?: string | null;
-    createdAt: string;
-  }[];
-  myContactAttempts?: {
-    id: string;
-    channel: string;
-    result: string;
-    note?: string | null;
-    attemptedAt: string;
-  }[];
 }
 
 const ALLOWED_UI_TRANSITIONS: Record<string, string[]> = {
-  CLAIMED: ['CONTACTED', 'INVALID', 'NOT_INTERESTED'],
-  CONTACTED: ['REPLIED', 'NOT_INTERESTED', 'LOST', 'INVALID'],
-  REPLIED: ['INTERESTED', 'NOT_INTERESTED', 'LOST', 'INVALID'],
-  INTERESTED: ['MEETING', 'PROPOSAL_SENT', 'NEGOTIATION', 'WON', 'LOST', 'NOT_INTERESTED', 'INVALID'],
+  NEW: ['CLAIMED'],
+  CLAIMED: ['CONTACTED', 'INVALID'],
+  CONTACTED: ['REPLIED', 'NOT_INTERESTED', 'INVALID'],
+  REPLIED: ['INTERESTED', 'MEETING', 'NOT_INTERESTED', 'INVALID'],
+  INTERESTED: ['MEETING', 'PROPOSAL_SENT', 'LOST', 'INVALID'],
   MEETING: ['PROPOSAL_SENT', 'NEGOTIATION', 'WON', 'LOST', 'INVALID'],
   PROPOSAL_SENT: ['NEGOTIATION', 'WON', 'LOST', 'INVALID'],
   NEGOTIATION: ['WON', 'LOST', 'INVALID'],
@@ -219,100 +160,29 @@ const ALLOWED_UI_TRANSITIONS: Record<string, string[]> = {
   INVALID: [],
 };
 
-const LOST_REASONS_LIST = [
-  'PRICE',
-  'COMPETITOR',
-  'NO_BUDGET',
-  'NO_RESPONSE',
-  'TIMING',
-  'WRONG_CONTACT',
-  'WRONG_BUSINESS',
-  'DUPLICATE',
-  'BUSINESS_CLOSED',
-  'NOT_INTERESTED',
-  'SERVICE_MISMATCH',
-  'OTHER',
-];
-
-const INVALID_REASONS_LIST = [
-  'WRONG_PHONE',
-  'WRONG_EMAIL',
-  'BUSINESS_CLOSED',
-  'BUSINESS_NOT_FOUND',
-  'DUPLICATE',
-  'WRONG_CATEGORY',
-  'WRONG_LOCATION',
-  'FAKE_BUSINESS',
-  'ALREADY_CLIENT',
-  'OTHER',
-];
-
-const STRUCTURED_FEEDBACK_OPTIONS: Record<string, string[]> = {
-  CONTACT: [
-    'CONTACT_SUCCESSFUL',
-    'PHONE_ANSWERED',
-    'PHONE_NO_ANSWER',
-    'PHONE_UNREACHABLE',
-    'PHONE_INVALID',
-    'WHATSAPP_ACTIVE',
-    'WHATSAPP_INACTIVE',
-    'EMAIL_VALID',
-    'EMAIL_UNRESPONSIVE',
-    'EMAIL_INVALID',
-    'EMAIL_BOUNCED',
-  ],
-  BUSINESS: [
-    'BUSINESS_OPEN',
-    'BUSINESS_CLOSED',
-    'BUSINESS_DUPLICATE',
-    'BUSINESS_MOVED',
-    'BUSINESS_WRONG_CATEGORY',
-    'BUSINESS_WRONG_LOCATION',
-    'WRONG_CATEGORY',
-    'WRONG_LOCATION',
-    'ALREADY_HAS_GOOD_WEBSITE',
-    'NO_WEBSITE_CONFIRMED',
-  ],
-  SALES: [
-    'INTERESTED',
-    'HIGH_INTEREST',
-    'MEETING_BOOKED',
-    'REQUESTED_QUOTE',
-    'NOT_INTERESTED',
-    'ALREADY_WORKING_WITH_DEVELOPER',
-    'BUDGET_TOO_LOW',
-    'BUDGET_TOO_HIGH',
-    'TIMING_NOT_RIGHT',
-    'LOW_BUDGET',
-    'PRICE_OBJECTION',
-    'COMPETITOR_CHOSEN',
-    'DECISION_DELAYED',
-    'NOT_DECISION_MAKER',
-    'NEED_FOLLOW_UP',
-  ],
-  LEAD_QUALITY: [
-    'GREAT_LEAD',
-    'GOOD_LEAD',
-    'HIGH_QUALITY_LEAD',
-    'POOR_LEAD',
-    'LOW_QUALITY_LEAD',
-    'INVALID_LEAD',
-    'INCOMPLETE_CONTACT_INFO',
-    'MISLEADING_DESCRIPTION',
-    'DUPLICATE_LEAD',
-  ],
-};
+function mapQualityStatus(lead: LeadDetailData): QualityState {
+  if (lead.verificationStatus === 'VERIFIED') return 'VERIFIED';
+  if (lead.freshnessStatus === 'FRESH') return 'FRESH';
+  if (lead.freshnessStatus === 'AGING' || lead.freshnessStatus === 'RECENT') return 'AGING';
+  if (lead.freshnessStatus === 'STALE' || lead.freshnessStatus === 'VERY_STALE') return 'STALE';
+  if (lead.verificationStatus === 'UNVERIFIED') return 'UNVERIFIED';
+  return 'FRESH';
+}
 
 export default function LeadDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const leadId = String(params.id || '');
 
   const [lead, setLead] = useState<LeadDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
-  const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(
+  const [actionMsg, setActionMsg] = useState<{ type: 'info' | 'warning' | 'danger'; text: string } | null>(
     null
   );
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(true);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Status tracking state
   const [pipelineStatus, setPipelineStatus] = useState('CLAIMED');
@@ -336,10 +206,18 @@ export default function LeadDetailPage() {
   const [feedbackRating, setFeedbackRating] = useState<number>(5);
   const [feedbackComment, setFeedbackComment] = useState('');
   const [savingFeedback, setSavingFeedback] = useState(false);
+  const [userCredits, setUserCredits] = useState<number>(150);
 
   const loadLead = useCallback(async () => {
     setLoading(true);
     try {
+      fetch('/api/developer/credits')
+        .then((r) => r.ok && r.json())
+        .then((d) => {
+          if (typeof d?.balance === 'number') setUserCredits(d.balance);
+        })
+        .catch(() => {});
+
       const res = await fetch(`/api/leads/${leadId}`);
       if (res.ok) {
         const data = await res.json();
@@ -385,19 +263,20 @@ export default function LeadDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'error', text: data.error || 'تعذر فتح بيانات الفرصة.' });
+        setActionMsg({ type: 'danger', text: data.error || 'تعذر فتح بيانات الفرصة.' });
       } else {
         setActionMsg({
-          type: 'success',
-          text: `تم فتح بيانات التواصل بنجاح! الرصيد المتبقي: ${data.remainingCredits} نقطة.`,
+          type: 'info',
+          text: `تم الشراء بنجاح! الرصيد المتبقي: ${data.remainingCredits} نقطة.`,
         });
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('leadforge:user-updated'));
         }
+        setIsPurchaseModalOpen(false);
         await loadLead();
       }
     } catch {
-      setActionMsg({ type: 'error', text: 'حدث خطأ أثناء الاتصال بالخادم.' });
+      setActionMsg({ type: 'danger', text: 'حدث خطأ أثناء الاتصال بالخادم.' });
     } finally {
       setClaiming(false);
     }
@@ -429,9 +308,9 @@ export default function LeadDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'error', text: data.error || 'تعذر تحديث الحالة.' });
+        setActionMsg({ type: 'danger', text: data.error || 'تعذر تحديث الحالة.' });
       } else {
-        setActionMsg({ type: 'success', text: 'تم تحديث مرحلة الصفقة وحفظ السجل بنجاح.' });
+        setActionMsg({ type: 'info', text: 'تم تحديث مرحلة الصفقة بنجاح.' });
         await loadLead();
       }
     } finally {
@@ -455,10 +334,10 @@ export default function LeadDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'error', text: data.error || 'تعذر تسجيل محاولة التواصل.' });
+        setActionMsg({ type: 'danger', text: data.error || 'تعذر تسجيل محاولة التواصل.' });
       } else {
         setContactNote('');
-        setActionMsg({ type: 'success', text: 'تم تسجيل محاولة التواصل بنجاح.' });
+        setActionMsg({ type: 'info', text: 'تم تسجيل محاولة التواصل بنجاح.' });
         await loadLead();
       }
     } finally {
@@ -484,9 +363,9 @@ export default function LeadDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'error', text: data.error || 'تعذر حفظ التقييم.' });
+        setActionMsg({ type: 'danger', text: data.error || 'تعذر حفظ التقييم.' });
       } else {
-        setActionMsg({ type: 'success', text: 'شكرًا لك! تم تسجيل التقييم المنظم لجودة هذه الفرصة.' });
+        setActionMsg({ type: 'info', text: 'تم تسجيل التقييم لجودة هذه الفرصة بنجاح.' });
         await loadLead();
       }
     } finally {
@@ -494,943 +373,514 @@ export default function LeadDetailPage() {
     }
   }
 
-  return (
-    <AppShell>
-      {loading || !lead ? (
-        <div className="h-96 animate-pulse rounded-2xl border border-slate-200 bg-white p-6" />
-      ) : (
-        <div className="space-y-6">
-          {/* Top Breadcrumb */}
-          <div className="flex items-center justify-between">
-            <Link
-              href="/leads"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-emerald-600"
-            >
-              <ArrowRight className="h-4 w-4" />
-              <span>العودة إلى اكتشاف العملاء</span>
-            </Link>
-          </div>
+  function handleCopy(text: string, fieldKey: string) {
+    if (typeof navigator !== 'undefined') {
+      navigator.clipboard.writeText(text);
+      setCopiedField(fieldKey);
+      setTimeout(() => setCopiedField(null), 2000);
+    }
+  }
 
-          {actionMsg && (
-            <div
-              className={`rounded-xl border p-4 text-xs font-bold ${
-                actionMsg.type === 'success'
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                  : 'border-rose-200 bg-rose-50 text-rose-800'
-              }`}
-            >
-              {actionMsg.text}
+  if (loading || !lead) {
+    return (
+      <AppShell density="comfortable" pageTitle="تفاصيل الفرصة">
+        <div className="flex flex-col gap-6">
+          <Skeleton className="h-10 w-48 rounded" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8 flex flex-col gap-6">
+              <Skeleton className="h-44 w-full rounded-xl" />
+              <Skeleton className="h-64 w-full rounded-xl" />
             </div>
-          )}
+            <div className="lg:col-span-4">
+              <Skeleton className="h-72 w-full rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
 
-          {/* Header Summary Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className={`rounded-full border px-3 py-1 text-xs font-extrabold ${
-                      (TEMPERATURE_LABELS[lead.temperature] || TEMPERATURE_LABELS.HOT).badgeClass
-                    }`}
-                  >
-                    Opportunity: {lead.temperature} — {lead.score}/100
-                  </span>
+  const price = lead.creditCost || (lead.exclusive ? 5 : 1);
+  const derivedRules: ScoreRuleItem[] =
+    Array.isArray(lead.qualificationRules) && lead.qualificationRules.length > 0
+      ? lead.qualificationRules.map((r) => ({
+          id: r.code,
+          label: r.name,
+          points: r.weight,
+          maxWeight: 40,
+        }))
+      : (lead.websiteAnalysis?.opportunityReasons || []).map((op) => ({
+          id: op.code,
+          label: op.reasonAr,
+          points: op.points,
+          maxWeight: 40,
+        }));
 
-                  {typeof lead.qualityScore === 'number' && (
-                    <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-extrabold text-teal-800">
-                      Quality: {lead.qualityStatus || 'HIGH'} — {lead.qualityScore}/100
-                    </span>
-                  )}
+  return (
+    <AppShell
+      density="comfortable"
+      pageTitle={lead.businessName}
+      userCredits={userCredits}
+    >
+      <div className="flex flex-col gap-6">
+        {/* Template T4 PageHeader with Breadcrumbs */}
+        <PageHeader
+          title={lead.businessName}
+          description={`${CATEGORY_LABELS_AR[lead.category] || lead.category} — ${lead.city}${
+            lead.area ? `، ${lead.area}` : ''
+          }`}
+          breadcrumbs={[
+            { label: 'لوحة القيادة', href: '/dashboard' },
+            { label: 'استعراض الفرص', href: '/leads' },
+            { label: lead.businessName },
+          ]}
+        />
 
-                  {lead.verificationStatus && (
-                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
-                      {lead.verificationStatus}
-                    </span>
-                  )}
+        {/* Global Feedback Banner */}
+        {actionMsg && (
+          <Banner variant={actionMsg.type}>
+            {actionMsg.text}
+          </Banner>
+        )}
 
-                  <span
-                    className={`rounded-full border px-3 py-1 text-xs font-bold ${
-                      lead.exclusive
-                        ? 'border-purple-200 bg-purple-50 text-purple-800'
-                        : 'border-slate-200 bg-slate-100 text-slate-700'
-                    }`}
-                  >
-                    {lead.exclusive
-                      ? 'فرصة حصرية (Exclusive 1/1)'
-                      : `فرصة مشتركة (${lead.currentPurchasers}/${lead.maxPurchasers} مشترين)`}
-                  </span>
+        {/* Template T4 Layout: Main (8 cols) and Aside (4 cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20 lg:pb-0">
+          {/* Main Column (8) */}
+          <div className="lg:col-span-8 flex flex-col gap-6">
+            {/* 1. ScorePair per Spec 7.9 & Template T4 */}
+            <ScorePair
+              opportunityScore={lead.score}
+              temperature={(lead.temperature as LeadTemperature) || 'HOT'}
+              qualityScore={lead.qualityScore || 85}
+              qualityStatus={mapQualityStatus(lead)}
+              freshnessTimestamp={lead.lastVerifiedAt}
+              onWhyClick={() => setShowBreakdown((prev) => !prev)}
+            />
 
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-bold ${lead.freshness.badgeClass}`}
-                  >
-                    <Clock className="h-3.5 w-3.5" />
-                    {lead.freshness.labelAr} ({lead.freshnessStatus || lead.freshness.status})
-                  </span>
-                </div>
+            {/* 2. "Why?" ScoreBreakdown per Spec 7.9 */}
+            {showBreakdown && (
+              <ScoreBreakdown
+                title="لماذا هذه الدرجة؟"
+                rules={derivedRules}
+                totalScore={lead.score}
+              />
+            )}
 
-                <h1 className="mt-3 text-2xl font-extrabold text-slate-900">
-                  {lead.businessName}
-                </h1>
-                <p className="mt-1 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-600">
-                  <span>{CATEGORY_LABELS_AR[lead.category] || lead.category}</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                    {lead.governorate} — {lead.city}
-                    {lead.area ? ` (${lead.area})` : ''}
-                  </span>
-                  {lead.address && <span>• {lead.address}</span>}
-                </p>
-              </div>
-
-              <div className="flex flex-col items-stretch sm:items-end gap-2">
+            {/* 3. Business Details (Locked or Revealed per Spec 1.1, 7.4 & Template T4) */}
+            <Card>
+              <CardHeader>
+                <CardTitle>بيانات التواصل والنشاط</CardTitle>
                 {lead.isClaimedByMe ? (
-                  <span className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-100 px-4 py-2.5 text-xs font-extrabold text-emerald-800">
-                    <CheckCircle2 className="h-4 w-4" />
-                    الفرصة مملوكة في قائمة عملائك
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-soft text-brand text-caption font-semibold">
+                    <CheckCircle2 className="w-4 h-4" />
+                    تم فتح البيانات
                   </span>
                 ) : (
-                  <button
-                    onClick={handleClaim}
-                    disabled={
-                      claiming ||
-                      lead.status !== 'AVAILABLE' ||
-                      Boolean(lead.saleabilityStatus && lead.saleabilityStatus !== 'AVAILABLE')
-                    }
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    <span>
-                      {claiming
-                        ? 'جاري فتح البيانات...'
-                        : lead.status === 'CLAIMED_FULL' ||
-                          lead.saleabilityStatus === 'CLAIMED_FULL'
-                        ? 'هذه الفرصة مكتملة العدد'
-                        : lead.status !== 'AVAILABLE' ||
-                          (lead.saleabilityStatus && lead.saleabilityStatus !== 'AVAILABLE')
-                        ? 'هذه الفرصة غير متاحة للشراء حاليًا (تحتاج تحقق)'
-                        : 'اقتناص الفرصة وفتح بيانات التواصل (1 نقطة)'}
-                    </span>
-                  </button>
+                  <span className="text-caption text-fg-secondary">
+                    بيانات مقفلة حتى الشراء
+                  </span>
                 )}
-                <span className="text-xs font-bold text-slate-500">
-                  الميزانية التقديرية للمشروع: {lead.estimatedBudget.toLocaleString()} ج.م
-                </span>
-              </div>
-            </div>
-
-            {/* Contact & Digital Info Grid */}
-            <div className="mt-6 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-xl bg-slate-50 p-3.5">
-                <span className="text-xs text-slate-400">رقم الهاتف:</span>
-                <p className="mt-1 flex items-center gap-1.5 text-sm font-extrabold text-slate-900">
-                  <Phone className="h-4 w-4 text-emerald-600" />
-                  <span dir="ltr">{lead.phone || 'غير متوفر'}</span>
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-slate-50 p-3.5">
-                <span className="text-xs text-slate-400">البريد الإلكتروني:</span>
-                <p className="mt-1 flex items-center gap-1.5 text-sm font-extrabold text-slate-900 truncate">
-                  <Mail className="h-4 w-4 text-blue-600" />
-                  <span dir="ltr">{lead.email || 'غير متوفر'}</span>
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-slate-50 p-3.5">
-                <span className="text-xs text-slate-400">فيسبوك / إنستجرام:</span>
-                <div className="mt-1 text-xs font-bold text-slate-800 space-y-1">
-                  <p className="truncate">
-                    FB: {lead.hasFacebook ? lead.facebook : 'غير متوفر'}
-                  </p>
-                  <p className="truncate">
-                    IG: {lead.hasInstagram ? lead.instagram : 'غير متوفر'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-xl bg-slate-50 p-3.5">
-                <span className="text-xs text-slate-400">التقييم والفروع:</span>
-                <p className="mt-1 flex items-center gap-1.5 text-sm font-extrabold text-slate-900">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                  {lead.rating ?? '—'} ({lead.reviewCount} مراجعة) • {lead.branchCount} فرع
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Qualification Breakdown & Website Analyzer Row */}
-          <div className="grid gap-6 lg:grid-cols-12">
-            {/* Qualification Rules Breakdown */}
-            <div className="lg:col-span-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-                  <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                  لماذا حصل هذا العميل على تقييم {lead.score}/100؟ (Qualification Breakdown)
-                </h2>
-                <span className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-0.5 font-mono text-[11px] font-bold text-slate-600">
-                  Engine {lead.scoringVersion || 'v1'}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-slate-500">
-                تقييم قياسي مبني على القواعد النشطة في النظام بدون أي تخمين.
-              </p>
-
-              <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-mono text-slate-700" dir="ltr">
-                <div>Score: <strong>{lead.score}/100</strong></div>
-                <div>Classification: <strong>{lead.classification || lead.temperature}</strong></div>
-                <div className="mt-1 font-semibold text-slate-800">Why:</div>
-                <ul className="mt-1 space-y-0.5">
-                  {Array.isArray(lead.qualificationRules) &&
-                    lead.qualificationRules.map((rule) => (
-                      <li key={`why-${rule.code}`}>
-                        {rule.weight >= 0 ? `+${rule.weight}` : `${rule.weight}`} {rule.nameEn || rule.name}
-                      </li>
-                    ))}
-                </ul>
-              </div>
-
-              <div className="mt-4 space-y-2">
-                {Array.isArray(lead.qualificationRules) &&
-                  lead.qualificationRules.map((rule) => (
-                    <div
-                      key={rule.code}
-                      className={`flex items-center justify-between rounded-xl border px-4 py-2.5 text-xs ${
-                        rule.weight >= 0
-                          ? 'border-emerald-200 bg-emerald-50/60'
-                          : 'border-amber-200 bg-amber-50/60'
-                      }`}
-                    >
-                      <span className="flex items-center gap-2 font-bold text-slate-800">
-                        <CheckCircle2
-                          className={`h-4 w-4 ${
-                            rule.weight >= 0 ? 'text-emerald-600' : 'text-amber-600'
-                          }`}
-                        />
-                        {rule.name} ({rule.nameEn})
-                      </span>
-                      <span
-                        className={`rounded-lg px-2.5 py-0.5 font-extrabold text-white ${
-                          rule.weight >= 0 ? 'bg-emerald-600' : 'bg-amber-600'
-                        }`}
+              </CardHeader>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
+                {/* Phone */}
+                <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
+                  <span className="text-caption text-fg-secondary">رقم الهاتف</span>
+                  {lead.isClaimedByMe && lead.phone ? (
+                    <div className="flex items-center justify-between">
+                      <a
+                        href={`tel:${lead.phone}`}
+                        className="ltr-iso font-mono font-semibold text-fg-brand hover:underline"
                       >
-                        {rule.weight >= 0 ? `+${rule.weight}` : rule.weight}
-                      </span>
+                        {lead.phone}
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCopy(lead.phone!, 'phone')}
+                        startIcon={<Copy className="w-3.5 h-3.5" />}
+                      >
+                        {copiedField === 'phone' ? 'تم النسخ' : 'نسخ'}
+                      </Button>
                     </div>
-                  ))}
-              </div>
+                  ) : (
+                    <LockedField type="phone" />
+                  )}
+                </div>
 
-              {/* Score Audit History */}
-              {Array.isArray(lead.scoreHistory) && lead.scoreHistory.length > 0 && (
-                <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3.5 text-xs">
-                  <span className="font-extrabold text-slate-800">
-                    سجل التقييمات التدقيقي (Score History):
-                  </span>
-                  <div className="mt-2 space-y-1.5">
-                    {lead.scoreHistory.slice(0, 3).map((snap) => (
-                      <div
-                        key={snap.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-700"
+                {/* Email */}
+                <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
+                  <span className="text-caption text-fg-secondary">البريد الإلكتروني</span>
+                  {lead.isClaimedByMe && lead.email ? (
+                    <div className="flex items-center justify-between">
+                      <a
+                        href={`mailto:${lead.email}`}
+                        className="ltr-iso font-mono font-semibold text-fg-brand hover:underline truncate max-w-44"
                       >
-                        <span dir="ltr" className="font-mono font-bold">
-                          {snap.previousScore !== null && snap.previousScore !== undefined
-                            ? `${snap.previousScore} → ${snap.newScore}/100`
-                            : `${snap.newScore}/100`}{' '}
-                          ({snap.newClassification})
-                        </span>
-                        <span className="text-slate-500">
-                          {snap.trigger} • {snap.scoringVersion}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                        {lead.email}
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCopy(lead.email!, 'email')}
+                        startIcon={<Copy className="w-3.5 h-3.5" />}
+                      >
+                        {copiedField === 'email' ? 'تم النسخ' : 'نسخ'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <LockedField type="email" />
+                  )}
                 </div>
-              )}
 
-              {/* Sources & Deduplication History */}
-              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs">
-                <span className="flex items-center gap-1.5 font-extrabold text-slate-800">
-                  <Layers className="h-4 w-4 text-slate-600" />
-                  المصادر المدمجة (Sources & Deduplication):
-                </span>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {(lead.sourceList || [lead.source]).map((src, i) => (
-                    <span
-                      key={i}
-                      className="rounded-lg border border-slate-300 bg-white px-3 py-1 font-bold text-slate-700"
+                {/* Website */}
+                <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
+                  <span className="text-caption text-fg-secondary">الموقع الإلكتروني</span>
+                  {lead.website ? (
+                    <a
+                      href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ltr-iso font-mono text-body-sm text-fg-brand hover:underline truncate"
                     >
-                      ├── {src}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Website Analyzer Report (Section 20) */}
-            <div className="lg:col-span-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-                <Globe className="h-5 w-5 text-blue-600" />
-                تقرير فاحص المواقع الفني (Rule-Based Website Analyzer)
-              </h2>
-              <p className="mt-1 text-xs text-slate-500">
-                تحليل فني لبنية الموقع وحالة النطاق لاكتشاف فرص التطوير أو إعادة التصميم.
-              </p>
-
-              <div className="mt-4 rounded-xl bg-slate-50 p-4 text-xs space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-600">حالة الموقع:</span>
-                  <span
-                    className={`rounded-full border px-2.5 py-0.5 font-bold ${
-                      (
-                        WEBSITE_STATUS_LABELS[lead.websiteStatus] ||
-                        WEBSITE_STATUS_LABELS.UNKNOWN
-                      ).badgeClass
-                    }`}
-                  >
-                    {
-                      (
-                        WEBSITE_STATUS_LABELS[lead.websiteStatus] ||
-                        WEBSITE_STATUS_LABELS.UNKNOWN
-                      ).labelAr
-                    }
-                  </span>
-                </div>
-
-                {lead.website && (
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-600">الرابط المسجل:</span>
-                    <span dir="ltr" className="font-mono font-bold text-slate-800">
                       {lead.website}
+                    </a>
+                  ) : (
+                    <span className="text-body-sm text-fg-muted">لا يوجد موقع مسجل</span>
+                  )}
+                </div>
+
+                {/* Location */}
+                <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
+                  <span className="text-caption text-fg-secondary">العنوان والموقع الجغرافي</span>
+                  <p className="text-body-sm text-fg-primary truncate">
+                    {lead.address || `${lead.governorate} — ${lead.city}`}
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* 4. Technical Analysis Card */}
+            {lead.websiteAnalysis && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>التحليل الفني للموقع</CardTitle>
+                </CardHeader>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 text-body-sm">
+                  <div className="p-3 rounded-lg bg-subtle">
+                    <span className="text-caption text-fg-secondary block">تشفير HTTPS</span>
+                    <span className="font-semibold text-fg-primary">
+                      {lead.websiteAnalysis.isHttps && lead.websiteAnalysis.sslValid ? 'مفعل' : 'غير مفعل'}
                     </span>
                   </div>
-                )}
-
-                {lead.websiteAnalysis && lead.websiteStatus !== 'NO_WEBSITE' && (
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
-                    <div>
-                      <span className="text-slate-400">حالة النطاق / HTTP:</span>{' '}
-                      <strong className="text-slate-800">
-                        {lead.websiteAnalysis.domainStatus || 'ACTIVE'} ({lead.websiteAnalysis.httpStatus ?? 'N/A'})
-                      </strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">تشفير HTTPS / SSL:</span>{' '}
-                      <strong
-                        className={
-                          lead.websiteAnalysis.isHttps && lead.websiteAnalysis.sslValid
-                            ? 'text-emerald-700'
-                            : 'text-rose-600'
-                        }
-                      >
-                        {lead.websiteAnalysis.isHttps && lead.websiteAnalysis.sslValid
-                          ? '✓ مفعل وصالح'
-                          : '✕ غير مفعل'}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">توافق الموبايل (Viewport):</span>{' '}
-                      <strong
-                        className={
-                          lead.websiteAnalysis.hasMobileViewport
-                            ? 'text-emerald-700'
-                            : 'text-rose-600'
-                        }
-                      >
-                        {lead.websiteAnalysis.hasMobileViewport ? '✓ متوافق' : '✕ غير متوافق'}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">زمن الاستجابة:</span>{' '}
-                      <strong className="text-slate-800">
-                        {lead.websiteAnalysis.responseTimeMs
-                          ? `${lead.websiteAnalysis.responseTimeMs} ms`
-                          : '—'}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">عنوان الصفحة (Title):</span>{' '}
-                      <strong className="text-slate-800">
-                        {lead.websiteAnalysis.title || '✕ مفقود'}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">وصف Meta Description:</span>{' '}
-                      <strong className="text-slate-800">
-                        {lead.websiteAnalysis.metaDescription ? '✓ متوفر' : '✕ مفقود'}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">مؤشرات التجاوب (Responsive):</span>{' '}
-                      <strong
-                        className={
-                          lead.websiteAnalysis.hasResponsiveIndicators
-                            ? 'text-emerald-700'
-                            : 'text-amber-700'
-                        }
-                      >
-                        {lead.websiteAnalysis.hasResponsiveIndicators ? '✓ حديثة' : '✕ ضعيفة'}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">هيكل HTML البرمجي:</span>{' '}
-                      <strong
-                        className={
-                          lead.websiteAnalysis.isOldBasicStructure
-                            ? 'text-rose-600'
-                            : 'text-emerald-700'
-                        }
-                      >
-                        {lead.websiteAnalysis.isOldBasicStructure
-                          ? '✕ قديم/بدائي (يحتاج تطوير)'
-                          : '✓ قياسي حديث'}
-                      </strong>
-                    </div>
+                  <div className="p-3 rounded-lg bg-subtle">
+                    <span className="text-caption text-fg-secondary block">توافق الموبايل</span>
+                    <span className="font-semibold text-fg-primary">
+                      {lead.websiteAnalysis.hasMobileViewport ? 'متوافق' : 'غير متوافق'}
+                    </span>
                   </div>
-                )}
-              </div>
-
-              {lead.websiteAnalysis?.opportunityReasons &&
-                lead.websiteAnalysis.opportunityReasons.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-xs font-bold text-slate-700">
-                      نقاط الفرصة البيعية المكتشفة تقنيًا:
-                    </p>
-                    <div className="mt-2 space-y-1.5">
-                      {lead.websiteAnalysis.opportunityReasons.map((op) => (
-                        <div
-                          key={op.code}
-                          className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900"
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <XCircle className="h-4 w-4 text-amber-600" />
-                            {op.reasonAr}
-                          </span>
-                          <span>+{op.points} فرصة</span>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="p-3 rounded-lg bg-subtle">
+                    <span className="text-caption text-fg-secondary block">سرعة الاستجابة</span>
+                    <span className="ltr-iso font-mono font-semibold text-fg-primary">
+                      {lead.websiteAnalysis.responseTimeMs ? `${lead.websiteAnalysis.responseTimeMs} ms` : '—'}
+                    </span>
                   </div>
-                )}
-
-              {/* Phase 3 Data Quality & Verification Breakdown (Clean Developer Signals) */}
-              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-slate-800">
-                    مؤشرات جودة وحداثة الفرصة (Lead Quality & Verification):
-                  </span>
-                  <span className="rounded-full border border-teal-200 bg-teal-50 px-2.5 py-0.5 font-mono font-extrabold text-teal-800">
-                    Lead Quality: {lead.qualityStatus || 'HIGH'} ({lead.qualityScore ?? 100}/100)
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold text-slate-700" dir="ltr">
-                  <div>
-                    Lead Quality: <strong>{lead.qualityStatus || 'HIGH'}</strong>
-                  </div>
-                  <div>
-                    Freshness:{' '}
-                    <strong>
-                      Verified {lead.freshness?.daysSinceVerified ?? 0} days ago
-                    </strong>
-                  </div>
-                  <div>
-                    Verified:{' '}
-                    <strong>
-                      {lead.hasPhone && lead.businessStatus !== 'CLOSED'
-                        ? 'Phone + Business Active'
-                        : lead.businessStatus !== 'CLOSED'
-                          ? 'Business Active'
-                          : 'Needs Review'}
-                    </strong>
-                  </div>
-                  <div>
-                    Contact:{' '}
-                    <strong>
-                      {lead.hasPhone
-                        ? 'Phone Available'
-                        : lead.hasEmail
-                          ? 'Email Available'
-                          : 'Social Channel Available'}
-                    </strong>
-                  </div>
-                  <div>
-                    Website:{' '}
-                    <strong>
-                      {lead.websiteStatus === 'NO_WEBSITE'
-                        ? 'No Website'
-                        : lead.websiteStatus === 'POOR_WEBSITE'
-                          ? 'Outdated / Poor Website'
-                          : 'Has Website'}
-                    </strong>
-                  </div>
-                  <div>
-                    Completeness: <strong>{lead.completenessScore ?? 100}%</strong>
+                  <div className="p-3 rounded-lg bg-subtle">
+                    <span className="text-caption text-fg-secondary block">هيكل الموقع</span>
+                    <span className="font-semibold text-fg-primary">
+                      {lead.websiteAnalysis.isOldBasicStructure ? 'يحتاج تحديث' : 'قياسي حديث'}
+                    </span>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
+              </Card>
+            )}
 
-          {/* Phase 6 Engagement Lifecycle, Contact Attempts, Structured Feedback & Timeline (Visible when claimed) */}
-          {lead.isClaimedByMe && (
-            <div className="space-y-6">
-              <div className="grid gap-6 lg:grid-cols-12">
-                {/* Engagement Status State Machine & Outcome Form */}
-                <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <h2 className="text-base font-extrabold text-slate-900">
-                        تتبع مرحلة التعاقد والنتيجة (Phase 6 Engagement State Machine)
-                      </h2>
-                      <p className="mt-1 text-xs text-slate-500">
-                        انتقالات قياسية محكومة (State Machine) خاصة بحسابك فقط دون التأثير على المطورين الآخرين.
-                      </p>
-                    </div>
-                    {(() => {
-                      const cur =
-                        lead.myEngagement?.currentStatus ||
-                        (lead.myClaim?.pipelineStatus === 'NEW'
-                          ? 'CLAIMED'
-                          : lead.myClaim?.pipelineStatus || 'CLAIMED');
-                      const info = PIPELINE_STATUS_LABELS[cur] || PIPELINE_STATUS_LABELS.CLAIMED;
-                      return (
-                        <span
-                          className={`rounded-full border px-3 py-1 text-xs font-extrabold ${info.badgeClass}`}
-                        >
-                          الحالة الحالية: {info.labelAr} ({cur})
-                        </span>
-                      );
-                    })()}
-                  </div>
-
-                  {(() => {
-                    const currentEngStatus =
-                      lead.myEngagement?.currentStatus ||
-                      (lead.myClaim?.pipelineStatus === 'NEW'
-                        ? 'CLAIMED'
-                        : lead.myClaim?.pipelineStatus || 'CLAIMED');
-                    const allowedNext = ALLOWED_UI_TRANSITIONS[currentEngStatus] || [];
-                    const isTerminal = ['WON', 'LOST', 'NOT_INTERESTED', 'INVALID'].includes(
-                      currentEngStatus
-                    );
-
-                    if (isTerminal) {
-                      return (
-                        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs space-y-2">
-                          <div className="font-extrabold text-slate-900">
-                            تم إغلاق هذه الفرصة في حالة نهائية ({currentEngStatus})
-                          </div>
-                          {lead.myEngagement?.estimatedProjectValue ? (
-                            <div className="text-emerald-700 font-bold">
-                              قيمة المشروع التقديرية:{' '}
-                              {lead.myEngagement.estimatedProjectValue.toLocaleString()}{' '}
-                              {lead.myEngagement.currency || 'EGP'}
-                            </div>
-                          ) : null}
-                          {lead.myEngagement?.outcomeReasonCode ? (
-                            <div className="text-slate-700">
-                              كود السبب: <strong>{lead.myEngagement.outcomeReasonCode}</strong>
-                            </div>
-                          ) : null}
-                          {lead.myEngagement?.outcomeReasonNote ? (
-                            <div className="text-slate-600">
-                              ملاحظات الإغلاق: {lead.myEngagement.outcomeReasonNote}
-                            </div>
-                          ) : null}
-                          <p className="text-[11px] text-slate-500">
-                            الحالات النهائية مقفلة ضد التغيير المباشر لضمان سلامة التقارير. لتصحيح خطأ غير مقصود، يمكن لمدير النظام استخدام Admin Status Correction.
-                          </p>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <form onSubmit={handleSaveStatus} className="mt-4 space-y-4">
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-700">
-                              الانتقال إلى المرحلة التالية (Allowed Next States)
-                            </label>
-                            <select
-                              value={pipelineStatus}
-                              onChange={(e) => {
-                                const nextVal = e.target.value;
-                                setPipelineStatus(nextVal);
-                                if (nextVal === 'LOST') setOutcomeReasonCode('PRICE');
-                                if (nextVal === 'INVALID') setOutcomeReasonCode('WRONG_PHONE');
-                              }}
-                              className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-bold"
-                            >
-                              {allowedNext.map((key) => {
-                                const info = PIPELINE_STATUS_LABELS[key] || { labelAr: key };
-                                return (
-                                  <option key={key} value={key}>
-                                    {info.labelAr} ({key})
-                                  </option>
-                                );
-                              })}
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-bold text-slate-700">
-                              موعد المتابعة القادم (Next Follow-Up)
-                            </label>
-                            <input
-                              type="date"
-                              value={nextFollowUpAt}
-                              onChange={(e) => setNextFollowUpAt(e.target.value)}
-                              className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold"
-                            />
-                          </div>
-                        </div>
-
-                        {pipelineStatus === 'WON' && (
-                          <div className="grid gap-4 rounded-xl border border-emerald-200 bg-emerald-50/50 p-3.5 sm:grid-cols-2">
-                            <div>
-                              <label className="block text-xs font-bold text-emerald-900">
-                                قيمة المشروع المتفق عليها (ج.م - اختياري)
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                value={estimatedProjectValue}
-                                onChange={(e) => setEstimatedProjectValue(e.target.value)}
-                                placeholder="مثال: 18000"
-                                className="mt-1 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-bold"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold text-emerald-900">
-                                ملخص الفوز بالصفقة (Won Reason)
-                              </label>
-                              <input
-                                type="text"
-                                value={wonReason}
-                                onChange={(e) => setWonReason(e.target.value)}
-                                placeholder="مثال: التعاقد على تطوير موقع حجز متكامل..."
-                                className="mt-1 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-bold"
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {pipelineStatus === 'LOST' && (
-                          <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-3.5">
-                            <label className="block text-xs font-bold text-rose-900">
-                              سبب خسارة الصفقة (LOST Reason Code — إلزامي)
-                            </label>
-                            <select
-                              value={outcomeReasonCode}
-                              onChange={(e) => setOutcomeReasonCode(e.target.value)}
-                              className="mt-1.5 w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-bold"
-                            >
-                              {LOST_REASONS_LIST.map((code) => (
-                                <option key={code} value={code}>
-                                  {code}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
-
-                        {pipelineStatus === 'INVALID' && (
-                          <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3.5">
-                            <label className="block text-xs font-bold text-amber-900">
-                              سبب عدم صلاحية الفرصة (INVALID Reason Code — يرسل إشارة تحقق لمحرك الجودة)
-                            </label>
-                            <select
-                              value={outcomeReasonCode}
-                              onChange={(e) => setOutcomeReasonCode(e.target.value)}
-                              className="mt-1.5 w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-xs font-bold"
-                            >
-                              {INVALID_REASONS_LIST.map((code) => (
-                                <option key={code} value={code}>
-                                  {FEEDBACK_REASON_LABELS[code]
-                                    ? `${FEEDBACK_REASON_LABELS[code]} (${code})`
-                                    : code}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
-
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700">
-                            ملاحظات المرحلة / تفاصيل العرض (Notes)
-                          </label>
-                          <textarea
-                            rows={2}
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="سجل تفاصيل المكالمة، السعر المقترح، أو سبب الإغلاق..."
-                            className="mt-1.5 w-full rounded-xl border border-slate-300 p-3 text-xs font-semibold"
-                          />
-                        </div>
-
-                        <button
-                          type="submit"
-                          disabled={savingStatus || allowedNext.length === 0}
-                          className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-extrabold text-white hover:bg-emerald-700 disabled:opacity-50"
-                        >
-                          <Save className="h-4 w-4" />
-                          <span>
-                            {savingStatus ? 'جاري الحفظ...' : `تأكيد الانتقال إلى ${pipelineStatus}`}
-                          </span>
-                        </button>
-                      </form>
-                    );
-                  })()}
-
-                  {/* Contact Attempt Logger */}
-                  <div className="mt-6 border-t border-slate-100 pt-5">
-                    <h3 className="text-sm font-extrabold text-slate-900">
-                      تسجيل محاولة تواصل (Contact Attempt Log)
-                    </h3>
-                    <form
-                      onSubmit={handleRecordContactAttempt}
-                      className="mt-3 grid gap-3 sm:grid-cols-4"
-                    >
-                      <select
-                        value={contactChannel}
-                        onChange={(e) => setContactChannel(e.target.value)}
-                        className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-                      >
-                        <option value="PHONE">هاتف (PHONE)</option>
-                        <option value="WHATSAPP">واتساب (WHATSAPP)</option>
-                        <option value="EMAIL">بريد (EMAIL)</option>
-                        <option value="SMS">رسالة (SMS)</option>
-                        <option value="SOCIAL">سوشيال (SOCIAL)</option>
-                        <option value="OTHER">أخرى (OTHER)</option>
-                      </select>
-
-                      <select
-                        value={contactResult}
-                        onChange={(e) => setContactResult(e.target.value)}
-                        className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-                      >
-                        <option value="ANSWERED">تم الرد (ANSWERED)</option>
-                        <option value="NO_ANSWER">لا يوجد رد (NO_ANSWER)</option>
-                        <option value="MESSAGE_SENT">تم إرسال رسالة (MESSAGE_SENT)</option>
-                        <option value="REPLIED">تفاعل بالرد (REPLIED)</option>
-                        <option value="INVALID_NUMBER">رقم غير صحيح (INVALID_NUMBER)</option>
-                        <option value="BOUNCED">ارتداد البريد (BOUNCED)</option>
-                        <option value="BLOCKED">محظور (BLOCKED)</option>
-                        <option value="OTHER">أخرى (OTHER)</option>
-                      </select>
-
-                      <input
-                        type="text"
-                        value={contactNote}
-                        onChange={(e) => setContactNote(e.target.value)}
-                        placeholder="ملاحظة سريعة عن المحاولة..."
-                        className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold"
+            {/* 5. Claimed Lead Actions (CRM Pipeline & Feedback) */}
+            {lead.isClaimedByMe && (
+              <div className="flex flex-col gap-6">
+                {/* Pipeline Stage Management */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>متابعة مرحلة الصفقة (CRM)</CardTitle>
+                  </CardHeader>
+                  <form onSubmit={handleSaveStatus} className="flex flex-col gap-4 py-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Select
+                        label="مرحلة المتابعة"
+                        value={pipelineStatus}
+                        onChange={(e) => setPipelineStatus(e.target.value)}
+                        options={Object.entries(PIPELINE_STATUS_LABELS).map(([k, v]) => ({
+                          value: k,
+                          label: v.labelAr,
+                        }))}
                       />
 
-                      <button
+                      <Input
+                        label="تاريخ المتابعة القادمة"
+                        type="date"
+                        value={nextFollowUpAt}
+                        onChange={(e) => setNextFollowUpAt(e.target.value)}
+                      />
+                    </div>
+
+                    <Textarea
+                      label="ملاحظات المتابعة والتفاوض"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="سجل ملاحظات مكالمتك مع العميل وتفاصيل الاتفاق..."
+                      rows={3}
+                    />
+
+                    <div className="flex justify-end">
+                      <Button
                         type="submit"
-                        disabled={savingContact}
-                        className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-extrabold text-white hover:bg-slate-800 disabled:opacity-50"
+                        variant="primary"
+                        isLoading={savingStatus}
                       >
-                        {savingContact ? 'جاري الحفظ...' : '+ تسجيل المحاولة'}
-                      </button>
-                    </form>
-                  </div>
-                </div>
+                        حفظ حالة الصفقة
+                      </Button>
+                    </div>
+                  </form>
+                </Card>
 
                 {/* Structured Feedback Form */}
-                <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-base font-extrabold text-slate-900">
-                    التقييم المنظم لجودة الفرصة (Structured Lead Feedback)
-                  </h2>
-                  <p className="mt-1 text-xs text-slate-500">
-                    أرسل إشارات جودة مصنفة (CONTACT / BUSINESS / SALES / LEAD_QUALITY) لتحسين التحقق.
-                  </p>
-
-                  <form onSubmit={handleSaveFeedback} className="mt-4 space-y-3.5">
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setUseful(true)}
-                        className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-xs font-extrabold transition ${
-                          useful === true
-                            ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <ThumbsUp className="h-4 w-4" />
-                        <span>مفيدة (Useful)</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setUseful(false)}
-                        className={`flex items-center justify-center gap-2 rounded-xl border py-2.5 text-xs font-extrabold transition ${
-                          useful === false
-                            ? 'border-rose-600 bg-rose-50 text-rose-800'
-                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <ThumbsDown className="h-4 w-4" />
-                        <span>تحتاج مراجعة (Issue)</span>
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700">
-                          فئة التقييم (Category)
-                        </label>
-                        <select
-                          value={feedbackCategory}
-                          onChange={(e) => {
-                            const cat = e.target.value;
-                            setFeedbackCategory(cat);
-                            const firstCode = STRUCTURED_FEEDBACK_OPTIONS[cat]?.[0] || 'OTHER';
-                            setFeedbackReason(firstCode);
-                          }}
-                          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
+                <Card>
+                  <CardHeader>
+                    <CardTitle>تقييم جودة الفرصة</CardTitle>
+                  </CardHeader>
+                  <form onSubmit={handleSaveFeedback} className="flex flex-col gap-4 py-2">
+                    <div className="flex items-center gap-4">
+                      <span className="text-label text-fg-primary">هل كانت بيانات الفرصة مفيدة؟</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant={useful === true ? 'primary' : 'secondary'}
+                          size="sm"
+                          onClick={() => setUseful(true)}
+                          startIcon={<ThumbsUp className="w-3.5 h-3.5" />}
                         >
-                          <option value="CONTACT">بيانات التواصل (CONTACT)</option>
-                          <option value="BUSINESS">حالة النشاط (BUSINESS)</option>
-                          <option value="SALES">المبيعات والميزانية (SALES)</option>
-                          <option value="LEAD_QUALITY">جودة الفرصة (LEAD_QUALITY)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700">
-                          التقييم الرقمي (Rating 1-5)
-                        </label>
-                        <select
-                          value={feedbackRating}
-                          onChange={(e) => setFeedbackRating(Number(e.target.value))}
-                          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
+                          نعم
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={useful === false ? 'danger' : 'secondary'}
+                          size="sm"
+                          onClick={() => setUseful(false)}
+                          startIcon={<ThumbsDown className="w-3.5 h-3.5" />}
                         >
-                          <option value={5}>5 / 5 — ممتازة</option>
-                          <option value={4}>4 / 5 — جيدة جدًا</option>
-                          <option value={3}>3 / 5 — متوسطة</option>
-                          <option value={2}>2 / 5 — ضعيفة</option>
-                          <option value={1}>1 / 5 — غير صالحة</option>
-                        </select>
+                          لا
+                        </Button>
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700">
-                        رمز السبب المعياري (Structured Reason Code)
-                      </label>
-                      <select
-                        value={feedbackReason}
-                        onChange={(e) => setFeedbackReason(e.target.value)}
-                        className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
+                    <Textarea
+                      label="تعليق إضافي حول دقة البيانات"
+                      value={feedbackComment}
+                      onChange={(e) => setFeedbackComment(e.target.value)}
+                      placeholder="ملاحظات حول جودة الهاتف أو اهتمام العميل..."
+                      rows={2}
+                    />
+
+                    <div className="flex justify-end">
+                      <Button
+                        type="submit"
+                        variant="secondary"
+                        isLoading={savingFeedback}
                       >
-                        {(STRUCTURED_FEEDBACK_OPTIONS[feedbackCategory] || []).map((code) => (
-                          <option key={code} value={code}>
-                            {code}
-                          </option>
-                        ))}
-                        <option value="OTHER">OTHER</option>
-                      </select>
+                        إرسال التقييم
+                      </Button>
                     </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700">
-                        ملاحظات إضافية (Comment)
-                      </label>
-                      <input
-                        type="text"
-                        value={feedbackComment}
-                        onChange={(e) => setFeedbackComment(e.target.value)}
-                        placeholder="تفاصيل إضافية حول التواصل أو حالة العميل..."
-                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold"
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={savingFeedback}
-                      className="w-full rounded-xl bg-slate-900 py-2.5 text-xs font-extrabold text-white hover:bg-slate-800 disabled:opacity-50"
-                    >
-                      {savingFeedback ? 'جاري إرسال التقييم...' : 'إرسال التقييم المنظم'}
-                    </button>
                   </form>
+                </Card>
+
+                {/* Deal Timeline & Activity per Spec 7.13 */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>سجل الملاحظات والنشاط (Timeline)</CardTitle>
+                  </CardHeader>
+                  <div className="p-4">
+                    <DealTimeline
+                      events={[
+                        ...(lead.myClaim?.notes
+                          ? [
+                              {
+                                id: 'note-claim',
+                                type: 'NOTE' as const,
+                                author: 'ملاحظة أولية',
+                                content: lead.myClaim.notes,
+                                createdAt: lead.myClaim.claimedAt,
+                              },
+                            ]
+                          : []),
+                        ...(lead.myClaim?.lastContactedAt
+                          ? [
+                              {
+                                id: 'contact-claim',
+                                type: 'STATUS_CHANGE' as const,
+                                author: 'محاولة تواصل',
+                                content: 'آخر تواصل مسجل مع العميل',
+                                createdAt: lead.myClaim.lastContactedAt,
+                              },
+                            ]
+                          : []),
+                      ]}
+                      onAddNote={async (content) => {
+                        const res = await fetch(`/api/leads/${leadId}/engagement/status`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            status: pipelineStatus,
+                            note: content,
+                          }),
+                        });
+                        if (res.ok) {
+                          setActionMsg({ type: 'info', text: 'تم تسجيل الملاحظة بنجاح.' });
+                          await loadLead();
+                        }
+                      }}
+                      onReportWrongNumber={async () => {
+                        const res = await fetch(`/api/leads/${leadId}/contact-attempts`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            channel: 'PHONE',
+                            result: 'WRONG_NUMBER',
+                            note: 'إبلاغ عن رقم خاطئ',
+                          }),
+                        });
+                        if (res.ok) {
+                          setActionMsg({
+                            type: 'info',
+                            text: 'سنرسل إشارة لإعادة التحقق من الرقم. لن يُحذف الرقم فوراً.',
+                          });
+                          await loadLead();
+                        }
+                      }}
+                    />
+                  </div>
+                </Card>
+              </div>
+            )}
+          </div>
+
+          {/* Aside Column (4) Sticky Card per Spec Section 8 & 7.10 */}
+          <div className="lg:col-span-4">
+            <div className="sticky top-20 flex flex-col gap-5 p-6 rounded-xl border border-line bg-surface shadow-xs">
+              {/* Price Section */}
+              <div className="flex flex-col gap-1 pb-4 border-b border-line">
+                <span className="text-caption text-fg-secondary">تكلفة فتح البيانات</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="ltr-iso font-mono text-display font-bold leading-none tabular-nums text-fg-primary">
+                    {fmtNumber(price)}
+                  </span>
+                  <span className="text-body text-fg-secondary font-medium">نقطة رصيد</span>
                 </div>
+                <span className="text-caption text-fg-muted mt-1">
+                  الميزانية المقدرة:{' '}
+                  <span className="ltr-iso font-mono font-medium text-fg-secondary">
+                    {fmtNumber(lead.estimatedBudget)}
+                  </span>{' '}
+                  ج.م
+                </span>
               </div>
 
-              {/* Engagement History & Activity Timeline */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-sm font-extrabold text-slate-900">
-                  سجل النشاط والانتقالات ومرات التواصل (Developer Engagement Timeline)
-                </h3>
-                <div className="mt-4 grid gap-4 md:grid-cols-3 text-xs">
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
-                    <div className="font-extrabold text-slate-800 mb-2">
-                      انتقالات الحالة ({lead.myClaim?.statusHistories?.length || 0})
-                    </div>
-                    <div className="space-y-1.5 max-h-44 overflow-y-auto">
-                      {(lead.myClaim?.statusHistories || []).map((h) => (
-                        <div
-                          key={h.id}
-                          className="rounded-lg bg-white p-2 border border-slate-200 text-[11px]"
-                        >
-                          <div className="font-mono font-bold text-slate-800" dir="ltr">
-                            {h.previousStatus || 'INITIAL'} → {h.newStatus}
-                          </div>
-                          {h.reasonCode && (
-                            <div className="text-emerald-700 font-bold">Reason: {h.reasonCode}</div>
-                          )}
-                          {(h.note || h.notes) && (
-                            <div className="text-slate-600">{h.note || h.notes}</div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
-                    <div className="font-extrabold text-slate-800 mb-2">
-                      محاولات التواصل ({lead.myContactAttempts?.length || 0})
-                    </div>
-                    <div className="space-y-1.5 max-h-44 overflow-y-auto">
-                      {(lead.myContactAttempts || []).map((a) => (
-                        <div
-                          key={a.id}
-                          className="rounded-lg bg-white p-2 border border-slate-200 text-[11px]"
-                        >
-                          <div className="font-mono font-bold text-indigo-700" dir="ltr">
-                            {a.channel} — {a.result}
-                          </div>
-                          {a.note && <div className="text-slate-600">{a.note}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
-                    <div className="font-extrabold text-slate-800 mb-2">
-                      سجل التقييمات ({lead.myFeedbacks?.length || 0})
-                    </div>
-                    <div className="space-y-1.5 max-h-44 overflow-y-auto">
-                      {(lead.myFeedbacks || []).map((f) => (
-                        <div
-                          key={f.id}
-                          className="rounded-lg bg-white p-2 border border-slate-200 text-[11px]"
-                        >
-                          <div className="font-mono font-bold text-teal-800" dir="ltr">
-                            [{f.category}] {f.reasonCode} ({f.confidence})
-                          </div>
-                          {f.rating && <div className="text-amber-600 font-bold">★ {f.rating}/5</div>}
-                          {f.comment && <div className="text-slate-600">{f.comment}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+              {/* Ownership Explanation */}
+              <div className="flex flex-col gap-2">
+                <OwnershipTag
+                  type={lead.exclusive ? 'EXCLUSIVE' : 'SHARED'}
+                  seatsRemaining={
+                    lead.exclusive
+                      ? undefined
+                      : Math.max(0, (lead.maxPurchasers || 3) - (lead.currentPurchasers || 0))
+                  }
+                  maxSeats={lead.exclusive ? undefined : lead.maxPurchasers || 3}
+                />
+                <p className="text-body-sm text-fg-secondary leading-relaxed">
+                  {lead.exclusive
+                    ? 'ستكون الجهة الوحيدة التي تحصل على بيانات هذه الفرصة.'
+                    : `يمكن لعدد أقصى من ${lead.maxPurchasers || 3} مطورين الحصول على هذه الفرصة.`}
+                </p>
               </div>
+
+              {/* Action Button */}
+              {lead.isClaimedByMe ? (
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
+                  disabled
+                >
+                  الفرصة مملوكة لديك
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  onClick={() => setIsPurchaseModalOpen(true)}
+                  disabled={
+                    lead.status !== 'AVAILABLE' ||
+                    Boolean(lead.saleabilityStatus && lead.saleabilityStatus !== 'AVAILABLE')
+                  }
+                >
+                  شراء بيانات الفرصة
+                </Button>
+              )}
+
+              {/* Trust & Reassurance Line per Spec 4 & 7.10 */}
+              <p className="text-caption text-fg-muted text-center">
+                العملية نهائية ومحمية بنظام النقاط المعتمد.
+              </p>
             </div>
+          </div>
+        </div>
+
+        {/* Mobile Sticky Bottom Bar per Spec Section 8 */}
+        <div className="lg:hidden fixed bottom-0 inset-x-0 bg-surface border-t border-line p-4 flex items-center justify-between z-20 shadow-md">
+          <div className="flex flex-col">
+            <span className="text-caption text-fg-secondary">التكلفة</span>
+            <span className="ltr-iso font-mono font-bold text-body text-fg-primary">
+              {fmtNumber(price)} نقطة
+            </span>
+          </div>
+
+          {lead.isClaimedByMe ? (
+            <Button variant="secondary" size="md" disabled>
+              تم الشراء
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => setIsPurchaseModalOpen(true)}
+              disabled={
+                lead.status !== 'AVAILABLE' ||
+                Boolean(lead.saleabilityStatus && lead.saleabilityStatus !== 'AVAILABLE')
+              }
+            >
+              شراء الفرصة
+            </Button>
           )}
         </div>
-      )}
+
+        {/* Purchase Confirmation Dialog per Spec 7.10 */}
+        <PurchaseConfirm
+          isOpen={isPurchaseModalOpen}
+          onClose={() => setIsPurchaseModalOpen(false)}
+          lead={{
+            id: lead.id,
+            name: lead.businessName,
+            temperature: (lead.temperature as LeadTemperature) || 'HOT',
+            score: lead.score,
+            ownershipType: lead.exclusive ? 'EXCLUSIVE' : 'SHARED',
+            price,
+            maxSeats: lead.maxPurchasers,
+            phone: lead.phone || undefined,
+            email: lead.email || undefined,
+          }}
+          userBalance={userCredits}
+          onConfirmPurchase={handleClaim}
+        />
+      </div>
     </AppShell>
   );
 }
