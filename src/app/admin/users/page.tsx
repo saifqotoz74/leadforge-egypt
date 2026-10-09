@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
+import { AppShell } from '@/components/domain/AppShell';
 import { Search, ShieldBan, CheckCircle, Coins } from 'lucide-react';
 
 interface AdminUserItem {
@@ -102,32 +102,32 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <AppShell isAdminView>
+    <AppShell isAdmin={true} density="compact" pageTitle="إدارة المستخدمين والمشتركين">
       <div className="space-y-6">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-extrabold text-slate-900">
+        <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+          <h1 className="text-xl font-extrabold text-fg-primary">
             إدارة المستخدمين والمشتركين (Users Management)
           </h1>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-fg-muted">
             بحث وتصفية المطورين، إيقاف أو تفعيل الحسابات، وتعديل الباقات ورصيد النقاط.
           </p>
 
           <div className="mt-4 flex flex-wrap gap-3">
             <div className="relative flex-1 min-w-[220px]">
-              <Search className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute start-3 top-2.5 h-4 w-4 text-fg-muted" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="ابحث بالاسم أو البريد الإلكتروني..."
-                className="w-full rounded-xl border border-slate-300 py-2 pr-9 pl-3 text-xs font-semibold"
+                className="w-full rounded-xl border border-line bg-surface py-2 ps-9 pe-3 text-xs font-semibold text-fg-primary placeholder:text-fg-muted focus:border-brand"
               />
             </div>
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold"
+              className="rounded-xl border border-line bg-surface px-4 py-2 text-xs font-bold text-fg-primary"
             >
               <option value="ALL">جميع الحالات</option>
               <option value="ACTIVE">نشط (ACTIVE)</option>
@@ -136,13 +136,13 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm overflow-x-auto">
+        <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm overflow-x-auto">
           {loading ? (
-            <div className="h-48 animate-pulse bg-slate-100 rounded-xl" />
+            <div className="h-48 animate-pulse bg-surface-subtle rounded-xl" />
           ) : (
-            <table className="w-full text-right text-xs">
+            <table className="w-full text-start text-xs">
               <thead>
-                <tr className="border-b border-slate-200 text-slate-500">
+                <tr className="border-b border-line text-fg-muted">
                   <th className="py-3 px-3">المستخدم</th>
                   <th className="py-3 px-3">الصلاحية</th>
                   <th className="py-3 px-3">الحالة</th>
@@ -152,19 +152,19 @@ export default function AdminUsersPage() {
                   <th className="py-3 px-3">إجراءات الإدارة</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-semibold">
+              <tbody className="divide-y divide-line font-semibold">
                 {users.map((u) => (
                   <tr key={u.id}>
                     <td className="py-3.5 px-3">
-                      <p className="font-bold text-slate-900">{u.name}</p>
-                      <p className="text-[11px] text-slate-500">{u.email}</p>
+                      <p className="font-bold text-fg-primary">{u.name}</p>
+                      <p className="text-[11px] text-fg-muted">{u.email}</p>
                     </td>
                     <td className="py-3.5 px-3">
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                           u.role === 'ADMIN'
-                            ? 'bg-purple-100 text-purple-800'
-                            : 'bg-slate-100 text-slate-700'
+                            ? 'bg-brand-soft text-brand-dark'
+                            : 'bg-surface-subtle text-fg-secondary'
                         }`}
                       >
                         {u.role}
@@ -174,8 +174,8 @@ export default function AdminUsersPage() {
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                           u.status === 'ACTIVE'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-rose-100 text-rose-800'
+                            ? 'bg-brand-soft text-brand-dark'
+                            : 'bg-red-50 text-red-800'
                         }`}
                       >
                         {u.status === 'ACTIVE' ? 'نشط' : 'موقوف'}
@@ -184,7 +184,7 @@ export default function AdminUsersPage() {
                     <td className="py-3.5 px-3">
                       {u.subscription?.plan?.name || '—'}
                     </td>
-                    <td className="py-3.5 px-3 font-extrabold text-emerald-700">
+                    <td className="py-3.5 px-3 font-extrabold text-brand tabular-nums ltr-iso">
                       {u.subscription ? `${u.subscription.credits} نقطة` : '—'}
                     </td>
                     <td className="py-3.5 px-3">
@@ -198,7 +198,7 @@ export default function AdminUsersPage() {
                             setEditPlanId(u.subscription?.plan?.id || plans[0]?.id || '');
                             setEditCredits(u.subscription?.credits ?? 0);
                           }}
-                          className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-bold text-slate-700 hover:bg-slate-50"
+                          className="inline-flex items-center gap-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[11px] font-bold text-fg-secondary hover:bg-surface-subtle"
                         >
                           <Coins className="h-3.5 w-3.5 text-amber-500" />
                           الباقة والرصيد
@@ -209,8 +209,8 @@ export default function AdminUsersPage() {
                             onClick={() => handleToggleSuspend(u)}
                             className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-bold ${
                               u.status === 'ACTIVE'
-                                ? 'bg-rose-50 text-rose-700 hover:bg-rose-100'
-                                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                ? 'bg-red-50 text-red-800 hover:bg-red-100'
+                                : 'bg-brand-soft text-brand-dark hover:bg-teal-100'
                             }`}
                           >
                             {u.status === 'ACTIVE' ? (
@@ -237,14 +237,14 @@ export default function AdminUsersPage() {
 
         {/* Edit Subscription & Credits Modal */}
         {editUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-              <h3 className="text-base font-extrabold text-slate-900">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+            <div className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl">
+              <h3 className="text-base font-extrabold text-fg-primary">
                 تعديل باقة ورصيد: {editUser.name}
               </h3>
               <form onSubmit={handleSaveSubscription} className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700">الباقة:</label>
+                  <label className="block text-xs font-bold text-fg-secondary">الباقة:</label>
                   <select
                     value={editPlanId}
                     onChange={(e) => {
@@ -253,7 +253,7 @@ export default function AdminUsersPage() {
                       const found = plans.find((p) => p.id === pId);
                       if (found) setEditCredits(found.monthlyCredits);
                     }}
-                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
+                    className="mt-1 w-full rounded-xl border border-line bg-canvas px-3 py-2 text-xs font-bold text-fg-primary"
                   >
                     {plans.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -264,7 +264,7 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label className="block text-xs font-bold text-fg-secondary">
                     رصيد النقاط المتاح (Credits):
                   </label>
                   <input
@@ -272,7 +272,7 @@ export default function AdminUsersPage() {
                     min={0}
                     value={editCredits}
                     onChange={(e) => setEditCredits(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold"
+                    className="mt-1 w-full rounded-xl border border-line bg-canvas px-3 py-2 text-sm font-bold text-fg-primary tabular-nums ltr-iso"
                   />
                 </div>
 
@@ -280,14 +280,14 @@ export default function AdminUsersPage() {
                   <button
                     type="button"
                     onClick={() => setEditUser(null)}
-                    className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700"
+                    className="rounded-xl border border-line px-4 py-2 text-xs font-bold text-fg-secondary hover:bg-surface-subtle"
                   >
                     إلغاء
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white"
+                    className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white hover:bg-brand-hover"
                   >
                     {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
                   </button>

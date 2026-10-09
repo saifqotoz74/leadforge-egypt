@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
+import { AppShell } from '@/components/domain/AppShell';
 import {
   CATEGORY_LABELS_AR,
   FEEDBACK_REASON_LABELS,
@@ -165,17 +165,17 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <AppShell isAdminView>
+    <AppShell isAdmin={true} density="compact" pageTitle="تقارير الأداء والمراجعة">
       {loading || !data ? (
-        <div className="h-96 animate-pulse rounded-2xl border border-slate-200 bg-white p-6" />
+        <div className="h-96 animate-pulse rounded-2xl border border-line bg-surface p-6" />
       ) : (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h1 className="flex items-center gap-2 text-xl font-extrabold text-slate-900">
-              <BarChart3 className="h-6 w-6 text-emerald-600" />
+          <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+            <h1 className="flex items-center gap-2 text-xl font-extrabold text-fg-primary">
+              <BarChart3 className="h-6 w-6 text-brand" />
               تقارير الأداء وجودة الفرص ومحرك النتائج (Phase 6 Operational & Outcome Reports)
             </h1>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-fg-muted">
               تحليل شامل لمعدلات التحويل، الصفقات الناجحة والخاسرة، بلاغات عدم الصلاحية، وإشارات إساءة الاستخدام.
             </p>
           </div>
@@ -184,8 +184,8 @@ export default function AdminReportsPage() {
             <div
               className={`rounded-xl border p-4 text-xs font-bold ${
                 msg.type === 'success'
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                  : 'border-rose-200 bg-rose-50 text-rose-800'
+                  ? 'border-line-brand bg-brand-soft text-brand-dark'
+                  : 'border-red-200 bg-red-50 text-red-800'
               }`}
             >
               {msg.text}
@@ -194,60 +194,60 @@ export default function AdminReportsPage() {
 
           {/* 6 Required Rates (Section 14) */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-              <span className="text-xs font-bold text-emerald-800">Lead Success Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-emerald-700">
+            <div className="rounded-2xl border border-line-brand bg-brand-soft/50 p-4 text-center">
+              <span className="text-xs font-bold text-brand-dark">Lead Success Rate</span>
+              <p className="mt-2 text-2xl font-extrabold text-brand tabular-nums ltr-iso">
                 {data.rates.leadSuccessRate}%
               </p>
-              <span className="text-[11px] text-emerald-600">نسبة الفرص المفيدة</span>
+              <span className="text-[11px] text-brand">نسبة الفرص المفيدة</span>
             </div>
 
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-center">
-              <span className="text-xs font-bold text-rose-800">Invalid Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-rose-700">
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-center">
+              <span className="text-xs font-bold text-red-800">Invalid Rate</span>
+              <p className="mt-2 text-2xl font-extrabold text-danger tabular-nums ltr-iso">
                 {data.rates.invalidRate}%
               </p>
-              <span className="text-[11px] text-rose-600">نسبة غير الصالح</span>
+              <span className="text-[11px] text-danger">نسبة غير الصالح</span>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-              <span className="text-xs font-bold text-slate-600">Contact Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-slate-900">
+            <div className="rounded-2xl border border-line bg-surface p-4 text-center">
+              <span className="text-xs font-bold text-fg-secondary">Contact Rate</span>
+              <p className="mt-2 text-2xl font-extrabold text-fg-primary tabular-nums ltr-iso">
                 {data.rates.contactRate}%
               </p>
-              <span className="text-[11px] text-slate-400">معدل التواصل</span>
+              <span className="text-[11px] text-fg-muted">معدل التواصل</span>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-              <span className="text-xs font-bold text-slate-600">Reply Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-blue-700">
+            <div className="rounded-2xl border border-line bg-surface p-4 text-center">
+              <span className="text-xs font-bold text-fg-secondary">Reply Rate</span>
+              <p className="mt-2 text-2xl font-extrabold text-fg-secondary tabular-nums ltr-iso">
                 {data.rates.replyRate}%
               </p>
-              <span className="text-[11px] text-slate-400">معدل الرد</span>
+              <span className="text-[11px] text-fg-muted">معدل الرد</span>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-              <span className="text-xs font-bold text-slate-600">Meeting Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-purple-700">
+            <div className="rounded-2xl border border-line bg-surface p-4 text-center">
+              <span className="text-xs font-bold text-fg-secondary">Meeting Rate</span>
+              <p className="mt-2 text-2xl font-extrabold text-fg-secondary tabular-nums ltr-iso">
                 {data.rates.meetingRate}%
               </p>
-              <span className="text-[11px] text-slate-400">معدل الاجتماعات</span>
+              <span className="text-[11px] text-fg-muted">معدل الاجتماعات</span>
             </div>
 
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-              <span className="text-xs font-bold text-emerald-800">Won Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-emerald-700">
+            <div className="rounded-2xl border border-line-brand bg-brand-soft/50 p-4 text-center">
+              <span className="text-xs font-bold text-brand-dark">Won Rate</span>
+              <p className="mt-2 text-2xl font-extrabold text-brand tabular-nums ltr-iso">
                 {data.rates.wonRate}%
               </p>
-              <span className="text-[11px] text-emerald-600">نسبة إغلاق الصفقات</span>
+              <span className="text-[11px] text-brand">نسبة إغلاق الصفقات</span>
             </div>
           </div>
 
           {/* Phase 6 Engagement Conversion Funnel & Won Projects Summary */}
           {data.engagementsOverview && (
             <div className="grid gap-6 lg:grid-cols-12">
-              <div className="lg:col-span-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-extrabold text-slate-900">
+              <div className="lg:col-span-8 rounded-2xl border border-line bg-surface p-6 shadow-sm">
+                <h2 className="text-base font-extrabold text-fg-primary">
                   قمع تحويل مراحل التعاقد (Phase 6 Engagement Conversion Funnel)
                 </h2>
                 <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-6 text-xs">
@@ -255,7 +255,7 @@ export default function AdminReportsPage() {
                     const count = data.engagementsOverview?.conversionFunnel[st] ?? 0;
                     const badge =
                       PIPELINE_STATUS_LABELS[st]?.badgeClass ||
-                      'bg-slate-50 text-slate-700 border-slate-200';
+                      'bg-canvas text-fg-secondary border-line';
                     return (
                       <div
                         key={st}
@@ -272,25 +272,25 @@ export default function AdminReportsPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-4 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 shadow-sm space-y-3">
-                <h2 className="text-base font-extrabold text-emerald-950">
+              <div className="lg:col-span-4 rounded-2xl border border-line-brand bg-brand-soft/40 p-6 shadow-sm space-y-3">
+                <h2 className="text-base font-extrabold text-brand-dark">
                   ملخص المشاريع الناجحة (Won Projects Summary)
                 </h2>
-                <div className="rounded-xl bg-white p-3.5 border border-emerald-200 text-xs flex justify-between">
-                  <span className="font-bold text-slate-600">إجمالي الصفقات المغلقة (WON):</span>
-                  <strong className="text-emerald-700 text-base">
+                <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between">
+                  <span className="font-bold text-fg-secondary">إجمالي الصفقات المغلقة (WON):</span>
+                  <strong className="text-brand text-base">
                     {data.engagementsOverview.wonSummary.totalWon}
                   </strong>
                 </div>
-                <div className="rounded-xl bg-white p-3.5 border border-emerald-200 text-xs flex justify-between">
-                  <span className="font-bold text-slate-600">القيمة التقديرية للمشاريع:</span>
-                  <strong className="text-emerald-700 text-base">
+                <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between">
+                  <span className="font-bold text-fg-secondary">القيمة التقديرية للمشاريع:</span>
+                  <strong className="text-brand text-base">
                     {data.engagementsOverview.wonSummary.totalEstimatedValue.toLocaleString()} EGP
                   </strong>
                 </div>
-                <div className="rounded-xl bg-white p-3.5 border border-emerald-200 text-xs flex justify-between">
-                  <span className="font-bold text-slate-600">متوسط قيمة الصفقة:</span>
-                  <strong className="text-slate-900">
+                <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between">
+                  <span className="font-bold text-fg-secondary">متوسط قيمة الصفقة:</span>
+                  <strong className="text-fg-primary">
                     {data.engagementsOverview.wonSummary.averageEstimatedValue.toLocaleString()} EGP
                   </strong>
                 </div>
@@ -300,19 +300,19 @@ export default function AdminReportsPage() {
 
           {/* Feedback Breakdown & Distributions */}
           <div className="grid gap-6 lg:grid-cols-12">
-            <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-base font-extrabold text-slate-900">
+            <div className="lg:col-span-5 rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <h2 className="text-base font-extrabold text-fg-primary">
                 تقييمات المطورين لجودة الـ Leads
               </h2>
               <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-bold">
-                <div className="flex items-center justify-between rounded-xl bg-emerald-50 p-3 text-emerald-800">
+                <div className="flex items-center justify-between rounded-xl bg-brand-soft p-3 text-brand-dark">
                   <span className="flex items-center gap-1.5">
                     <ThumbsUp className="h-4 w-4" />
                     مفيدة (Yes)
                   </span>
                   <strong className="text-lg">{data.feedbackStats.usefulFeedbacks}</strong>
                 </div>
-                <div className="flex items-center justify-between rounded-xl bg-rose-50 p-3 text-rose-800">
+                <div className="flex items-center justify-between rounded-xl bg-red-50 p-3 text-red-800">
                   <span className="flex items-center gap-1.5">
                     <ThumbsDown className="h-4 w-4" />
                     غير مفيدة (No)
@@ -321,7 +321,7 @@ export default function AdminReportsPage() {
                 </div>
               </div>
 
-              <h3 className="mt-5 text-xs font-extrabold text-slate-700">
+              <h3 className="mt-5 text-xs font-extrabold text-fg-secondary">
                 تفصيل أسباب عدم الفائدة (Negative Feedback Reasons):
               </h3>
               <div className="mt-2 space-y-2 text-xs">
@@ -330,10 +330,10 @@ export default function AdminReportsPage() {
                   return (
                     <div
                       key={code}
-                      className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 font-semibold"
+                      className="flex items-center justify-between rounded-lg bg-canvas px-3 py-2 font-semibold"
                     >
                       <span>{label}</span>
-                      <span className="font-extrabold text-slate-900">{count}</span>
+                      <span className="font-extrabold text-fg-primary">{count}</span>
                     </div>
                   );
                 })}
@@ -341,34 +341,34 @@ export default function AdminReportsPage() {
             </div>
 
             <div className="lg:col-span-7 grid gap-6 sm:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-extrabold text-slate-900">
+              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+                <h2 className="text-base font-extrabold text-fg-primary">
                   توزيع الفرص حسب التصنيف (By Category)
                 </h2>
                 <div className="mt-4 space-y-2 text-xs">
                   {Object.entries(data.distributions.byCategory).map(([cat, count]) => (
                     <div
                       key={cat}
-                      className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 font-semibold"
+                      className="flex items-center justify-between rounded-lg bg-canvas px-3 py-2 font-semibold"
                     >
                       <span>
                         {CATEGORY_LABELS_AR[cat] || cat} ({cat})
                       </span>
-                      <strong className="text-emerald-700">{count} نشاط</strong>
+                      <strong className="text-brand">{count} نشاط</strong>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-extrabold text-slate-900">
+              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+                <h2 className="text-base font-extrabold text-fg-primary">
                   توزيع الفرص حسب المدينة وحالة الموقع
                 </h2>
                 <div className="mt-4 space-y-2 text-xs">
                   {Object.entries(data.distributions.byWebsiteStatus).map(([st, count]) => (
                     <div
                       key={st}
-                      className="flex items-center justify-between rounded-lg bg-emerald-50/60 px-3 py-2 font-bold text-emerald-900"
+                      className="flex items-center justify-between rounded-lg bg-brand-soft/60 px-3 py-2 font-bold text-brand-dark"
                     >
                       <span>{WEBSITE_STATUS_LABELS[st]?.labelAr || st}</span>
                       <strong>{count}</strong>
@@ -376,12 +376,12 @@ export default function AdminReportsPage() {
                   ))}
                 </div>
 
-                <h3 className="mt-5 text-xs font-extrabold text-slate-700">أبرز المدن:</h3>
+                <h3 className="mt-5 text-xs font-extrabold text-fg-secondary">أبرز المدن:</h3>
                 <div className="mt-2 space-y-1.5 text-xs">
                   {Object.entries(data.distributions.byCity).map(([city, count]) => (
                     <div
                       key={city}
-                      className="flex items-center justify-between border-b border-slate-100 py-1.5 font-semibold"
+                      className="flex items-center justify-between border-b border-line py-1.5 font-semibold"
                     >
                       <span>{city}</span>
                       <strong>{count}</strong>
@@ -395,15 +395,15 @@ export default function AdminReportsPage() {
           {/* Phase 6 Operational Visibility: Engagements List, Admin Status Correction & Abuse Flags */}
           {data.engagementsOverview && (
             <div className="grid gap-6 lg:grid-cols-12">
-              <div className="lg:col-span-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-                  <Wrench className="h-5 w-5 text-slate-700" />
+              <div className="lg:col-span-8 rounded-2xl border border-line bg-surface p-6 shadow-sm">
+                <h2 className="flex items-center gap-2 text-base font-extrabold text-fg-primary">
+                  <Wrench className="h-5 w-5 text-fg-secondary" />
                   إدارة تعاملات المطورين وتصحيح الحالات النهائية (Developer Engagements & Admin Correction)
                 </h2>
                 <div className="mt-4 overflow-x-auto">
-                  <table className="w-full text-right text-xs">
+                  <table className="w-full text-start text-xs">
                     <thead>
-                      <tr className="border-b border-slate-200 text-slate-500">
+                      <tr className="border-b border-line text-fg-muted">
                         <th className="py-2 px-2">العميل</th>
                         <th className="py-2 px-2">المطور</th>
                         <th className="py-2 px-2">النوع</th>
@@ -412,13 +412,13 @@ export default function AdminReportsPage() {
                         <th className="py-2 px-2">إجراء</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-line">
                       {data.engagementsOverview.engagements.map((eng) => (
-                        <tr key={eng.id} className="hover:bg-slate-50">
-                          <td className="py-2.5 px-2 font-bold text-slate-900">
+                        <tr key={eng.id} className="hover:bg-canvas">
+                          <td className="py-2.5 px-2 font-bold text-fg-primary">
                             {eng.lead.businessName}
                           </td>
-                          <td className="py-2.5 px-2 text-slate-700">
+                          <td className="py-2.5 px-2 text-fg-secondary">
                             {eng.developer.name}
                           </td>
                           <td className="py-2.5 px-2 font-mono text-[11px]">
@@ -428,13 +428,13 @@ export default function AdminReportsPage() {
                             <span
                               className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${
                                 PIPELINE_STATUS_LABELS[eng.currentStatus]?.badgeClass ||
-                                'bg-slate-100 text-slate-700'
+                                'bg-slate-100 text-fg-secondary'
                               }`}
                             >
                               {eng.currentStatus}
                             </span>
                           </td>
-                          <td className="py-2.5 px-2 text-[11px] text-slate-600">
+                          <td className="py-2.5 px-2 text-[11px] text-fg-secondary">
                             {eng.estimatedProjectValue
                               ? `${eng.estimatedProjectValue.toLocaleString()} ${eng.currency || 'EGP'}`
                               : eng.outcomeReasonCode || '—'}
@@ -446,7 +446,7 @@ export default function AdminReportsPage() {
                                 setCorrectingEngagement(eng);
                                 setNewState(eng.currentStatus);
                               }}
-                              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100"
+                              className="rounded-lg border border-line bg-surface px-2.5 py-1 text-[11px] font-bold text-fg-secondary hover:bg-slate-100"
                             >
                               تصحيح الحالة
                             </button>
@@ -470,20 +470,20 @@ export default function AdminReportsPage() {
                       <button
                         type="button"
                         onClick={() => setCorrectingEngagement(null)}
-                        className="text-slate-500 hover:text-slate-800"
+                        className="text-fg-muted hover:text-fg-primary"
                       >
                         ✕ إغلاق
                       </button>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <label className="block font-bold text-slate-700">
+                        <label className="block font-bold text-fg-secondary">
                           الحالة الجديدة (New State)
                         </label>
                         <select
                           value={newState}
                           onChange={(e) => setNewState(e.target.value)}
-                          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-bold"
+                          className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 font-bold"
                         >
                           {ENGAGEMENT_STATES.map((st) => (
                             <option key={st} value={st}>
@@ -493,7 +493,7 @@ export default function AdminReportsPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block font-bold text-slate-700">
+                        <label className="block font-bold text-fg-secondary">
                           سبب التصحيح الإداري (إلزامي لسجل التدقيق)
                         </label>
                         <input
@@ -502,14 +502,14 @@ export default function AdminReportsPage() {
                           value={correctionReason}
                           onChange={(e) => setCorrectionReason(e.target.value)}
                           placeholder="مثال: تصحيح إغلاق خاطئ بناءً على طلب المطور..."
-                          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold"
+                          className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 font-semibold"
                         />
                       </div>
                     </div>
                     <button
                       type="submit"
                       disabled={savingCorrection}
-                      className="rounded-lg bg-slate-900 px-4 py-2 font-extrabold text-white hover:bg-slate-800 disabled:opacity-50"
+                      className="rounded-lg bg-brand px-4 py-2 font-extrabold text-white hover:bg-brand-hover disabled:opacity-50"
                     >
                       {savingCorrection ? 'جاري تطبيق التصحيح...' : 'تطبيق التصحيح وتوثيقه'}
                     </button>
@@ -517,13 +517,13 @@ export default function AdminReportsPage() {
                 )}
               </div>
 
-              <div className="lg:col-span-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-                <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
+              <div className="lg:col-span-4 rounded-2xl border border-line bg-surface p-6 shadow-sm space-y-4">
+                <h2 className="flex items-center gap-2 text-base font-extrabold text-fg-primary">
                   <ShieldAlert className="h-5 w-5 text-amber-600" />
                   تنبيهات الحماية وجودة البلاغات (Abuse & Quality Signals)
                 </h2>
                 {data.engagementsOverview.suspiciousFlags.length === 0 ? (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-fg-muted">
                     لا توجد تنبيهات إساءة استخدام مسجلة حاليًا.
                   </p>
                 ) : (
@@ -537,7 +537,7 @@ export default function AdminReportsPage() {
                           <AlertTriangle className="h-3.5 w-3.5" />
                           <span>{flag.action}</span>
                         </div>
-                        <div className="text-[11px] text-slate-700">
+                        <div className="text-[11px] text-fg-secondary">
                           المطور: {flag.user?.name || flag.user?.email || '—'}
                         </div>
                         <div className="font-mono text-[10px] text-amber-800" dir="ltr">

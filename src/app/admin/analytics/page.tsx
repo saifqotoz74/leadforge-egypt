@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
+import { AppShell } from '@/components/domain/AppShell';
 import {
   AlertTriangle,
   BarChart3,
@@ -35,35 +35,33 @@ type DashboardTab = 'executive' | 'leads' | 'developers' | 'quality' | 'flywheel
 function RateCard({
   titleAr,
   metric,
-  accent = 'emerald',
+  accent = 'brand',
 }: {
   titleAr: string;
   metric?: RateMetricDto;
-  accent?: 'emerald' | 'blue' | 'rose' | 'amber' | 'purple' | 'slate';
+  accent?: 'brand' | 'danger' | 'warning' | 'neutral';
 }) {
   if (!metric) return null;
   const colorMap = {
-    emerald: 'border-emerald-200 bg-emerald-50/50 text-emerald-800',
-    blue: 'border-blue-200 bg-blue-50/50 text-blue-800',
-    rose: 'border-rose-200 bg-rose-50/50 text-rose-800',
-    amber: 'border-amber-200 bg-amber-50/50 text-amber-800',
-    purple: 'border-purple-200 bg-purple-50/50 text-purple-800',
-    slate: 'border-slate-200 bg-white text-slate-800',
+    brand: 'border-line-brand bg-brand-soft/50 text-brand-dark',
+    danger: 'border-red-200 bg-red-50/60 text-red-800',
+    warning: 'border-amber-200 bg-amber-50/60 text-amber-800',
+    neutral: 'border-line bg-surface text-fg-primary',
   };
 
   return (
     <div className={`rounded-2xl border p-4 shadow-sm ${colorMap[accent]}`}>
       <div className="flex items-start justify-between gap-2">
         <span className="text-xs font-bold leading-snug">{titleAr}</span>
-        <span className="rounded bg-white/80 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-500">
+        <span className="rounded bg-surface/80 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-fg-secondary tabular-nums ltr-iso">
           {metric.numerator}/{metric.denominator}
         </span>
       </div>
       <div className="mt-2 flex items-baseline justify-between">
         {metric.status === 'INSUFFICIENT_DATA' ? (
-          <span className="text-sm font-bold text-slate-400">INSUFFICIENT_DATA (0 مقام)</span>
+          <span className="text-sm font-bold text-fg-muted">INSUFFICIENT_DATA (0 مقام)</span>
         ) : (
-          <span className="text-2xl font-extrabold">
+          <span className="text-2xl font-extrabold tabular-nums ltr-iso">
             {metric.percentage !== null ? `${metric.percentage}%` : metric.displayValue}
           </span>
         )}
@@ -73,7 +71,7 @@ function RateCard({
           </span>
         )}
       </div>
-      <p className="mt-1 truncate text-[10px] text-slate-500">
+      <p className="mt-1 truncate text-[10px] text-fg-muted">
         {metric.nameAr || metric.name || metric.label} ({metric.metricVersion})
       </p>
     </div>
@@ -92,21 +90,21 @@ function StatCard({
   unit?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <span className="text-xs font-bold text-slate-600">{titleAr}</span>
+    <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+      <span className="text-xs font-bold text-fg-secondary">{titleAr}</span>
       <div className="mt-2 flex items-baseline gap-1">
         {value === null || value === undefined ? (
-          <span className="text-sm font-bold text-slate-400">INSUFFICIENT_DATA</span>
+          <span className="text-sm font-bold text-fg-muted">INSUFFICIENT_DATA</span>
         ) : (
           <>
-            <span className="text-2xl font-extrabold text-slate-900">
+            <span className="text-2xl font-extrabold text-fg-primary tabular-nums ltr-iso">
               {typeof value === 'number' ? value.toLocaleString() : value}
             </span>
-            {unit && <span className="text-xs font-bold text-slate-500">{unit}</span>}
+            {unit && <span className="text-xs font-bold text-fg-muted">{unit}</span>}
           </>
         )}
       </div>
-      <p className="mt-1 truncate text-[10px] text-slate-400">{subtitleEn}</p>
+      <p className="mt-1 truncate text-[10px] text-fg-muted">{subtitleEn}</p>
     </div>
   );
 }
@@ -319,23 +317,23 @@ export default function AdminAnalyticsHubPage() {
             : 'rules';
 
   return (
-    <AppShell isAdminView>
+    <AppShell isAdmin={true} density="compact" pageTitle="تحليلات المنصة ودولاب القيمة">
       <div className="space-y-6">
         {/* Header & Governance Badge */}
-        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-extrabold text-emerald-800">
+              <span className="rounded-lg bg-brand-soft px-2.5 py-1 text-xs font-extrabold text-brand-dark">
                 Phase 7 • Deterministic Analytics & Data Flywheel
               </span>
-              <span className="rounded-lg bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-600">
+              <span className="rounded-lg bg-surface-subtle px-2.5 py-1 font-mono text-xs font-semibold text-fg-secondary">
                 Centralized Metric Dictionary
               </span>
             </div>
-            <h1 className="mt-2 text-xl font-extrabold text-slate-900 sm:text-2xl">
+            <h1 className="mt-2 text-xl font-extrabold text-fg-primary sm:text-2xl">
               مركز التحليلات التنفيذية وحلقة تحسين البيانات (Analytics & Flywheel Hub)
             </h1>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-fg-muted">
               جميع المؤشرات حتمية (100% Deterministic)، قابلة للتفسير مع عرض البسط والمقام وحجم العينة، وبدون أي تعديل تلقائي للقواعد دون مراجعة بشرية.
             </p>
           </div>
@@ -344,7 +342,7 @@ export default function AdminAnalyticsHubPage() {
             <button
               onClick={loadAnalytics}
               disabled={loading}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
+              className="flex items-center gap-1.5 rounded-xl border border-line bg-canvas px-3.5 py-2 text-xs font-bold text-fg-secondary hover:bg-slate-100"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               <span>تحديث البيانات</span>
@@ -352,7 +350,7 @@ export default function AdminAnalyticsHubPage() {
 
             <a
               href={`/api/admin/analytics/export?report=${exportReportType}&${buildQueryString()}`}
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700"
+              className="flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-brand-hover"
             >
               <Download className="h-4 w-4" />
               <span>تصدير CSV آمن</span>
@@ -361,17 +359,17 @@ export default function AdminAnalyticsHubPage() {
         </div>
 
         {/* Global Filter Bar */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700">
-              <Filter className="h-4 w-4 text-emerald-600" />
+            <div className="flex items-center gap-1.5 text-xs font-extrabold text-fg-secondary">
+              <Filter className="h-4 w-4 text-brand" />
               <span>تصفية الأتراب (Cohort Filters):</span>
             </div>
 
             <select
               value={preset}
               onChange={(e) => setPreset(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-800"
+              className="rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs font-bold text-fg-primary"
             >
               <option value="all_time">كل الفترات (All Time)</option>
               <option value="today">اليوم (Today)</option>
@@ -390,13 +388,13 @@ export default function AdminAnalyticsHubPage() {
                   type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-800"
+                  className="rounded-xl border border-line bg-canvas px-2.5 py-1.5 text-xs font-semibold text-fg-primary"
                 />
                 <input
                   type="date"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-800"
+                  className="rounded-xl border border-line bg-canvas px-2.5 py-1.5 text-xs font-semibold text-fg-primary"
                 />
               </>
             )}
@@ -406,7 +404,7 @@ export default function AdminAnalyticsHubPage() {
               placeholder="المصدر (Source)"
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
-              className="w-36 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800"
+              className="w-36 rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs font-semibold text-fg-primary"
             />
 
             <input
@@ -414,7 +412,7 @@ export default function AdminAnalyticsHubPage() {
               placeholder="القطاع (Niche)"
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-32 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800"
+              className="w-32 rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs font-semibold text-fg-primary"
             />
 
             <input
@@ -422,7 +420,7 @@ export default function AdminAnalyticsHubPage() {
               placeholder="المدينة (City)"
               value={cityFilter}
               onChange={(e) => setCityFilter(e.target.value)}
-              className="w-32 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800"
+              className="w-32 rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs font-semibold text-fg-primary"
             />
 
             <input
@@ -430,13 +428,13 @@ export default function AdminAnalyticsHubPage() {
               placeholder="الخدمة (Service)"
               value={serviceFilter}
               onChange={(e) => setServiceFilter(e.target.value)}
-              className="w-36 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800"
+              className="w-36 rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs font-semibold text-fg-primary"
             />
 
             <select
               value={scoreBandFilter}
               onChange={(e) => setScoreBandFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800"
+              className="rounded-xl border border-line bg-canvas px-2.5 py-1.5 text-xs font-bold text-fg-primary"
             >
               <option value="">كل درجات الفرص (Score Band)</option>
               <option value="PREMIUM">PREMIUM</option>
@@ -448,7 +446,7 @@ export default function AdminAnalyticsHubPage() {
             <select
               value={qualityBandFilter}
               onChange={(e) => setQualityBandFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800"
+              className="rounded-xl border border-line bg-canvas px-2.5 py-1.5 text-xs font-bold text-fg-primary"
             >
               <option value="">كل فئات الجودة (Quality Band)</option>
               <option value="EXCELLENT">EXCELLENT</option>
@@ -461,7 +459,7 @@ export default function AdminAnalyticsHubPage() {
             <select
               value={freshnessFilter}
               onChange={(e) => setFreshnessFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800"
+              className="rounded-xl border border-line bg-canvas px-2.5 py-1.5 text-xs font-bold text-fg-primary"
             >
               <option value="">كل حالات الحداثة (Freshness)</option>
               <option value="FRESH">FRESH</option>
@@ -474,7 +472,7 @@ export default function AdminAnalyticsHubPage() {
             <select
               value={claimModeFilter}
               onChange={(e) => setClaimModeFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800"
+              className="rounded-xl border border-line bg-canvas px-2.5 py-1.5 text-xs font-bold text-fg-primary"
             >
               <option value="">كل أنماط الشراء (Access Type)</option>
               <option value="SHARED">مشترك (SHARED)</option>
@@ -486,7 +484,7 @@ export default function AdminAnalyticsHubPage() {
               placeholder="معرف المطور (Developer ID)"
               value={developerFilter}
               onChange={(e) => setDeveloperFilter(e.target.value)}
-              className="w-40 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800"
+              className="w-40 rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs font-semibold text-fg-primary"
             />
 
             {(sourceFilter ||
@@ -516,7 +514,7 @@ export default function AdminAnalyticsHubPage() {
                   setClaimModeFilter('');
                   setDeveloperFilter('');
                 }}
-                className="text-xs font-bold text-rose-600 hover:underline"
+                className="text-xs font-bold text-danger hover:underline"
               >
                 إعادة ضبط الفلاتر
               </button>
@@ -525,7 +523,7 @@ export default function AdminAnalyticsHubPage() {
         </div>
 
         {/* 5 Dashboard Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+        <div className="flex flex-wrap gap-2 border-b border-line pb-3">
           {[
             {
               id: 'executive' as DashboardTab,
@@ -561,8 +559,8 @@ export default function AdminAnalyticsHubPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-extrabold transition-all ${
                   isActive
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    ? 'bg-brand text-white shadow-sm'
+                    : 'bg-surface text-fg-secondary border border-line hover:bg-surface-subtle'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -573,7 +571,7 @@ export default function AdminAnalyticsHubPage() {
         </div>
 
         {bannerMessage && (
-          <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-900">
+          <div className="rounded-xl border border-line-brand bg-brand-soft px-4 py-3 text-xs font-bold text-brand-dark">
             {bannerMessage}
           </div>
         )}
@@ -582,15 +580,15 @@ export default function AdminAnalyticsHubPage() {
         {activeTab === 'executive' && overviewData && (
           <div className="space-y-6">
             {/* Layer 1 & Layer 2 Summary */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-base font-extrabold text-slate-900">
+                <h2 className="text-base font-extrabold text-fg-primary">
                   الطبقة 1 و 2: مخزون الفرص وجودة البيانات (Inventory & Quality Metrics)
                 </h2>
                 <button
                   onClick={handleMaterializeSnapshot}
                   disabled={actionBusy === 'snapshot'}
-                  className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
+                  className="rounded-xl border border-line-brand bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand-dark hover:bg-teal-100"
                 >
                   {actionBusy === 'snapshot'
                     ? 'جاري حفظ اللقطة...'
@@ -618,17 +616,17 @@ export default function AdminAnalyticsHubPage() {
                 <RateCard
                   titleAr="معدل التحقق (Verification Rate)"
                   metric={overviewData.layers?.layer2Quality?.verificationRate}
-                  accent="blue"
+                  accent="brand"
                 />
                 <RateCard
                   titleAr="معدل عدم الصلاحية (Invalid Rate)"
                   metric={overviewData.layers?.layer2Quality?.invalidRate}
-                  accent="rose"
+                  accent="danger"
                 />
                 <RateCard
                   titleAr="معدل التكرارات المكتشفة (Duplicate Rate)"
                   metric={overviewData.layers?.layer2Quality?.duplicateRate}
-                  accent="purple"
+                  accent="neutral"
                 />
                 <StatCard
                   titleAr="الفرص المتقادمة (Stale Leads)"
@@ -645,57 +643,57 @@ export default function AdminAnalyticsHubPage() {
             </div>
 
             {/* Layer 4 & 5: Matching & Sales Funnel */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-base font-extrabold text-slate-900">
+            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <h2 className="text-base font-extrabold text-fg-primary">
                 الطبقة 4 و 5: محرك المطابقة وقمع المبيعات (Matching & Sales Funnel Rates)
               </h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <RateCard
                   titleAr="معدل المطابقة المؤهلة (Match Rate)"
                   metric={overviewData.layers?.layer4Matching?.matchRate}
-                  accent="purple"
+                  accent="neutral"
                 />
                 <RateCard
                   titleAr="التحويل من مطابقة إلى شراء (Claims / Match)"
                   metric={overviewData.layers?.layer4Matching?.claimsPerMatchRate}
-                  accent="emerald"
+                  accent="brand"
                 />
                 <RateCard
                   titleAr="معدل الشراء العام (Claim Rate)"
                   metric={overviewData.layers?.layer5SalesFunnel?.claimRate}
-                  accent="emerald"
+                  accent="brand"
                 />
                 <RateCard
                   titleAr="معدل التواصل (Contact Rate)"
                   metric={overviewData.layers?.layer5SalesFunnel?.stageRates?.contactRate}
-                  accent="blue"
+                  accent="brand"
                 />
                 <RateCard
                   titleAr="معدل الرد من المتواصل معهم (Reply Rate)"
                   metric={overviewData.layers?.layer5SalesFunnel?.stageRates?.replyRate}
-                  accent="blue"
+                  accent="brand"
                 />
                 <RateCard
                   titleAr="معدل الاهتمام (Interest Rate)"
                   metric={overviewData.layers?.layer5SalesFunnel?.stageRates?.interestRate}
-                  accent="purple"
+                  accent="neutral"
                 />
                 <RateCard
                   titleAr="معدل الفوز من الاجتماعات (Win / Meetings)"
                   metric={overviewData.layers?.layer5SalesFunnel?.stageRates?.winRate}
-                  accent="emerald"
+                  accent="brand"
                 />
                 <RateCard
                   titleAr="معدل الفوز من إجمالي المشتراة (Win / Claimed)"
                   metric={overviewData.layers?.layer5SalesFunnel?.overallRates?.winRateOfClaimed}
-                  accent="emerald"
+                  accent="brand"
                 />
               </div>
             </div>
 
             {/* Layer 6: Economics & Revenue */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-base font-extrabold text-slate-900">
+            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <h2 className="text-base font-extrabold text-fg-primary">
                 الطبقة 6: الاقتصاديات والإيرادات المحققة (Economics & Realized Revenue)
               </h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -744,22 +742,22 @@ export default function AdminAnalyticsHubPage() {
                 <RateCard
                   titleAr="معدل استرداد النقاط (Refund Rate)"
                   metric={overviewData.layers?.layer6Economics?.credits?.refundRate}
-                  accent="amber"
+                  accent="warning"
                 />
               </div>
             </div>
 
             {/* Deterministic Operational Anomaly Flags */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-amber-600" />
-                <h2 className="text-base font-extrabold text-slate-900">
+                <h2 className="text-base font-extrabold text-fg-primary">
                   التنبيهات التشخيصية الحتمية (Deterministic Operational Anomaly Flags)
                 </h2>
               </div>
               <div className="mt-4 space-y-2.5">
                 {overviewData.anomalyFlags?.length === 0 ? (
-                  <p className="text-xs font-semibold text-slate-500">
+                  <p className="text-xs font-semibold text-fg-muted">
                     لا توجد انحرافات تشغيلية تتجاوز العتبات الحتمية في هذه الفترة.
                   </p>
                 ) : (
@@ -768,15 +766,15 @@ export default function AdminAnalyticsHubPage() {
                       key={`${anom.code}-${idx}`}
                       className={`flex flex-col justify-between gap-2 rounded-xl border p-3.5 text-xs sm:flex-row sm:items-center ${
                         anom.severity === 'CRITICAL'
-                          ? 'border-rose-300 bg-rose-50 text-rose-900'
+                          ? 'border-red-300 bg-red-50 text-red-900'
                           : anom.severity === 'WARNING'
                             ? 'border-amber-300 bg-amber-50 text-amber-900'
-                            : 'border-blue-200 bg-blue-50 text-blue-900'
+                            : 'border-line bg-surface text-fg-primary'
                       }`}
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="rounded bg-white/80 px-2 py-0.5 font-mono text-[10px] font-bold">
+                          <span className="rounded bg-surface/80 px-2 py-0.5 font-mono text-[10px] font-bold">
                             {anom.code}
                           </span>
                           <span className="font-extrabold">
@@ -804,23 +802,23 @@ export default function AdminAnalyticsHubPage() {
           <div className="space-y-6">
             {/* Funnel & Reasons */}
             {funnelData && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-extrabold text-slate-900">
+              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+                <h2 className="text-base font-extrabold text-fg-primary">
                   تفصيل قمع المبيعات، المقامات، وأسباب الخسارة وعدم الصلاحية (Funnel & Reason Analysis)
                 </h2>
                 <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-7">
                   {funnelData.funnel?.stages?.map((st: any) => (
                     <div
                       key={st.stage}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center"
+                      className="rounded-xl border border-line bg-canvas p-3 text-center"
                     >
-                      <span className="block font-mono text-[10px] font-bold uppercase text-slate-500">
+                      <span className="block font-mono text-[10px] font-bold uppercase text-fg-muted">
                         {st.stage}
                       </span>
-                      <span className="mt-1 block text-xl font-extrabold text-slate-900">
+                      <span className="mt-1 block text-xl font-extrabold text-fg-primary">
                         {st.count}
                       </span>
-                      <span className="mt-0.5 block font-mono text-[10px] text-emerald-700">
+                      <span className="mt-0.5 block font-mono text-[10px] text-brand">
                         {st.conversionFromClaimed?.displayValue} من المشتراة
                       </span>
                     </div>
@@ -830,17 +828,17 @@ export default function AdminAnalyticsHubPage() {
                 {/* Lost & Invalid Reasons */}
                 <div className="mt-6 grid gap-6 lg:grid-cols-2">
                   <div>
-                    <h3 className="text-xs font-extrabold text-slate-700">
+                    <h3 className="text-xs font-extrabold text-fg-secondary">
                       توزيع أسباب خسارة الصفقات (Lost Deal Reasons)
                     </h3>
                     <div className="mt-2 space-y-1.5">
                       {funnelData.lostReasonAnalysis?.reasons?.map((r: any) => (
                         <div
                           key={r.reasonCode}
-                          className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs"
+                          className="flex items-center justify-between rounded-lg bg-canvas px-3 py-2 text-xs"
                         >
-                          <span className="font-mono font-bold text-slate-800">{r.reasonCode}</span>
-                          <span className="font-mono font-bold text-rose-700">
+                          <span className="font-mono font-bold text-fg-primary">{r.reasonCode}</span>
+                          <span className="font-mono font-bold text-danger">
                             {r.count} ({r.rate?.displayValue})
                           </span>
                         </div>
@@ -848,16 +846,16 @@ export default function AdminAnalyticsHubPage() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xs font-extrabold text-slate-700">
+                    <h3 className="text-xs font-extrabold text-fg-secondary">
                       توزيع أسباب عدم الصلاحية والاسترداد (Invalid Lead Reasons)
                     </h3>
                     <div className="mt-2 space-y-1.5">
                       {funnelData.invalidReasonAnalysis?.reasons?.map((r: any) => (
                         <div
                           key={r.reasonCode}
-                          className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs"
+                          className="flex items-center justify-between rounded-lg bg-canvas px-3 py-2 text-xs"
                         >
-                          <span className="font-mono font-bold text-slate-800">{r.reasonCode}</span>
+                          <span className="font-mono font-bold text-fg-primary">{r.reasonCode}</span>
                           <span className="font-mono font-bold text-amber-700">
                             {r.count} ({r.rate?.displayValue})
                           </span>
@@ -871,25 +869,25 @@ export default function AdminAnalyticsHubPage() {
 
             {/* Lead Performance Breakdowns (Section 36) */}
             {leadsData && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-extrabold text-slate-900">
+              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+                <h2 className="text-base font-extrabold text-fg-primary">
                   أداء الفرص حسب درجة الفرصة، الجودة، الحداثة، ونمط الشراء (Lead Performance Breakdowns)
                 </h2>
                 <div className="mt-4 grid gap-6 lg:grid-cols-2">
                   <div>
-                    <h3 className="text-xs font-extrabold text-slate-700">
+                    <h3 className="text-xs font-extrabold text-fg-secondary">
                       حسب فئة درجة الفرصة (Opportunity Score Bands)
                     </h3>
                     <div className="mt-2 space-y-1.5">
                       {leadsData.byScoreBand?.map((b: any) => (
                         <div
                           key={b.scoreBand}
-                          className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold"
+                          className="flex items-center justify-between rounded-lg bg-canvas px-3 py-2 text-xs font-semibold"
                         >
-                          <span className="font-mono font-bold text-slate-900">
+                          <span className="font-mono font-bold text-fg-primary">
                             {b.scoreBand} ({b.leadsCount} فرصة / {b.claimsCount} شراء)
                           </span>
-                          <span className="font-mono text-emerald-700">
+                          <span className="font-mono text-brand">
                             شراء: {b.rates?.claimRate?.displayValue} | فوز: {b.rates?.winRate?.displayValue}
                           </span>
                         </div>
@@ -897,19 +895,19 @@ export default function AdminAnalyticsHubPage() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xs font-extrabold text-slate-700">
+                    <h3 className="text-xs font-extrabold text-fg-secondary">
                       حسب فئة الجودة والحداثة ونمط الوصول (Quality, Freshness & Shared vs Exclusive)
                     </h3>
                     <div className="mt-2 space-y-1.5">
                       {leadsData.byQualityBand?.map((q: any) => (
                         <div
                           key={q.qualityBand}
-                          className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-semibold"
+                          className="flex items-center justify-between rounded-lg bg-canvas px-3 py-1.5 text-xs font-semibold"
                         >
-                          <span className="font-mono text-slate-800">
+                          <span className="font-mono text-fg-primary">
                             جودة {q.qualityBand} ({q.leadsCount} فرصة)
                           </span>
-                          <span className="font-mono text-blue-700">
+                          <span className="font-mono text-fg-secondary">
                             فوز: {q.rates?.winRate?.displayValue} | غير صالح: {q.rates?.invalidRate?.displayValue}
                           </span>
                         </div>
@@ -917,12 +915,12 @@ export default function AdminAnalyticsHubPage() {
                       {leadsData.sharedVsExclusive?.map((acc: any) => (
                         <div
                           key={acc.accessType}
-                          className="flex items-center justify-between rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-1.5 text-xs font-bold"
+                          className="flex items-center justify-between rounded-lg border border-line-brand bg-brand-soft/40 px-3 py-1.5 text-xs font-bold"
                         >
-                          <span className="font-mono text-emerald-950">
+                          <span className="font-mono text-brand-dark">
                             نمط {acc.accessType} ({acc.leadsCount} فرصة / {acc.claimsCount} شراء)
                           </span>
-                          <span className="font-mono text-emerald-800">
+                          <span className="font-mono text-brand-dark">
                             فوز: {acc.rates?.winRate?.displayValue} | إيراد: {acc.attributedRevenueEgp?.toLocaleString()} ج.م
                           </span>
                         </div>
@@ -935,17 +933,17 @@ export default function AdminAnalyticsHubPage() {
 
             {/* Origin Sources Table */}
             {sourcesData && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-extrabold text-slate-900">
+              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+                <h2 className="text-base font-extrabold text-fg-primary">
                   أداء المصادر ونسب الإسناد (Primary Origin vs Secondary Enrichment & Verification)
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-fg-muted">
                   يتم إسناد حجم الـ Leads والإيرادات للمصدر الأصلي فقط (Origin Source) لمنع الازدواج الحسابي (Zero Double-Counting).
                 </p>
                 <div className="mt-4 overflow-x-auto">
-                  <table className="w-full text-right text-xs">
+                  <table className="w-full text-start text-xs">
                     <thead>
-                      <tr className="border-b border-slate-200 text-slate-500">
+                      <tr className="border-b border-line text-fg-muted">
                         <th className="py-2.5 px-3">المصدر (Source)</th>
                         <th className="py-2.5 px-3">النوع</th>
                         <th className="py-2.5 px-3">كمصدر أصلي (Unique)</th>
@@ -957,15 +955,15 @@ export default function AdminAnalyticsHubPage() {
                         <th className="py-2.5 px-3">الإيراد المسند (ج.م)</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-semibold">
+                    <tbody className="divide-y divide-line font-semibold">
                       {sourcesData.allSourcesSummary?.map((s: any) => (
                         <tr key={s.sourceName}>
-                          <td className="py-2.5 px-3 font-mono font-bold text-slate-900">
+                          <td className="py-2.5 px-3 font-mono font-bold text-fg-primary">
                             {s.sourceName}
                           </td>
-                          <td className="py-2.5 px-3 text-slate-500">{s.sourceType}</td>
+                          <td className="py-2.5 px-3 text-fg-muted">{s.sourceType}</td>
                           <td className="py-2.5 px-3 font-bold">{s.uniqueLeads}</td>
-                          <td className="py-2.5 px-3 text-slate-500">
+                          <td className="py-2.5 px-3 text-fg-muted">
                             {s.attribution?.enrichmentLeadsCount ??
                               s.provenance?.enrichmentContributions ??
                               0}
@@ -975,11 +973,11 @@ export default function AdminAnalyticsHubPage() {
                             {s.claimRate?.displayValue} ({s.claimRate?.numerator}/
                             {s.claimRate?.denominator})
                           </td>
-                          <td className="py-2.5 px-3 text-emerald-700">
+                          <td className="py-2.5 px-3 text-brand">
                             {s.winRate?.displayValue} ({s.winRate?.numerator}/
                             {s.winRate?.denominator})
                           </td>
-                          <td className="py-2.5 px-3 text-rose-700">{s.invalidLeads}</td>
+                          <td className="py-2.5 px-3 text-danger">{s.invalidLeads}</td>
                           <td className="py-2.5 px-3 font-bold">
                             {s.attributedRevenueEgp?.toLocaleString()} ج.م
                           </td>
@@ -993,29 +991,29 @@ export default function AdminAnalyticsHubPage() {
 
             {/* Niches, Locations & Services */}
             <div className="grid gap-6 lg:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="text-sm font-extrabold text-slate-900">
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+                <h3 className="text-sm font-extrabold text-fg-primary">
                   أداء القطاعات (Niches / Categories)
                 </h3>
                 <div className="mt-3 space-y-2">
                   {nichesData?.allNichesSummary?.map((n: any) => (
                     <div
                       key={n.niche}
-                      className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs"
+                      className="flex items-center justify-between rounded-xl border border-line bg-canvas p-3 text-xs"
                     >
                       <div>
-                        <span className="font-extrabold text-slate-800">
+                        <span className="font-extrabold text-fg-primary">
                           {n.labelAr || n.niche}
                         </span>
-                        <span className="block text-[11px] text-slate-500">
+                        <span className="block text-[11px] text-fg-muted">
                           {n.leads} فرصة | {n.claims} مشتراة
                         </span>
                       </div>
                       <div className="text-left">
-                        <span className="block font-bold text-emerald-700">
+                        <span className="block font-bold text-brand">
                           فوز: {n.winRate?.displayValue}
                         </span>
-                        <span className="block text-[11px] text-slate-500">
+                        <span className="block text-[11px] text-fg-muted">
                           {n.revenueEgp?.toLocaleString()} ج.م
                         </span>
                       </div>
@@ -1024,27 +1022,27 @@ export default function AdminAnalyticsHubPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="text-sm font-extrabold text-slate-900">
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+                <h3 className="text-sm font-extrabold text-fg-primary">
                   أداء المدن والمحافظات (Locations)
                 </h3>
                 <div className="mt-3 space-y-2">
                   {locationsData?.cities?.map((loc: any) => (
                     <div
                       key={`${loc.governorate}-${loc.city}`}
-                      className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs"
+                      className="flex items-center justify-between rounded-xl border border-line bg-canvas p-3 text-xs"
                     >
                       <div>
-                        <span className="font-extrabold text-slate-800">{loc.city}</span>
-                        <span className="block text-[11px] text-slate-500">
+                        <span className="font-extrabold text-fg-primary">{loc.city}</span>
+                        <span className="block text-[11px] text-fg-muted">
                           {loc.totalLeads} فرصة | {loc.claims} مشتراة
                         </span>
                       </div>
                       <div className="text-left">
-                        <span className="block font-bold text-emerald-700">
+                        <span className="block font-bold text-brand">
                           فوز: {loc.winRate?.displayValue}
                         </span>
-                        <span className="block text-[11px] text-slate-500">
+                        <span className="block text-[11px] text-fg-muted">
                           شراء: {loc.claimRate?.displayValue}
                         </span>
                       </div>
@@ -1053,29 +1051,29 @@ export default function AdminAnalyticsHubPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="text-sm font-extrabold text-slate-900">
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+                <h3 className="text-sm font-extrabold text-fg-primary">
                   أداء الخدمات المطلوبة (Required Services)
                 </h3>
                 <div className="mt-3 space-y-2">
                   {servicesData?.allServicesSummary?.map((srv: any) => (
                     <div
                       key={srv.service}
-                      className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs"
+                      className="flex items-center justify-between rounded-xl border border-line bg-canvas p-3 text-xs"
                     >
                       <div>
-                        <span className="font-extrabold text-slate-800">
+                        <span className="font-extrabold text-fg-primary">
                           {srv.labelAr || srv.service}
                         </span>
-                        <span className="block text-[11px] text-slate-500">
+                        <span className="block text-[11px] text-fg-muted">
                           {srv.totalLeads} فرصة | {srv.claims} مشتراة
                         </span>
                       </div>
                       <div className="text-left">
-                        <span className="block font-bold text-emerald-700">
+                        <span className="block font-bold text-brand">
                           فوز: {srv.winRate?.displayValue}
                         </span>
-                        <span className="block text-[11px] text-slate-500">
+                        <span className="block text-[11px] text-fg-muted">
                           {srv.revenueEgp?.toLocaleString()} ج.م
                         </span>
                       </div>
@@ -1089,14 +1087,14 @@ export default function AdminAnalyticsHubPage() {
 
         {/* TAB 3: DEVELOPERS PERFORMANCE */}
         {activeTab === 'developers' && developersData && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-base font-extrabold text-slate-900">
+          <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+            <h2 className="text-base font-extrabold text-fg-primary">
               لوحة أداء المطورين والمشتركين (Developer Performance & Conversion Table)
             </h2>
             <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-right text-xs">
+              <table className="w-full text-start text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-500">
+                  <tr className="border-b border-line text-fg-muted">
                     <th className="py-2.5 px-3">المطور (Developer)</th>
                     <th className="py-2.5 px-3">الباقة</th>
                     <th className="py-2.5 px-3">الـ Leads المشتراة</th>
@@ -1109,15 +1107,15 @@ export default function AdminAnalyticsHubPage() {
                     <th className="py-2.5 px-3">الإيراد المحقق</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-semibold">
+                <tbody className="divide-y divide-line font-semibold">
                   {developersData.developers?.map((dev: any) => (
                     <tr key={dev.developerId}>
                       <td className="py-2.5 px-3">
-                        <span className="font-bold text-slate-900">{dev.name}</span>
-                        <span className="block text-[11px] text-slate-400">{dev.email}</span>
+                        <span className="font-bold text-fg-primary">{dev.name}</span>
+                        <span className="block text-[11px] text-fg-muted">{dev.email}</span>
                       </td>
                       <td className="py-2.5 px-3">
-                        <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+                        <span className="rounded bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand">
                           {dev.planName}
                         </span>
                       </td>
@@ -1126,19 +1124,19 @@ export default function AdminAnalyticsHubPage() {
                         {dev.contactRate?.displayValue} ({dev.contactRate?.numerator}/
                         {dev.contactRate?.denominator})
                       </td>
-                      <td className="py-2.5 px-3 text-blue-700">
+                      <td className="py-2.5 px-3 text-fg-secondary">
                         {dev.replyRate?.displayValue} ({dev.replyRate?.numerator}/
                         {dev.replyRate?.denominator})
                       </td>
-                      <td className="py-2.5 px-3 text-purple-700">
+                      <td className="py-2.5 px-3 text-fg-secondary">
                         {dev.meetingRate?.displayValue}
                       </td>
-                      <td className="py-2.5 px-3 font-bold text-emerald-700">
+                      <td className="py-2.5 px-3 font-bold text-brand">
                         {dev.winRate?.displayValue} ({dev.winRate?.numerator}/
                         {dev.winRate?.denominator})
                       </td>
                       <td className="py-2.5 px-3 font-mono">{dev.creditsConsumed}</td>
-                      <td className="py-2.5 px-3 font-bold text-emerald-800">
+                      <td className="py-2.5 px-3 font-bold text-brand-dark">
                         {dev.estimatedProjectValueEgp?.toLocaleString()} ج.م
                       </td>
                       <td className="py-2.5 px-3">
@@ -1155,52 +1153,52 @@ export default function AdminAnalyticsHubPage() {
         {/* TAB 4: DATA QUALITY DASHBOARD */}
         {activeTab === 'quality' && qualityData && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-base font-extrabold text-slate-900">
+            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <h2 className="text-base font-extrabold text-fg-primary">
                 مؤشرات اكتمال البيانات والتكرارات والحداثة (Data Completeness, Deduplication & Freshness)
               </h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <RateCard
                   titleAr="نسبة نقص الهاتف (Missing Phone Rate)"
                   metric={qualityData.summary?.rates?.missingPhoneRate}
-                  accent="amber"
+                  accent="warning"
                 />
                 <RateCard
                   titleAr="نسبة نقص البريد (Missing Email Rate)"
                   metric={qualityData.summary?.rates?.missingEmailRate}
-                  accent="blue"
+                  accent="brand"
                 />
                 <RateCard
                   titleAr="نسبة الهاتف غير الصالح (Invalid Phone Rate)"
                   metric={qualityData.summary?.rates?.invalidPhoneRate}
-                  accent="rose"
+                  accent="danger"
                 />
                 <RateCard
                   titleAr="نسبة التقادم (Stale Lead Rate)"
                   metric={qualityData.summary?.rates?.staleRate}
-                  accent="amber"
+                  accent="warning"
                 />
                 <RateCard
                   titleAr="نسبة الحاجة للتحقق (Requires Verification)"
                   metric={qualityData.summary?.rates?.requiresVerificationRate}
-                  accent="purple"
+                  accent="neutral"
                 />
                 <RateCard
                   titleAr="نسبة الفرص غير الصالحة (Invalid Lead Rate)"
                   metric={qualityData.summary?.rates?.invalidRate}
-                  accent="rose"
+                  accent="danger"
                 />
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h3 className="text-sm font-extrabold text-slate-900">
+            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+              <h3 className="text-sm font-extrabold text-fg-primary">
                 سجل الفرص التي تتطلب معالجة جودة (Problem Leads Queue)
               </h3>
               <div className="mt-3 overflow-x-auto">
-                <table className="w-full text-right text-xs">
+                <table className="w-full text-start text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-500">
+                    <tr className="border-b border-line text-fg-muted">
                       <th className="py-2 px-2">اسم النشاط</th>
                       <th className="py-2 px-2">المصدر الأصلي</th>
                       <th className="py-2 px-2">القطاع</th>
@@ -1210,16 +1208,16 @@ export default function AdminAnalyticsHubPage() {
                       <th className="py-2 px-2">المشكلات المرصودة</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-semibold">
+                  <tbody className="divide-y divide-line font-semibold">
                     {qualityData.problemLeads?.map((p: any) => (
                       <tr key={p.leadId}>
-                        <td className="py-2 px-2 font-bold text-slate-900">{p.businessName}</td>
+                        <td className="py-2 px-2 font-bold text-fg-primary">{p.businessName}</td>
                         <td className="py-2 px-2 font-mono">{p.source}</td>
                         <td className="py-2 px-2">{p.niche}</td>
                         <td className="py-2 px-2">{p.city}</td>
                         <td className="py-2 px-2 font-mono">{p.qualityScore}</td>
                         <td className="py-2 px-2">{p.freshness}</td>
-                        <td className="py-2 px-2 font-mono text-rose-700">
+                        <td className="py-2 px-2 font-mono text-danger">
                           {p.issues?.join(' | ')}
                         </td>
                       </tr>
@@ -1235,16 +1233,16 @@ export default function AdminAnalyticsHubPage() {
         {activeTab === 'flywheel' && (
           <div className="space-y-6">
             {/* Governance Safeguard Callout */}
-            <div className="rounded-2xl border border-indigo-200 bg-indigo-50/70 p-5">
+            <div className="rounded-2xl border border-line-brand bg-brand-soft/40 p-5">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                  <span className="rounded bg-indigo-200 px-2 py-0.5 text-[10px] font-extrabold text-indigo-900">
+                  <span className="rounded bg-brand-soft px-2 py-0.5 text-[10px] font-extrabold text-brand-dark">
                     HUMAN-IN-THE-LOOP GOVERNANCE
                   </span>
-                  <h2 className="mt-1 text-base font-extrabold text-indigo-950">
+                  <h2 className="mt-1 text-base font-extrabold text-brand-dark">
                     حلقة تحسين القواعد الحتمية وطابور المراجعة البشرية (Deterministic Rule Review Queue)
                   </h2>
-                  <p className="mt-0.5 text-xs text-indigo-800">
+                  <p className="mt-0.5 text-xs text-brand">
                     لا يتم تعديل أي أوزان أو قواعد إنتاجية تلقائياً. يقوم المحرك بحساب الفارق الإحصائي (Lift / Delta) مقارنةً بخط الأساس مع اشتراط الحد الأدنى لحجم العينة، ثم يضع المقترحات في طابور المراجعة لاعتمادها أو رفضها من مدير النظام.
                   </p>
                 </div>
@@ -1252,7 +1250,7 @@ export default function AdminAnalyticsHubPage() {
                 <button
                   onClick={handleGenerateRuleCandidates}
                   disabled={actionBusy === 'generate-candidates'}
-                  className="shrink-0 rounded-xl bg-indigo-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-indigo-800"
+                  className="shrink-0 rounded-xl bg-brand px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-brand-hover"
                 >
                   {actionBusy === 'generate-candidates'
                     ? 'جاري الفحص الحتمي...'
@@ -1262,16 +1260,16 @@ export default function AdminAnalyticsHubPage() {
             </div>
 
             {/* Rule Review Candidates Queue */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-base font-extrabold text-slate-900">
+                <h3 className="text-base font-extrabold text-fg-primary">
                   طابور مراجعة القواعد (RuleReviewCandidate Queue)
                 </h3>
                 <div className="flex items-center gap-2">
                   <select
                     value={reviewStatusFilter}
                     onChange={(e) => setReviewStatusFilter(e.target.value)}
-                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold"
+                    className="rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs font-bold"
                   >
                     <option value="">كل الحالات</option>
                     <option value="OPEN">مفتوح (OPEN)</option>
@@ -1284,7 +1282,7 @@ export default function AdminAnalyticsHubPage() {
                   <select
                     value={reviewTypeFilter}
                     onChange={(e) => setReviewTypeFilter(e.target.value)}
-                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold"
+                    className="rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs font-bold"
                   >
                     <option value="">كل أنواع القواعد</option>
                     <option value="SCORING">التقييم (SCORING)</option>
@@ -1296,50 +1294,50 @@ export default function AdminAnalyticsHubPage() {
 
               <div className="mt-4 space-y-3">
                 {reviewCandidatesData?.candidates?.length === 0 ? (
-                  <p className="py-6 text-center text-xs font-semibold text-slate-500">
+                  <p className="py-6 text-center text-xs font-semibold text-fg-muted">
                     لا توجد مقترحات مطابقة للفلاتر الحالية.
                   </p>
                 ) : (
                   reviewCandidatesData?.candidates?.map((cand: any) => (
                     <div
                       key={cand.id}
-                      className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-xs"
+                      className="rounded-xl border border-line bg-canvas/70 p-4 text-xs"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span className="rounded bg-slate-900 px-2 py-0.5 font-mono text-[10px] font-bold text-white">
                             {cand.ruleType}
                           </span>
-                          <span className="font-mono text-sm font-extrabold text-slate-900">
+                          <span className="font-mono text-sm font-extrabold text-fg-primary">
                             {cand.ruleKey}
                           </span>
-                          <span className="rounded bg-slate-200 px-2 py-0.5 font-mono text-[10px] text-slate-700">
+                          <span className="rounded bg-slate-200 px-2 py-0.5 font-mono text-[10px] text-fg-secondary">
                             {cand.ruleVersion}
                           </span>
                         </div>
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${
                             cand.status === 'APPROVED'
-                              ? 'bg-emerald-100 text-emerald-800'
+                              ? 'bg-brand-soft text-brand-dark'
                               : cand.status === 'REJECTED'
-                                ? 'bg-rose-100 text-rose-800'
+                                ? 'bg-red-100 text-red-800'
                                 : cand.status === 'DEFERRED'
                                   ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-blue-100 text-blue-800'
+                                  : 'bg-surface-subtle text-fg-secondary'
                           }`}
                         >
                           {cand.status}
                         </span>
                       </div>
 
-                      <p className="mt-2 font-bold text-indigo-900">{cand.recommendation}</p>
+                      <p className="mt-2 font-bold text-brand-dark">{cand.recommendation}</p>
                       {cand.decision && (
-                        <p className="mt-1 font-semibold text-slate-700">
+                        <p className="mt-1 font-semibold text-fg-secondary">
                           قرار المراجع: {cand.decision} {cand.notes ? `— ${cand.notes}` : ''}
                         </p>
                       )}
 
-                      <div className="mt-2 flex flex-wrap items-center gap-4 font-mono text-[11px] text-slate-600">
+                      <div className="mt-2 flex flex-wrap items-center gap-4 font-mono text-[11px] text-fg-secondary">
                         <span>
                           حجم العينة: {cand.sampleSize} (الحد الأدنى: {cand.minimumSampleSize})
                         </span>
@@ -1348,15 +1346,15 @@ export default function AdminAnalyticsHubPage() {
                         <span
                           className={
                             cand.absoluteDifference >= 0
-                              ? 'font-bold text-emerald-700'
-                              : 'font-bold text-rose-700'
+                              ? 'font-bold text-brand'
+                              : 'font-bold text-danger'
                           }
                         >
                           الفارق (Delta): {(cand.absoluteDifference * 100).toFixed(1)}%
                         </span>
                       </div>
 
-                      <div className="mt-3 flex flex-col gap-2 border-t border-slate-200 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="mt-3 flex flex-col gap-2 border-t border-line pt-3 sm:flex-row sm:items-center sm:justify-between">
                         <input
                           type="text"
                           placeholder="ملاحظات قرار المراجعة البشرية (Decision Notes)..."
@@ -1367,13 +1365,13 @@ export default function AdminAnalyticsHubPage() {
                               [cand.id]: e.target.value,
                             }))
                           }
-                          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs"
+                          className="flex-1 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs"
                         />
                         <div className="flex flex-wrap items-center gap-1.5">
                           <button
                             onClick={() => handleCandidateDecision(cand.id, 'APPROVED')}
                             disabled={actionBusy === cand.id}
-                            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700"
+                            className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-hover"
                           >
                             اعتماد (Approve)
                           </button>
@@ -1387,7 +1385,7 @@ export default function AdminAnalyticsHubPage() {
                           <button
                             onClick={() => handleCandidateDecision(cand.id, 'REJECTED')}
                             disabled={actionBusy === cand.id}
-                            className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700"
+                            className="rounded-lg bg-danger px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700"
                           >
                             رفض (Reject)
                           </button>
@@ -1401,14 +1399,14 @@ export default function AdminAnalyticsHubPage() {
 
             {/* Scoring, Matching & Quality Rule Performance Table */}
             {rulesData && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-base font-extrabold text-slate-900">
+              <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+                <h3 className="text-base font-extrabold text-fg-primary">
                   جدول الأداء الإحصائي لقواعد التقييم والمطابقة والجودة (Rule Performance vs Baseline)
                 </h3>
                 <div className="mt-4 overflow-x-auto">
-                  <table className="w-full text-right text-xs">
+                  <table className="w-full text-start text-xs">
                     <thead>
-                      <tr className="border-b border-slate-200 text-slate-500">
+                      <tr className="border-b border-line text-fg-muted">
                         <th className="py-2.5 px-3">نوع القاعدة</th>
                         <th className="py-2.5 px-3">مفتاح القاعدة (Rule Key)</th>
                         <th className="py-2.5 px-3">النقاط</th>
@@ -1420,15 +1418,15 @@ export default function AdminAnalyticsHubPage() {
                         <th className="py-2.5 px-3">الحالة الإحصائية</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-semibold">
+                    <tbody className="divide-y divide-line font-semibold">
                       {rulesData.allRules?.map((r: any) => (
                         <tr key={`${r.ruleType}-${r.ruleKey}`}>
-                          <td className="py-2.5 px-3 font-mono text-[11px] font-bold text-slate-600">
+                          <td className="py-2.5 px-3 font-mono text-[11px] font-bold text-fg-secondary">
                             {r.ruleType}
                           </td>
                           <td className="py-2.5 px-3">
-                            <span className="font-mono font-bold text-slate-900">{r.ruleKey}</span>
-                            <span className="block text-[11px] text-slate-500">{r.ruleName}</span>
+                            <span className="font-mono font-bold text-fg-primary">{r.ruleKey}</span>
+                            <span className="block text-[11px] text-fg-muted">{r.ruleName}</span>
                           </td>
                           <td className="py-2.5 px-3 font-mono">
                             {r.points >= 0 ? `+${r.points}` : r.points}
@@ -1442,11 +1440,11 @@ export default function AdminAnalyticsHubPage() {
                               </span>
                             )}
                           </td>
-                          <td className="py-2.5 px-3 text-emerald-700">
+                          <td className="py-2.5 px-3 text-brand">
                             {r.withRule?.winRate?.displayValue} ({r.withRule?.winRate?.numerator}/
                             {r.withRule?.winRate?.denominator})
                           </td>
-                          <td className="py-2.5 px-3 text-slate-600">
+                          <td className="py-2.5 px-3 text-fg-secondary">
                             {r.withoutRule?.winRate?.displayValue}
                           </td>
                           <td className="py-2.5 px-3 font-mono">
@@ -1455,8 +1453,8 @@ export default function AdminAnalyticsHubPage() {
                               <span
                                 className={
                                   r.comparison.winRateLiftAbsolute >= 0
-                                    ? 'text-emerald-700'
-                                    : 'text-rose-700'
+                                    ? 'text-brand'
+                                    : 'text-danger'
                                 }
                               >
                                 {(r.comparison.winRateLiftAbsolute * 100).toFixed(1)}%
@@ -1469,10 +1467,10 @@ export default function AdminAnalyticsHubPage() {
                             <span
                               className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-extrabold ${
                                 r.comparison?.flaggedForReview
-                                  ? 'bg-rose-100 text-rose-800'
+                                  ? 'bg-red-100 text-red-800'
                                   : r.sampleStatus === 'INSUFFICIENT_SAMPLE'
-                                    ? 'bg-slate-100 text-slate-600'
-                                    : 'bg-emerald-100 text-emerald-800'
+                                    ? 'bg-slate-100 text-fg-secondary'
+                                    : 'bg-brand-soft text-brand-dark'
                               }`}
                             >
                               {r.comparison?.flaggedForReview
