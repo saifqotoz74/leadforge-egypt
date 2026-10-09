@@ -2,21 +2,23 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AppShell } from '@/components/AppShell';
+import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { StatTile } from '@/components/domain/StatTile';
+import { OpportunityBadge, LeadTemperature } from '@/components/domain/OpportunityBadge';
+import { StageBadge, PipelineStage } from '@/components/domain/StageBadge';
+import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { CATEGORY_LABELS_AR, PIPELINE_STATUS_LABELS } from '@/lib/constants';
+import { fmtNumber } from '@/lib/format';
 import {
-  Flame,
-  Sun,
-  Sparkles,
-  CheckCircle2,
-  Coins,
-  Calendar,
   TrendingUp,
-  ArrowLeft,
+  Settings,
   Compass,
   Briefcase,
-  Settings,
+  ChevronLeft,
 } from 'lucide-react';
-import { CATEGORY_LABELS_AR, PIPELINE_STATUS_LABELS, TEMPERATURE_LABELS } from '@/lib/constants';
 
 interface DashboardData {
   stats: {
@@ -77,7 +79,6 @@ interface DashboardData {
       summary?: string;
       summaryAr?: string;
     };
-    warnings?: Array<{ key: string; reason: string; reasonAr: string }>;
     matchEvaluation?: {
       matchStrength?: number;
       matchedCriteria?: string[];
@@ -116,260 +117,115 @@ export default function DeveloperDashboardPage() {
     load();
   }, []);
 
-  return (
-    <AppShell>
-      {loading || !data ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="h-28 animate-pulse rounded-2xl border border-slate-200 bg-white p-5"
-            />
-          ))}
+  if (loading || !data) {
+    return (
+      <AppShell density="compact" pageTitle="لوحة القيادة">
+        <div className="flex flex-col gap-6">
+          <Skeleton className="h-10 w-48 rounded" />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-lg" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-8">
+              <Skeleton className="h-72 w-full rounded-xl" />
+            </div>
+            <div className="lg:col-span-4">
+              <Skeleton className="h-72 w-full rounded-xl" />
+            </div>
+          </div>
         </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Top KPI Grid (Section 4 requirements) */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>الـ Leads الجديدة المطابقة</span>
-                <Sparkles className="h-4 w-4 text-emerald-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                {data.stats.newMatchedLeadsCount}
-              </p>
-              <span className="text-[11px] font-semibold text-emerald-600">
-                متوافقة مع ملفك الشخصي
-              </span>
-            </div>
+      </AppShell>
+    );
+  }
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>عدد الـ Hot Leads</span>
-                <Flame className="h-4 w-4 text-rose-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-rose-700">
-                {data.stats.hotLeadsCount}
-              </p>
-              <span className="text-[11px] font-semibold text-slate-500">
-                تقييم 70 إلى 100 نقطة
-              </span>
-            </div>
+  return (
+    <AppShell
+      density="compact"
+      pageTitle="لوحة القيادة"
+      userCredits={data.stats.remainingCredits}
+    >
+      <div className="flex flex-col gap-6">
+        {/* Template T11 PageHeader */}
+        <PageHeader
+          title="لوحة القيادة"
+          description="نظرة شاملة على الفرص المطابقة لملفك، أداء التحويل، والرصيد المتبقي."
+          actions={
+            <Link href="/leads">
+              <Button variant="primary" size="sm">
+                استعراض الفرص
+              </Button>
+            </Link>
+          }
+        />
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>عدد الـ Warm Leads</span>
-                <Sun className="h-4 w-4 text-amber-500" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-amber-700">
-                {data.stats.warmLeadsCount}
-              </p>
-              <span className="text-[11px] font-semibold text-slate-500">
-                تقييم 50 إلى 69 نقطة
-              </span>
-            </div>
+        {/* Template T11: Slim Row of Summary Tiles Above Actionable Content */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <StatTile
+            label="الفرص المطابقة"
+            value={data.stats.newMatchedLeadsCount}
+            unit="فرصة"
+            statusText="متوافقة مع ملفك"
+          />
+          <StatTile
+            label="الفرص الساخنة"
+            value={data.stats.hotLeadsCount}
+            unit="فرصة"
+            statusText="تقييم 70+"
+          />
+          <StatTile
+            label="الفرص الدافئة"
+            value={data.stats.warmLeadsCount}
+            unit="فرصة"
+            statusText="تقييم 50 – 69"
+          />
+          <StatTile
+            label="الصفقات المفتوحة"
+            value={data.stats.usedLeadsCount}
+            unit="صفقة"
+            statusText="في قائمة عملائك"
+          />
+          <StatTile
+            label="الرصيد المتبقي"
+            value={data.stats.remainingCredits}
+            unit="نقطة"
+            statusText="جاهزة للاستخدام"
+          />
+          <StatTile
+            label="إضافات الأسبوع"
+            value={data.stats.leadsThisWeekCount}
+            unit="فرصة"
+            statusText="آخر 7 أيام"
+          />
+        </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>الـ Leads المستخدمة</span>
-                <CheckCircle2 className="h-4 w-4 text-blue-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                {data.stats.usedLeadsCount}
-              </p>
-              <span className="text-[11px] font-semibold text-slate-500">
-                في قائمة عملائك الحالية
-              </span>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>الرصيد / المتاحة لك</span>
-                <Coins className="h-4 w-4 text-emerald-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-emerald-700">
-                {data.stats.remainingCredits}{' '}
-                <span className="text-xs font-normal text-slate-400">
-                  ({data.stats.availableLeadsCount} فرصة بالمنصة)
-                </span>
-              </p>
-              <span className="text-[11px] font-semibold text-slate-500">نقطة رصيد متبقية</span>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                <span>Leads هذا الأسبوع</span>
-                <Calendar className="h-4 w-4 text-indigo-600" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                {data.stats.leadsThisWeekCount}
-              </p>
-              <span className="text-[11px] font-semibold text-indigo-600">
-                أضيفت خلال آخر 7 أيام
-              </span>
-            </div>
-          </div>
-
-          {/* Conversion Statistics + Subscription Status Row */}
-          <div className="grid gap-6 lg:grid-cols-12">
-            {/* Conversion Statistics */}
-            <div className="lg:col-span-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div>
-                  <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-                    <TrendingUp className="h-5 w-5 text-emerald-600" />
-                    إحصائيات التحويل والمبيعات (Conversion Statistics)
-                  </h2>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    أداء متابعتك للعملاء الذين حصلت على بياناتهم عبر المنصة
-                  </p>
+        {/* Template T11: Most Actionable Block First (Matches & Urgent Claims) */}
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* Top Matched Opportunities */}
+          <div className="lg:col-span-7">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Compass className="w-5 h-5 text-fg-brand" />
+                  <CardTitle>أبرز الفرص المتوافقة مع ملفك</CardTitle>
                 </div>
-                <Link
-                  href="/my-leads"
-                  className="text-xs font-bold text-emerald-600 hover:underline"
-                >
-                  إدارة الصفقات ←
-                </Link>
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <div className="rounded-xl bg-slate-50 p-3.5 text-center">
-                  <span className="text-xs font-semibold text-slate-500">معدل التواصل</span>
-                  <p className="mt-1 text-2xl font-extrabold text-slate-900">
-                    {data.conversion.contactRate}%
-                  </p>
-                  <span className="text-[11px] text-slate-400">
-                    {data.conversion.contactedCount} من {data.conversion.totalClaimed}
-                  </span>
-                </div>
-
-                <div className="rounded-xl bg-slate-50 p-3.5 text-center">
-                  <span className="text-xs font-semibold text-slate-500">معدل الرد</span>
-                  <p className="mt-1 text-2xl font-extrabold text-blue-700">
-                    {data.conversion.replyRate}%
-                  </p>
-                  <span className="text-[11px] text-slate-400">
-                    {data.conversion.repliedCount} عميل متفاعل
-                  </span>
-                </div>
-
-                <div className="rounded-xl bg-slate-50 p-3.5 text-center">
-                  <span className="text-xs font-semibold text-slate-500">اجتماعات محددة</span>
-                  <p className="mt-1 text-2xl font-extrabold text-purple-700">
-                    {data.conversion.meetingCount}
-                  </p>
-                  <span className="text-[11px] text-slate-400">عروض فنية ومالية</span>
-                </div>
-
-                <div className="rounded-xl bg-emerald-50 p-3.5 text-center">
-                  <span className="text-xs font-bold text-emerald-800">صفقات ناجحة (WON)</span>
-                  <p className="mt-1 text-2xl font-extrabold text-emerald-700">
-                    {data.conversion.wonCount} ({data.conversion.conversionRate}%)
-                  </p>
-                  <span className="text-[11px] text-emerald-600">نسبة الإغلاق الفعلي</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Subscription & Matching Summary Card */}
-            <div className="lg:col-span-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-extrabold text-slate-900">
-                    حالة الاشتراك (Subscription)
-                  </h2>
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-extrabold text-emerald-800">
-                    {data.subscription?.status || 'ACTIVE'}
-                  </span>
-                </div>
-
-                <div className="mt-4 rounded-xl bg-slate-900 p-4 text-white">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold">
-                      {data.subscription?.plan?.name || 'الباقة المجانية'}
-                    </span>
-                    <span className="text-xs text-emerald-400 font-bold">
-                      {data.subscription?.plan?.priceEgp || 0} ج.م/شهر
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-baseline justify-between text-xs text-slate-300">
-                    <span>الرصيد المتبقي:</span>
-                    <strong className="text-base text-white">
-                      {data.subscription?.credits ?? 0} /{' '}
-                      {data.subscription?.totalCreditsGranted ?? 3} نقطة
-                    </strong>
-                  </div>
-                </div>
-
-                {data.profile && (
-                  <div className="mt-4 space-y-1.5 text-xs text-slate-600">
-                    <div className="flex items-center justify-between font-bold text-slate-800">
-                      <span>إعدادات المطابقة الحالية:</span>
-                      <Link
-                        href="/settings"
-                        className="flex items-center gap-1 text-emerald-600 hover:underline"
-                      >
-                        <Settings className="h-3.5 w-3.5" />
-                        تعديل
-                      </Link>
-                    </div>
-                    <p>• المدن: {data.profile.locations.join('، ')}</p>
-                    <p>
-                      • التخصصات:{' '}
-                      {data.profile.niches
-                        .map((n) => CATEGORY_LABELS_AR[n] || n)
-                        .join('، ')}
-                    </p>
-                    <p>• الحد الأدنى للميزانية: {data.profile.minBudget.toLocaleString()} ج.م</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-5 pt-3 border-t border-slate-100 flex gap-2">
-                <Link
-                  href="/subscription"
-                  className="flex-1 rounded-xl border border-slate-300 py-2 text-center text-xs font-bold text-slate-700 hover:bg-slate-50"
-                >
-                  ترقية الباقة
-                </Link>
                 <Link
                   href="/leads"
-                  className="flex-1 rounded-xl bg-emerald-600 py-2 text-center text-xs font-bold text-white hover:bg-emerald-700"
-                >
-                  استكشاف الفرص
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Top Matched Opportunities & Recent Claimed Leads */}
-          <div className="grid gap-6 lg:grid-cols-12">
-            <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-                  <Compass className="h-5 w-5 text-emerald-600" />
-                  أبرز الفرص المتوافقة مع ملفك الآن
-                </h2>
-                <Link
-                  href="/leads"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:underline"
+                  className="inline-flex items-center gap-1 text-caption font-semibold text-fg-brand hover:underline"
                 >
                   <span>عرض كل الفرص</span>
-                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <ChevronLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 </Link>
-              </div>
+              </CardHeader>
 
-              <div className="mt-4 divide-y divide-slate-100">
+              <div className="divide-y divide-line">
                 {data.topMatchedLeads.length === 0 ? (
-                  <p className="py-8 text-center text-xs text-slate-500">
-                    لا توجد فرص جديدة غير مفتوحة تطابق فلاتر ملفك حاليًا. يمكنك توسيع نطاق الاستهداف من
-                    الإعدادات.
+                  <p className="py-8 text-center text-body-sm text-fg-secondary">
+                    لا توجد فرص جديدة مطابقة حالياً. يمكنك تعديل تفضيلات المطابقة في الإعدادات.
                   </p>
                 ) : (
-                  data.topMatchedLeads.map((lead) => {
-                    const tempInfo =
-                      TEMPERATURE_LABELS[lead.temperature] || TEMPERATURE_LABELS.HOT;
+                  data.topMatchedLeads.slice(0, 5).map((lead) => {
                     const strength =
                       lead.matchStrength ??
                       lead.matchPercentage ??
@@ -378,47 +234,46 @@ export default function DeveloperDashboardPage() {
                     return (
                       <div
                         key={lead.id}
-                        className="flex flex-wrap items-center justify-between gap-3 py-3"
+                        className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                       >
-                        <div>
+                        <div className="flex flex-col gap-0.5 min-w-0">
                           <Link
                             href={`/leads/${lead.id}`}
-                            className="text-sm font-extrabold text-slate-900 hover:text-emerald-600"
+                            className="text-body font-semibold text-fg-primary hover:text-fg-brand truncate"
                           >
                             {lead.businessName}
                           </Link>
-                          <p className="text-xs text-slate-500">
-                            {lead.city} • {CATEGORY_LABELS_AR[lead.category] || lead.category} •{' '}
-                            {lead.websiteStatus === 'NO_WEBSITE'
-                              ? 'بدون موقع إلكتروني'
-                              : 'موقع قديم'}
+                          <p className="text-caption text-fg-secondary truncate">
+                            <span>{lead.city}</span>
+                            <span className="mx-1.5">—</span>
+                            <span>{CATEGORY_LABELS_AR[lead.category] || lead.category}</span>
+                            <span className="mx-1.5">—</span>
+                            <span>
+                              {lead.websiteStatus === 'NO_WEBSITE'
+                                ? 'بدون موقع إلكتروني'
+                                : 'موقع يحتاج تطوير'}
+                            </span>
                           </p>
                           {lead.explanation?.summaryAr && (
-                            <p className="mt-0.5 text-[11px] font-semibold text-emerald-700">
+                            <p className="text-caption text-fg-brand font-medium">
                               ✓ {lead.explanation.summaryAr}
                             </p>
                           )}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-extrabold text-indigo-800">
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-brand-soft text-fg-brand text-caption font-mono font-semibold">
                             تطابق {strength}%
                           </span>
-                          {typeof lead.qualityScore === 'number' && (
-                            <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-bold text-slate-700">
-                              الجودة: {lead.qualityScore}/100
-                            </span>
-                          )}
-                          <span
-                            className={`rounded-full border px-2.5 py-0.5 text-xs font-extrabold ${tempInfo.badgeClass}`}
-                          >
-                            {lead.score}/100 ({tempInfo.labelEn})
-                          </span>
-                          <Link
-                            href={`/leads/${lead.id}`}
-                            className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-600"
-                          >
-                            معاينة
+                          <OpportunityBadge
+                            temperature={(lead.temperature as LeadTemperature) || 'HOT'}
+                            score={lead.score}
+                            size="sm"
+                          />
+                          <Link href={`/leads/${lead.id}`}>
+                            <Button variant="secondary" size="sm">
+                              معاينة
+                            </Button>
                           </Link>
                         </div>
                       </div>
@@ -426,62 +281,194 @@ export default function DeveloperDashboardPage() {
                   })
                 )}
               </div>
-            </div>
+            </Card>
+          </div>
 
-            <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-                  <Briefcase className="h-5 w-5 text-blue-600" />
-                  آخر العملاء الذين اقتنصتهم
-                </h2>
+          {/* Recent Claims / Active Pipeline Deals */}
+          <div className="lg:col-span-5">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-fg-brand" />
+                  <CardTitle>آخر الصفقات المقتنصة</CardTitle>
+                </div>
                 <Link
                   href="/my-leads"
-                  className="text-xs font-bold text-emerald-600 hover:underline"
+                  className="inline-flex items-center gap-1 text-caption font-semibold text-fg-brand hover:underline"
                 >
-                  عرض الكل ←
+                  <span>عرض الكل</span>
+                  <ChevronLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 </Link>
-              </div>
+              </CardHeader>
 
-              <div className="mt-4 divide-y divide-slate-100">
+              <div className="divide-y divide-line">
                 {data.recentClaims.length === 0 ? (
-                  <p className="py-8 text-center text-xs text-slate-500">
-                    لم تقم بفتح بيانات أي عميل بعد. ابدأ باستكشاف الفرص المتاحة!
+                  <p className="py-8 text-center text-body-sm text-fg-secondary">
+                    لم تقم باقتناص أي فرصة بعد. ابدأ باستكشاف الفرص المتاحة!
                   </p>
                 ) : (
-                  data.recentClaims.map((claim) => {
-                    const pInfo =
-                      PIPELINE_STATUS_LABELS[claim.pipelineStatus] ||
-                      PIPELINE_STATUS_LABELS.NEW;
-                    return (
-                      <div
-                        key={claim.id}
-                        className="flex items-center justify-between gap-2 py-3"
-                      >
-                        <div>
-                          <Link
-                            href={`/leads/${claim.leadId}`}
-                            className="text-sm font-bold text-slate-900 hover:text-emerald-600"
-                          >
-                            {claim.lead.businessName}
-                          </Link>
-                          <p className="text-xs text-slate-500">
-                            {claim.lead.city} • هاتف: {claim.lead.phone}
-                          </p>
-                        </div>
-                        <span
-                          className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${pInfo.badgeClass}`}
+                  data.recentClaims.slice(0, 5).map((claim) => (
+                    <div
+                      key={claim.id}
+                      className="py-3 flex items-center justify-between gap-3"
+                    >
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <Link
+                          href={`/leads/${claim.leadId}`}
+                          className="text-body-sm font-semibold text-fg-primary hover:text-fg-brand truncate"
                         >
-                          {pInfo.labelAr}
-                        </span>
+                          {claim.lead.businessName}
+                        </Link>
+                        <p className="text-caption text-fg-secondary truncate">
+                          <span>{claim.lead.city}</span>
+                          <span className="mx-1.5">—</span>
+                          <span>
+                            هاتف: <span className="ltr-iso font-mono">{claim.lead.phone}</span>
+                          </span>
+                        </p>
                       </div>
-                    );
-                  })
+
+                      <StageBadge
+                        stage={(claim.pipelineStatus as PipelineStage) || 'NEW'}
+                        size="sm"
+                      />
+                    </div>
+                  ))
                 )}
               </div>
-            </div>
+            </Card>
           </div>
         </div>
-      )}
+
+        {/* Secondary Dashboard Blocks: Conversion Analytics & Subscription Overview */}
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* Conversion Statistics */}
+          <div className="lg:col-span-8">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-fg-brand" />
+                  <CardTitle>إحصائيات المبيعات والتحويل</CardTitle>
+                </div>
+                <Link
+                  href="/my-leads"
+                  className="inline-flex items-center gap-1 text-caption font-semibold text-fg-brand hover:underline"
+                >
+                  <span>إدارة الصفقات</span>
+                  <ChevronLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
+                </Link>
+              </CardHeader>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 text-center">
+                <div className="rounded-lg bg-subtle p-3.5 flex flex-col items-center gap-1">
+                  <span className="text-caption text-fg-secondary font-medium">معدل التواصل</span>
+                  <p className="ltr-iso font-mono text-2xl font-bold tabular-nums text-fg-primary">
+                    {data.conversion.contactRate}%
+                  </p>
+                  <span className="text-caption text-fg-muted">
+                    {data.conversion.contactedCount} من {data.conversion.totalClaimed}
+                  </span>
+                </div>
+
+                <div className="rounded-lg bg-subtle p-3.5 flex flex-col items-center gap-1">
+                  <span className="text-caption text-fg-secondary font-medium">معدل الرد</span>
+                  <p className="ltr-iso font-mono text-2xl font-bold tabular-nums text-fg-brand">
+                    {data.conversion.replyRate}%
+                  </p>
+                  <span className="text-caption text-fg-muted">
+                    {data.conversion.repliedCount} عميل متفاعل
+                  </span>
+                </div>
+
+                <div className="rounded-lg bg-subtle p-3.5 flex flex-col items-center gap-1">
+                  <span className="text-caption text-fg-secondary font-medium">اجتماعات مجدولة</span>
+                  <p className="ltr-iso font-mono text-2xl font-bold tabular-nums text-fg-primary">
+                    {data.conversion.meetingCount}
+                  </p>
+                  <span className="text-caption text-fg-muted">عروض فنية</span>
+                </div>
+
+                <div className="rounded-lg bg-brand-soft p-3.5 flex flex-col items-center gap-1">
+                  <span className="text-caption text-fg-brand font-semibold">صفقات ناجحة (WON)</span>
+                  <p className="ltr-iso font-mono text-2xl font-bold tabular-nums text-fg-brand">
+                    {data.conversion.wonCount}
+                  </p>
+                  <span className="text-caption text-fg-brand font-medium">
+                    {data.conversion.conversionRate}% نسبة الإغلاق
+                  </span>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Subscription & Profile Preferences Card */}
+          <div className="lg:col-span-4">
+            <Card className="h-full flex flex-col justify-between">
+              <div>
+                <CardHeader>
+                  <CardTitle>الباقة والرصيد</CardTitle>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-brand-soft text-fg-brand text-caption font-semibold">
+                    {data.subscription?.status || 'نشط'}
+                  </span>
+                </CardHeader>
+
+                <div className="p-4 rounded-lg bg-subtle border border-line flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-body-sm font-semibold text-fg-primary">
+                      {data.subscription?.plan?.name || 'الباقة المجانية'}
+                    </span>
+                    <span className="ltr-iso font-mono text-caption font-semibold text-fg-brand">
+                      {data.subscription?.plan?.priceEgp || 0} ج.م / شهر
+                    </span>
+                  </div>
+                  <div className="flex items-baseline justify-between text-caption text-fg-secondary pt-1 border-t border-line/60">
+                    <span>الرصيد المتاح:</span>
+                    <span className="ltr-iso font-mono font-semibold text-fg-primary">
+                      {data.subscription?.credits ?? 0} /{' '}
+                      {data.subscription?.totalCreditsGranted ?? 3} نقطة
+                    </span>
+                  </div>
+                </div>
+
+                {data.profile && (
+                  <div className="mt-4 flex flex-col gap-1 text-caption text-fg-secondary">
+                    <div className="flex items-center justify-between font-semibold text-fg-primary">
+                      <span>تفضيلات المطابقة:</span>
+                      <Link
+                        href="/settings"
+                        className="inline-flex items-center gap-1 text-fg-brand hover:underline"
+                      >
+                        <Settings className="w-3.5 h-3.5" />
+                        تعديل
+                      </Link>
+                    </div>
+                    <p className="truncate">المدن: {data.profile.locations.join('، ')}</p>
+                    <p className="truncate">
+                      التخصصات:{' '}
+                      {data.profile.niches
+                        .map((n) => CATEGORY_LABELS_AR[n] || n)
+                        .join('، ')}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 mt-4 border-t border-line flex gap-2">
+                <Link href="/subscription" className="flex-1">
+                  <Button variant="secondary" size="sm" fullWidth>
+                    ترقية الباقة
+                  </Button>
+                </Link>
+                <Link href="/leads" className="flex-1">
+                  <Button variant="primary" size="sm" fullWidth>
+                    استعراض الفرص
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
     </AppShell>
   );
 }
