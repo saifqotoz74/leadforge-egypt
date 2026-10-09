@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { RuleWeightEditor, ScoringRule } from '@/components/domain/RuleWeightEditor';
@@ -11,6 +12,7 @@ import { Select } from '@/components/ui/Select';
 import { Banner } from '@/components/ui/Banner';
 import { Dialog } from '@/components/ui/Dialog';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Plus, RefreshCw, Trash2, ArrowUpRight } from 'lucide-react';
 
 interface RuleItem {
@@ -39,6 +41,7 @@ interface FreshnessThresholds {
 }
 
 export default function AdminRulesPage() {
+  const t = useTranslations('adminRules');
   const [rules, setRules] = useState<RuleItem[]>([]);
   const [scoringVersion, setScoringVersion] = useState<string>('v1');
   const [freshness, setFreshness] = useState<FreshnessThresholds>({
@@ -236,11 +239,11 @@ export default function AdminRulesPage() {
   }));
 
   return (
-    <AppShell isAdmin={true} density="compact" pageTitle="قواعد التقييم والحداثة">
+    <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       <div className="flex flex-col gap-6">
         <PageHeader
-          title="محرك قواعد التقييم وحداثة البيانات"
-          description={`إدارة القواعد الحتمية لاحتساب درجات الفرص من 100 نقطة (الإصدار الحالي: ${scoringVersion})`}
+          title={t('title')}
+          description={t('desc', { version: scoringVersion })}
           actions={
             <div className="flex items-center gap-2">
               <Button
@@ -251,7 +254,7 @@ export default function AdminRulesPage() {
                 className="gap-1.5"
               >
                 <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" />
-                <span>ترقية الإصدار (Bump Version)</span>
+                <span>{t('btnBumpVersion')}</span>
               </Button>
 
               <Button
@@ -262,7 +265,7 @@ export default function AdminRulesPage() {
                 className="gap-1.5"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span>إعادة احتساب الجميع</span>
+                <span>{t('btnRecalculate')}</span>
               </Button>
 
               <Button
@@ -272,7 +275,7 @@ export default function AdminRulesPage() {
                 className="gap-1.5"
               >
                 <Plus className="h-4 w-4" />
-                <span>إضافة قاعدة</span>
+                <span>{t('btnAddRule')}</span>
               </Button>
             </div>
           }
@@ -285,14 +288,23 @@ export default function AdminRulesPage() {
           <div className="space-y-4">
             <Skeleton className="h-64 rounded-xl" />
           </div>
+        ) : rules.length === 0 ? (
+          <EmptyState
+            title={t('emptyTitle')}
+            description={t('emptyDesc')}
+            action={{
+              label: t('btnAddRule'),
+              onClick: () => setShowNewModal(true),
+            }}
+          />
         ) : (
           <>
             {/* Rule Weight Editor Component per Spec 7.14 */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle>جدول أوزان وشروط القواعد (Rule Weights)</CardTitle>
+                <CardTitle>{t('rulesWeightTitle')}</CardTitle>
                 <span className="text-caption text-fg-muted font-mono">
-                  {rules.length} قواعد نشطة
+                  {t('activeRulesCount', { count: rules.length })}
                 </span>
               </CardHeader>
               <CardContent>

@@ -1,7 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Dialog } from '@/components/ui/Dialog';
+import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import {
   Activity,
   AlertTriangle,
@@ -174,6 +181,7 @@ interface ReplenishmentDecisionItem {
 }
 
 export default function AdminSourcesPage() {
+  const t = useTranslations('adminSources');
   const [activeTab, setActiveTab] = useState<'sources' | 'jobs' | 'deadletter' | 'supply'>('sources');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -225,7 +233,7 @@ export default function AdminSourcesPage() {
     try {
       const jobQuery = new URLSearchParams();
       if (jobStatusFilter) jobQuery.set('status', jobStatusFilter);
-      if (jobSourceFilter) jobQuery.set('sourceName', jobSourceFilter);
+      if (jobSourceFilter) jobSourceFilter && jobQuery.set('sourceName', jobSourceFilter);
       jobQuery.set('pageSize', '30');
 
       const dlQuery = new URLSearchParams();
@@ -319,7 +327,7 @@ export default function AdminSourcesPage() {
       if (res.ok) {
         setBannerMessage({
           type: 'success',
-          text: `تمت إعادة ضبط قاطع الدائرة (Circuit Breaker) للمصدر "${source.name}".`,
+          text: `تمت إعادة ضبط قاطع الدائرة للمصدر "${source.name}".`,
         });
         await loadAllData();
       }
@@ -570,91 +578,98 @@ export default function AdminSourcesPage() {
   }
 
   return (
-    <AppShell isAdmin={true} density="compact" pageTitle="مصادر البيانات والجمع">
+    <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-line bg-white p-6 shadow-sm lg:flex-row lg:items-center">
-          <div>
-            <h1 className="text-xl font-extrabold text-fg-primary">
-              منظومة الإمداد المستمر وجمع البيانات الإنتاجية (Phase 8 Ingestion & Collectors)
-            </h1>
-            <p className="mt-1 text-xs text-fg-secondary">
-              محرك جمع حتمي 100% بمعايير الإيداع الآمن (Idempotency)، قواطع الدائرة (Circuit Breakers)،
-              طابور المعالجة المعلقة (Dead-Letter Queue)، والإمداد التلقائي للسوق المصري
-            </p>
+        <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
+          <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+            <div>
+              <h1 className="text-xl font-extrabold text-fg-primary">
+                {t('title')}
+              </h1>
+              <p className="mt-1 text-xs text-fg-secondary">
+                {t('desc')}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowCreateModal(true)}
+                className="gap-1.5 text-xs"
+              >
+                <Plus className="h-4 w-4 text-brand rtl:-scale-x-100" />
+                <span>{t('btnAddSource')}</span>
+              </Button>
+
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleTriggerReplenishment}
+                disabled={actionLoading === 'trigger-replenishment'}
+                className="gap-1.5 text-xs"
+              >
+                <TrendingUp className="h-4 w-4 rtl:-scale-x-100" />
+                <span>
+                  {actionLoading === 'trigger-replenishment'
+                    ? t('btnReplenishing')
+                    : t('btnReplenish')}
+                </span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={loadAllData}
+                disabled={loading}
+                className="gap-1.5 text-xs"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>{t('btnRefresh')}</span>
+              </Button>
+            </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-extrabold text-fg-primary hover:bg-subtle"
-            >
-              <Plus className="h-4 w-4 text-brand" />
-              <span>إضافة مصدر جديد</span>
-            </button>
-
-            <button
-              onClick={handleTriggerReplenishment}
-              disabled={actionLoading === 'trigger-replenishment'}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-xs font-extrabold text-white hover:bg-brand-hover disabled:opacity-50"
-            >
-              <TrendingUp className="h-4 w-4" />
-              <span>
-                {actionLoading === 'trigger-replenishment'
-                  ? 'جاري فحص المخزون...'
-                  : 'فحص وتشغيل الإمداد التلقائي'}
-              </span>
-            </button>
-
-            <button
-              onClick={loadAllData}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-subtle px-3 py-2 text-xs font-bold text-fg-primary hover:bg-subtle"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>تحديث</span>
-            </button>
-          </div>
-        </div>
+        </Card>
 
         {/* KPI Summary Cards */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-fg-secondary">المصادر السليمة</span>
-            <p className="mt-1 text-xl font-extrabold text-brand">
+          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
+            <span className="text-xs font-bold text-fg-secondary">{t('kpiHealthy')}</span>
+            <p className="mt-1 text-xl font-extrabold text-brand font-mono tabular-nums">
               {summary.healthySources ?? 0} / {summary.totalSources ?? sources.length}
             </p>
-          </div>
-          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-fg-secondary">غير مهيأة (Credentials)</span>
-            <p className="mt-1 text-xl font-extrabold text-brand">
+          </Card>
+          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
+            <span className="text-xs font-bold text-fg-secondary">{t('kpiNotConfigured')}</span>
+            <p className="mt-1 text-xl font-extrabold text-brand font-mono tabular-nums">
               {summary.notConfiguredSources ?? 0}
             </p>
-          </div>
-          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-fg-secondary">إجمالي مهام الجمع</span>
-            <p className="mt-1 text-xl font-extrabold text-fg-primary">
+          </Card>
+          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
+            <span className="text-xs font-bold text-fg-secondary">{t('kpiTotalJobs')}</span>
+            <p className="mt-1 text-xl font-extrabold text-fg-primary font-mono tabular-nums">
               {summary.totalJobs ?? jobs.length}
             </p>
-          </div>
-          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-fg-secondary">المهام المكتملة</span>
-            <p className="mt-1 text-xl font-extrabold text-brand">
+          </Card>
+          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
+            <span className="text-xs font-bold text-fg-secondary">{t('kpiCompletedJobs')}</span>
+            <p className="mt-1 text-xl font-extrabold text-brand font-mono tabular-nums">
               {summary.completedJobs ?? 0}
             </p>
-          </div>
-          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-fg-secondary">طابور Dead-Letter</span>
-            <p className="mt-1 text-xl font-extrabold text-warning-text">
+          </Card>
+          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
+            <span className="text-xs font-bold text-fg-secondary">{t('kpiDeadLetter')}</span>
+            <p className="mt-1 text-xl font-extrabold text-warning-text font-mono tabular-nums">
               {summary.unresolvedDeadLetters ?? deadLetters.length}
             </p>
-          </div>
-          <div className="rounded-xl border border-line bg-white p-4 shadow-sm">
-            <span className="text-[11px] font-bold text-fg-secondary">التنبيهات النشطة</span>
-            <p className="mt-1 text-xl font-extrabold text-danger-text">
+          </Card>
+          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
+            <span className="text-xs font-bold text-fg-secondary">{t('kpiActiveAlerts')}</span>
+            <p className="mt-1 text-xl font-extrabold text-danger-text font-mono tabular-nums">
               {summary.activeAlertsCount ?? alerts.length}
             </p>
-          </div>
+          </Card>
         </div>
 
         {bannerMessage && (
@@ -678,7 +693,7 @@ export default function AdminSourcesPage() {
                 onClick={() => setBannerMessage(null)}
                 className="text-fg-secondary hover:text-fg-primary"
               >
-                إغلاق
+                ✕
               </button>
             </div>
           </div>
@@ -690,220 +705,232 @@ export default function AdminSourcesPage() {
             onClick={() => setActiveTab('sources')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
               activeTab === 'sources'
-                ? 'bg-brand text-white shadow-xs'
+                ? 'bg-brand text-fg-inverted shadow-xs'
                 : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
             }`}
           >
             <Database className="h-4 w-4" />
-            <span>المصادر والمجمّعات ({sources.length})</span>
+            <span>{t('tabSources')} ({sources.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('jobs')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
               activeTab === 'jobs'
-                ? 'bg-brand text-white shadow-xs'
+                ? 'bg-brand text-fg-inverted shadow-xs'
                 : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
             }`}
           >
             <Clock className="h-4 w-4" />
-            <span>سجل مهام التشغيل ({jobs.length})</span>
+            <span>{t('tabJobs')} ({jobs.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('deadletter')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
               activeTab === 'deadletter'
-                ? 'bg-brand text-white shadow-xs'
+                ? 'bg-brand text-fg-inverted shadow-xs'
                 : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
             }`}
           >
             <ShieldAlert className="h-4 w-4" />
-            <span>طابور المعالجة المعلقة ({deadLetters.length})</span>
+            <span>{t('tabDeadletter')} ({deadLetters.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('supply')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
               activeTab === 'supply'
-                ? 'bg-brand text-white shadow-xs'
+                ? 'bg-brand text-fg-inverted shadow-xs'
                 : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
             }`}
           >
             <Activity className="h-4 w-4" />
-            <span>التنبيهات والإمداد المستمر ({alerts.length})</span>
+            <span>{t('tabSupply')} ({alerts.length})</span>
           </button>
         </div>
 
-        {/* TAB 1: SOURCES */}
-        {activeTab === 'sources' && (
-          <div className="grid gap-4 md:grid-cols-2">
-            {sources.map((src) => (
-              <div
-                key={src.id}
-                className="flex flex-col justify-between rounded-2xl border border-line bg-white p-5 shadow-sm"
-              >
-                <div>
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="rounded bg-subtle px-2.5 py-0.5 font-mono text-[11px] font-bold text-fg-primary">
-                        {src.collectorVersion || src.type}
-                      </span>
-                      <span className="rounded bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand">
-                        أولوية #{src.priority}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {renderHealthBadge(src.healthStatus)}
-                      {src.circuitState !== 'CLOSED' && (
-                        <span className="rounded-full bg-danger-fill px-2 py-0.5 text-[10px] font-extrabold text-white">
-                          Circuit: {src.circuitState}
+        {loading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-16 w-full rounded-xl" />
+            <Skeleton className="h-64 w-full rounded-xl" />
+          </div>
+        ) : activeTab === 'sources' ? (
+          sources.length === 0 ? (
+            <EmptyState
+              title={t('emptyTitle')}
+              description={t('emptyDesc')}
+              action={{
+                label: t('btnAddSource'),
+                onClick: () => setShowCreateModal(true),
+              }}
+            />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {sources.map((src) => (
+                <Card
+                  key={src.id}
+                  className="flex flex-col justify-between rounded-xl border border-line bg-surface p-5 shadow-xs"
+                >
+                  <div>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="rounded bg-subtle px-2.5 py-0.5 font-mono text-xs font-bold text-fg-primary">
+                          {src.collectorVersion || src.type}
                         </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <h2 className="mt-3 flex items-center gap-2 text-base font-extrabold text-fg-primary">
-                    <Database className="h-4 w-4 text-brand" />
-                    <span>{src.name}</span>
-                  </h2>
-                  <p className="mt-1 text-xs text-fg-secondary">{src.description}</p>
-
-                  {/* Funnel & Quality Metrics */}
-                  {src.funnelStats && (
-                    <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl bg-subtle p-3 text-center text-[11px]">
-                      <div>
-                        <span className="block text-fg-muted">مجلوب</span>
-                        <span className="font-extrabold text-fg-primary">
-                          {src.funnelStats.fetched}
+                        <span className="rounded bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand font-mono tabular-nums">
+                          أولوية #{src.priority}
                         </span>
                       </div>
-                      <div>
-                        <span className="block text-fg-muted">مقبول</span>
-                        <span className="font-extrabold text-brand">
-                          {src.funnelStats.accepted}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="block text-fg-muted">مكرر ({src.rates?.duplicateRate ?? 0}%)</span>
-                        <span className="font-extrabold text-warning-text">
-                          {src.funnelStats.duplicate}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="block text-fg-muted">قابل للبيع</span>
-                        <span className="font-extrabold text-brand">
-                          {src.funnelStats.saleable}
-                        </span>
+                      <div className="flex items-center gap-1.5">
+                        {renderHealthBadge(src.healthStatus)}
+                        {src.circuitState !== 'CLOSED' && (
+                          <span className="rounded-full bg-danger-fill px-2 py-0.5 text-xs font-extrabold text-fg-inverted">
+                            Circuit: {src.circuitState}
+                          </span>
+                        )}
                       </div>
                     </div>
-                  )}
 
-                  {/* Cost & Schedule Info */}
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-fg-secondary">
-                    <span>
-                      الجدولة:{' '}
-                      <strong className="text-fg-primary">
-                        {src.scheduleIntervalMinutes
-                          ? `كل ${src.scheduleIntervalMinutes} دقيقة`
-                          : src.scheduleCron || 'يدوي فقط'}
-                      </strong>
-                    </span>
-                    <span>
-                      تكلفة الفرصة الصالحة:{' '}
-                      <strong className="text-fg-primary">
-                        {src.economics?.costPerSaleableLead.status === 'OK' &&
-                        src.economics.costPerSaleableLead.value !== null
-                          ? `${src.economics.costPerSaleableLead.value} ج.م`
-                          : 'INSUFFICIENT_DATA'}
-                      </strong>
-                    </span>
-                  </div>
-                </div>
+                    <h2 className="mt-3 flex items-center gap-2 text-base font-extrabold text-fg-primary">
+                      <Database className="h-4 w-4 text-brand" />
+                      <span>{src.name}</span>
+                    </h2>
+                    <p className="mt-1 text-xs text-fg-secondary">{src.description}</p>
 
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-xs">
-                  <div className="text-[11px] text-fg-muted">
-                    آخر نجاح:{' '}
-                    {src.lastSuccessAt
-                      ? new Date(src.lastSuccessAt).toLocaleString('ar-EG')
-                      : '—'}{' '}
-                    | متوسط الزمن: {src.averageDurationMs || 0}ms
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {src.circuitState !== 'CLOSED' && (
-                      <button
-                        onClick={() => handleResetCircuit(src)}
-                        disabled={actionLoading === `reset-${src.id}`}
-                        className="inline-flex items-center gap-1 rounded-lg bg-warning-bg px-2.5 py-1.5 font-bold text-warning-text hover:opacity-90"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                        <span>إعادة ضبط القاطع</span>
-                      </button>
+                    {/* Funnel & Quality Metrics */}
+                    {src.funnelStats && (
+                      <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl bg-subtle p-3 text-center text-xs">
+                        <div>
+                          <span className="block text-fg-muted">مجلوب</span>
+                          <span className="font-extrabold text-fg-primary font-mono tabular-nums">
+                            {src.funnelStats.fetched}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-fg-muted">مقبول</span>
+                          <span className="font-extrabold text-brand font-mono tabular-nums">
+                            {src.funnelStats.accepted}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-fg-muted">مكرر ({src.rates?.duplicateRate ?? 0}%)</span>
+                          <span className="font-extrabold text-warning-text font-mono tabular-nums">
+                            {src.funnelStats.duplicate}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-fg-muted">قابل للبيع</span>
+                          <span className="font-extrabold text-brand font-mono tabular-nums">
+                            {src.funnelStats.saleable}
+                          </span>
+                        </div>
+                      </div>
                     )}
 
-                    <button
-                      onClick={() => {
-                        setEditingSource(src);
-                        setEditForm({
-                          priority: src.priority,
-                          scheduleIntervalMinutes: src.scheduleIntervalMinutes
-                            ? String(src.scheduleIntervalMinutes)
-                            : '',
-                          scheduleCron: src.scheduleCron || '',
-                          maxRecordsPerRun: src.quotas?.maxRecordsPerRun || 500,
-                          batchSize: src.quotas?.batchSize || 50,
-                          acquisitionCostPerRunEgp: '',
-                        });
-                      }}
-                      className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 font-bold text-fg-secondary hover:bg-subtle"
-                    >
-                      <Settings className="h-3.5 w-3.5" />
-                      <span>الإعدادات</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleToggleSource(src)}
-                      disabled={actionLoading === `toggle-${src.id}`}
-                      className="rounded-lg border border-line px-2.5 py-1.5 font-bold text-fg-primary hover:bg-subtle"
-                    >
-                      {src.enabled ? 'إيقاف' : 'تفعيل'}
-                    </button>
-
-                    <button
-                      onClick={() => handleRunSource(src)}
-                      disabled={
-                        !src.enabled ||
-                        src.configurationStatus === 'NOT_CONFIGURED' ||
-                        actionLoading === `run-${src.id}`
-                      }
-                      className="inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 font-bold text-white hover:bg-brand-hover disabled:opacity-40"
-                    >
-                      <Play className="h-3.5 w-3.5" />
+                    {/* Cost & Schedule Info */}
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-fg-secondary">
                       <span>
-                        {actionLoading === `run-${src.id}` ? 'جاري التشغيل...' : 'تشغيل الآن'}
+                        الجدولة:{' '}
+                        <strong className="text-fg-primary">
+                          {src.scheduleIntervalMinutes
+                            ? `كل ${src.scheduleIntervalMinutes} دقيقة`
+                            : src.scheduleCron || 'يدوي فقط'}
+                        </strong>
                       </span>
-                    </button>
+                      <span>
+                        تكلفة الفرصة الصالحة:{' '}
+                        <strong className="text-fg-primary font-mono tabular-nums">
+                          {src.economics?.costPerSaleableLead.status === 'OK' &&
+                          src.economics.costPerSaleableLead.value !== null
+                            ? `${src.economics.costPerSaleableLead.value} ج.م`
+                            : 'INSUFFICIENT_DATA'}
+                        </strong>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
-        {/* TAB 2: INGESTION JOBS */}
-        {activeTab === 'jobs' && (
-          <div className="space-y-4 rounded-2xl border border-line bg-white p-6 shadow-sm">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-xs">
+                    <div className="text-xs text-fg-muted font-mono tabular-nums">
+                      آخر نجاح:{' '}
+                      {src.lastSuccessAt
+                        ? new Date(src.lastSuccessAt).toLocaleString('ar-EG')
+                        : '—'}{' '}
+                      | متوسط الزمن: {src.averageDurationMs || 0}ms
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {src.circuitState !== 'CLOSED' && (
+                        <button
+                          onClick={() => handleResetCircuit(src)}
+                          disabled={actionLoading === `reset-${src.id}`}
+                          className="inline-flex items-center gap-1 rounded-lg bg-warning-bg px-2.5 py-1.5 font-bold text-warning-text hover:opacity-90"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                          <span>إعادة ضبط القاطع</span>
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => {
+                          setEditingSource(src);
+                          setEditForm({
+                            priority: src.priority,
+                            scheduleIntervalMinutes: src.scheduleIntervalMinutes
+                              ? String(src.scheduleIntervalMinutes)
+                              : '',
+                            scheduleCron: src.scheduleCron || '',
+                            maxRecordsPerRun: src.quotas?.maxRecordsPerRun || 500,
+                            batchSize: src.quotas?.batchSize || 50,
+                            acquisitionCostPerRunEgp: '',
+                          });
+                        }}
+                        className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 font-bold text-fg-secondary hover:bg-subtle"
+                      >
+                        <Settings className="h-3.5 w-3.5" />
+                        <span>الإعدادات</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleToggleSource(src)}
+                        disabled={actionLoading === `toggle-${src.id}`}
+                        className="rounded-lg border border-line px-2.5 py-1.5 font-bold text-fg-primary hover:bg-subtle"
+                      >
+                        {src.enabled ? 'إيقاف' : 'تفعيل'}
+                      </button>
+
+                      <button
+                        onClick={() => handleRunSource(src)}
+                        disabled={
+                          !src.enabled ||
+                          src.configurationStatus === 'NOT_CONFIGURED' ||
+                          actionLoading === `run-${src.id}`
+                        }
+                        className="inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 font-bold text-fg-inverted hover:bg-brand-hover disabled:opacity-40"
+                      >
+                        <Play className="h-3.5 w-3.5 rtl:-scale-x-100" />
+                        <span>
+                          {actionLoading === `run-${src.id}` ? 'جاري التشغيل...' : 'تشغيل الآن'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )
+        ) : activeTab === 'jobs' ? (
+          <Card className="space-y-4 rounded-xl border border-line bg-surface p-6 shadow-xs">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <h2 className="text-base font-extrabold text-fg-primary">
-                سجل مهام جمع واستيراد البيانات (Ingestion Jobs)
+                {t('tabJobs')}
               </h2>
 
               <div className="flex flex-wrap items-center gap-2 text-xs">
                 <select
                   value={jobStatusFilter}
                   onChange={(e) => setJobStatusFilter(e.target.value)}
-                  className="rounded-lg border border-line px-3 py-1.5 font-bold text-fg-primary"
+                  className="rounded-lg border border-line bg-surface px-3 py-1.5 font-bold text-fg-primary"
                 >
                   <option value="">كل الحالات</option>
                   <option value="COMPLETED">COMPLETED</option>
@@ -916,7 +943,7 @@ export default function AdminSourcesPage() {
                 <select
                   value={jobSourceFilter}
                   onChange={(e) => setJobSourceFilter(e.target.value)}
-                  className="rounded-lg border border-line px-3 py-1.5 font-bold text-fg-primary"
+                  className="rounded-lg border border-line bg-surface px-3 py-1.5 font-bold text-fg-primary"
                 >
                   <option value="">كل المصادر</option>
                   {sources.map((s) => (
@@ -932,17 +959,17 @@ export default function AdminSourcesPage() {
               <table className="w-full text-start text-xs">
                 <thead>
                   <tr className="border-b border-line text-fg-secondary">
-                    <th className="py-2.5 px-3">المصدر والنسخة</th>
-                    <th className="py-2.5 px-3">النوع</th>
-                    <th className="py-2.5 px-3">الحالة</th>
-                    <th className="py-2.5 px-3">مكتشف / مجلوب</th>
-                    <th className="py-2.5 px-3">جديد / محدث</th>
-                    <th className="py-2.5 px-3">مكرر / تعارض</th>
-                    <th className="py-2.5 px-3">غير صالح / فاشل</th>
-                    <th className="py-2.5 px-3">قابل للبيع</th>
-                    <th className="py-2.5 px-3">المدة</th>
-                    <th className="py-2.5 px-3">التاريخ</th>
-                    <th className="py-2.5 px-3">إجراءات</th>
+                    <th className="py-2.5 px-3 text-start">المصدر والنسخة</th>
+                    <th className="py-2.5 px-3 text-start">النوع</th>
+                    <th className="py-2.5 px-3 text-start">الحالة</th>
+                    <th className="py-2.5 px-3 text-start">مكتشف / مجلوب</th>
+                    <th className="py-2.5 px-3 text-start">جديد / محدث</th>
+                    <th className="py-2.5 px-3 text-start">مكرر / تعارض</th>
+                    <th className="py-2.5 px-3 text-start">غير صالح / فاشل</th>
+                    <th className="py-2.5 px-3 text-start">قابل للبيع</th>
+                    <th className="py-2.5 px-3 text-start">المدة</th>
+                    <th className="py-2.5 px-3 text-start">التاريخ</th>
+                    <th className="py-2.5 px-3 text-start">إجراءات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line font-semibold">
@@ -950,42 +977,42 @@ export default function AdminSourcesPage() {
                     <tr key={job.id} className="hover:bg-subtle">
                       <td className="py-3 px-3">
                         <span className="block font-bold text-fg-primary">{job.sourceName}</span>
-                        <span className="font-mono text-[10px] text-fg-muted">
+                        <span className="font-mono text-xs text-fg-muted">
                           {job.collectorVersion || 'v1'}
                         </span>
                       </td>
-                      <td className="py-3 px-3 font-mono text-[11px] text-fg-secondary">
+                      <td className="py-3 px-3 font-mono text-xs text-fg-secondary">
                         {job.triggerType || 'MANUAL'}
                       </td>
                       <td className="py-3 px-3">{renderJobStatusBadge(job.status)}</td>
-                      <td className="py-3 px-3">
+                      <td className="py-3 px-3 font-mono tabular-nums">
                         {job.discoveredCount || job.totalRecords} /{' '}
                         {job.fetchedCount || job.totalRecords}
                       </td>
-                      <td className="py-3 px-3 text-brand">
+                      <td className="py-3 px-3 text-brand font-mono tabular-nums">
                         {job.validCount} ({job.insertedCount || job.validCount} جديد،{' '}
                         {job.updatedCount || 0} محدث)
                       </td>
-                      <td className="py-3 px-3 text-warning-text">
+                      <td className="py-3 px-3 text-warning-text font-mono tabular-nums">
                         {job.duplicateCount} / {job.conflictCount || 0}
                       </td>
-                      <td className="py-3 px-3 text-danger-text">
+                      <td className="py-3 px-3 text-danger-text font-mono tabular-nums">
                         {job.invalidCount} / {job.failedCount || 0}
                       </td>
-                      <td className="py-3 px-3 font-bold text-brand">
+                      <td className="py-3 px-3 font-bold text-brand font-mono tabular-nums">
                         {job.saleableCount || 0}
                       </td>
                       <td className="py-3 px-3 font-mono text-fg-secondary">
                         {job.durationMs ? `${job.durationMs}ms` : '—'}
                       </td>
-                      <td className="py-3 px-3 text-fg-secondary">
+                      <td className="py-3 px-3 text-fg-secondary font-mono tabular-nums">
                         {new Date(job.createdAt).toLocaleString('ar-EG')}
                       </td>
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleInspectJob(job.id)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1 text-[11px] font-bold text-fg-primary hover:bg-subtle"
+                            className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1 text-xs font-bold text-fg-primary hover:bg-subtle"
                           >
                             <Eye className="h-3 w-3" />
                             <span>التفاصيل</span>
@@ -993,7 +1020,7 @@ export default function AdminSourcesPage() {
                           {(job.status === 'RUNNING' || job.status === 'PROCESSING') && (
                             <button
                               onClick={() => handleCancelJob(job.id)}
-                              className="inline-flex items-center gap-1 rounded-lg bg-danger-bg px-2.5 py-1 text-[11px] font-bold text-danger-text hover:opacity-90"
+                              className="inline-flex items-center gap-1 rounded-lg bg-danger-bg px-2.5 py-1 text-xs font-bold text-danger-text hover:opacity-90"
                             >
                               <XCircle className="h-3 w-3" />
                               <span>إلغاء</span>
@@ -1006,26 +1033,23 @@ export default function AdminSourcesPage() {
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
-
-        {/* TAB 3: DEAD-LETTER QUEUE */}
-        {activeTab === 'deadletter' && (
-          <div className="space-y-4 rounded-2xl border border-line bg-white p-6 shadow-sm">
+          </Card>
+        ) : activeTab === 'deadletter' ? (
+          <Card className="space-y-4 rounded-xl border border-line bg-surface p-6 shadow-xs">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
                 <h2 className="text-base font-extrabold text-fg-primary">
-                  طابور السجلات المعلقة والفاشلة (Dead-Letter Queue)
+                  {t('tabDeadletter')}
                 </h2>
                 <p className="text-xs text-fg-secondary">
-                  السجلات التي استنفدت محاولات إعادة التشغيل أو واجهت أخطاء معالجة وتحتاج إلى مراجعة أو إعادة تشغيل
+                  السجلات التي استنفدت محاولات إعادة التشغيل أو واجهت أخطاء معالجة وتحتاج إلى مراجعة
                 </p>
               </div>
 
               <select
                 value={dlStatusFilter}
                 onChange={(e) => setDlStatusFilter(e.target.value)}
-                className="rounded-lg border border-line px-3 py-1.5 text-xs font-bold text-fg-primary"
+                className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-bold text-fg-primary"
               >
                 <option value="">كل الحالات</option>
                 <option value="DEAD_LETTER">معلق (DEAD_LETTER)</option>
@@ -1044,13 +1068,13 @@ export default function AdminSourcesPage() {
                 <table className="w-full text-start text-xs">
                   <thead>
                     <tr className="border-b border-line text-fg-secondary">
-                      <th className="py-2.5 px-3">المصدر</th>
-                      <th className="py-2.5 px-3">المرحلة / رمز الخطأ</th>
-                      <th className="py-2.5 px-3">سبب الفشل</th>
-                      <th className="py-2.5 px-3">المحاولات</th>
-                      <th className="py-2.5 px-3">الحالة</th>
-                      <th className="py-2.5 px-3">آخر فشل</th>
-                      <th className="py-2.5 px-3">الإجراءات</th>
+                      <th className="py-2.5 px-3 text-start">المصدر</th>
+                      <th className="py-2.5 px-3 text-start">المرحلة / رمز الخطأ</th>
+                      <th className="py-2.5 px-3 text-start">سبب الفشل</th>
+                      <th className="py-2.5 px-3 text-start">المحاولات</th>
+                      <th className="py-2.5 px-3 text-start">الحالة</th>
+                      <th className="py-2.5 px-3 text-start">آخر فشل</th>
+                      <th className="py-2.5 px-3 text-start">الإجراءات</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line font-semibold">
@@ -1058,20 +1082,20 @@ export default function AdminSourcesPage() {
                       <tr key={dl.id} className="hover:bg-subtle">
                         <td className="py-3 px-3">
                           <span className="block font-bold text-fg-primary">{dl.sourceName}</span>
-                          <span className="font-mono text-[10px] text-fg-muted">
+                          <span className="font-mono text-xs text-fg-muted">
                             {dl.externalId || dl.collectorVersion}
                           </span>
                         </td>
-                        <td className="py-3 px-3 font-mono text-[11px] text-danger-text">
+                        <td className="py-3 px-3 font-mono text-xs text-danger-text">
                           {dl.failureStage} / {dl.errorCode}
                         </td>
                         <td className="py-3 px-3 text-fg-primary">{dl.errorMessage}</td>
-                        <td className="py-3 px-3 font-mono">
+                        <td className="py-3 px-3 font-mono tabular-nums">
                           {dl.retryCount} / {dl.maxRetries}
                         </td>
                         <td className="py-3 px-3">
                           <span
-                            className={`rounded px-2 py-0.5 text-[11px] font-bold ${
+                            className={`rounded px-2 py-0.5 text-xs font-bold ${
                               dl.status === 'DEAD_LETTER'
                                 ? 'bg-warning-bg text-warning-text'
                                 : dl.status === 'RETRIED_RESOLVED' || dl.status === 'RESOLVED' || dl.status === 'RETRIED'
@@ -1084,7 +1108,7 @@ export default function AdminSourcesPage() {
                             {dl.status}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-fg-secondary">
+                        <td className="py-3 px-3 text-fg-secondary font-mono tabular-nums">
                           {new Date(dl.lastFailedAt).toLocaleString('ar-EG')}
                         </td>
                         <td className="py-3 px-3">
@@ -1093,14 +1117,14 @@ export default function AdminSourcesPage() {
                               <button
                                 onClick={() => handleDeadLetterAction(dl.id, 'RETRY')}
                                 disabled={actionLoading === `dl-${dl.id}-RETRY`}
-                                className="rounded-lg bg-brand px-2.5 py-1 text-[11px] font-bold text-white hover:bg-brand-hover"
+                                className="rounded-lg bg-brand px-2.5 py-1 text-xs font-bold text-fg-inverted hover:bg-brand-hover"
                               >
                                 إعادة المحاولة
                               </button>
                               <button
                                 onClick={() => handleDeadLetterAction(dl.id, 'MARK_INVALID')}
                                 disabled={actionLoading === `dl-${dl.id}-MARK_INVALID`}
-                                className="rounded-lg border border-line px-2.5 py-1 text-[11px] font-bold text-fg-primary hover:bg-subtle"
+                                className="rounded-lg border border-line px-2.5 py-1 text-xs font-bold text-fg-primary hover:bg-subtle"
                               >
                                 غير صالح
                               </button>
@@ -1113,16 +1137,13 @@ export default function AdminSourcesPage() {
                 </table>
               </div>
             )}
-          </div>
-        )}
-
-        {/* TAB 4: HEALTH ALERTS & CONTINUOUS SUPPLY REPLENISHMENT */}
-        {activeTab === 'supply' && (
+          </Card>
+        ) : (
+          /* TAB 4: SUPPLY */
           <div className="space-y-6">
-            {/* Operational Alerts */}
-            <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
+            <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
               <h2 className="text-base font-extrabold text-fg-primary">
-                التنبيهات التشغيلية الحتمية (Deterministic Operational Alerts)
+                التنبيهات التشغيلية الحتمية
               </h2>
               {alerts.length === 0 ? (
                 <p className="mt-3 text-xs font-bold text-brand">
@@ -1140,29 +1161,28 @@ export default function AdminSourcesPage() {
                       }`}
                     >
                       <div>
-                        <span className="font-mono text-[10px] font-extrabold uppercase">
+                        <span className="font-mono text-xs font-extrabold uppercase">
                           [{alert.severity}] {alert.code}
                         </span>
                         <p className="mt-0.5 font-bold">{alert.message}</p>
                       </div>
-                      <span className="font-mono text-[11px]">
+                      <span className="font-mono text-xs tabular-nums">
                         القيمة: {alert.observedValue} (الحد: {alert.thresholdValue})
                       </span>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
 
-            {/* Inventory Replenishment Rules */}
-            <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
+            <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
               <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
                 <div>
                   <h2 className="text-base font-extrabold text-fg-primary">
-                    قواعد الإمداد المستمر وموازنة المخزون القابل للبيع (Inventory Replenishment)
+                    قواعد الإمداد المستمر وموازنة المخزون القابل للبيع
                   </h2>
                   <p className="text-xs text-fg-secondary">
-                    مراقبة الفرص المتاحة القابلة للبيع (SALEABLE + AVAILABLE) حسب القطاع والمدينة والخدمة المطلوبة
+                    مراقبة الفرص المتاحة القابلة للبيع حسب القطاع والمدينة والخدمة المطلوبة
                   </p>
                 </div>
               </div>
@@ -1171,13 +1191,13 @@ export default function AdminSourcesPage() {
                 <table className="w-full text-start text-xs">
                   <thead>
                     <tr className="border-b border-line text-fg-secondary">
-                      <th className="py-2.5 px-3">القطاع (Category)</th>
-                      <th className="py-2.5 px-3">المدينة / المحافظة</th>
-                      <th className="py-2.5 px-3">الخدمة المطلوبة</th>
-                      <th className="py-2.5 px-3">الحد الأدنى المطلوب</th>
-                      <th className="py-2.5 px-3">المتوفر حالياً</th>
-                      <th className="py-2.5 px-3">العجز</th>
-                      <th className="py-2.5 px-3">المصادر المرشحة للإمداد</th>
+                      <th className="py-2.5 px-3 text-start">القطاع</th>
+                      <th className="py-2.5 px-3 text-start">المدينة / المحافظة</th>
+                      <th className="py-2.5 px-3 text-start">الخدمة المطلوبة</th>
+                      <th className="py-2.5 px-3 text-start">الحد الأدنى المطلوب</th>
+                      <th className="py-2.5 px-3 text-start">المتوفر حالياً</th>
+                      <th className="py-2.5 px-3 text-start">العجز</th>
+                      <th className="py-2.5 px-3 text-start">المصادر المرشحة للإمداد</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line font-semibold">
@@ -1185,14 +1205,14 @@ export default function AdminSourcesPage() {
                       <tr key={d.ruleId}>
                         <td className="py-3 px-3 font-bold text-fg-primary">{d.category}</td>
                         <td className="py-3 px-3">{d.city || d.governorate || 'كل المدن'}</td>
-                        <td className="py-3 px-3 font-mono text-[11px]">
+                        <td className="py-3 px-3 font-mono text-xs">
                           {d.requiredService || 'الكل'}
                         </td>
-                        <td className="py-3 px-3">{d.minRequired}</td>
-                        <td className="py-3 px-3 text-brand">{d.currentAvailable}</td>
+                        <td className="py-3 px-3 font-mono tabular-nums">{d.minRequired}</td>
+                        <td className="py-3 px-3 text-brand font-mono tabular-nums">{d.currentAvailable}</td>
                         <td className="py-3 px-3">
                           {d.needsReplenishment ? (
-                            <span className="rounded bg-danger-bg px-2 py-0.5 font-bold text-danger-text">
+                            <span className="rounded bg-danger-bg px-2 py-0.5 font-bold text-danger-text font-mono tabular-nums">
                               عجز -{d.deficit}
                             </span>
                           ) : (
@@ -1201,7 +1221,7 @@ export default function AdminSourcesPage() {
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-3 text-[11px] text-fg-secondary">
+                        <td className="py-3 px-3 text-xs text-fg-secondary">
                           {d.selectedSources.length > 0
                             ? d.selectedSources.map((s) => s.sourceName).join(' ، ')
                             : '—'}
@@ -1211,211 +1231,201 @@ export default function AdminSourcesPage() {
                   </tbody>
                 </table>
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
         {/* Modal: Create Source */}
-        {showCreateModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-            <form
-              onSubmit={handleCreateSource}
-              className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
-            >
-              <h3 className="text-base font-extrabold text-fg-primary">
-                إضافة مصدر بيانات جديد
-              </h3>
+        <Dialog
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          title={t('dialogCreateTitle')}
+          size="md"
+        >
+          <form onSubmit={handleCreateSource} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-fg-primary">{t('sourceNameLabel')}</label>
+              <input
+                type="text"
+                required
+                value={newSourceForm.name}
+                onChange={(e) => setNewSourceForm({ ...newSourceForm, name: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
+                placeholder="مثال: دليل العيادات الطبية بالقاهرة"
+              />
+            </div>
 
+            <div>
+              <label className="block text-xs font-bold text-fg-primary">{t('collectorTypeLabel')}</label>
+              <select
+                value={newSourceForm.type}
+                onChange={(e) => setNewSourceForm({ ...newSourceForm, type: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
+              >
+                <option value="OPEN_DATA">OPEN_DATA</option>
+                <option value="DIRECTORY">DIRECTORY</option>
+                <option value="CSV_IMPORT">CSV_IMPORT</option>
+                <option value="WEBSITE">WEBSITE</option>
+                <option value="GOOGLE_MAPS">GOOGLE_MAPS</option>
+                <option value="MANUAL">MANUAL</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-fg-primary">{t('descLabel')}</label>
+              <input
+                type="text"
+                value={newSourceForm.description}
+                onChange={(e) =>
+                  setNewSourceForm({ ...newSourceForm, description: e.target.value })
+                }
+                className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-fg-primary">اسم المصدر</label>
+                <label className="block text-xs font-bold text-fg-primary">{t('priorityLabel')}</label>
                 <input
-                  type="text"
-                  required
-                  value={newSourceForm.name}
-                  onChange={(e) => setNewSourceForm({ ...newSourceForm, name: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
-                  placeholder="مثال: دليل العيادات الطبية بالقاهرة"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-fg-primary">نوع المجمّع</label>
-                <select
-                  value={newSourceForm.type}
-                  onChange={(e) => setNewSourceForm({ ...newSourceForm, type: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
-                >
-                  <option value="OPEN_DATA">OPEN_DATA (open-data-v1)</option>
-                  <option value="DIRECTORY">DIRECTORY (directory-v1)</option>
-                  <option value="CSV_IMPORT">CSV_IMPORT (csv-v1)</option>
-                  <option value="WEBSITE">WEBSITE (website-v1)</option>
-                  <option value="GOOGLE_MAPS">GOOGLE_MAPS (google-business-v1)</option>
-                  <option value="MANUAL">MANUAL (manual-v1)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-fg-primary">الوصف</label>
-                <input
-                  type="text"
-                  value={newSourceForm.description}
+                  type="number"
+                  value={newSourceForm.priority}
                   onChange={(e) =>
-                    setNewSourceForm({ ...newSourceForm, description: e.target.value })
+                    setNewSourceForm({ ...newSourceForm, priority: Number(e.target.value) })
                   }
-                  className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-fg-primary">الأولوية</label>
-                  <input
-                    type="number"
-                    value={newSourceForm.priority}
-                    onChange={(e) =>
-                      setNewSourceForm({ ...newSourceForm, priority: Number(e.target.value) })
-                    }
-                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-fg-primary">
-                    فترة الجدولة (دقائق)
-                  </label>
-                  <input
-                    type="number"
-                    value={newSourceForm.scheduleIntervalMinutes}
-                    onChange={(e) =>
-                      setNewSourceForm({
-                        ...newSourceForm,
-                        scheduleIntervalMinutes: Number(e.target.value),
-                      })
-                    }
-                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-fg-primary">
+                  {t('intervalLabel')}
+                </label>
+                <input
+                  type="number"
+                  value={newSourceForm.scheduleIntervalMinutes}
+                  onChange={(e) =>
+                    setNewSourceForm({
+                      ...newSourceForm,
+                      scheduleIntervalMinutes: Number(e.target.value),
+                    })
+                  }
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                />
               </div>
+            </div>
 
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="rounded-lg border border-line px-4 py-2 text-xs font-bold text-fg-primary"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-brand px-4 py-2 text-xs font-bold text-white"
-                >
-                  حفظ المصدر
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                className="text-xs"
+              >
+                {t('btnCancel')}
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                disabled={actionLoading === 'create-source'}
+                className="text-xs"
+              >
+                {t('btnSave')}
+              </Button>
+            </div>
+          </form>
+        </Dialog>
 
         {/* Modal: Edit Source Settings */}
-        {editingSource && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-            <form
-              onSubmit={handleSaveEditSource}
-              className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
-            >
-              <h3 className="text-base font-extrabold text-fg-primary">
-                إعدادات المصدر: {editingSource.name}
-              </h3>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-fg-primary">الأولوية</label>
-                  <input
-                    type="number"
-                    value={editForm.priority}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, priority: Number(e.target.value) })
-                    }
-                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-fg-primary">
-                    فترة الجدولة (دقائق)
-                  </label>
-                  <input
-                    type="number"
-                    value={editForm.scheduleIntervalMinutes}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, scheduleIntervalMinutes: e.target.value })
-                    }
-                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
-                  />
-                </div>
+        <Dialog
+          isOpen={!!editingSource}
+          onClose={() => setEditingSource(null)}
+          title={editingSource ? `${t('dialogEditTitle')}: ${editingSource.name}` : ''}
+          size="md"
+        >
+          <form onSubmit={handleSaveEditSource} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-fg-primary">{t('priorityLabel')}</label>
+                <input
+                  type="number"
+                  value={editForm.priority}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, priority: Number(e.target.value) })
+                  }
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                />
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-fg-primary">
-                    الحد الأقصى للسجلات / تشغيل
-                  </label>
-                  <input
-                    type="number"
-                    value={editForm.maxRecordsPerRun}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, maxRecordsPerRun: Number(e.target.value) })
-                    }
-                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-fg-primary">حجم الدفعة (Batch)</label>
-                  <input
-                    type="number"
-                    value={editForm.batchSize}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, batchSize: Number(e.target.value) })
-                    }
-                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-xs"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-fg-primary">
+                  {t('intervalLabel')}
+                </label>
+                <input
+                  type="number"
+                  value={editForm.scheduleIntervalMinutes}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, scheduleIntervalMinutes: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                />
               </div>
+            </div>
 
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setEditingSource(null)}
-                  className="rounded-lg border border-line px-4 py-2 text-xs font-bold text-fg-primary hover:bg-subtle"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-brand px-4 py-2 text-xs font-bold text-white hover:bg-brand-hover"
-                >
-                  حفظ التعديلات
-                </button>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-fg-primary">
+                  الحد الأقصى للسجلات / تشغيل
+                </label>
+                <input
+                  type="number"
+                  value={editForm.maxRecordsPerRun}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, maxRecordsPerRun: Number(e.target.value) })
+                  }
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                />
               </div>
-            </form>
-          </div>
-        )}
+              <div>
+                <label className="block text-xs font-bold text-fg-primary">حجم الدفعة</label>
+                <input
+                  type="number"
+                  value={editForm.batchSize}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, batchSize: Number(e.target.value) })
+                  }
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() => setEditingSource(null)}
+                className="text-xs"
+              >
+                {t('btnCancel')}
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                className="text-xs"
+              >
+                {t('btnSaveSettings')}
+              </Button>
+            </div>
+          </form>
+        </Dialog>
 
         {/* Modal: Job Detail Inspection */}
-        {selectedJobDetail && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-            <div className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-              <div className="flex items-center justify-between border-b border-line pb-3">
-                <h3 className="text-base font-extrabold text-fg-primary">
-                  تفاصيل المهمة: {String(selectedJobDetail.sourceName || '')}
-                </h3>
-                <button
-                  onClick={() => setSelectedJobDetail(null)}
-                  className="rounded-lg bg-subtle px-3 py-1 text-xs font-bold text-fg-primary hover:bg-line"
-                >
-                  إغلاق
-                </button>
-              </div>
-
-              <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
+        <Dialog
+          isOpen={!!selectedJobDetail}
+          onClose={() => setSelectedJobDetail(null)}
+          title={selectedJobDetail ? `${t('dialogJobDetailTitle')}: ${String(selectedJobDetail.sourceName || '')}` : ''}
+          size="lg"
+        >
+          {selectedJobDetail && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-3 text-xs">
                 <div className="rounded-lg bg-subtle p-3">
                   <span className="text-fg-muted">معرف المهمة</span>
                   <p className="mt-1 font-mono font-bold text-fg-primary">
@@ -1430,7 +1440,7 @@ export default function AdminSourcesPage() {
                   </p>
                 </div>
                 <div className="rounded-lg bg-subtle p-3">
-                  <span className="text-fg-muted">نقطة الاستئناف (Checkpoint)</span>
+                  <span className="text-fg-muted">نقطة الاستئناف</span>
                   <p className="mt-1 font-mono font-bold text-fg-primary">
                     {selectedJobDetail.checkpoint
                       ? `Offset: ${(selectedJobDetail.checkpoint as { offset?: number }).offset ?? 0}`
@@ -1440,25 +1450,25 @@ export default function AdminSourcesPage() {
               </div>
 
               {Boolean(selectedJobDetail.errorSummary) && (
-                <div className="mt-4 rounded-xl border border-danger-border bg-danger-bg p-3 text-xs text-danger-text">
+                <div className="rounded-xl border border-danger-border bg-danger-bg p-3 text-xs text-danger-text">
                   <strong>ملخص الأخطاء ({String(selectedJobDetail.errorCode || 'ERROR')}):</strong>{' '}
                   {String(selectedJobDetail.errorSummary)}
                 </div>
               )}
 
-              <div className="mt-4">
-                <h4 className="text-xs font-extrabold text-fg-primary">
+              <div>
+                <h4 className="text-xs font-extrabold text-fg-primary mb-2">
                   السجلات المعالجة داخل المهمة
                 </h4>
-                <div className="mt-2 max-h-60 overflow-y-auto rounded-xl border border-line">
-                  <table className="w-full text-start text-[11px]">
+                <div className="max-h-60 overflow-y-auto rounded-xl border border-line">
+                  <table className="w-full text-start text-xs">
                     <thead className="bg-subtle text-fg-secondary">
                       <tr>
-                        <th className="py-2 px-3">#</th>
-                        <th className="py-2 px-3">المعرف الخارجي</th>
-                        <th className="py-2 px-3">المرحلة</th>
-                        <th className="py-2 px-3">الحالة</th>
-                        <th className="py-2 px-3">ملاحظات</th>
+                        <th className="py-2 px-3 text-start">#</th>
+                        <th className="py-2 px-3 text-start">المعرف الخارجي</th>
+                        <th className="py-2 px-3 text-start">المرحلة</th>
+                        <th className="py-2 px-3 text-start">الحالة</th>
+                        <th className="py-2 px-3 text-start">ملاحظات</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line">
@@ -1490,8 +1500,8 @@ export default function AdminSourcesPage() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </Dialog>
       </div>
     </AppShell>
   );

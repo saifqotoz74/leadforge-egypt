@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import {
   Compass,
   CheckCircle2,
@@ -15,6 +21,7 @@ import {
   Users,
   ShieldCheck,
   Activity,
+  ArrowRight,
 } from 'lucide-react';
 
 interface MatchingRuleItem {
@@ -98,168 +105,158 @@ interface DebugReportData {
     opportunityScore: number;
     qualityScore: number;
     freshness: string;
-    verificationStatus: string;
-    saleabilityStatus: string;
   };
   developerPreferences: {
-    developerId: string;
+    id: string;
     name: string;
-    accountStatus: string;
-    profileActive: boolean;
-    acceptingLeads: boolean;
-    services: string[];
-    niches: string[];
-    excludedNiches: string[];
-    locations: string[];
-    budgetRange: { min: number; max: number | null; currency: string };
-    leadTypePreference: string;
-    planName: string;
-    allowsExclusive: boolean;
+    companyName: string | null;
+    status: string;
+    isVerified: boolean;
+    nicheFocus: string[];
+    serviceOfferings: string[];
+    targetGovernorates: string[];
+    targetCities: string[];
+    minBudget: number | null;
+    maxBudget: number | null;
+    preferredLeadTypes: string[];
+    minimumLeadScore: number;
+    maximumActiveClaims: number;
   };
   hardEligibilityChecks: DebugCheckRecord[];
   appliedRules: Array<{
     key: string;
     category: string;
+    points: number;
     reason: string;
     reasonAr: string;
-    points: number;
   }>;
   unappliedRules: Array<{
     key: string;
     category: string;
     reason: string;
     reasonAr: string;
-    points: number;
     outcome?: string;
   }>;
 }
 
-interface LeadDevelopersRankingData {
-  lead: SimpleLeadItem;
-  matchVersion: string;
-  eligibleDevelopers: Array<{
-    developerId: string;
-    rank: number | null;
-    matchStrength: number;
-    rawMatchPoints: number;
-    matchedCriteria: Array<{ key: string; points: number; reasonAr: string }>;
-  }>;
-  rejectedDevelopers?: Array<{
-    developerId: string;
-    hardFailures: Array<{ key: string; reasonAr: string; reason: string }>;
-  }>;
-  diagnostics: {
-    totalEvaluated: number;
-    eligibleCount: number;
-    rejectedCount: number;
-    failureBreakdown: Record<string, number>;
-    summary: string;
-    summaryAr: string;
-  };
+interface DeveloperMatchRanking {
+  developerId: string;
+  matchStrength: number;
+  rawPoints: number;
+  rank: number;
+  eligible: boolean;
+  matchedCriteria: Array<{ key: string; points: number }>;
+  hardFailures: Array<{ key: string; reason: string; reasonAr: string }>;
 }
 
 export default function AdminMatchingPage() {
+  const t = useTranslations('adminMatching');
   const [activeTab, setActiveTab] = useState<'debugger' | 'rules' | 'config'>('debugger');
-  const [rules, setRules] = useState<MatchingRuleItem[]>([]);
-  const [config, setConfig] = useState<MatchingConfigState | null>(null);
-  const [matchVersion, setMatchVersion] = useState('v1');
-  const [leads, setLeads] = useState<SimpleLeadItem[]>([]);
-  const [developers, setDevelopers] = useState<SimpleDeveloperItem[]>([]);
-  const [selectedLeadId, setSelectedLeadId] = useState('');
-  const [selectedDeveloperId, setSelectedDeveloperId] = useState('');
-  const [debugReport, setDebugReport] = useState<DebugReportData | null>(null);
-  const [leadRanking, setLeadRanking] = useState<LeadDevelopersRankingData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [runningDebugger, setRunningDebugger] = useState(false);
+  const [matchVersion, setMatchVersion] = useState('v1.0');
   const [recalculating, setRecalculating] = useState(false);
   const [statusBanner, setStatusBanner] = useState<string | null>(null);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
 
-  // New Rule Form State
+  // Debugger state
+  const [leads, setLeads] = useState<SimpleLeadItem[]>([]);
+  const [developers, setDevelopers] = useState<SimpleDeveloperItem[]>([]);
+  const [selectedLeadId, setSelectedLeadId] = useState<string>('');
+  const [selectedDeveloperId, setSelectedDeveloperId] = useState<string>('');
+  const [debugReport, setDebugReport] = useState<DebugReportData | null>(null);
+  const [runningDebugger, setRunningDebugger] = useState(false);
+  const [leadRanking, setLeadRanking] = useState<{
+    leadId: string;
+    eligibleDevelopers: DeveloperMatchRanking[];
+    rejectedDevelopers: DeveloperMatchRanking[];
+    diagnostics: { summary: string; summaryAr: string };
+  } | null>(null);
+
+  // Rules state
+  const [rules, setRules] = useState<MatchingRuleItem[]>([]);
   const [newRuleKey, setNewRuleKey] = useState('');
   const [newRuleName, setNewRuleName] = useState('');
-  const [newRuleNameEn, setNewRuleNameEn] = useState('');
-  const [newRuleCategory, setNewRuleCategory] = useState('PREFERENCE');
-  const [newRulePoints, setNewRulePoints] = useState(5);
-  const [newRulePriority, setNewRulePriority] = useState(160);
+  const [newRuleCategory, setNewRuleCategory] = useState('SERVICE');
+  const [newRulePoints, setNewRulePoints] = useState(10);
   const [newRuleField, setNewRuleField] = useState('matchedPrimaryService');
   const [newRuleOperator, setNewRuleOperator] = useState('eq');
   const [newRuleValue, setNewRuleValue] = useState('true');
 
+  // Config state
+  const [config, setConfig] = useState<MatchingConfigState | null>(null);
+
   useEffect(() => {
-    loadInitialData();
+    fetchInitialData();
   }, []);
 
-  async function loadInitialData() {
+  async function fetchInitialData() {
     setLoading(true);
     try {
-      const [rulesRes, leadsRes, usersRes] = await Promise.all([
+      const [leadsRes, devsRes, rulesRes, cfgRes] = await Promise.all([
+        fetch('/api/admin/leads?limit=30'),
+        fetch('/api/admin/users?role=DEVELOPER'),
         fetch('/api/admin/matching/rules'),
-        fetch('/api/admin/leads?limit=50'),
-        fetch('/api/admin/users'),
+        fetch('/api/admin/matching/config'),
       ]);
 
-      if (rulesRes.ok) {
-        const rulesData = await rulesRes.json();
-        setRules(rulesData.rules || []);
-        setConfig(rulesData.config || null);
-        setMatchVersion(rulesData.matchVersion || 'v1');
-      }
-
-      let firstLeadId = '';
       if (leadsRes.ok) {
-        const leadsData = await leadsRes.json();
-        const leadList: SimpleLeadItem[] = (leadsData.leads || []).slice(0, 40);
-        setLeads(leadList);
-        if (leadList.length > 0) {
-          firstLeadId = leadList[0].id;
-          setSelectedLeadId(firstLeadId);
+        const leadJson = await leadsRes.json();
+        const leadItems = leadJson.leads || leadJson.data || [];
+        setLeads(leadItems);
+        if (leadItems.length > 0) {
+          setSelectedLeadId(leadItems[0].id);
         }
       }
 
-      let firstDevId = '';
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        const devList: SimpleDeveloperItem[] = (usersData.users || []).filter(
-          (u: { role: string }) => u.role === 'DEVELOPER'
-        );
-        setDevelopers(devList);
-        if (devList.length > 0) {
-          firstDevId = devList[0].id;
-          setSelectedDeveloperId(firstDevId);
+      if (devsRes.ok) {
+        const devJson = await devsRes.json();
+        const devItems = devJson.users || devJson.data || [];
+        setDevelopers(devItems);
+        if (devItems.length > 0) {
+          setSelectedDeveloperId(devItems[0].id);
         }
       }
 
-      if (firstLeadId && firstDevId) {
-        await runPairInspection(firstLeadId, firstDevId);
+      if (rulesRes.ok) {
+        const rJson = await rulesRes.json();
+        setRules(rJson.rules || []);
+        if (rJson.version) setMatchVersion(rJson.version);
+      }
+
+      if (cfgRes.ok) {
+        const cJson = await cfgRes.json();
+        setConfig(cJson.config || null);
+        if (cJson.config?.currentVersion) {
+          setMatchVersion(cJson.config.currentVersion);
+        }
       }
     } catch {
-      setErrorBanner('تعذر تحميل بيانات محرك المطابقة.');
+      setErrorBanner('تعذر تحميل بيانات المحرك التشخيصي.');
     } finally {
       setLoading(false);
     }
   }
 
-  async function runPairInspection(leadId: string, developerId: string) {
-    if (!leadId || !developerId) return;
+  async function runPairInspection(leadId: string, devId: string) {
+    if (!leadId || !devId) return;
     setRunningDebugger(true);
     setErrorBanner(null);
     try {
-      const [pairRes, leadRankRes] = await Promise.all([
-        fetch(`/api/matching/leads/${leadId}/developers/${developerId}`),
-        fetch(`/api/matching/leads/${leadId}?includeRejected=true`),
-      ]);
-
-      if (pairRes.ok) {
-        const pairData = await pairRes.json();
-        setDebugReport(pairData.debugReport || pairData);
-      }
-      if (leadRankRes.ok) {
-        const rankData = await leadRankRes.json();
-        setLeadRanking(rankData);
+      const res = await fetch(
+        `/api/admin/matching/debug?leadId=${encodeURIComponent(leadId)}&developerId=${encodeURIComponent(devId)}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setDebugReport(data.report);
+        if (data.leadRanking) {
+          setLeadRanking(data.leadRanking);
+        }
+      } else {
+        const err = await res.json();
+        setErrorBanner(err.error || 'تعذر فحص المطابقة.');
       }
     } catch {
-      setErrorBanner('حدث خطأ أثناء تشغيل فاحص المطابقة.');
+      setErrorBanner('حدث خطأ أثناء فحص المطابقة.');
     } finally {
       setRunningDebugger(false);
     }
@@ -272,22 +269,21 @@ export default function AdminMatchingPage() {
     try {
       const res = await fetch('/api/admin/matching/recalculate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ batchLimit: 50 }),
       });
-      const data = await res.json();
       if (res.ok) {
+        const d = await res.json();
         setStatusBanner(
-          `تمت إعادة حساب ${data.recalculatedPairs} زوج مطابقة (${data.eligiblePairs} مؤهل، ${data.rejectedPairs} مستبعد) — الإصدار ${data.matchVersion}`
+          `تم إعادة حساب ${d.matchesCount || 0} مطابقة بنجاح للإصدار ${d.version || matchVersion}.`
         );
         if (selectedLeadId && selectedDeveloperId) {
-          await runPairInspection(selectedLeadId, selectedDeveloperId);
+          runPairInspection(selectedLeadId, selectedDeveloperId);
         }
       } else {
-        setErrorBanner(data.error || 'تعذر إعادة حساب المطابقات.');
+        const err = await res.json();
+        setErrorBanner(err.error || 'فشلت عملية إعادة الحساب.');
       }
     } catch {
-      setErrorBanner('تعذر الاتصال بالخادم.');
+      setErrorBanner('خطأ في الاتصال بالخادم.');
     } finally {
       setRecalculating(false);
     }
@@ -300,160 +296,146 @@ export default function AdminMatchingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: !rule.enabled }),
       });
-      const data = await res.json();
       if (res.ok) {
         setRules((prev) =>
-          prev.map((r) => (r.id === rule.id ? { ...r, enabled: !rule.enabled, version: data.matchVersion } : r))
+          prev.map((r) => (r.id === rule.id ? { ...r, enabled: !rule.enabled } : r))
         );
-        setMatchVersion(data.matchVersion);
-        setStatusBanner(`تم تحديث حالة القاعدة ${rule.key} وترقية الإصدار إلى ${data.matchVersion}`);
+        setStatusBanner(`تم تغيير حالة القاعدة ${rule.key}`);
       }
     } catch {
-      setErrorBanner('تعذر تحديث القاعدة.');
+      setErrorBanner('تعذر تحديث حالة القاعدة.');
     }
   }
 
-  async function handleUpdateRulePoints(rule: MatchingRuleItem, newPoints: number) {
+  async function handleUpdateRulePoints(rule: MatchingRuleItem, points: number) {
     try {
       const res = await fetch(`/api/admin/matching/rules/${rule.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ points: newPoints }),
+        body: JSON.stringify({ points }),
       });
-      const data = await res.json();
       if (res.ok) {
         setRules((prev) =>
-          prev.map((r) => (r.id === rule.id ? { ...r, points: newPoints, version: data.matchVersion } : r))
+          prev.map((r) => (r.id === rule.id ? { ...r, points } : r))
         );
-        setMatchVersion(data.matchVersion);
-        setStatusBanner(`تم تعديل نقاط القاعدة ${rule.key} إلى ${newPoints} (الإصدار ${data.matchVersion})`);
+        setStatusBanner(`تم تعديل نقاط القاعدة ${rule.key} إلى ${points}`);
       }
     } catch {
-      setErrorBanner('تعذر تعديل نقاط القاعدة.');
+      setErrorBanner('تعذر تحديث نقاط القاعدة.');
     }
   }
 
-  async function handleCreateRule(e: React.FormEvent) {
-    e.preventDefault();
-    setErrorBanner(null);
-    setStatusBanner(null);
-
-    let parsedValue: unknown = newRuleValue;
-    if (newRuleValue === 'true') parsedValue = true;
-    else if (newRuleValue === 'false') parsedValue = false;
-    else if (!Number.isNaN(Number(newRuleValue)) && newRuleValue.trim() !== '') {
-      parsedValue = Number(newRuleValue);
-    }
-
-    try {
-      const res = await fetch('/api/admin/matching/rules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          key: newRuleKey.trim().toUpperCase(),
-          name: newRuleName.trim(),
-          nameEn: newRuleNameEn.trim() || newRuleName.trim(),
-          category: newRuleCategory,
-          points: Number(newRulePoints),
-          priority: Number(newRulePriority),
-          enabled: true,
-          condition: {
-            field: newRuleField,
-            operator: newRuleOperator,
-            value: parsedValue,
-          },
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setRules((prev) => [...prev, data.rule]);
-        setMatchVersion(data.matchVersion);
-        setNewRuleKey('');
-        setNewRuleName('');
-        setNewRuleNameEn('');
-        setStatusBanner(`تمت إضافة القاعدة ${data.rule.key} بنجاح (الإصدار ${data.matchVersion})`);
-      } else {
-        setErrorBanner(data.error || 'تعذر إنشاء القاعدة.');
-      }
-    } catch {
-      setErrorBanner('تعذر إنشاء القاعدة.');
-    }
-  }
-
-  async function handleDeleteRule(ruleId: string, key: string) {
+  async function handleDeleteRule(ruleId: string, ruleKey: string) {
+    if (!confirm(`هل أنت متأكد من حذف القاعدة ${ruleKey}؟`)) return;
     try {
       const res = await fetch(`/api/admin/matching/rules/${ruleId}`, {
         method: 'DELETE',
       });
-      const data = await res.json();
       if (res.ok) {
         setRules((prev) => prev.filter((r) => r.id !== ruleId));
-        setMatchVersion(data.matchVersion);
-        setStatusBanner(`تم حذف القاعدة ${key} (الإصدار ${data.matchVersion})`);
+        setStatusBanner(`تم حذف القاعدة ${ruleKey}`);
       }
     } catch {
       setErrorBanner('تعذر حذف القاعدة.');
     }
   }
 
-  async function handleSaveConfig(e: React.FormEvent) {
+  async function handleCreateRule(e: React.FormEvent) {
     e.preventDefault();
-    if (!config) return;
-    setErrorBanner(null);
-    setStatusBanner(null);
+    if (!newRuleKey || !newRuleName) return;
     try {
+      const conditionPayload: Record<string, unknown> = {};
+      conditionPayload[newRuleField] = {
+        operator: newRuleOperator,
+        value: newRuleValue === 'true' ? true : newRuleValue === 'false' ? false : newRuleValue,
+      };
+
       const res = await fetch('/api/admin/matching/rules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'UPDATE_CONFIG',
-          ...config,
+          key: newRuleKey,
+          name: newRuleName,
+          category: newRuleCategory,
+          points: newRulePoints,
+          condition: conditionPayload,
+          priority: 50,
+          enabled: true,
         }),
       });
-      const data = await res.json();
+
       if (res.ok) {
-        setConfig(data.config);
-        setMatchVersion(data.matchVersion);
-        setStatusBanner(`تم حفظ سياسات المطابقة بنجاح وترقية الإصدار إلى ${data.matchVersion}`);
+        const d = await res.json();
+        setRules((prev) => [...prev, d.rule]);
+        setStatusBanner(`تم إنشاء القاعدة ${newRuleKey} وترقية الإصدار إلى ${d.version || 'الجديد'}`);
+        setNewRuleKey('');
+        setNewRuleName('');
+        if (d.version) setMatchVersion(d.version);
       } else {
-        setErrorBanner(data.error || 'تعذر حفظ الإعدادات.');
+        const err = await res.json();
+        setErrorBanner(err.error || 'فشل إنشاء القاعدة.');
       }
     } catch {
-      setErrorBanner('تعذر حفظ الإعدادات.');
+      setErrorBanner('خطأ أثناء حفظ القاعدة.');
+    }
+  }
+
+  async function handleSaveConfig(e: React.FormEvent) {
+    e.preventDefault();
+    if (!config) return;
+    try {
+      const res = await fetch('/api/admin/matching/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setStatusBanner(t('configSaved', { version: d.version || 'v2' }));
+        if (d.version) setMatchVersion(d.version);
+      } else {
+        const err = await res.json();
+        setErrorBanner(err.error || t('configError'));
+      }
+    } catch {
+      setErrorBanner(t('configError'));
     }
   }
 
   return (
-    <AppShell isAdmin={true} density="compact" pageTitle="محرك المطابقة">
+    <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       <div className="space-y-6">
-        {/* Top Header */}
-        <div className="flex flex-col gap-4 rounded-2xl border border-line bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <Compass className="h-6 w-6 text-brand" />
-              <h1 className="text-xl font-extrabold text-fg-primary">
-                محرك المطابقة القياسي ومصحح الأهلية (Phase 4 Deterministic Matching Engine)
-              </h1>
+        {/* Top Header Card */}
+        <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <Compass className="h-6 w-6 text-brand rtl:-scale-x-100" />
+                <h1 className="text-xl font-extrabold text-fg-primary">
+                  {t('title')}
+                </h1>
+              </div>
+              <p className="mt-1 text-xs text-fg-secondary">
+                {t('desc')}
+              </p>
             </div>
-            <p className="mt-1 text-xs text-fg-secondary">
-              فحص الأهلية الإلزامية (Layer A Hard Eligibility) وقواعد الملاءمة الموزونة (Layer B Soft Rules) بدون أي نماذج عشوائية أو ذكاء اصطناعي.
-            </p>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-xl border border-line-brand bg-brand-soft px-3 py-1.5 text-xs font-extrabold text-brand">
-              إصدار المطابقة النشط: {matchVersion}
-            </span>
-            <button
-              onClick={handleRecalculateAll}
-              disabled={recalculating}
-              className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-brand-hover disabled:opacity-50"
-            >
-              <RefreshCw className={`h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
-              {recalculating ? 'جاري إعادة الحساب...' : 'إعادة حساب المطابقات (Recalculate)'}
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="rounded-xl border border-line-brand bg-brand-soft px-3 py-1.5 text-xs font-extrabold text-brand font-mono tabular-nums">
+                {t('activeVersion', { version: matchVersion })}
+              </span>
+              <Button
+                variant="primary"
+                onClick={handleRecalculateAll}
+                disabled={recalculating}
+                className="gap-2 text-xs"
+              >
+                <RefreshCw className={`h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
+                {recalculating ? t('recalculating') : t('btnRecalculate')}
+              </Button>
+            </div>
           </div>
-        </div>
+        </Card>
 
         {statusBanner && (
           <div className="rounded-xl border border-line-brand bg-brand-soft p-4 text-xs font-bold text-brand">
@@ -472,52 +454,53 @@ export default function AdminMatchingPage() {
             onClick={() => setActiveTab('debugger')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
               activeTab === 'debugger'
-                ? 'bg-brand text-white shadow-xs'
+                ? 'bg-brand text-fg-inverted shadow-xs'
                 : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
             }`}
           >
             <Bug className="h-4 w-4" />
-            مصحح المطابقة التفصيلي (Admin Match Debugger)
+            {t('tabDebugger')}
           </button>
           <button
             onClick={() => setActiveTab('rules')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
               activeTab === 'rules'
-                ? 'bg-brand text-white shadow-xs'
+                ? 'bg-brand text-fg-inverted shadow-xs'
                 : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
             }`}
           >
             <Sliders className="h-4 w-4" />
-            قواعد المطابقة الموزونة ({rules.length} Rules)
+            {t('tabRules')} ({rules.length})
           </button>
           <button
             onClick={() => setActiveTab('config')}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
               activeTab === 'config'
-                ? 'bg-brand text-white shadow-xs'
+                ? 'bg-brand text-fg-inverted shadow-xs'
                 : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
             }`}
           >
             <ShieldCheck className="h-4 w-4" />
-            سياسات التحقق والبيانات غير المكتملة
+            {t('tabConstraints')}
           </button>
         </div>
 
         {loading ? (
-          <div className="rounded-2xl border border-line bg-white p-12 text-center text-sm font-semibold text-fg-secondary">
-            جاري تحميل بيانات محرك المطابقة...
+          <div className="space-y-4">
+            <Skeleton className="h-16 w-full rounded-xl" />
+            <Skeleton className="h-64 w-full rounded-xl" />
           </div>
         ) : activeTab === 'debugger' ? (
           <div className="space-y-6">
             {/* Lead & Developer Selector */}
-            <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+            <Card className="rounded-xl border border-line bg-surface p-5 shadow-xs">
               <h2 className="text-sm font-extrabold text-fg-primary">
-                اختر العميل المحتمل (Lead) والمطور (Developer) لتحليل أسباب القبول أو الاستبعاد:
+                {t('title')}:
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1.5">
-                    العميل المحتمل (Lead):
+                    {t('selectLead')}
                   </label>
                   <select
                     value={selectedLeadId}
@@ -528,11 +511,11 @@ export default function AdminMatchingPage() {
                         runPairInspection(nextLead, selectedDeveloperId);
                       }
                     }}
-                    className="w-full rounded-xl border border-line bg-white px-3 py-2.5 text-xs font-semibold text-fg-primary"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     {leads.map((l) => (
                       <option key={l.id} value={l.id}>
-                        {l.businessName} — ({l.category} | {l.city} | Score: {l.score})
+                        {l.businessName} — ({l.category} | {l.city} | {l.score})
                       </option>
                     ))}
                   </select>
@@ -540,7 +523,7 @@ export default function AdminMatchingPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1.5">
-                    المطور (Developer):
+                    {t('selectDev')}
                   </label>
                   <select
                     value={selectedDeveloperId}
@@ -551,7 +534,7 @@ export default function AdminMatchingPage() {
                         runPairInspection(selectedLeadId, nextDev);
                       }
                     }}
-                    className="w-full rounded-xl border border-line bg-white px-3 py-2.5 text-xs font-semibold text-fg-primary"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     {developers.map((d) => (
                       <option key={d.id} value={d.id}>
@@ -562,22 +545,36 @@ export default function AdminMatchingPage() {
                 </div>
 
                 <div className="flex items-end">
-                  <button
+                  <Button
+                    variant="primary"
                     onClick={() => runPairInspection(selectedLeadId, selectedDeveloperId)}
                     disabled={runningDebugger}
-                    className="w-full rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-hover disabled:opacity-50"
+                    className="w-full text-xs"
                   >
-                    {runningDebugger ? 'جاري الفحص...' : 'تشغيل فاحص المطابقة (Inspect Pair)'}
-                  </button>
+                    {runningDebugger ? t('recalculating') : t('btnEvaluate')}
+                  </Button>
                 </div>
               </div>
-            </div>
+            </Card>
 
-            {debugReport && (
+            {!debugReport && !runningDebugger ? (
+              <EmptyState
+                title={t('noData')}
+                description={t('desc')}
+                action={{
+                  label: t('btnEvaluate'),
+                  onClick: () => {
+                    if (selectedLeadId && selectedDeveloperId) {
+                      runPairInspection(selectedLeadId, selectedDeveloperId);
+                    }
+                  },
+                }}
+              />
+            ) : debugReport ? (
               <div className="space-y-6">
                 {/* Summary Banner */}
-                <div
-                  className={`flex flex-col justify-between gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center ${
+                <Card
+                  className={`flex flex-col justify-between gap-4 rounded-xl border p-5 sm:flex-row sm:items-center ${
                     debugReport.eligible
                       ? 'border-line-brand bg-brand-soft/70'
                       : 'border-danger-border bg-danger-bg/70'
@@ -590,15 +587,12 @@ export default function AdminMatchingPage() {
                       <XCircle className="h-8 w-8 text-danger-text shrink-0" />
                     )}
                     <div>
-                      <span
-                        className={`inline-block rounded-lg px-2.5 py-0.5 text-xs font-extrabold ${
-                          debugReport.eligible
-                            ? 'bg-brand text-white'
-                            : 'bg-danger-fill text-white'
-                        }`}
+                      <Badge
+                        variant={debugReport.eligible ? 'brand' : 'neutral'}
+                        className={debugReport.eligible ? 'bg-brand text-fg-inverted' : 'bg-danger-fill text-fg-inverted'}
                       >
-                        {debugReport.resultLabel} ({debugReport.eligible ? 'مؤهل للمطابقة' : 'مستبعد'})
-                      </span>
+                        {debugReport.resultLabel} ({debugReport.eligible ? t('gateStatusPassed') : t('gateStatusFailed')})
+                      </Badge>
                       <h3 className="mt-1 text-base font-extrabold text-fg-primary">
                         {debugReport.leadData.businessName} ⇄ {debugReport.developerPreferences.name}
                       </h3>
@@ -606,48 +600,48 @@ export default function AdminMatchingPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4">
-                    <div className="rounded-xl bg-white px-4 py-2 text-center shadow-sm border border-line">
-                      <span className="block text-[11px] font-semibold text-fg-secondary">
-                        قوة التطابق (Match Strength)
+                    <div className="rounded-xl bg-surface px-4 py-2 text-center shadow-xs border border-line">
+                      <span className="block text-xs font-semibold text-fg-secondary">
+                        {t('matchStrength')}
                       </span>
-                      <span className="text-xl font-extrabold text-brand">
+                      <span className="text-xl font-extrabold text-brand font-mono tabular-nums">
                         {debugReport.finalMatchStrength}/100
                       </span>
                     </div>
-                    <div className="rounded-xl bg-white px-4 py-2 text-center shadow-sm border border-line">
-                      <span className="block text-[11px] font-semibold text-fg-secondary">
-                        النقاط الخام (Raw Points)
+                    <div className="rounded-xl bg-surface px-4 py-2 text-center shadow-xs border border-line">
+                      <span className="block text-xs font-semibold text-fg-secondary">
+                        {t('totalFitScore')}
                       </span>
-                      <span className="text-xl font-extrabold text-fg-primary">
+                      <span className="text-xl font-extrabold text-fg-primary font-mono tabular-nums">
                         {debugReport.matchPoints}
                       </span>
                     </div>
-                    <div className="rounded-xl bg-white px-4 py-2 text-center shadow-sm border border-line">
-                      <span className="block text-[11px] font-semibold text-fg-secondary">
-                        الجودة / الفرصة
+                    <div className="rounded-xl bg-surface px-4 py-2 text-center shadow-xs border border-line">
+                      <span className="block text-xs font-semibold text-fg-secondary">
+                        {t('colRule')}
                       </span>
-                      <span className="text-sm font-extrabold text-fg-primary">
+                      <span className="text-xs font-extrabold text-fg-primary font-mono tabular-nums">
                         Q: {debugReport.leadData.qualityScore} | Opp: {debugReport.leadData.opportunityScore}
                       </span>
                     </div>
                   </div>
-                </div>
+                </Card>
 
                 {/* Layer A: Hard Eligibility Gate Checks */}
-                <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+                <Card className="rounded-xl border border-line bg-surface p-5 shadow-xs">
                   <h3 className="text-sm font-extrabold text-fg-primary">
-                    الطبقة الأولى (Layer A — Hard Eligibility Gates): فحص شروط الأهلية الإلزامية
+                    {t('layerATitle')}
                   </h3>
                   <div className="mt-3 overflow-x-auto">
                     <table className="w-full text-start text-xs">
                       <thead>
                         <tr className="border-b border-line bg-subtle text-fg-secondary">
-                          <th className="p-2.5 font-bold">البُعد (Dimension)</th>
-                          <th className="p-2.5 font-bold">الحالة</th>
-                          <th className="p-2.5 font-bold">الكود (Code)</th>
-                          <th className="p-2.5 font-bold">بيانات العميل (Lead)</th>
-                          <th className="p-2.5 font-bold">تفضيل المطور (Developer)</th>
-                          <th className="p-2.5 font-bold">السبب التفصيلي</th>
+                          <th className="p-2.5 font-bold text-start">{t('colGate')}</th>
+                          <th className="p-2.5 font-bold text-start">{t('colGateStatus')}</th>
+                          <th className="p-2.5 font-bold text-start">الكود</th>
+                          <th className="p-2.5 font-bold text-start">{t('selectLead')}</th>
+                          <th className="p-2.5 font-bold text-start">{t('selectDev')}</th>
+                          <th className="p-2.5 font-bold text-start">{t('colGateReason')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-line">
@@ -656,20 +650,20 @@ export default function AdminMatchingPage() {
                             <td className="p-2.5 font-bold text-fg-primary">{chk.dimension}</td>
                             <td className="p-2.5">
                               {chk.status === 'PASS' ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand">
+                                <Badge variant="brand" className="gap-1 text-xs">
                                   <CheckCircle2 className="h-3 w-3" /> PASS
-                                </span>
+                                </Badge>
                               ) : chk.status === 'WARN' ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-warning-bg px-2 py-0.5 text-[11px] font-bold text-warning-text">
+                                <Badge variant="neutral" className="gap-1 text-xs bg-warning-bg text-warning-text border-warning-border">
                                   <AlertTriangle className="h-3 w-3" /> WARN
-                                </span>
+                                </Badge>
                               ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-danger-bg px-2 py-0.5 text-[11px] font-bold text-danger-text">
+                                <Badge variant="neutral" className="gap-1 text-xs bg-danger-bg text-danger-text border-danger-border">
                                   <XCircle className="h-3 w-3" /> FAIL
-                                </span>
+                                </Badge>
                               )}
                             </td>
-                            <td className="p-2.5 font-mono text-[11px] font-semibold text-fg-primary">
+                            <td className="p-2.5 font-mono text-xs font-semibold text-fg-primary">
                               {chk.code}
                             </td>
                             <td className="p-2.5 text-fg-primary">{chk.leadValue}</td>
@@ -680,17 +674,17 @@ export default function AdminMatchingPage() {
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </Card>
 
                 {/* Layer B: Soft Matching Rules Breakdown */}
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+                  <Card className="rounded-xl border border-line bg-surface p-5 shadow-xs">
                     <h3 className="text-sm font-extrabold text-brand">
-                      الطبقة الثانية (Layer B): القواعد المنطبقة (+ النقاط المكتسبة)
+                      {t('layerBTitle')}
                     </h3>
                     {debugReport.appliedRules.length === 0 ? (
                       <p className="mt-4 text-xs text-fg-secondary">
-                        لم يتم احتساب نقاط ملاءمة (إما لعدم اجتياز شروط الأهلية الإلزامية أو عدم انطباق قواعد).
+                        {t('noData')}
                       </p>
                     ) : (
                       <div className="mt-3 space-y-2">
@@ -700,16 +694,16 @@ export default function AdminMatchingPage() {
                             className="flex items-center justify-between rounded-xl border border-line-brand bg-brand-soft/40 p-3 text-xs"
                           >
                             <div>
-                              <span className="font-mono text-[11px] font-bold text-brand">
+                              <span className="font-mono text-xs font-bold text-brand">
                                 {rule.key} ({rule.category})
                               </span>
                               <p className="mt-0.5 font-semibold text-fg-primary">{rule.reasonAr}</p>
                             </div>
                             <span
-                              className={`rounded-lg px-2.5 py-1 text-xs font-extrabold ${
+                              className={`rounded-lg px-2.5 py-1 text-xs font-extrabold font-mono tabular-nums ${
                                 rule.points >= 0
-                                  ? 'bg-brand text-white'
-                                  : 'bg-warning-text text-white'
+                                  ? 'bg-brand text-fg-inverted'
+                                  : 'bg-warning-text text-fg-inverted'
                               }`}
                             >
                               {rule.points >= 0 ? `+${rule.points}` : rule.points}
@@ -718,11 +712,11 @@ export default function AdminMatchingPage() {
                         ))}
                       </div>
                     )}
-                  </div>
+                  </Card>
 
-                  <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+                  <Card className="rounded-xl border border-line bg-surface p-5 shadow-xs">
                     <h3 className="text-sm font-extrabold text-fg-primary">
-                      القواعد غير المنطبقة أو المستبدلة ضمن نفس المجموعة (Unapplied Rules)
+                      {t('tabRules')} (Unapplied Rules)
                     </h3>
                     <div className="mt-3 max-h-80 overflow-y-auto space-y-2">
                       {debugReport.unappliedRules.map((rule) => (
@@ -731,29 +725,29 @@ export default function AdminMatchingPage() {
                           className="flex items-center justify-between rounded-xl border border-line bg-subtle p-2.5 text-xs"
                         >
                           <div>
-                            <span className="font-mono text-[11px] font-bold text-fg-primary">
+                            <span className="font-mono text-xs font-bold text-fg-primary">
                               {rule.key} ({rule.category})
                             </span>
                             <p className="mt-0.5 text-fg-secondary">{rule.reasonAr}</p>
                           </div>
-                          <span className="rounded bg-subtle px-2 py-0.5 text-[10px] font-bold text-fg-secondary">
-                            {rule.outcome || '0 pts'}
+                          <span className="rounded bg-subtle px-2 py-0.5 text-xs font-bold text-fg-secondary font-mono">
+                            {rule.outcome || '0'}
                           </span>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </Card>
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* All Ranked Developers for Selected Lead */}
             {leadRanking && (
-              <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+              <Card className="rounded-xl border border-line bg-surface p-5 shadow-xs">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="flex items-center gap-2 text-sm font-extrabold text-fg-primary">
                     <Users className="h-4 w-4 text-brand" />
-                    ترتيب جميع المطورين لهذا العميل ({leadRanking.diagnostics.summaryAr})
+                    {leadRanking.diagnostics.summaryAr}
                   </h3>
                   <span className="text-xs font-semibold text-fg-secondary">
                     {leadRanking.diagnostics.summary}
@@ -763,11 +757,11 @@ export default function AdminMatchingPage() {
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <h4 className="text-xs font-bold text-brand mb-2">
-                      المطورون المؤهلون مرتبون حسب قوة التطابق ({leadRanking.eligibleDevelopers.length}):
+                      المطورون المؤهلون ({leadRanking.eligibleDevelopers.length}):
                     </h4>
                     {leadRanking.eligibleDevelopers.length === 0 ? (
                       <div className="rounded-xl border border-warning-border bg-warning-bg p-3 text-xs text-warning-text font-semibold">
-                        لا يوجد مطورون مؤهلون لهذا العميل حاليًا ({leadRanking.diagnostics.summary}).
+                        لا يوجد مطورون مؤهلون لهذا العميل حاليًا.
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -778,17 +772,17 @@ export default function AdminMatchingPage() {
                               setSelectedDeveloperId(m.developerId);
                               runPairInspection(selectedLeadId, m.developerId);
                             }}
-                            className="cursor-pointer flex items-center justify-between rounded-xl border border-line-brand bg-brand-soft/40 p-3 text-xs hover:bg-brand-soft"
+                            className="cursor-pointer flex items-center justify-between rounded-xl border border-line-brand bg-brand-soft/40 p-3 text-xs hover:bg-brand-soft transition-colors"
                           >
                             <div>
                               <span className="font-extrabold text-brand">
                                 #{m.rank} — {developers.find((d) => d.id === m.developerId)?.name || m.developerId}
                               </span>
-                              <p className="mt-0.5 text-[11px] text-fg-secondary">
+                              <p className="mt-0.5 text-xs text-fg-secondary">
                                 {m.matchedCriteria.map((c) => `${c.key} (+${c.points})`).join(' • ')}
                               </p>
                             </div>
-                            <span className="rounded-lg bg-brand px-2.5 py-1 font-extrabold text-white">
+                            <span className="rounded-lg bg-brand px-2.5 py-1 font-extrabold text-fg-inverted font-mono tabular-nums">
                               {m.matchStrength}%
                             </span>
                           </div>
@@ -799,7 +793,7 @@ export default function AdminMatchingPage() {
 
                   <div>
                     <h4 className="text-xs font-bold text-danger-text mb-2">
-                      المطورون المستبعدون وأسباب الرفض ({leadRanking.rejectedDevelopers?.length || 0}):
+                      المطورون المستبعدون ({leadRanking.rejectedDevelopers?.length || 0}):
                     </h4>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {(leadRanking.rejectedDevelopers || []).map((m) => (
@@ -809,17 +803,17 @@ export default function AdminMatchingPage() {
                             setSelectedDeveloperId(m.developerId);
                             runPairInspection(selectedLeadId, m.developerId);
                           }}
-                          className="cursor-pointer flex items-center justify-between rounded-xl border border-danger-border bg-danger-bg/40 p-3 text-xs hover:bg-danger-bg"
+                          className="cursor-pointer flex items-center justify-between rounded-xl border border-danger-border bg-danger-bg/40 p-3 text-xs hover:bg-danger-bg transition-colors"
                         >
                           <div>
                             <span className="font-bold text-fg-primary">
                               {developers.find((d) => d.id === m.developerId)?.name || m.developerId}
                             </span>
-                            <p className="mt-0.5 text-[11px] font-semibold text-danger-text">
+                            <p className="mt-0.5 text-xs font-semibold text-danger-text">
                               {m.hardFailures.map((hf) => `${hf.key}: ${hf.reasonAr}`).join(' | ')}
                             </p>
                           </div>
-                          <span className="rounded bg-danger-bg px-2 py-0.5 text-[10px] font-bold text-danger-text">
+                          <span className="rounded bg-danger-bg px-2 py-0.5 text-xs font-bold text-danger-text">
                             REJECTED
                           </span>
                         </div>
@@ -827,49 +821,49 @@ export default function AdminMatchingPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         ) : activeTab === 'rules' ? (
           <div className="space-y-6">
             {/* Existing Rules Table */}
-            <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+            <Card className="rounded-xl border border-line bg-surface p-5 shadow-xs">
               <h2 className="text-sm font-extrabold text-fg-primary">
-                قواعد المطابقة الموزونة (Layer B Configurable Matching Rules)
+                {t('tabRules')}
               </h2>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-start text-xs">
                   <thead>
                     <tr className="border-b border-line bg-subtle text-fg-secondary">
-                      <th className="p-2.5 font-bold">المفتاح (Key)</th>
-                      <th className="p-2.5 font-bold">الاسم</th>
-                      <th className="p-2.5 font-bold">الفئة</th>
-                      <th className="p-2.5 font-bold">المجموعة (Group)</th>
-                      <th className="p-2.5 font-bold">الأولوية</th>
-                      <th className="p-2.5 font-bold">النقاط</th>
-                      <th className="p-2.5 font-bold">الحالة</th>
-                      <th className="p-2.5 font-bold">إجراءات</th>
+                      <th className="p-2.5 font-bold text-start">المفتاح</th>
+                      <th className="p-2.5 font-bold text-start">{t('colRule')}</th>
+                      <th className="p-2.5 font-bold text-start">الفئة</th>
+                      <th className="p-2.5 font-bold text-start">المجموعة</th>
+                      <th className="p-2.5 font-bold text-start">الأولوية</th>
+                      <th className="p-2.5 font-bold text-start">{t('colWeight')}</th>
+                      <th className="p-2.5 font-bold text-start">{t('colGateStatus')}</th>
+                      <th className="p-2.5 font-bold text-start">إجراءات</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">
                     {rules.map((r) => (
                       <tr key={r.id} className="hover:bg-subtle">
-                        <td className="p-2.5 font-mono text-[11px] font-bold text-fg-primary">
+                        <td className="p-2.5 font-mono text-xs font-bold text-fg-primary">
                           {r.key}
                         </td>
                         <td className="p-2.5 font-semibold text-fg-primary">
                           {r.name}
-                          <span className="block text-[11px] text-fg-muted">{r.nameEn}</span>
+                          <span className="block text-xs text-fg-muted font-mono">{r.nameEn}</span>
                         </td>
                         <td className="p-2.5">
-                          <span className="rounded bg-subtle px-2 py-0.5 font-bold text-fg-primary">
+                          <span className="rounded bg-subtle px-2 py-0.5 font-bold text-fg-primary text-xs">
                             {r.category}
                           </span>
                         </td>
-                        <td className="p-2.5 font-mono text-[11px] text-fg-secondary">
+                        <td className="p-2.5 font-mono text-xs text-fg-secondary">
                           {r.ruleGroup || '—'}
                         </td>
-                        <td className="p-2.5 font-bold text-fg-primary">{r.priority}</td>
+                        <td className="p-2.5 font-bold text-fg-primary font-mono tabular-nums">{r.priority}</td>
                         <td className="p-2.5">
                           <input
                             type="number"
@@ -880,13 +874,13 @@ export default function AdminMatchingPage() {
                                 handleUpdateRulePoints(r, val);
                               }
                             }}
-                            className="w-20 rounded-lg border border-line px-2 py-1 text-center font-bold text-fg-primary"
+                            className="w-20 rounded-lg border border-line bg-surface px-2 py-1 text-center font-bold text-fg-primary font-mono tabular-nums text-xs"
                           />
                         </td>
                         <td className="p-2.5">
                           <button
                             onClick={() => handleToggleRule(r)}
-                            className={`rounded-full px-3 py-1 text-[11px] font-bold ${
+                            className={`rounded-full px-3 py-1 text-xs font-bold ${
                               r.enabled
                                 ? 'bg-brand-soft text-brand'
                                 : 'bg-subtle text-fg-secondary'
@@ -909,29 +903,29 @@ export default function AdminMatchingPage() {
                   </tbody>
                 </table>
               </div>
-            </div>
+            </Card>
 
             {/* Add New Rule Form */}
             <form
               onSubmit={handleCreateRule}
-              className="rounded-2xl border border-line bg-white p-5 shadow-sm space-y-4"
+              className="rounded-xl border border-line bg-surface p-5 shadow-xs space-y-4"
             >
               <h3 className="flex items-center gap-2 text-sm font-extrabold text-fg-primary">
                 <Plus className="h-4 w-4 text-brand" />
-                إضافة قاعدة مطابقة قياسية جديدة (Create Matching Rule)
+                إضافة قاعدة مطابقة قياسية جديدة
               </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1">
-                    المفتاح (Rule Key):
+                    المفتاح:
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="مثال: CUSTOM_HIGH_OPP_BOOST"
+                    placeholder="مثال: CUSTOM_RULE"
                     value={newRuleKey}
                     onChange={(e) => setNewRuleKey(e.target.value)}
-                    className="w-full rounded-xl border border-line px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
                   />
                 </div>
                 <div>
@@ -944,17 +938,17 @@ export default function AdminMatchingPage() {
                     placeholder="مكافأة الفرصة البيعية المرتفعة"
                     value={newRuleName}
                     onChange={(e) => setNewRuleName(e.target.value)}
-                    className="w-full rounded-xl border border-line px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1">
-                    الفئة (Category):
+                    الفئة:
                   </label>
                   <select
                     value={newRuleCategory}
                     onChange={(e) => setNewRuleCategory(e.target.value)}
-                    className="w-full rounded-xl border border-line px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
                   >
                     <option value="SERVICE">SERVICE</option>
                     <option value="NICHE">NICHE</option>
@@ -969,12 +963,12 @@ export default function AdminMatchingPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1">
-                    الحقل الشرطي (Field):
+                    الحقل الشرطي:
                   </label>
                   <select
                     value={newRuleField}
                     onChange={(e) => setNewRuleField(e.target.value)}
-                    className="w-full rounded-xl border border-line px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
                   >
                     <option value="matchedPrimaryService">matchedPrimaryService</option>
                     <option value="leadOpportunityScore">leadOpportunityScore</option>
@@ -986,12 +980,12 @@ export default function AdminMatchingPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1">
-                    المعامل (Operator):
+                    المعامل:
                   </label>
                   <select
                     value={newRuleOperator}
                     onChange={(e) => setNewRuleOperator(e.target.value)}
-                    className="w-full rounded-xl border border-line px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
                   >
                     <option value="eq">eq (يساوي)</option>
                     <option value="neq">neq (لا يساوي)</option>
@@ -1002,7 +996,7 @@ export default function AdminMatchingPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1">
-                    القيمة المستهدفة (Value) والنقاط:
+                    القيمة المستهدفة والنقاط:
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -1010,7 +1004,7 @@ export default function AdminMatchingPage() {
                       required
                       value={newRuleValue}
                       onChange={(e) => setNewRuleValue(e.target.value)}
-                      className="w-full rounded-xl border border-line px-3 py-2 text-xs"
+                      className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
                       placeholder="true / 85"
                     />
                     <input
@@ -1018,35 +1012,37 @@ export default function AdminMatchingPage() {
                       required
                       value={newRulePoints}
                       onChange={(e) => setNewRulePoints(Number(e.target.value))}
-                      className="w-24 rounded-xl border border-line px-3 py-2 text-xs font-bold"
+                      className="w-24 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-bold font-mono tabular-nums text-fg-primary"
                       placeholder="+5"
                     />
                   </div>
                 </div>
               </div>
-              <button
+              <Button
+                variant="primary"
                 type="submit"
-                className="rounded-xl bg-brand px-5 py-2.5 text-xs font-bold text-white hover:bg-brand-hover"
+                className="gap-2 text-xs"
               >
+                <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
                 إضافة القاعدة وحفظ الإصدار الجديد
-              </button>
+              </Button>
             </form>
           </div>
         ) : (
           config && (
             <form
               onSubmit={handleSaveConfig}
-              className="rounded-2xl border border-line bg-white p-6 shadow-sm space-y-5"
+              className="rounded-xl border border-line bg-surface p-6 shadow-xs space-y-5"
             >
               <h2 className="flex items-center gap-2 text-sm font-extrabold text-fg-primary">
-                <Activity className="h-4 w-4 text-brand" />
-                إعدادات سياسات الأهلية الإلزامية والبيانات غير المكتملة (MatchingConfig)
+                <Activity className="h-4 w-4 text-brand rtl:-scale-x-100" />
+                {t('tabConstraints')}
               </h2>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1">
-                    نمط مطابقة الخدمات المتعددة (Service Match Mode):
+                    نمط مطابقة الخدمات المتعددة:
                   </label>
                   <select
                     value={config.serviceMatchMode}
@@ -1056,7 +1052,7 @@ export default function AdminMatchingPage() {
                         serviceMatchMode: e.target.value as MatchingConfigState['serviceMatchMode'],
                       })
                     }
-                    className="w-full rounded-xl border border-line px-3 py-2.5 text-xs font-semibold"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     <option value="ALL_REQUIRED">ALL_REQUIRED (يجب دعم جميع خدمات العميل المطلوبة)</option>
                     <option value="ANY_REQUIRED">ANY_REQUIRED (يكفي دعم خدمة واحدة من المطلوبة)</option>
@@ -1065,7 +1061,7 @@ export default function AdminMatchingPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1">
-                    سياسة العملاء قيد المراجعة (REQUIRES_VERIFICATION Policy):
+                    سياسة العملاء قيد المراجعة:
                   </label>
                   <select
                     value={config.requiresVerificationPolicy}
@@ -1076,7 +1072,7 @@ export default function AdminMatchingPage() {
                           .value as MatchingConfigState['requiresVerificationPolicy'],
                       })
                     }
-                    className="w-full rounded-xl border border-line px-3 py-2.5 text-xs font-semibold"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     <option value="EXCLUDE">EXCLUDE (استبعاد صارم من المطابقة)</option>
                     <option value="VERIFIED_DEVELOPERS_ONLY">
@@ -1090,7 +1086,7 @@ export default function AdminMatchingPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1">
-                    سياسة الموقع الجغرافي غير المعروف (Unknown Location Policy):
+                    سياسة الموقع الجغرافي غير المعروف:
                   </label>
                   <select
                     value={config.unknownLocationPolicy}
@@ -1101,7 +1097,7 @@ export default function AdminMatchingPage() {
                           .value as MatchingConfigState['unknownLocationPolicy'],
                       })
                     }
-                    className="w-full rounded-xl border border-line px-3 py-2.5 text-xs font-semibold"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     <option value="ALLOW_WITH_PENALTY">ALLOW_WITH_PENALTY (السماح مع خصم نقاط)</option>
                     <option value="REQUIRE_VERIFICATION">REQUIRE_VERIFICATION (يشترط التوثيق)</option>
@@ -1111,7 +1107,7 @@ export default function AdminMatchingPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1">
-                    سياسة الميزانية غير المحددة (Unknown Budget Policy):
+                    سياسة الميزانية غير المحددة:
                   </label>
                   <select
                     value={config.unknownBudgetPolicy}
@@ -1122,7 +1118,7 @@ export default function AdminMatchingPage() {
                           .value as MatchingConfigState['unknownBudgetPolicy'],
                       })
                     }
-                    className="w-full rounded-xl border border-line px-3 py-2.5 text-xs font-semibold"
+                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     <option value="ALLOW_WITH_PENALTY">ALLOW_WITH_PENALTY (السماح مع خصم نقاط)</option>
                     <option value="REQUIRE_VERIFICATION">REQUIRE_VERIFICATION (يشترط التوثيق)</option>
@@ -1141,7 +1137,7 @@ export default function AdminMatchingPage() {
                     }
                     className="h-4 w-4 rounded border-line text-brand"
                   />
-                  اشتراط توافق الميزانية كشرط إلزامي صارم (Hard Budget Gate)
+                  اشتراط توافق الميزانية كشرط إلزامي صارم
                 </label>
 
                 <label className="flex items-center gap-2 text-xs font-bold text-fg-primary">
@@ -1157,12 +1153,14 @@ export default function AdminMatchingPage() {
                 </label>
               </div>
 
-              <button
+              <Button
+                variant="primary"
                 type="submit"
-                className="rounded-xl bg-brand px-6 py-2.5 text-xs font-bold text-white hover:bg-brand-hover"
+                className="gap-2 text-xs"
               >
-                حفظ السياسات وترقية إصدار المطابقة
-              </button>
+                <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
+                {t('saveConfig')}
+              </Button>
             </form>
           )
         )}
