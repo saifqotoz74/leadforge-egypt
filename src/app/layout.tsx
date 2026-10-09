@@ -34,7 +34,7 @@ export default function RootLayout({
       className={`${sans.variable} ${mono.variable}`}
       data-density="comfortable"
     >
-      <body>{children}</body>
+      <body className={`${sans.className} font-sans`}>{children}</body>
     </html>
   );
 }
