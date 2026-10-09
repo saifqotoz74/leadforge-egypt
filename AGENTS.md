@@ -24,3 +24,9 @@
 - **Directional Icon Mirroring:** Directional icons must use `rtl:-scale-x-100`.
 - **Palette Discipline:** Teal family (`--teal-50` to `--teal-900`) and warm neutrals only. No green, no purple, no gradients.
 - **Numbers & Isolated Text:** Use Western digits (`ar-EG-u-nu-latn`) with `tabular-nums`. Wrap phone numbers, emails, and prices in `.ltr-iso`.
+
+## 4. Design System Calibration & Phase Discipline
+- **External Calibration Protocol:** When calibrating against external references, never alter spec tokens unilaterally. Log differences > 20% in `docs/design/OPEN_QUESTIONS.md`.
+- **Living Style Guide Invariants:** The `/design-system` route must showcase every component in every state across both densities (`comfortable` and `compact`) and include interactive RTL/LTR toggles.
+- **Phase Boundary Discipline:** Complete and verify Phase 4 style guide before modifying any production application routes in Phase 5.
+
