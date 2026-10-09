@@ -1,20 +1,97 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
-import { LeadCard, LeadCardItem } from '@/components/LeadCard';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { LeadCard } from '@/components/domain/LeadCard';
+import { LeadRow } from '@/components/domain/LeadRow';
+import { OpportunityBadge, LeadTemperature } from '@/components/domain/OpportunityBadge';
+import { OwnershipType } from '@/components/domain/OwnershipTag';
+import { QualityState } from '@/components/domain/QualityIndicator';
+import { FilterBar, QuickFilter } from '@/components/ui/FilterBar';
+import { Drawer } from '@/components/ui/Drawer';
+import { Tabs, TabItem } from '@/components/ui/Tabs';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Checkbox } from '@/components/ui/Checkbox';
 import {
   ALL_CITIES,
   ALL_GOVERNORATES,
   BUSINESS_CATEGORIES,
+  CATEGORY_LABELS_AR,
   EGYPT_LOCATIONS,
   SCORE_RANGES,
 } from '@/lib/constants';
-import { Filter, RotateCcw, Search, Sparkles } from 'lucide-react';
+import { fmtNumber } from '@/lib/format';
+import { LayoutGrid, Table as TableIcon } from 'lucide-react';
+
+interface LeadItem {
+  id: string;
+  businessName: string;
+  category: string;
+  governorate: string;
+  city: string;
+  area?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  hasPhone: boolean;
+  email?: string | null;
+  hasEmail: boolean;
+  website?: string | null;
+  websiteStatus: 'NO_WEBSITE' | 'HAS_WEBSITE' | 'POOR_WEBSITE' | 'UNKNOWN';
+  facebook?: string | null;
+  hasFacebook: boolean;
+  instagram?: string | null;
+  hasInstagram: boolean;
+  rating?: number | null;
+  reviewCount: number;
+  branchCount: number;
+  estimatedBudget: number;
+  score: number;
+  temperature: 'COLD' | 'WARM' | 'HOT' | 'PREMIUM';
+  classification?: 'COLD' | 'WARM' | 'HOT' | 'PREMIUM';
+  qualityScore?: number;
+  qualityStatus?: string;
+  freshnessStatus?: string;
+  verificationStatus?: string;
+  isVerified?: boolean;
+  qualificationReasons: string[];
+  leadType: 'SHARED' | 'EXCLUSIVE';
+  exclusive: boolean;
+  maxPurchasers: number;
+  currentPurchasers: number;
+  creditCost?: number;
+  lastVerifiedAt: string;
+  freshness?: {
+    status: string;
+    labelAr: string;
+    daysSinceVerified: number;
+    badgeClass: string;
+  };
+  matchEvaluation?: {
+    isMatch: boolean;
+    matchPercentage: number;
+    matchStrength?: number;
+  };
+}
+
+function mapQualityStatus(lead: LeadItem): QualityState {
+  if (lead.isVerified || lead.verificationStatus === 'VERIFIED') return 'VERIFIED';
+  if (lead.freshnessStatus === 'FRESH' || lead.freshness?.status === 'FRESH') return 'FRESH';
+  if (lead.freshnessStatus === 'AGING' || lead.freshnessStatus === 'RECENT') return 'AGING';
+  if (lead.freshnessStatus === 'STALE' || lead.freshnessStatus === 'VERY_STALE') return 'STALE';
+  if (lead.verificationStatus === 'UNVERIFIED' || !lead.isVerified) return 'UNVERIFIED';
+  return 'FRESH';
+}
 
 export default function LeadDiscoveryPage() {
-  const [leads, setLeads] = useState<LeadCardItem[]>([]);
+  const [leads, setLeads] = useState<LeadItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   // Filters required by Section 5 & Phase 4 Section 27
   const [search, setSearch] = useState('');
@@ -35,10 +112,18 @@ export default function LeadDiscoveryPage() {
   const [hasEmail, setHasEmail] = useState(false);
   const [hasSocial, setHasSocial] = useState(false);
   const [matchedOnly, setMatchedOnly] = useState(false);
+  const [userCredits, setUserCredits] = useState<number | undefined>(undefined);
 
   const loadLeads = useCallback(async () => {
     setLoading(true);
     try {
+      fetch('/api/developer/credits')
+        .then((r) => r.ok && r.json())
+        .then((d) => {
+          if (typeof d?.balance === 'number') setUserCredits(d.balance);
+        })
+        .catch(() => {});
+
       const params = new URLSearchParams();
       if (search.trim()) params.set('search', search.trim());
       if (governorate !== 'ALL') params.set('governorate', governorate);
@@ -113,404 +198,475 @@ export default function LeadDiscoveryPage() {
     setMatchedOnly(false);
   }
 
+  const hasActiveFilters = useMemo(() => {
+    return (
+      Boolean(search.trim()) ||
+      governorate !== 'ALL' ||
+      city !== 'ALL' ||
+      Boolean(area.trim()) ||
+      category !== 'ALL' ||
+      service !== 'ALL' ||
+      websiteStatus !== 'ALL' ||
+      Boolean(scoreRange) ||
+      Boolean(minMatchStrength) ||
+      Boolean(minQualityScore) ||
+      freshnessStatus !== 'ALL' ||
+      sortBy !== 'MATCH_STRENGTH' ||
+      temperature !== 'ALL' ||
+      ownershipType !== 'ALL' ||
+      hasPhone ||
+      hasEmail ||
+      hasSocial ||
+      matchedOnly
+    );
+  }, [
+    search,
+    governorate,
+    city,
+    area,
+    category,
+    service,
+    websiteStatus,
+    scoreRange,
+    minMatchStrength,
+    minQualityScore,
+    freshnessStatus,
+    sortBy,
+    temperature,
+    ownershipType,
+    hasPhone,
+    hasEmail,
+    hasSocial,
+    matchedOnly,
+  ]);
+
   const availableCities =
     governorate === 'ALL'
       ? ALL_CITIES
-      : EGYPT_LOCATIONS.find((g) => g.governorate === governorate)?.cities.map(
-          (c) => c.name
-        ) || ALL_CITIES;
+      : EGYPT_LOCATIONS.find((g) => g.governorate === governorate)?.cities.map((c) => c.name) ||
+        ALL_CITIES;
+
+  const quickFilters: QuickFilter[] = [
+    { id: 'matchedOnly', label: 'مطابقة لملفي', isActive: matchedOnly },
+    { id: 'exclusive', label: 'فرص حصرية', isActive: ownershipType === 'EXCLUSIVE' },
+    { id: 'hot', label: 'فرص ساخنة', isActive: temperature === 'HOT' || temperature === 'PREMIUM' },
+    { id: 'hasPhone', label: 'هاتف متوفر', isActive: hasPhone },
+  ];
+
+  function handleToggleQuickFilter(id: string) {
+    if (id === 'matchedOnly') setMatchedOnly((prev) => !prev);
+    else if (id === 'exclusive') {
+      setOwnershipType((prev) => (prev === 'EXCLUSIVE' ? 'ALL' : 'EXCLUSIVE'));
+    } else if (id === 'hot') {
+      setTemperature((prev) => (prev === 'HOT' ? 'ALL' : 'HOT'));
+    } else if (id === 'hasPhone') {
+      setHasPhone((prev) => !prev);
+    }
+  }
+
+  const viewTabs: TabItem[] = [
+    { id: 'grid', label: 'شبكة', icon: <LayoutGrid className="w-4 h-4" /> },
+    { id: 'table', label: 'جدول', icon: <TableIcon className="w-4 h-4" /> },
+  ];
 
   return (
-    <AppShell>
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-xl font-extrabold text-slate-900 sm:text-2xl">
-              اكتشف العملاء المحتملين (Lead Discovery)
-            </h1>
-            <p className="mt-1 text-xs text-slate-600">
-              تصفح الأنشطة التجارية المؤهلة في مصر وافتح بيانات التواصل مع العملاء المناسبين لخدماتك.
-            </p>
-          </div>
+    <AppShell
+      density="compact"
+      pageTitle="استعراض الفرص"
+      userCredits={userCredits}
+    >
+      <div className="flex flex-col gap-6">
+        {/* Template T3 PageHeader */}
+        <PageHeader
+          title="استعراض الفرص"
+          description="تصفح الأنشطة التجارية المؤهلة في مصر وافتح بيانات التواصل مع العملاء المناسبين لخدماتك."
+          breadcrumbs={[
+            { label: 'لوحة القيادة', href: '/dashboard' },
+            { label: 'استعراض الفرص' },
+          ]}
+        />
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setMatchedOnly(!matchedOnly)}
-              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-extrabold transition ${
-                matchedOnly
-                  ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                  : 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-              }`}
-            >
-              <Sparkles className="h-4 w-4" />
-              <span>
-                {matchedOnly ? 'عرض المتوافقة مع ملفي فقط ✓' : 'مطابقة تلقائية مع ملفي الشخصي'}
-              </span>
-            </button>
-          </div>
-        </div>
+        {/* Template T3 FilterBar */}
+        <FilterBar
+          searchQuery={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="بحث باسم النشاط أو المنطقة..."
+          quickFilters={quickFilters}
+          onToggleQuickFilter={handleToggleQuickFilter}
+          onOpenAdvancedFilters={() => setIsFilterDrawerOpen(true)}
+          hasActiveFilters={hasActiveFilters}
+          onClearAllFilters={resetFilters}
+          totalResults={leads.length}
+        />
 
-        {/* Comprehensive Filters Panel (Section 5) */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <span className="flex items-center gap-2 text-sm font-extrabold text-slate-800">
-              <Filter className="h-4 w-4 text-emerald-600" />
-              أدوات التصفية المتقدمة (Filters)
-            </span>
-            <button
-              onClick={resetFilters}
-              className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-rose-600"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              إعادة ضبط الفلاتر
-            </button>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {/* Search */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">
-                بحث باسم النشاط أو المنطقة
-              </label>
-              <div className="relative mt-1">
-                <Search className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="ابحث عن عيادة، مطعم، شركة..."
-                  className="w-full rounded-xl border border-slate-300 py-2 pr-9 pl-3 text-xs font-semibold"
-                />
-              </div>
-            </div>
-
-            {/* Governorate */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">
-                المحافظة (Governorate)
-              </label>
-              <select
-                value={governorate}
-                onChange={(e) => {
-                  setGovernorate(e.target.value);
-                  setCity('ALL');
-                }}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-              >
-                <option value="ALL">جميع المحافظات</option>
-                {ALL_GOVERNORATES.map((gov) => (
-                  <option key={gov} value={gov}>
-                    {gov}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* City */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">المدينة (City)</label>
-              <select
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-              >
-                <option value="ALL">جميع المدن</option>
-                {availableCities.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Area */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">المنطقة (Area)</label>
-              <input
-                type="text"
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                placeholder="مثال: مدينة نصر، الدقي، سموحة..."
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold"
-              />
-            </div>
-
-            {/* Business Type */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">
-                نوع النشاط (Business Type)
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-              >
-                <option value="ALL">جميع الأنشطة التجارية</option>
-                {BUSINESS_CATEGORIES.map((cat) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.labelAr} ({cat.value})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Website Status */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">
-                حالة الموقع (Website)
-              </label>
-              <select
-                value={websiteStatus}
-                onChange={(e) => setWebsiteStatus(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-              >
-                <option value="ALL">الكل</option>
-                <option value="NO_WEBSITE">بدون موقع إلكتروني (No Website)</option>
-                <option value="POOR_WEBSITE">موقع قديم / ضعيف (Poor Website)</option>
-                <option value="HAS_WEBSITE">يمتلك موقعًا (Has Website)</option>
-                <option value="UNKNOWN">غير معروف (Unknown)</option>
-              </select>
-            </div>
-
-            {/* Lead Score Range */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">
-                درجة التقييم (Lead Score)
-              </label>
-              <select
-                value={scoreRange}
-                onChange={(e) => setScoreRange(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-              >
-                <option value="">جميع الدرجات (0 – 100)</option>
-                {SCORE_RANGES.map((sr) => (
-                  <option key={sr.value} value={sr.value}>
-                    {sr.labelAr}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Lead Temperature / Type */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">
-                تصنيف الفرصة (Lead Type)
-              </label>
-              <select
-                value={temperature}
-                onChange={(e) => setTemperature(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-              >
-                <option value="ALL">جميع التصنيفات (Hot / Warm / Cold)</option>
-                <option value="PREMIUM">فرصة ممتازة (PREMIUM 85-100)</option>
-                <option value="HOT">فرصة ساخنة (HOT 70+)</option>
-                <option value="WARM">فرصة دافئة (WARM 50-69)</option>
-                <option value="COLD">فرصة باردة (COLD 0-49)</option>
-              </select>
-            </div>
-
-            {/* Required Service (Phase 4) */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">
-                الخدمة المطلوبة (Required Service)
-              </label>
-              <select
-                value={service}
-                onChange={(e) => setService(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-              >
-                <option value="ALL">جميع الخدمات</option>
-                <option value="WEBSITE_DEVELOPMENT">تطوير موقع إلكتروني (Website Development)</option>
-                <option value="WEBSITE_REDESIGN">إعادة تصميم وتطوير موقع (Redesign)</option>
-                <option value="ECOMMERCE">متجر إلكتروني (E-Commerce)</option>
-                <option value="LANDING_PAGE">صفحة هبوط (Landing Page)</option>
-                <option value="BOOKING_SYSTEM">نظام حجز مواعيد (Booking System)</option>
-                <option value="CUSTOM_SOFTWARE">أنظمة مخصصة وتطبيقات ويب (Web App)</option>
-                <option value="SEO">تحسين محركات البحث (SEO)</option>
-              </select>
-            </div>
-
-            {/* Min Match Strength (Phase 4) */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">
-                الحد الأدنى لقوة التطابق (Match Strength)
-              </label>
-              <select
-                value={minMatchStrength}
-                onChange={(e) => setMinMatchStrength(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-              >
-                <option value="">الكل (0% – 100%)</option>
-                <option value="85">تطابق ممتاز (85%+)</option>
-                <option value="70">تطابق قوي (70%+)</option>
-                <option value="50">تطابق مقبول (50%+)</option>
-              </select>
-            </div>
-
-            {/* Min Quality Score & Freshness (Phase 3 & 4) */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">
-                جودة وحداثة البيانات (Quality & Freshness)
-              </label>
-              <div className="mt-1 flex gap-2">
-                <select
-                  value={minQualityScore}
-                  onChange={(e) => setMinQualityScore(e.target.value)}
-                  className="w-1/2 rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs font-bold"
-                >
-                  <option value="">كل مستويات الجودة</option>
-                  <option value="85">ممتازة (85+)</option>
-                  <option value="70">عالية (70+)</option>
-                  <option value="50">متوسطة (50+)</option>
-                </select>
-                <select
-                  value={freshnessStatus}
-                  onChange={(e) => setFreshnessStatus(e.target.value)}
-                  className="w-1/2 rounded-xl border border-slate-300 bg-white px-2.5 py-2 text-xs font-bold"
-                >
-                  <option value="ALL">كل حالات الحداثة</option>
-                  <option value="FRESH">حديثة جداً (FRESH)</option>
-                  <option value="RECENT">محدثة قريباً (RECENT)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Deterministic Sort Order (Phase 4) */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600">
-                الترتيب حسب (Sort Order)
-              </label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold"
-              >
-                <option value="MATCH_STRENGTH">الأعلى تطابقاً ثم الجودة (Match Strength)</option>
-                <option value="SCORE_DESC">الأعلى فرصة بيعية (Opportunity Score)</option>
-                <option value="QUALITY_DESC">الأعلى جودة بيانات (Quality Score)</option>
-                <option value="NEWEST">الأحدث إضافةً (Newest)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Contact & Ownership Checkboxes Row */}
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-3">
-            <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-700">
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={hasPhone}
-                  onChange={(e) => setHasPhone(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-emerald-600"
-                />
-                <span>هاتف متاح (Phone available)</span>
-              </label>
-
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={hasEmail}
-                  onChange={(e) => setHasEmail(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-emerald-600"
-                />
-                <span>بريد إلكتروني متاح (Email available)</span>
-              </label>
-
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={hasSocial}
-                  onChange={(e) => setHasSocial(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-emerald-600"
-                />
-                <span>تواجد اجتماعي متاح (Social available)</span>
-              </label>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs">
-              <span className="font-bold text-slate-600">الملكية:</span>
-              <button
-                onClick={() => setOwnershipType('ALL')}
-                className={`rounded-lg px-2.5 py-1 font-bold ${
-                  ownershipType === 'ALL'
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-600'
-                }`}
-              >
-                الكل
-              </button>
-              <button
-                onClick={() => setOwnershipType('EXCLUSIVE')}
-                className={`rounded-lg px-2.5 py-1 font-bold ${
-                  ownershipType === 'EXCLUSIVE'
-                    ? 'bg-purple-700 text-white'
-                    : 'bg-purple-50 text-purple-700'
-                }`}
-              >
-                حصري (Exclusive)
-              </button>
-              <button
-                onClick={() => setOwnershipType('SHARED')}
-                className={`rounded-lg px-2.5 py-1 font-bold ${
-                  ownershipType === 'SHARED'
-                    ? 'bg-emerald-700 text-white'
-                    : 'bg-emerald-50 text-emerald-700'
-                }`}
-              >
-                مشترك (Shared)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Results Count */}
-        <div className="flex items-center justify-between px-1">
-          <p className="text-xs font-extrabold text-slate-700">
-            إجمالي الفرص المطابقة للبحث: <span className="text-emerald-600">{leads.length}</span>{' '}
-            شركة / نشاط تجاري
+        {/* Results Header: Count + Segmented View Tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+          <p className="text-body-sm text-fg-secondary">
+            إجمالي الفرص المطابقة:{' '}
+            <span className="ltr-iso font-mono font-semibold tabular-nums text-fg-brand">
+              {fmtNumber(leads.length)}
+            </span>{' '}
+            نشاط تجاري
           </p>
+
+          <Tabs
+            variant="segmented"
+            tabs={viewTabs}
+            activeTab={viewMode}
+            onChange={(id) => setViewMode(id as 'grid' | 'table')}
+          />
         </div>
 
-        {/* Leads Grid */}
+        {/* Results View */}
         {loading ? (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((n) => (
-              <div
-                key={n}
-                className="h-80 animate-pulse rounded-2xl border border-slate-200 bg-white p-5"
-              />
-            ))}
-          </div>
+          viewMode === 'grid' ? (
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <div
+                  key={n}
+                  className="rounded-lg border border-line bg-surface p-5 flex flex-col gap-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </div>
+                  <Skeleton className="h-5 w-3/4 rounded" />
+                  <Skeleton className="h-4 w-1/2 rounded" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </div>
+                  <div className="pt-4 border-t border-line flex items-center justify-between">
+                    <Skeleton className="h-6 w-20 rounded" />
+                    <Skeleton className="h-8 w-24 rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-line bg-surface p-4 flex flex-col gap-3">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Skeleton key={n} className="h-14 w-full rounded-md" />
+              ))}
+            </div>
+          )
         ) : leads.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <p className="text-base font-extrabold text-slate-800">
-              لا توجد فرص مطابقة لمعايير التصفية الحالية
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              جرب تخفيف بعض الفلاتر أو إلغاء تفعيل خيار &quot;المتوافقة مع ملفي فقط&quot; لعرض جميع
-              الفرص.
-            </p>
-            <button
-              onClick={resetFilters}
-              className="mt-4 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
-            >
-              إعادة عرض جميع الفرص
-            </button>
-          </div>
-        ) : (
+          <EmptyState
+            variant="no-results"
+            title="لا توجد فرص مطابقة الآن"
+            description="عدّل المدن أو التخصصات أو فلاتر البحث لتظهر فرص أكثر."
+            action={{
+              label: 'مسح الفلاتر',
+              onClick: resetFilters,
+            }}
+          />
+        ) : viewMode === 'grid' ? (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {leads.map((lead) => (
               <LeadCard
                 key={lead.id}
-                lead={lead}
-                onClaimSuccess={() => {
-                  loadLeads();
-                }}
+                id={lead.id}
+                companyName={lead.businessName}
+                category={CATEGORY_LABELS_AR[lead.category] || lead.category}
+                location={`${lead.city}${lead.area ? `، ${lead.area}` : ''}`}
+                temperature={(lead.temperature as LeadTemperature) || 'HOT'}
+                score={lead.score}
+                ownershipType={
+                  (lead.exclusive || lead.leadType === 'EXCLUSIVE'
+                    ? 'EXCLUSIVE'
+                    : 'SHARED') as OwnershipType
+                }
+                qualityStatus={mapQualityStatus(lead)}
+                qualityTimestamp={lead.lastVerifiedAt}
+                price={lead.creditCost || (lead.exclusive ? 5 : 1)}
+                signals={lead.qualificationReasons || []}
+                seatsRemaining={
+                  lead.exclusive
+                    ? undefined
+                    : Math.max(0, (lead.maxPurchasers || 3) - (lead.currentPurchasers || 0))
+                }
+                maxSeats={lead.exclusive ? undefined : lead.maxPurchasers || 3}
               />
             ))}
           </div>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-line bg-surface shadow-xs">
+            <table className="w-full text-start border-collapse text-body-sm">
+              <thead>
+                <tr className="border-b border-line bg-subtle text-caption font-semibold text-fg-secondary h-11">
+                  <th className="py-2.5 px-4 text-start">النشاط التجاري</th>
+                  <th className="py-2.5 px-4 text-start">تقييم الفرصة</th>
+                  <th className="py-2.5 px-4 text-start">جودة البيانات</th>
+                  <th className="py-2.5 px-4 text-start">نوع التوزيع</th>
+                  <th className="py-2.5 px-4 text-end">التكلفة</th>
+                  <th className="py-2.5 px-4 text-end">الإجراء</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {leads.map((lead) => (
+                  <LeadRow
+                    key={lead.id}
+                    id={lead.id}
+                    companyName={lead.businessName}
+                    category={CATEGORY_LABELS_AR[lead.category] || lead.category}
+                    location={`${lead.city}${lead.area ? `، ${lead.area}` : ''}`}
+                    temperature={(lead.temperature as LeadTemperature) || 'HOT'}
+                    score={lead.score}
+                    ownershipType={
+                      (lead.exclusive || lead.leadType === 'EXCLUSIVE'
+                        ? 'EXCLUSIVE'
+                        : 'SHARED') as OwnershipType
+                    }
+                    qualityStatus={mapQualityStatus(lead)}
+                    qualityTimestamp={lead.lastVerifiedAt}
+                    price={lead.creditCost || (lead.exclusive ? 5 : 1)}
+                    seatsRemaining={
+                      lead.exclusive
+                        ? undefined
+                        : Math.max(0, (lead.maxPurchasers || 3) - (lead.currentPurchasers || 0))
+                    }
+                    maxSeats={lead.exclusive ? undefined : lead.maxPurchasers || 3}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
+
+        {/* Template T3 Advanced Filters Drawer */}
+        <Drawer
+          isOpen={isFilterDrawerOpen}
+          onClose={() => setIsFilterDrawerOpen(false)}
+          title="فلاتر متقدمة"
+          footer={
+            <div className="flex items-center justify-between w-full gap-3">
+              <Button variant="ghost" size="sm" onClick={resetFilters}>
+                إعادة ضبط
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setIsFilterDrawerOpen(false)}
+              >
+                تطبيق الفلاتر
+              </Button>
+            </div>
+          }
+        >
+          <div className="flex flex-col gap-4 py-2 overflow-y-auto">
+            {/* Search */}
+            <Input
+              label="بحث باسم النشاط أو المنطقة"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="مثال: عيادة، مطعم..."
+            />
+
+            {/* Governorate */}
+            <Select
+              label="المحافظة"
+              value={governorate}
+              onChange={(e) => {
+                setGovernorate(e.target.value);
+                setCity('ALL');
+              }}
+              options={[
+                { value: 'ALL', label: 'جميع المحافظات' },
+                ...ALL_GOVERNORATES.map((g) => ({ value: g, label: g })),
+              ]}
+            />
+
+            {/* City */}
+            <Select
+              label="المدينة"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              options={[
+                { value: 'ALL', label: 'جميع المدن' },
+                ...availableCities.map((c) => ({ value: c, label: c })),
+              ]}
+            />
+
+            {/* Area */}
+            <Input
+              label="المنطقة أو الحي"
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+              placeholder="مثال: مدينة نصر، سموحة..."
+            />
+
+            {/* Category */}
+            <Select
+              label="نوع النشاط التجاري"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              options={[
+                { value: 'ALL', label: 'جميع الأنشطة' },
+                ...BUSINESS_CATEGORIES.map((c) => ({
+                  value: c.value,
+                  label: `${c.labelAr} (${c.value})`,
+                })),
+              ]}
+            />
+
+            {/* Service */}
+            <Select
+              label="الخدمة المطلوبة"
+              value={service}
+              onChange={(e) => setService(e.target.value)}
+              options={[
+                { value: 'ALL', label: 'جميع الخدمات' },
+                { value: 'WEBSITE_DEVELOPMENT', label: 'تطوير موقع إلكتروني' },
+                { value: 'WEBSITE_REDESIGN', label: 'إعادة تصميم وتطوير موقع' },
+                { value: 'ECOMMERCE', label: 'متجر إلكتروني' },
+                { value: 'LANDING_PAGE', label: 'صفحة هبوط' },
+                { value: 'BOOKING_SYSTEM', label: 'نظام حجز مواعيد' },
+                { value: 'CUSTOM_SOFTWARE', label: 'أنظمة مخصصة وتطبيقات ويب' },
+                { value: 'SEO', label: 'تحسين محركات البحث' },
+              ]}
+            />
+
+            {/* Website Status */}
+            <Select
+              label="حالة الموقع الإلكتروني"
+              value={websiteStatus}
+              onChange={(e) => setWebsiteStatus(e.target.value)}
+              options={[
+                { value: 'ALL', label: 'الكل' },
+                { value: 'NO_WEBSITE', label: 'بدون موقع إلكتروني' },
+                { value: 'POOR_WEBSITE', label: 'موقع قديم أو ضعيف' },
+                { value: 'HAS_WEBSITE', label: 'يمتلك موقعاً' },
+                { value: 'UNKNOWN', label: 'غير معروف' },
+              ]}
+            />
+
+            {/* Score Range */}
+            <Select
+              label="نطاق تقييم الفرصة"
+              value={scoreRange}
+              onChange={(e) => setScoreRange(e.target.value)}
+              options={[
+                { value: '', label: 'جميع الدرجات (0 – 100)' },
+                ...SCORE_RANGES.map((sr) => ({ value: sr.value, label: sr.labelAr })),
+              ]}
+            />
+
+            {/* Min Match Strength */}
+            <Select
+              label="الحد الأدنى لقوة التطابق"
+              value={minMatchStrength}
+              onChange={(e) => setMinMatchStrength(e.target.value)}
+              options={[
+                { value: '', label: 'الكل (0% – 100%)' },
+                { value: '85', label: 'تطابق ممتاز (85%+)' },
+                { value: '70', label: 'تطابق قوي (70%+)' },
+                { value: '50', label: 'تطابق مقبول (50%+)' },
+              ]}
+            />
+
+            {/* Min Quality Score */}
+            <Select
+              label="مستوى جودة البيانات"
+              value={minQualityScore}
+              onChange={(e) => setMinQualityScore(e.target.value)}
+              options={[
+                { value: '', label: 'كل مستويات الجودة' },
+                { value: '85', label: 'ممتازة (85+)' },
+                { value: '70', label: 'عالية (70+)' },
+                { value: '50', label: 'متوسطة (50+)' },
+              ]}
+            />
+
+            {/* Freshness Status */}
+            <Select
+              label="حالة الحداثة والتحقق"
+              value={freshnessStatus}
+              onChange={(e) => setFreshnessStatus(e.target.value)}
+              options={[
+                { value: 'ALL', label: 'كل الحالات' },
+                { value: 'FRESH', label: 'حديثة جداً' },
+                { value: 'RECENT', label: 'محدثة قريباً' },
+              ]}
+            />
+
+            {/* Sort Order */}
+            <Select
+              label="الترتيب حسب"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              options={[
+                { value: 'MATCH_STRENGTH', label: 'الأعلى تطابقاً ثم الجودة' },
+                { value: 'SCORE_DESC', label: 'الأعلى فرصة بيعية' },
+                { value: 'QUALITY_DESC', label: 'الأعلى جودة بيانات' },
+                { value: 'NEWEST', label: 'الأحدث إضافة' },
+              ]}
+            />
+
+            {/* Temperature */}
+            <Select
+              label="تصنيف الفرصة"
+              value={temperature}
+              onChange={(e) => setTemperature(e.target.value)}
+              options={[
+                { value: 'ALL', label: 'جميع التصنيفات' },
+                { value: 'PREMIUM', label: 'فرصة مميزة' },
+                { value: 'HOT', label: 'فرصة ساخنة' },
+                { value: 'WARM', label: 'فرصة دافئة' },
+                { value: 'COLD', label: 'فرصة باردة' },
+              ]}
+            />
+
+            {/* Ownership Type */}
+            <div className="flex flex-col gap-1.5 pt-1">
+              <label className="text-label text-fg-primary">نوع الملكية والتوزيع</label>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  type="button"
+                  variant={ownershipType === 'ALL' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setOwnershipType('ALL')}
+                >
+                  الكل
+                </Button>
+                <Button
+                  type="button"
+                  variant={ownershipType === 'EXCLUSIVE' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setOwnershipType('EXCLUSIVE')}
+                >
+                  حصري
+                </Button>
+                <Button
+                  type="button"
+                  variant={ownershipType === 'SHARED' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setOwnershipType('SHARED')}
+                >
+                  مشترك
+                </Button>
+              </div>
+            </div>
+
+            {/* Checkboxes */}
+            <div className="flex flex-col gap-2.5 pt-2 border-t border-line">
+              <Checkbox
+                label="هاتف متاح"
+                checked={hasPhone}
+                onChange={(e) => setHasPhone(e.target.checked)}
+              />
+              <Checkbox
+                label="بريد إلكتروني متاح"
+                checked={hasEmail}
+                onChange={(e) => setHasEmail(e.target.checked)}
+              />
+              <Checkbox
+                label="حساب تواصل اجتماعي متاح"
+                checked={hasSocial}
+                onChange={(e) => setHasSocial(e.target.checked)}
+              />
+            </div>
+          </div>
+        </Drawer>
       </div>
     </AppShell>
   );
