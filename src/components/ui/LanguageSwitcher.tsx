@@ -25,6 +25,7 @@ export function LanguageSwitcher({ className = '', size = 'sm' }: LanguageSwitch
   return (
     <div
       role="group"
+      data-component="language-switcher"
       aria-label="Language Switcher / اختيار اللغة"
       className={`inline-flex items-center rounded-md bg-subtle p-0.5 border border-line ${className}`}
     >
@@ -40,7 +41,7 @@ export function LanguageSwitcher({ className = '', size = 'sm' }: LanguageSwitch
             : 'text-fg-muted hover:text-fg-secondary'
         }`}
       >
-        العربية
+        <bdi dir="auto">العربية</bdi>
       </button>
 
       <button
@@ -55,7 +56,7 @@ export function LanguageSwitcher({ className = '', size = 'sm' }: LanguageSwitch
             : 'text-fg-muted hover:text-fg-secondary'
         }`}
       >
-        English
+        <bdi dir="auto">English</bdi>
       </button>
     </div>
   );

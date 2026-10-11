@@ -11,12 +11,17 @@ import {
   ALL_CITIES,
   DEVELOPER_SERVICES,
 } from '@/lib/constants';
-import { ShieldCheck, UserPlus, Check } from 'lucide-react';
+import { localizeCity, localizeService } from '@/lib/taxonomy';
+import { BrandWordmark } from '@/components/ui/BrandWordmark';
+import { UserPlus, Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export default function RegisterPage() {
   const router = useRouter();
   const tAuth = useTranslations('auth');
+  const tGeo = useTranslations('geo');
+  const tServices = useTranslations('services');
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -85,10 +90,8 @@ export default function RegisterPage() {
         {/* Template T1 Auth / Register: Centered card max-w-auth (520px), radius-xl (rounded-xl), padding 32, on --bg-page */}
         <div className="w-full max-w-auth rounded-xl border border-line bg-surface p-8 shadow-xs">
           {/* Wordmark Block */}
-          <div className="flex flex-col items-center text-center gap-2 mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand text-fg-inverted shadow-xs">
-              <ShieldCheck className="h-6 w-6" />
-            </div>
+          <div className="flex flex-col items-center text-center gap-3 mb-6">
+            <BrandWordmark size="xl" href="/" />
             <h1 className="text-h2 font-bold text-fg-primary">
               {tAuth('registerTitle')}
             </h1>
@@ -111,7 +114,7 @@ export default function RegisterPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="أحمد محمد"
+                placeholder={tAuth('namePlaceholder')}
               />
 
               <Input
@@ -119,7 +122,7 @@ export default function RegisterPage() {
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="استوديو البرمجة"
+                placeholder={tAuth('companyPlaceholder')}
               />
             </div>
 
@@ -130,7 +133,7 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="ahmed@example.com"
+                placeholder={tAuth('emailRegisterPlaceholder')}
                 dir="ltr"
                 className="text-start"
               />
@@ -140,7 +143,7 @@ export default function RegisterPage() {
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="01012345678"
+                placeholder={tAuth('phonePlaceholder')}
                 dir="ltr"
                 className="text-start"
               />
@@ -177,8 +180,8 @@ export default function RegisterPage() {
                           : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                       }`}
                     >
-                      {selected && <Check className="h-3 w-3" />}
-                      <span>{service.labelAr}</span>
+                      {selected && <Check className="h-3 w-3 rtl:-scale-x-100" />}
+                      <span>{localizeService(service.value, tServices as any)}</span>
                     </button>
                   );
                 })}
@@ -204,8 +207,8 @@ export default function RegisterPage() {
                           : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                       }`}
                     >
-                      {selected && <Check className="h-3 w-3" />}
-                      <span>{city}</span>
+                      {selected && <Check className="h-3 w-3 rtl:-scale-x-100" />}
+                      <span>{localizeCity(city, tGeo as any)}</span>
                     </button>
                   );
                 })}

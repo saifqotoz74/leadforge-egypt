@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from './Button';
 import { fmtNumber } from '@/lib/format';
 
@@ -27,7 +28,7 @@ export interface FilterBarProps {
 export function FilterBar({
   searchQuery,
   onSearchChange,
-  searchPlaceholder = 'بحث...',
+  searchPlaceholder,
   quickFilters = [],
   onToggleQuickFilter,
   onOpenAdvancedFilters,
@@ -36,6 +37,10 @@ export function FilterBar({
   totalResults,
   className = '',
 }: FilterBarProps) {
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+  const resolvedPlaceholder = searchPlaceholder ?? tCommon('searchPlaceholder');
+
   return (
     <div
       role="search"
@@ -51,15 +56,15 @@ export function FilterBar({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={searchPlaceholder}
-            className="w-full h-10 ps-9 pe-4 rounded-md bg-surface text-fg-primary text-body-sm border border-line-strong hover:border-fg-muted focus:border-brand focus:ring-2 focus:ring-brand-accent/40 outline-none placeholder:text-fg-muted transition-colors"
+            placeholder={resolvedPlaceholder}
+            className="w-full h-10 ps-9 pe-4 rounded-md bg-surface text-fg-primary text-body-sm border border-line-strong hover:border-fg-muted focus:border-brand focus:ring-2 focus:ring-brand-accent outline-none placeholder:text-fg-muted transition-colors"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
               className="absolute end-3 text-fg-secondary hover:text-fg-primary"
-              aria-label="مسح البحث"
+              aria-label={tCommon('clearSearch')}
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -91,7 +96,7 @@ export function FilterBar({
             startIcon={<SlidersHorizontal className="w-4 h-4" />}
             onClick={onOpenAdvancedFilters}
           >
-            فلاتر متقدمة
+            {tCommon('advancedFilters')}
           </Button>
         )}
 
@@ -102,7 +107,7 @@ export function FilterBar({
             onClick={onClearAllFilters}
             className="text-body-sm text-brand font-semibold hover:underline ms-1"
           >
-            مسح الكل
+            {tCommon('clearAll')}
           </button>
         )}
       </div>
@@ -111,11 +116,12 @@ export function FilterBar({
       {typeof totalResults === 'number' && (
         <div className="text-body-sm text-fg-secondary">
           <span className="tabular font-medium text-fg-primary">
-            {fmtNumber(totalResults)}
+            {fmtNumber(totalResults, locale)}
           </span>{' '}
-          نتيجة
+          {tCommon('resultUnit')}
         </div>
       )}
     </div>
   );
 }
+

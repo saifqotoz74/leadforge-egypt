@@ -7,7 +7,8 @@ import { PublicNavbar, PublicFooter } from '@/components/domain';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Banner } from '@/components/ui/Banner';
-import { ShieldCheck, LogIn, KeyRound, UserCheck } from 'lucide-react';
+import { BrandWordmark } from '@/components/ui/BrandWordmark';
+import { LogIn, KeyRound, UserCheck } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export default function LoginPage() {
@@ -72,16 +73,14 @@ export default function LoginPage() {
         {/* Template T1 Auth: Centered card 440px, radius-xl (24px via rounded-xl), padding 32, on --bg-page */}
         <div className="w-full max-w-auth rounded-xl border border-line bg-surface p-8 shadow-xs">
           {/* Wordmark Block */}
-          <div className="flex flex-col items-center text-center gap-2 mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand text-fg-inverted shadow-xs">
-              <ShieldCheck className="h-6 w-6" />
-            </div>
+          <div className="flex flex-col items-center text-center gap-3 mb-6">
+            <BrandWordmark size="xl" href="/" />
             <h1 className="text-h2 font-bold text-fg-primary">
               {tAuth('loginTitle')}
             </h1>
             <p className="text-body-sm text-fg-secondary">
               {tAuth('welcomeBack')}{' '}
-              <span className="font-semibold text-fg-primary">LeadForge Egypt</span>
+              <span className="font-semibold text-fg-primary ltr-iso" dir="ltr">Leads4dev</span>
             </p>
           </div>
 

@@ -25,6 +25,7 @@ import {
   StatTile,
   DealTimeline,
   LedgerTable,
+  MatchRow,
 } from '@/components/domain';
 
 import {
@@ -64,6 +65,9 @@ import {
   TableRow,
   TableHead,
   TableCell,
+  ChipList,
+  BarList,
+  BrandWordmark,
 } from '@/components/ui';
 
 import {
@@ -147,7 +151,7 @@ export default function DesignSystemPage() {
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-brand" />
               <h1 className="text-h2 font-bold tracking-tight">
-                دليل نظام التصميم — LeadForge Design System
+                دليل نظام التصميم — Leads4dev Design System
               </h1>
             </div>
             <p className="text-body-sm text-fg-secondary">
@@ -218,7 +222,7 @@ export default function DesignSystemPage() {
           <div className="border-b border-line pb-3">
             <h2 className="text-h2 font-bold text-fg-primary flex items-center gap-2">
               <Palette className="h-6 w-6 text-fg-brand" />
-              <span>١. لوحة الألوان ورموز التصميم الدلالية (Tokens & Contrast)</span>
+              <span>1. لوحة الألوان ورموز التصميم الدلالية (Tokens & Contrast)</span>
             </h2>
             <p className="text-body-sm text-fg-secondary mt-1">
               عائلة التيل المصرية والمحايدات الدافئة. لا يوجد أخضر، لا يوجد بنفسجي، لا توجد تدرجات لونية.
@@ -319,7 +323,7 @@ export default function DesignSystemPage() {
           <div className="border-b border-line pb-3">
             <h2 className="text-h2 font-bold text-fg-primary flex items-center gap-2">
               <Type className="h-6 w-6 text-fg-brand" />
-              <span>٢. مقياس الطباعة والخطوط (Typography Scale)</span>
+              <span>2. مقياس الطباعة والخطوط (Typography Scale)</span>
             </h2>
             <p className="text-body-sm text-fg-secondary mt-1">
               خط IBM Plex Sans Arabic للنصوص و IBM Plex Mono للأرقام الجدولية والمعادلات.
@@ -355,7 +359,7 @@ export default function DesignSystemPage() {
             <div className="flex flex-col gap-1 border-b border-line pb-4">
               <span className="text-caption text-fg-muted font-mono">Body (16px, 400, line-height 1.7)</span>
               <p className="text-body text-fg-secondary max-w-[70ch]">
-                نظام LeadForge يعتمد على معايير حتمية صارمة لاكتشاف واحتساب جودة الفرص التجارية دون أي تخمينات عشوائية أو أيقونات ذكاء اصطناعي مضللة.
+                نظام Leads4dev يعتمد على معايير حتمية صارمة لاكتشاف واحتساب جودة الفرص التجارية دون أي تخمينات عشوائية أو أيقونات ذكاء اصطناعي مضللة.
               </p>
             </div>
 
@@ -370,10 +374,33 @@ export default function DesignSystemPage() {
             <div className="flex flex-col gap-1">
               <span className="text-caption text-fg-muted font-mono">Caption (12px, 400) & Tabular Numerals (.ltr-iso)</span>
               <div className="flex items-center gap-4 text-caption text-fg-muted">
-                <span>تم التحديث منذ ٣ أيام</span>
+                <span>تم التحديث منذ 3 أيام</span>
                 <span className="ltr-iso font-mono font-semibold text-fg-primary tabular-nums">
                   +150 نقطة / 01012345678
                 </span>
+              </div>
+            </div>
+
+            {/* BRAND WORDMARK SHOWCASE */}
+            <div className="flex flex-col gap-3 border-t border-line pt-4">
+              <span className="text-caption text-fg-muted font-mono">شعار وهوية المنصة (Brand Wordmark — Leads4dev)</span>
+              <div className="flex flex-wrap items-baseline gap-6 p-4 rounded-lg border border-line bg-subtle">
+                <div className="flex flex-col gap-1">
+                  <span className="text-caption text-fg-muted">XL (30px)</span>
+                  <BrandWordmark size="xl" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-caption text-fg-muted">LG (24px)</span>
+                  <BrandWordmark size="lg" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-caption text-fg-muted">MD (20px) + Subtitle</span>
+                  <BrandWordmark size="md" subtitle="فرص مبيعات مؤهلة" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-caption text-fg-muted">SM (16px)</span>
+                  <BrandWordmark size="sm" />
+                </div>
               </div>
             </div>
           </div>
@@ -386,7 +413,7 @@ export default function DesignSystemPage() {
           <div className="border-b border-line pb-3">
             <h2 className="text-h2 font-bold text-fg-primary flex items-center gap-2">
               <Sliders className="h-6 w-6 text-fg-brand" />
-              <span>٣. المكونات الأولية (UI Primitives in All States)</span>
+              <span>3. المكونات الأولية (UI Primitives in All States)</span>
             </h2>
             <p className="text-body-sm text-fg-secondary mt-1">
               جميع عناصر الواجهة الأساسية: أزرار، حقول إدخال، نوافذ منبثقة، جداول، وتبويبات.
@@ -640,6 +667,42 @@ export default function DesignSystemPage() {
               </div>
             </div>
 
+            {/* CHIP LIST (+N OVERFLOW WITH TOOLTIP) */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                قوائم الرقاقات المتقدمة (ChipList — +N Overflow with Tooltip)
+              </h3>
+              <p className="text-body-sm text-fg-secondary">
+                عرض الرقاقات والوسوم مع معالجة ذكية للفيض عبر شارة +N وتلميح توضيحي تفاعلي عند التحويم.
+              </p>
+
+              <div className="flex flex-col gap-4">
+                <div>
+                  <span className="text-caption text-fg-muted mb-2 block">قائمة قياسية بدون فيض (Standard):</span>
+                  <ChipList
+                    chips={['تطوير مواقع الويب', 'تطبيقات الهواتف', 'منصات التجارة الإلكترونية']}
+                    maxVisible={3}
+                  />
+                </div>
+
+                <div>
+                  <span className="text-caption text-fg-muted mb-2 block">قائمة مع فيض وتلميح تفاعلي (+N Overflow):</span>
+                  <ChipList
+                    chips={[
+                      'محافظة القاهرة',
+                      'محافظة الجيزة',
+                      'الإسكندرية',
+                      'المنصورة',
+                      'طنطا',
+                      'أسيوط',
+                      'بورسعيد',
+                    ]}
+                    maxVisible={3}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* CARDS */}
             <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
               <h3 className="text-h3 font-semibold text-fg-primary">البطاقات (Card Variants & Subcomponents)</h3>
@@ -659,7 +722,7 @@ export default function DesignSystemPage() {
                     </p>
                   </CardContent>
                   <CardFooter className="flex justify-between items-center">
-                    <span className="text-caption text-fg-muted">تحديث: منذ ٥ دقائق</span>
+                    <span className="text-caption text-fg-muted">تحديث: منذ 5 دقائق</span>
                     <Button variant="secondary" size="sm">عرض التفاصيل</Button>
                   </CardFooter>
                 </Card>
@@ -678,6 +741,30 @@ export default function DesignSystemPage() {
                     </p>
                   </div>
                 </Card>
+              </div>
+            </div>
+
+            {/* BAR LIST (CONVERSION FUNNEL) */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                مخطط معدلات التحويل والمؤشرات البيانية (BarList — Conversion Funnel)
+              </h3>
+              <p className="text-body-sm text-fg-secondary">
+                مسار تحويل متدرج بشرائط 6px ملونة بنمط العلامة التجارية لحساب معدلات الإنجاز.
+              </p>
+
+              <div className="max-w-xl">
+                <BarList
+                  items={[
+                    { label: 'تم الشراء', value: 42, percentage: 100 },
+                    { label: 'تم التواصل', value: 36, percentage: 86 },
+                    { label: 'تم الرد والتفاعل', value: 24, percentage: 57 },
+                    { label: 'اجتماع مجدول', value: 14, percentage: 33 },
+                    { label: 'تمت الصفقة بنجاح', value: 8, percentage: 19 },
+                  ]}
+                  maxValue={42}
+                  showPercentage={true}
+                />
               </div>
             </div>
 
@@ -703,15 +790,15 @@ export default function DesignSystemPage() {
                     <TableCell><span className="ltr-iso font-mono font-medium">TX-8012</span></TableCell>
                     <TableCell>شراء باقة نمو</TableCell>
                     <TableCell><Badge variant="brand" size="sm">مكتمل</Badge></TableCell>
-                    <TableCell isNumeric><span className="ltr-iso font-mono font-bold text-fg-brand">+٥٠٠</span></TableCell>
-                    <TableCell isNumeric><span className="ltr-iso font-mono">٥٠٠</span></TableCell>
+                    <TableCell isNumeric><span className="ltr-iso font-mono font-bold text-fg-brand">+500</span></TableCell>
+                    <TableCell isNumeric><span className="ltr-iso font-mono">500</span></TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell><span className="ltr-iso font-mono font-medium">TX-8013</span></TableCell>
                     <TableCell>شراء فرصة حصرية (مستشفى الشروق)</TableCell>
                     <TableCell><Badge variant="neutral" size="sm">معتمد</Badge></TableCell>
-                    <TableCell isNumeric><span className="ltr-iso font-mono font-bold text-danger-text">-٦٠</span></TableCell>
-                    <TableCell isNumeric><span className="ltr-iso font-mono">٤٤٠</span></TableCell>
+                    <TableCell isNumeric><span className="ltr-iso font-mono font-bold text-danger-text">-60</span></TableCell>
+                    <TableCell isNumeric><span className="ltr-iso font-mono">440</span></TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -825,7 +912,7 @@ export default function DesignSystemPage() {
           <div className="border-b border-line pb-3">
             <h2 className="text-h2 font-bold text-fg-primary flex items-center gap-2">
               <Shield className="h-6 w-6 text-fg-brand" />
-              <span>٤. مكونات النطاق المخصصة (Domain Components & Enums)</span>
+              <span>4. مكونات النطاق المخصصة (Domain Components & Enums)</span>
             </h2>
             <p className="text-body-sm text-fg-secondary mt-1">
               مطابقة دقيقة مع الـ Enums الحقيقية في قاعدة البيانات (AUDIT.md).
@@ -863,7 +950,7 @@ export default function DesignSystemPage() {
               <h3 className="text-h3 font-semibold text-fg-primary">
                 مؤشرات جودة وحداثة البيانات (Freshness & Verification — Spec 6.2)
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
                 <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
                   <span className="text-caption font-mono text-fg-muted">FRESH</span>
                   <QualityIndicator status="FRESH" timestamp={new Date()} />
@@ -877,6 +964,10 @@ export default function DesignSystemPage() {
                   <QualityIndicator status="STALE" timestamp={new Date(Date.now() - 86400000 * 45)} />
                 </div>
                 <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
+                  <span className="text-caption font-mono text-fg-muted">VERY_STALE</span>
+                  <QualityIndicator status="VERY_STALE" timestamp={new Date(Date.now() - 86400000 * 90)} />
+                </div>
+                <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
                   <span className="text-caption font-mono text-fg-muted">UNVERIFIED</span>
                   <QualityIndicator status="UNVERIFIED" />
                 </div>
@@ -887,6 +978,10 @@ export default function DesignSystemPage() {
                 <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
                   <span className="text-caption font-mono text-fg-muted">REVERIFYING</span>
                   <QualityIndicator status="REVERIFYING" />
+                </div>
+                <div className="p-3 rounded-lg border border-line bg-subtle flex flex-col gap-1">
+                  <span className="text-caption font-mono text-fg-muted">UNKNOWN</span>
+                  <QualityIndicator status="UNKNOWN" />
                 </div>
               </div>
             </div>
@@ -945,7 +1040,7 @@ export default function DesignSystemPage() {
                     { label: 'تقييم ممتاز على خرائط جوجل مع تفاعل نشط', points: 25, maxWeight: 30 },
                     { label: 'يمتلك النشاط أكثر من فرعين تجاريين', points: 20, maxWeight: 25 },
                     { label: 'رقم هاتف محمول مخصص للتواصل المباشر', points: 15, maxWeight: 20 },
-                    { label: 'تحديث بيانات الموقع منذ أكثر من ٩٠ يوماً', points: -5, maxWeight: 20 },
+                    { label: 'تحديث بيانات الموقع منذ أكثر من 90 يوماً', points: -5, maxWeight: 20 },
                   ]}
                 />
               </div>
@@ -1052,6 +1147,87 @@ export default function DesignSystemPage() {
               </div>
             </div>
 
+            {/* MATCH ROW (SPEC 6.2 & ADDENDUM 3.7) */}
+            <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
+              <h3 className="text-h3 font-semibold text-fg-primary">
+                صفوف الفرص المتطابقة (MatchRow — Spec 6.2 & Addendum 3.7)
+              </h3>
+              <p className="text-body-sm text-fg-secondary">
+                العنصر الأساسي لصفحة لوحة التحكم الذهبية: تسلسل هرمي دقيق، رقاقات أسباب المطابقة المنظمة، وشارة الجودة والفرصة.
+              </p>
+
+              <div className="flex flex-col divide-y divide-line border border-line rounded-lg bg-surface">
+                <MatchRow
+                  lead={{
+                    id: 'ds-match-1',
+                    businessName: 'مستشفى الشروق التخصصي',
+                    category: 'HEALTHCARE',
+                    city: 'CAIRO',
+                    score: 96,
+                    temperature: 'PREMIUM',
+                    websiteStatus: 'NO_WEBSITE',
+                    freshnessStatus: 'FRESH',
+                    verificationStatus: 'VERIFIED',
+                    matchStrength: 98,
+                  }}
+                  categoryLabel="رعاية صحية"
+                  cityLabel="القاهرة"
+                  websiteStatusLabel="بدون موقع إلكتروني"
+                />
+
+                <MatchRow
+                  lead={{
+                    id: 'ds-match-2',
+                    businessName: 'سلسلة مطاعم كرم الشام',
+                    category: 'RESTAURANTS',
+                    city: 'GIZA',
+                    score: 84,
+                    temperature: 'HOT',
+                    websiteStatus: 'NEEDS_REDESIGN',
+                    freshnessStatus: 'VERIFIED',
+                    matchStrength: 89,
+                  }}
+                  categoryLabel="مطاعم ومأكولات"
+                  cityLabel="الجيزة"
+                  websiteStatusLabel="يحتاج إلى تطوير"
+                />
+
+                <MatchRow
+                  lead={{
+                    id: 'ds-match-3',
+                    businessName: 'مكتب الأندلس للمحاماة والاستشارات القانونية',
+                    category: 'LEGAL',
+                    city: 'ALEXANDRIA',
+                    score: 65,
+                    temperature: 'WARM',
+                    websiteStatus: 'POOR_MOBILE',
+                    freshnessStatus: 'AGING',
+                    matchStrength: 74,
+                  }}
+                  categoryLabel="خدمات قانونية"
+                  cityLabel="الإسكندرية"
+                  websiteStatusLabel="غير متوافق مع الموبايل"
+                />
+
+                <MatchRow
+                  lead={{
+                    id: 'ds-match-4',
+                    businessName: 'ورشة النيل للهندسة والحدادة',
+                    category: 'MANUFACTURING',
+                    city: 'MANSOURA',
+                    score: 42,
+                    temperature: 'COLD',
+                    websiteStatus: 'ACTIVE',
+                    freshnessStatus: 'UNVERIFIED',
+                    matchStrength: 52,
+                  }}
+                  categoryLabel="صناعة وتوريدات"
+                  cityLabel="المنصورة"
+                  websiteStatusLabel="موقع نشط"
+                />
+              </div>
+            </div>
+
             {/* PACKAGE CARDS (HOSTINGER CALIBRATION) */}
             <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
               <h3 className="text-h3 font-semibold text-fg-primary">
@@ -1065,7 +1241,7 @@ export default function DesignSystemPage() {
                   points={50}
                   priceEGP={500}
                   features={[
-                    '٥٠ نقطة صالحة لكافة الفرص',
+                    '50 نقطة صالحة لكافة الفرص',
                     'وصول فوري لبيانات الاتصال',
                     'دعم فني عبر البريد الإلكتروني',
                   ]}
@@ -1080,7 +1256,7 @@ export default function DesignSystemPage() {
                   isRecommended
                   recommendedReason="الأنسب للشركات المستقلة وفرق المبيعات النشطة"
                   features={[
-                    '٢٠٠ نقطة مع أفضل قيمة لكل نقطة',
+                    '200 نقطة مع أفضل قيمة لكل نقطة',
                     'أولوية الوصول للفرص الحصرية المميزة',
                     'تنبيهات فورية بمجرد توفر فرص مطابقة',
                     'دعم فني مباشر عبر واتساب',
@@ -1094,7 +1270,7 @@ export default function DesignSystemPage() {
                   points={500}
                   priceEGP={3500}
                   features={[
-                    '٥٠٠ نقطة مخصصة لفرق العمل الكبيرة',
+                    '500 نقطة مخصصة لفرق العمل الكبيرة',
                     'تصدير مباشر لبيانات الاتصال إلى CRM',
                     'مستشار حساب مخصص',
                     'ضمان استرداد النقاط في حال تعذر الوصول',
@@ -1278,7 +1454,7 @@ export default function DesignSystemPage() {
                     helper: 'تم فحص قاعدة البيانات وتصفية الفرص المناسبة لمجالك الجغرافي والتقني.',
                     content: (
                       <div className="p-4 rounded-lg bg-subtle border border-line text-body-sm text-fg-primary">
-                        تم العثور على <strong className="text-fg-brand font-semibold">١٨ فرصة نشطة</strong> تطابق خياراتك بالكامل.
+                        تم العثور على <strong className="text-fg-brand font-semibold">18 فرصة نشطة</strong> تطابق خياراتك بالكامل.
                       </div>
                     ),
                   },
@@ -1286,41 +1462,83 @@ export default function DesignSystemPage() {
               />
             </div>
 
-            {/* STAT TILES (SPEC 7.14) */}
+            {/* STAT TILES (SPEC 7.14 & DASHBOARD GOLDEN REFERENCE) */}
             <div className="rounded-xl border border-line bg-surface p-6 flex flex-col gap-6">
               <h3 className="text-h3 font-semibold text-fg-primary">
-                مربعات الإحصائيات الحيوية (StatTile — Spec 7.14)
+                مربعات الإحصائيات الحيوية (StatTile — Spec 7.14 & Dashboard Golden Reference)
               </h3>
               <p className="text-body-sm text-fg-secondary">
-                عرض المؤشرات الرئيسية مع تنبيهات عند خروج الأرقام عن النطاق الموصى به.
+                مقسمة إلى مجموعتين متناسقتين مع عناوين نطاق توضيحية بدون اقتطاع نصي وأرقام بنمط Plex Sans Tabular.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatTile
-                  label="إجمالي الفرص المكتشفة"
-                  value={1248}
-                  unit="فرصة"
-                  statusText="تحديث لحظي"
-                />
-                <StatTile
-                  label="رصيد النقاط الحالي"
-                  value={420}
-                  unit="نقطة"
-                  statusText="يكفي لشراء ٧ فرص حصرية"
-                />
-                <StatTile
-                  label="معدل إغلاق الصفقات"
-                  value={34.5}
-                  unit="%"
-                  statusText="ضمن المعدل المستهدف"
-                />
-                <StatTile
-                  label="فرص تتطلب إعادة التحقق"
-                  value={18}
-                  unit="فرصة"
-                  statusText="تجاوزت الحد المسموح (يحتاج مراجعة)"
-                  isOutOfRange={true}
-                />
+              {/* Group 1: لحسابك */}
+              <div className="flex flex-col gap-3">
+                <span className="text-caption font-semibold text-fg-secondary">
+                  لحسابك (Your account)
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <StatTile
+                    label="الفرص المطابقة"
+                    value={213}
+                    unit="فرصة"
+                    statusText="تطابق ملفك ونطاقك الجغرافي"
+                  />
+                  <StatTile
+                    label="الفرص المشتراة"
+                    value={18}
+                    unit="فرصة"
+                    statusText="تم شراؤها وجارٍ التواصل معها"
+                  />
+                  <StatTile
+                    label="رصيد النقاط"
+                    value={420}
+                    unit="نقطة"
+                    statusText="رصيدك المتبقي الحالي للاستخدام"
+                  />
+                </div>
+              </div>
+
+              {/* Group 2: على مستوى المنصة */}
+              <div className="flex flex-col gap-3">
+                <span className="text-caption font-semibold text-fg-secondary">
+                  على مستوى المنصة (Across the platform)
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <StatTile
+                    label="فرص ساخنة"
+                    value={226}
+                    unit="فرصة"
+                    statusText="الدرجة 70 فأكثر"
+                  />
+                  <StatTile
+                    label="فرص دافئة"
+                    value={412}
+                    unit="فرصة"
+                    statusText="الدرجة من 50 إلى 69"
+                  />
+                  <StatTile
+                    label="مضافة هذا الأسبوع"
+                    value={250}
+                    unit="فرصة"
+                    statusText="آخر 7 أيام"
+                  />
+                </div>
+              </div>
+
+              {/* Alert variant */}
+              <div className="flex flex-col gap-3 pt-2">
+                <span className="text-caption font-semibold text-fg-secondary">
+                  حالة التنبيه عند الخروج عن النطاق (Out-of-Range Alert)
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <StatTile
+                    label="فرص تتطلب إعادة التحقق"
+                    value={18}
+                    unit="فرصة"
+                    statusText="تجاوزت الحد المسموح (يحتاج مراجعة)"
+                    isOutOfRange={true}
+                  />
+                </div>
               </div>
             </div>
 
@@ -1390,7 +1608,7 @@ export default function DesignSystemPage() {
                     id: 'TXN-9022',
                     createdAt: new Date(Date.now() - 86400000 * 5),
                     type: 'PURCHASE',
-                    description: 'شحن رصيد إلكتروني — باقة المحترفين (٢٠٠ نقطة)',
+                    description: 'شحن رصيد إلكتروني — باقة المحترفين (200 نقطة)',
                     amount: 200,
                     balanceAfter: 250,
                   },
@@ -1507,7 +1725,7 @@ export default function DesignSystemPage() {
               { label: 'تقييم ممتاز على خرائط جوجل مع تفاعل نشط', points: 25, maxWeight: 30 },
               { label: 'يمتلك النشاط أكثر من فرعين تجاريين', points: 20, maxWeight: 25 },
               { label: 'رقم هاتف محمول مخصص للتواصل المباشر', points: 15, maxWeight: 20 },
-              { label: 'تحديث بيانات الموقع منذ أكثر من ٩٠ يوماً', points: -5, maxWeight: 20 },
+              { label: 'تحديث بيانات الموقع منذ أكثر من 90 يوماً', points: -5, maxWeight: 20 },
             ]}
           />
         </div>

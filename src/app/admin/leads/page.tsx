@@ -2,10 +2,10 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/Table';
 import { ALL_CITIES, BUSINESS_CATEGORIES } from '@/lib/constants';
 import { fmtNumber } from '@/lib/format';
+import { localizeCategory, localizeCity, localizeWebsiteStatus } from '@/lib/taxonomy';
 import {
   Plus,
   Upload,
@@ -70,6 +71,11 @@ interface ImportReportSummary {
 
 export default function AdminLeadsPage() {
   const t = useTranslations('adminLeads');
+  const tNav = useTranslations('nav');
+  const tGeo = useTranslations('geo');
+  const tCat = useTranslations('categories');
+  const tEnums = useTranslations('enums');
+  const locale = useLocale();
   const [leads, setLeads] = useState<AdminLeadRow[]>([]);
   const [developers, setDevelopers] = useState<{ id: string; name: string; email: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -278,7 +284,7 @@ export default function AdminLeadsPage() {
           title={t('title')}
           description={t('desc')}
           breadcrumbs={[
-            { label: 'لوحة التحكم', href: '/admin' },
+            { label: tNav('adminOverview'), href: '/admin' },
             { label: t('pageTitle') },
           ]}
           actions={
@@ -289,7 +295,7 @@ export default function AdminLeadsPage() {
                   size="sm"
                   startIcon={<ArrowRight className="h-4 w-4 rtl:-scale-x-100" />}
                 >
-                  لوحة التحكم
+                  {tNav('adminOverview')}
                 </Button>
               </Link>
               <Button
@@ -368,12 +374,16 @@ export default function AdminLeadsPage() {
                         </p>
                       </TableCell>
                       <TableCell>
-                        <p className="text-body-sm font-medium text-fg-primary">{lead.city}</p>
-                        <p className="text-caption text-fg-muted">{lead.category}</p>
+                        <p className="text-body-sm font-medium text-fg-primary">
+                          {localizeCity(lead.city, tGeo)}
+                        </p>
+                        <p className="text-caption text-fg-muted">
+                          {localizeCategory(lead.category, tCat)}
+                        </p>
                       </TableCell>
                       <TableCell>
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-subtle text-caption font-medium text-fg-secondary">
-                          {lead.websiteStatus}
+                          {localizeWebsiteStatus(lead.websiteStatus, tEnums)}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -479,7 +489,10 @@ export default function AdminLeadsPage() {
                 label={t('fieldCategory')}
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                options={BUSINESS_CATEGORIES.map((c) => ({ value: c.value, label: c.labelAr }))}
+                options={BUSINESS_CATEGORIES.map((c) => ({
+                  value: c.value,
+                  label: localizeCategory(c.value, tCat),
+                }))}
               />
             </div>
             <div>
@@ -487,7 +500,10 @@ export default function AdminLeadsPage() {
                 label={t('fieldCity')}
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                options={ALL_CITIES.map((c) => ({ value: c, label: c }))}
+                options={ALL_CITIES.map((c) => ({
+                  value: c,
+                  label: localizeCity(c, tGeo),
+                }))}
               />
             </div>
             <div>
@@ -647,7 +663,7 @@ export default function AdminLeadsPage() {
                 value={csvText}
                 onChange={(e) => setCsvText(e.target.value)}
                 placeholder="name,category,city,area,address,phone,email,website,facebook,instagram,rating,reviewCount,source"
-                className="w-full rounded-xl border border-line bg-surface p-3 font-mono text-body-sm text-fg-primary focus:border-line-brand focus:outline-none"
+                className="w-full rounded-xl border border-line bg-surface p-3 text-body-sm text-fg-primary focus:border-line-brand focus:outline-none ltr-iso"
               />
             </div>
 
@@ -660,25 +676,25 @@ export default function AdminLeadsPage() {
                 <div className="grid grid-cols-4 gap-2 text-center">
                   <div className="rounded-lg bg-surface border border-line p-2">
                     <span className="block text-caption text-fg-muted">{t('statImported')}</span>
-                    <strong className="text-h3 font-mono tabular-nums text-fg-primary">
+                    <strong className="text-h3 tabular-nums text-fg-primary">
                       {fmtNumber(importReport.imported)}
                     </strong>
                   </div>
                   <div className="rounded-lg bg-surface border border-line p-2">
                     <span className="block text-caption text-fg-brand">{t('statValid')}</span>
-                    <strong className="text-h3 font-mono tabular-nums text-fg-brand">
+                    <strong className="text-h3 tabular-nums text-fg-brand">
                       {fmtNumber(importReport.valid)}
                     </strong>
                   </div>
                   <div className="rounded-lg bg-surface border border-line p-2">
                     <span className="block text-caption text-warning-text">{t('statDuplicates')}</span>
-                    <strong className="text-h3 font-mono tabular-nums text-warning-text">
+                    <strong className="text-h3 tabular-nums text-warning-text">
                       {fmtNumber(importReport.duplicates)}
                     </strong>
                   </div>
                   <div className="rounded-lg bg-surface border border-line p-2">
                     <span className="block text-caption text-danger-text">{t('statInvalid')}</span>
-                    <strong className="text-h3 font-mono tabular-nums text-danger-text">
+                    <strong className="text-h3 tabular-nums text-danger-text">
                       {fmtNumber(importReport.invalid)}
                     </strong>
                   </div>

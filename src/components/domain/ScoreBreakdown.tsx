@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { fmtNumber } from '@/lib/format';
 
 export interface ScoreRuleItem {
@@ -17,13 +20,19 @@ export interface ScoreBreakdownProps {
 }
 
 export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
-  title = 'لماذا هذه الدرجة؟',
+  title,
   rules,
   totalScore,
-  footnote = 'تُحسب الدرجة بقواعد ثابتة وواضحة.',
+  footnote,
   className = '',
 }) => {
-  // Max possible weight for proportional meter display (default 50)
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+
+  const resolvedTitle = title ?? tCommon('whyScoreTitle');
+  const resolvedFootnote = footnote ?? tCommon('scoreFootnote');
+
+  // Max possible weight for proportional meter display (default 40)
   const maxWeightFound = Math.max(
     ...rules.map((r) => r.maxWeight || Math.abs(r.points)),
     40
@@ -33,13 +42,13 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
     <div
       className={`rounded-lg border border-line bg-surface p-6 shadow-xs flex flex-col gap-4 ${className}`}
       role="region"
-      aria-label={title}
+      aria-label={resolvedTitle}
     >
       {/* Title */}
-      <h3 className="text-h3 font-semibold text-fg-primary">{title}</h3>
+      <h3 className="text-h3 font-semibold text-fg-primary">{resolvedTitle}</h3>
 
       {/* Rules list */}
-      <div className="flex flex-col divide-y divide-line/60">
+      <div className="flex flex-col divide-y divide-line">
         {rules.map((rule, idx) => {
           const isNegative = rule.points < 0;
           const absPoints = Math.abs(rule.points);
@@ -52,7 +61,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
               className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
             >
               <div className="flex-1 min-w-0">
-                <span className="text-body text-fg-primary block truncate">
+                <span className="text-body text-fg-primary block break-words">
                   {rule.label}
                 </span>
 
@@ -73,11 +82,13 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
               {/* Signed Delta */}
               <div className="shrink-0 text-end">
                 <span
-                  className={`ltr-iso inline-block font-mono font-semibold tabular-nums ${
+                  className={`ltr-iso inline-block font-semibold tabular-nums ${
                     isNegative ? 'text-warning-text' : 'text-fg-brand'
                   }`}
                 >
-                  {isNegative ? `−${fmtNumber(absPoints)}` : `+${fmtNumber(absPoints)}`}
+                  {isNegative
+                    ? `−${fmtNumber(absPoints, locale)}`
+                    : `+${fmtNumber(absPoints, locale)}`}
                 </span>
               </div>
             </div>
@@ -87,16 +98,17 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
 
       {/* Footer row: Total */}
       <div className="pt-3 border-t border-line flex items-center justify-between font-semibold">
-        <span className="text-body text-fg-primary">المجموع الكلي</span>
-        <span className="ltr-iso font-mono text-h4 tabular-nums text-fg-primary">
-          {fmtNumber(totalScore)} / ١٠٠
+        <span className="text-body text-fg-primary">{tCommon('totalScore')}</span>
+        <span className="ltr-iso text-h4 tabular-nums text-fg-primary">
+          {fmtNumber(totalScore, locale)} / 100
         </span>
       </div>
 
       {/* Footnote */}
-      {footnote && (
-        <p className="text-caption text-fg-muted mt-1">{footnote}</p>
+      {resolvedFootnote && (
+        <p className="text-caption text-fg-secondary mt-1">{resolvedFootnote}</p>
       )}
     </div>
   );
 };
+

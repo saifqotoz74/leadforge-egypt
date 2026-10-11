@@ -144,3 +144,22 @@
   --card-pad: 1rem;         /* 16px */
   --nav-item-h: 2.5rem;     /* 40px */
 }
+
+/* Semantic dark surface scope (Spec 5.1 & Block 1.1) */
+[data-surface="inverse"] {
+  --bg-page: var(--n-800);
+  --bg-surface: var(--n-700);
+  --bg-subtle: var(--n-900);
+  --bg-brand-soft: var(--teal-900);
+  --bg-brand-soft-strong: var(--teal-800);
+  --border-default: var(--n-600);
+  --border-strong: var(--n-500);
+  --border-brand: var(--teal-400);
+  --text-primary: var(--sand-100);
+  --text-secondary: var(--n-200);
+  --text-muted: var(--n-300);
+  --text-brand: var(--teal-300);
+  --tier-cold-bg: var(--n-900);
+  --tier-cold-fg: var(--n-200);
+}
+

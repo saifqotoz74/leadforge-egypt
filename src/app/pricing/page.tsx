@@ -7,8 +7,10 @@ import { Banner } from '@/components/ui/Banner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { DEFAULT_PLANS } from '@/lib/constants';
-import { ShieldCheck, CreditCard } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { localizePlanName } from '@/lib/taxonomy';
+import { fmtNumber } from '@/lib/format';
+import { CreditCard } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface PlanItem {
   id?: string;
@@ -23,7 +25,9 @@ interface PlanItem {
 
 export default function PricingPage() {
   const router = useRouter();
+  const locale = useLocale();
   const tPricing = useTranslations('pricing');
+  const tPlans = useTranslations('plans');
   const [plans, setPlans] = useState<PlanItem[]>(DEFAULT_PLANS);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentPlanSlug, setCurrentPlanSlug] = useState<string | null>(null);
@@ -76,7 +80,10 @@ export default function PricingPage() {
         setCurrentPlanSlug(plan.slug);
         setMessage({
           type: 'success',
-          text: tPricing('subscriptionSuccess', { plan: plan.name, credits: plan.monthlyCredits }),
+          text: tPricing('subscriptionSuccess', {
+            plan: localizePlanName(plan, tPlans as any),
+            credits: fmtNumber(plan.monthlyCredits, locale),
+          }),
         });
       }
     } catch {
@@ -92,11 +99,6 @@ export default function PricingPage() {
 
       <main className="mx-auto max-w-7xl flex-1 px-4 py-12 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-line bg-subtle px-3.5 py-1.5 text-caption font-semibold text-fg-secondary mb-4">
-            <ShieldCheck className="h-4 w-4 text-brand rtl:-scale-x-100" />
-            <span>{tPricing('badge')}</span>
-          </div>
-
           <h1 className="text-display font-bold text-fg-primary">
             {tPricing('title')}
           </h1>
@@ -152,11 +154,14 @@ export default function PricingPage() {
                 <PackageCard
                   key={plan.slug}
                   id={plan.id || plan.slug}
+                  slug={plan.slug}
                   name={plan.name}
                   points={plan.monthlyCredits}
                   priceEGP={plan.priceEgp}
+                  allowsExclusive={plan.allowsExclusive}
                   features={plan.features}
                   isRecommended={isRecommended}
+                  isCurrent={isCurrent}
                   recommendedReason={isRecommended ? tPricing('recommendedReason') : undefined}
                   reassuranceText={
                     isCurrent
@@ -177,3 +182,4 @@ export default function PricingPage() {
     </div>
   );
 }
+

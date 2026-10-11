@@ -90,3 +90,37 @@ This document records visual and interactive features required by the LeadForge 
   The board columns and stage badges display `LeadClaim.pipelineStatus` as the primary source of truth.
 - **Recommended Backend Action:**
   Synchronize `LeadClaim.pipelineStatus` and `LeadEngagement.currentStatus` automatically in a single atomic database transaction on every pipeline progression API call.
+
+---
+
+## 8. Structured Scoring & Matching Signal Codes per Lead
+- **Spec Citation:** LEADFORGE_SPEC_ADDENDUM_01.md Section 3.4, Item 14 & Dashboard Review Round 3 (Item 4):
+  > *"MatchRow: remove the 'Sector match' and 'Location match' chips (true for every matched lead, no information). Chips show only discriminating facts: website status, and any scoring signals already available in frontend data. Do not invent. Log in BACKEND_GAPS.md: we need structured scoring and matching signal codes per lead."*
+- **Backend Current State:**
+  In `/api/developer/dashboard`, `lead.matchEvaluation.explanation.reasons` returns hardcoded Arabic sentences (e.g. `reasonAr: "تطابق في قطاع الأعمال: عيادات الأسنان"`, `reasonAr: "العميل في نفس نطاقك الجغرافي: القاهرة"`). Additionally, rule scoring breakdown signals (e.g. `HIGH_DEMAND`, `MULTIPLE_BRANCHES`, `HIGH_RATING`, `FACEBOOK_ACTIVE`) computed during lead ingestion are omitted from `/api/developer/dashboard` lead payloads.
+  Consequently, generic chips like "Sector match" and "Location match" are tautological—they are true for literally every matched lead in the feed and provide zero discriminating value to the developer.
+- **Frontend Fallback Implemented:**
+  In `MatchRow.tsx`, generic "Sector match" and "Location match" chips are completely removed. The reason chips row displays strictly discriminating facts: the localized website opportunity status (e.g. "No website", "Needs redesign") and any explicit scoring signals already attached to frontend lead objects.
+- **Recommended Backend Action:**
+  Update scoring and matching engines to emit machine-readable reason and signal codes per lead:
+  ```json
+  "scoringSignals": [
+    { "code": "HIGH_DEMAND", "weight": 25 },
+    { "code": "NO_WEBSITE", "weight": 30 },
+    { "code": "MULTIPLE_BRANCHES", "weight": 15 }
+  ]
+  ```
+  This will allow the frontend to render localized, high-signal discriminating chips for each lead from catalog messages.
+
+---
+
+## 9. Bilingual Database Strings in `SubscriptionPlan` and `Lead.qualificationReasons`
+- **Spec Citation:** Launch Fix Sprint Block 0.2 & Block 0.4:
+  > *"The pricing page currently displays mixed-language names such as `(Free)`, `(Shared Leads)`, and `(HOT & PREMIUM)` alongside Arabic text. The issue must be fixed at the presentation and catalog layer without modifying the backend."*
+- **Backend Current State:**
+  `SubscriptionPlan.name` and `SubscriptionPlan.features` in the seeded database store mixed Arabic/English strings (e.g. `الباقة المجانية (Free)`, `الوصول إلى فرص العملاء المشتركة (Shared Leads)`), and `Lead.qualificationReasons` stores combined strings formatted as `+{weight} {nameAr} ({nameEn})` (e.g. `+20 النشاط التجاري موثق وموجود فعليًا (Business verified)`).
+- **Frontend Fallback Implemented:**
+  - `resolvePlanCode()`, `localizePlanCatalog()`, and `localizePlanName()` in `src/lib/taxonomy.ts` map every plan (`free`, `starter`, `pro`, `business`, `enterprise`, plus a neutral localized `fallback` with a development console warning) to pure locale-specific strings in `src/messages/ar.json` and `src/messages/en.json` (`plans.*`), while preserving actual database price (`priceEgp`) and points (`monthlyCredits`).
+  - `localizeQualificationReason()` in `src/lib/taxonomy.ts` extracts the locale-appropriate portion (`+{weight} {nameAr}` for `ar`, `+{weight} {nameEn}` for `en`) so neither locale displays mixed-script strings.
+- **Recommended Backend Action:**
+  Store structured `code` keys or separate `nameAr`/`nameEn` and `featuresAr`/`featuresEn` columns in `SubscriptionPlan` and structured rule codes in `Lead.qualificationReasons`.

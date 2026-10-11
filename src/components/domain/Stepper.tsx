@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { fmtNumber } from '@/lib/format';
 
@@ -24,37 +27,40 @@ export const Stepper: React.FC<StepperProps> = ({
   onNext,
   onPrev,
   isSubmitting = false,
-  finalStepLabel = 'عرض الفرص المطابقة',
+  finalStepLabel,
   className = '',
 }) => {
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
   const totalSteps = steps.length;
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === totalSteps - 1;
 
   const currentStepData = steps[currentStep] || steps[0];
   const progressPercentage = Math.round(((currentStep + 1) / totalSteps) * 100);
+  const resolvedFinalLabel = finalStepLabel || tCommon('stepperFinalDefault');
 
   return (
     <div
       className={`w-full max-w-onboarding mx-auto flex flex-col gap-6 ${className}`}
       role="region"
-      aria-label="خطوات الإعداد"
+      aria-label={tCommon('stepperRegionAria')}
     >
       {/* Progress header per Spec 7.15 */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-caption text-fg-secondary">
           <span>
-            خطوة{' '}
-            <span className="ltr-iso font-mono font-medium text-fg-primary">
-              {fmtNumber(currentStep + 1)}
+            {tCommon('stepperStepWord')}{' '}
+            <span className="ltr-iso tabular-nums font-medium text-fg-primary">
+              {fmtNumber(currentStep + 1, locale)}
             </span>{' '}
-            من{' '}
-            <span className="ltr-iso font-mono font-medium text-fg-primary">
-              {fmtNumber(totalSteps)}
+            {tCommon('stepperOfWord')}{' '}
+            <span className="ltr-iso tabular-nums font-medium text-fg-primary">
+              {fmtNumber(totalSteps, locale)}
             </span>
           </span>
-          <span className="ltr-iso font-mono text-caption text-fg-muted">
-            {fmtNumber(progressPercentage)}%
+          <span className="ltr-iso tabular-nums text-caption text-fg-muted">
+            {fmtNumber(progressPercentage, locale)}%
           </span>
         </div>
 
@@ -99,7 +105,7 @@ export const Stepper: React.FC<StepperProps> = ({
             onClick={onPrev}
             disabled={isSubmitting}
           >
-            رجوع
+            {tCommon('back')}
           </Button>
         ) : (
           <div />
@@ -111,7 +117,7 @@ export const Stepper: React.FC<StepperProps> = ({
           isLoading={isSubmitting}
           onClick={onNext}
         >
-          {isLastStep ? finalStepLabel : 'التالي'}
+          {isLastStep ? resolvedFinalLabel : tCommon('next')}
         </Button>
       </div>
     </div>

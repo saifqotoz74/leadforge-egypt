@@ -1,0 +1,776 @@
+{
+  "timestamp": "2026-10-11T09:31:46.856Z",
+  "expectedCount": 96,
+  "capturedCount": 96,
+  "failures": [],
+  "manifest": [
+    {
+      "file": "landing_ar_1440.png",
+      "route": "/",
+      "locale": "ar",
+      "width": 1440,
+      "size": 88236,
+      "density": "comfortable"
+    },
+    {
+      "file": "landing_ar_390.png",
+      "route": "/",
+      "locale": "ar",
+      "width": 390,
+      "size": 70764,
+      "density": "comfortable"
+    },
+    {
+      "file": "landing_en_1440.png",
+      "route": "/",
+      "locale": "en",
+      "width": 1440,
+      "size": 95930,
+      "density": "comfortable"
+    },
+    {
+      "file": "landing_en_390.png",
+      "route": "/",
+      "locale": "en",
+      "width": 390,
+      "size": 124695,
+      "density": "comfortable"
+    },
+    {
+      "file": "pricing_ar_1440.png",
+      "route": "/pricing",
+      "locale": "ar",
+      "width": 1440,
+      "size": 111688,
+      "density": "comfortable"
+    },
+    {
+      "file": "pricing_ar_390.png",
+      "route": "/pricing",
+      "locale": "ar",
+      "width": 390,
+      "size": 61830,
+      "density": "comfortable"
+    },
+    {
+      "file": "pricing_en_1440.png",
+      "route": "/pricing",
+      "locale": "en",
+      "width": 1440,
+      "size": 119922,
+      "density": "comfortable"
+    },
+    {
+      "file": "pricing_en_390.png",
+      "route": "/pricing",
+      "locale": "en",
+      "width": 390,
+      "size": 127740,
+      "density": "comfortable"
+    },
+    {
+      "file": "login_ar_1440.png",
+      "route": "/login",
+      "locale": "ar",
+      "width": 1440,
+      "size": 55074,
+      "density": "comfortable"
+    },
+    {
+      "file": "login_ar_390.png",
+      "route": "/login",
+      "locale": "ar",
+      "width": 390,
+      "size": 51370,
+      "density": "comfortable"
+    },
+    {
+      "file": "login_en_1440.png",
+      "route": "/login",
+      "locale": "en",
+      "width": 1440,
+      "size": 57040,
+      "density": "comfortable"
+    },
+    {
+      "file": "login_en_390.png",
+      "route": "/login",
+      "locale": "en",
+      "width": 390,
+      "size": 93759,
+      "density": "comfortable"
+    },
+    {
+      "file": "register_ar_1440.png",
+      "route": "/register",
+      "locale": "ar",
+      "width": 1440,
+      "size": 68438,
+      "density": "comfortable"
+    },
+    {
+      "file": "register_ar_390.png",
+      "route": "/register",
+      "locale": "ar",
+      "width": 390,
+      "size": 70063,
+      "density": "comfortable"
+    },
+    {
+      "file": "register_en_1440.png",
+      "route": "/register",
+      "locale": "en",
+      "width": 1440,
+      "size": 72541,
+      "density": "comfortable"
+    },
+    {
+      "file": "register_en_390.png",
+      "route": "/register",
+      "locale": "en",
+      "width": 390,
+      "size": 109120,
+      "density": "comfortable"
+    },
+    {
+      "file": "onboarding_ar_1440.png",
+      "route": "/onboarding",
+      "locale": "ar",
+      "width": 1440,
+      "size": 65701,
+      "density": "comfortable"
+    },
+    {
+      "file": "onboarding_ar_390.png",
+      "route": "/onboarding",
+      "locale": "ar",
+      "width": 390,
+      "size": 61190,
+      "density": "comfortable"
+    },
+    {
+      "file": "onboarding_en_1440.png",
+      "route": "/onboarding",
+      "locale": "en",
+      "width": 1440,
+      "size": 68843,
+      "density": "comfortable"
+    },
+    {
+      "file": "onboarding_en_390.png",
+      "route": "/onboarding",
+      "locale": "en",
+      "width": 390,
+      "size": 118203,
+      "density": "comfortable"
+    },
+    {
+      "file": "settings_ar_1440.png",
+      "route": "/settings",
+      "locale": "ar",
+      "width": 1440,
+      "size": 90240,
+      "density": "comfortable"
+    },
+    {
+      "file": "settings_ar_390.png",
+      "route": "/settings",
+      "locale": "ar",
+      "width": 390,
+      "size": 101743,
+      "density": "comfortable"
+    },
+    {
+      "file": "settings_en_1440.png",
+      "route": "/settings",
+      "locale": "en",
+      "width": 1440,
+      "size": 92442,
+      "density": "comfortable"
+    },
+    {
+      "file": "settings_en_390.png",
+      "route": "/settings",
+      "locale": "en",
+      "width": 390,
+      "size": 116707,
+      "density": "comfortable"
+    },
+    {
+      "file": "dashboard_ar_1440.png",
+      "route": "/dashboard",
+      "locale": "ar",
+      "width": 1440,
+      "size": 104734,
+      "density": "comfortable"
+    },
+    {
+      "file": "dashboard_ar_390.png",
+      "route": "/dashboard",
+      "locale": "ar",
+      "width": 390,
+      "size": 113576,
+      "density": "comfortable"
+    },
+    {
+      "file": "dashboard_en_1440.png",
+      "route": "/dashboard",
+      "locale": "en",
+      "width": 1440,
+      "size": 111560,
+      "density": "comfortable"
+    },
+    {
+      "file": "dashboard_en_390.png",
+      "route": "/dashboard",
+      "locale": "en",
+      "width": 390,
+      "size": 123631,
+      "density": "comfortable"
+    },
+    {
+      "file": "dashboard_analytics_ar_1440.png",
+      "route": "/dashboard/analytics",
+      "locale": "ar",
+      "width": 1440,
+      "size": 86953,
+      "density": "comfortable"
+    },
+    {
+      "file": "dashboard_analytics_ar_390.png",
+      "route": "/dashboard/analytics",
+      "locale": "ar",
+      "width": 390,
+      "size": 92311,
+      "density": "comfortable"
+    },
+    {
+      "file": "dashboard_analytics_en_1440.png",
+      "route": "/dashboard/analytics",
+      "locale": "en",
+      "width": 1440,
+      "size": 93961,
+      "density": "comfortable"
+    },
+    {
+      "file": "dashboard_analytics_en_390.png",
+      "route": "/dashboard/analytics",
+      "locale": "en",
+      "width": 390,
+      "size": 99704,
+      "density": "comfortable"
+    },
+    {
+      "file": "subscription_ar_1440.png",
+      "route": "/subscription",
+      "locale": "ar",
+      "width": 1440,
+      "size": 97453,
+      "density": "comfortable"
+    },
+    {
+      "file": "subscription_ar_390.png",
+      "route": "/subscription",
+      "locale": "ar",
+      "width": 390,
+      "size": 101208,
+      "density": "comfortable"
+    },
+    {
+      "file": "subscription_en_1440.png",
+      "route": "/subscription",
+      "locale": "en",
+      "width": 1440,
+      "size": 111456,
+      "density": "comfortable"
+    },
+    {
+      "file": "subscription_en_390.png",
+      "route": "/subscription",
+      "locale": "en",
+      "width": 390,
+      "size": 119958,
+      "density": "comfortable"
+    },
+    {
+      "file": "leads_ar_1440.png",
+      "route": "/leads",
+      "locale": "ar",
+      "width": 1440,
+      "size": 58784,
+      "density": "compact"
+    },
+    {
+      "file": "leads_ar_390.png",
+      "route": "/leads",
+      "locale": "ar",
+      "width": 390,
+      "size": 138845,
+      "density": "compact"
+    },
+    {
+      "file": "leads_en_1440.png",
+      "route": "/leads",
+      "locale": "en",
+      "width": 1440,
+      "size": 108622,
+      "density": "compact"
+    },
+    {
+      "file": "leads_en_390.png",
+      "route": "/leads",
+      "locale": "en",
+      "width": 390,
+      "size": 142864,
+      "density": "compact"
+    },
+    {
+      "file": "leads_detail_ar_1440.png",
+      "route": "/leads/cmv13ybbp012jtxt4uso3tpfb",
+      "locale": "ar",
+      "width": 1440,
+      "size": 81571,
+      "density": "compact"
+    },
+    {
+      "file": "leads_detail_ar_390.png",
+      "route": "/leads/cmv13ybbp012jtxt4uso3tpfb",
+      "locale": "ar",
+      "width": 390,
+      "size": 94214,
+      "density": "compact"
+    },
+    {
+      "file": "leads_detail_en_1440.png",
+      "route": "/leads/cmv13ybbp012jtxt4uso3tpfb",
+      "locale": "en",
+      "width": 1440,
+      "size": 81299,
+      "density": "compact"
+    },
+    {
+      "file": "leads_detail_en_390.png",
+      "route": "/leads/cmv13ybbp012jtxt4uso3tpfb",
+      "locale": "en",
+      "width": 390,
+      "size": 96166,
+      "density": "compact"
+    },
+    {
+      "file": "my_leads_ar_1440.png",
+      "route": "/my-leads",
+      "locale": "ar",
+      "width": 1440,
+      "size": 53175,
+      "density": "compact"
+    },
+    {
+      "file": "my_leads_ar_390.png",
+      "route": "/my-leads",
+      "locale": "ar",
+      "width": 390,
+      "size": 64589,
+      "density": "compact"
+    },
+    {
+      "file": "my_leads_en_1440.png",
+      "route": "/my-leads",
+      "locale": "en",
+      "width": 1440,
+      "size": 56069,
+      "density": "compact"
+    },
+    {
+      "file": "my_leads_en_390.png",
+      "route": "/my-leads",
+      "locale": "en",
+      "width": 390,
+      "size": 75496,
+      "density": "compact"
+    },
+    {
+      "file": "admin_overview_ar_1440.png",
+      "route": "/admin",
+      "locale": "ar",
+      "width": 1440,
+      "size": 37281,
+      "density": "compact"
+    },
+    {
+      "file": "admin_overview_ar_390.png",
+      "route": "/admin",
+      "locale": "ar",
+      "width": 390,
+      "size": 75306,
+      "density": "compact"
+    },
+    {
+      "file": "admin_overview_en_1440.png",
+      "route": "/admin",
+      "locale": "en",
+      "width": 1440,
+      "size": 128610,
+      "density": "compact"
+    },
+    {
+      "file": "admin_overview_en_390.png",
+      "route": "/admin",
+      "locale": "en",
+      "width": 390,
+      "size": 87639,
+      "density": "compact"
+    },
+    {
+      "file": "admin_leads_ar_1440.png",
+      "route": "/admin/leads",
+      "locale": "ar",
+      "width": 1440,
+      "size": 119469,
+      "density": "compact"
+    },
+    {
+      "file": "admin_leads_ar_390.png",
+      "route": "/admin/leads",
+      "locale": "ar",
+      "width": 390,
+      "size": 113874,
+      "density": "compact"
+    },
+    {
+      "file": "admin_leads_en_1440.png",
+      "route": "/admin/leads",
+      "locale": "en",
+      "width": 1440,
+      "size": 127510,
+      "density": "compact"
+    },
+    {
+      "file": "admin_leads_en_390.png",
+      "route": "/admin/leads",
+      "locale": "en",
+      "width": 390,
+      "size": 121293,
+      "density": "compact"
+    },
+    {
+      "file": "admin_duplicates_ar_1440.png",
+      "route": "/admin/duplicates",
+      "locale": "ar",
+      "width": 1440,
+      "size": 89566,
+      "density": "compact"
+    },
+    {
+      "file": "admin_duplicates_ar_390.png",
+      "route": "/admin/duplicates",
+      "locale": "ar",
+      "width": 390,
+      "size": 88239,
+      "density": "compact"
+    },
+    {
+      "file": "admin_duplicates_en_1440.png",
+      "route": "/admin/duplicates",
+      "locale": "en",
+      "width": 1440,
+      "size": 98204,
+      "density": "compact"
+    },
+    {
+      "file": "admin_duplicates_en_390.png",
+      "route": "/admin/duplicates",
+      "locale": "en",
+      "width": 390,
+      "size": 99661,
+      "density": "compact"
+    },
+    {
+      "file": "admin_quality_ar_1440.png",
+      "route": "/admin/quality",
+      "locale": "ar",
+      "width": 1440,
+      "size": 74543,
+      "density": "compact"
+    },
+    {
+      "file": "admin_quality_ar_390.png",
+      "route": "/admin/quality",
+      "locale": "ar",
+      "width": 390,
+      "size": 119651,
+      "density": "compact"
+    },
+    {
+      "file": "admin_quality_en_1440.png",
+      "route": "/admin/quality",
+      "locale": "en",
+      "width": 1440,
+      "size": 155206,
+      "density": "compact"
+    },
+    {
+      "file": "admin_quality_en_390.png",
+      "route": "/admin/quality",
+      "locale": "en",
+      "width": 390,
+      "size": 130964,
+      "density": "compact"
+    },
+    {
+      "file": "admin_rules_ar_1440.png",
+      "route": "/admin/rules",
+      "locale": "ar",
+      "width": 1440,
+      "size": 107441,
+      "density": "compact"
+    },
+    {
+      "file": "admin_rules_ar_390.png",
+      "route": "/admin/rules",
+      "locale": "ar",
+      "width": 390,
+      "size": 130239,
+      "density": "compact"
+    },
+    {
+      "file": "admin_rules_en_1440.png",
+      "route": "/admin/rules",
+      "locale": "en",
+      "width": 1440,
+      "size": 110600,
+      "density": "compact"
+    },
+    {
+      "file": "admin_rules_en_390.png",
+      "route": "/admin/rules",
+      "locale": "en",
+      "width": 390,
+      "size": 138763,
+      "density": "compact"
+    },
+    {
+      "file": "admin_sources_ar_1440.png",
+      "route": "/admin/sources",
+      "locale": "ar",
+      "width": 1440,
+      "size": 64189,
+      "density": "compact"
+    },
+    {
+      "file": "admin_sources_ar_390.png",
+      "route": "/admin/sources",
+      "locale": "ar",
+      "width": 390,
+      "size": 107721,
+      "density": "compact"
+    },
+    {
+      "file": "admin_sources_en_1440.png",
+      "route": "/admin/sources",
+      "locale": "en",
+      "width": 1440,
+      "size": 117386,
+      "density": "compact"
+    },
+    {
+      "file": "admin_sources_en_390.png",
+      "route": "/admin/sources",
+      "locale": "en",
+      "width": 390,
+      "size": 114821,
+      "density": "compact"
+    },
+    {
+      "file": "admin_matching_ar_1440.png",
+      "route": "/admin/matching",
+      "locale": "ar",
+      "width": 1440,
+      "size": 58046,
+      "density": "compact"
+    },
+    {
+      "file": "admin_matching_ar_390.png",
+      "route": "/admin/matching",
+      "locale": "ar",
+      "width": 390,
+      "size": 111950,
+      "density": "compact"
+    },
+    {
+      "file": "admin_matching_en_1440.png",
+      "route": "/admin/matching",
+      "locale": "en",
+      "width": 1440,
+      "size": 89882,
+      "density": "compact"
+    },
+    {
+      "file": "admin_matching_en_390.png",
+      "route": "/admin/matching",
+      "locale": "en",
+      "width": 390,
+      "size": 117835,
+      "density": "compact"
+    },
+    {
+      "file": "admin_analytics_ar_1440.png",
+      "route": "/admin/analytics",
+      "locale": "ar",
+      "width": 1440,
+      "size": 91441,
+      "density": "compact"
+    },
+    {
+      "file": "admin_analytics_ar_390.png",
+      "route": "/admin/analytics",
+      "locale": "ar",
+      "width": 390,
+      "size": 150077,
+      "density": "compact"
+    },
+    {
+      "file": "admin_analytics_en_1440.png",
+      "route": "/admin/analytics",
+      "locale": "en",
+      "width": 1440,
+      "size": 143719,
+      "density": "compact"
+    },
+    {
+      "file": "admin_analytics_en_390.png",
+      "route": "/admin/analytics",
+      "locale": "en",
+      "width": 390,
+      "size": 147233,
+      "density": "compact"
+    },
+    {
+      "file": "admin_reports_ar_1440.png",
+      "route": "/admin/reports",
+      "locale": "ar",
+      "width": 1440,
+      "size": 123171,
+      "density": "compact"
+    },
+    {
+      "file": "admin_reports_ar_390.png",
+      "route": "/admin/reports",
+      "locale": "ar",
+      "width": 390,
+      "size": 85575,
+      "density": "compact"
+    },
+    {
+      "file": "admin_reports_en_1440.png",
+      "route": "/admin/reports",
+      "locale": "en",
+      "width": 1440,
+      "size": 130383,
+      "density": "compact"
+    },
+    {
+      "file": "admin_reports_en_390.png",
+      "route": "/admin/reports",
+      "locale": "en",
+      "width": 390,
+      "size": 90274,
+      "density": "compact"
+    },
+    {
+      "file": "admin_users_ar_1440.png",
+      "route": "/admin/users",
+      "locale": "ar",
+      "width": 1440,
+      "size": 159361,
+      "density": "compact"
+    },
+    {
+      "file": "admin_users_ar_390.png",
+      "route": "/admin/users",
+      "locale": "ar",
+      "width": 390,
+      "size": 116959,
+      "density": "compact"
+    },
+    {
+      "file": "admin_users_en_1440.png",
+      "route": "/admin/users",
+      "locale": "en",
+      "width": 1440,
+      "size": 159154,
+      "density": "compact"
+    },
+    {
+      "file": "admin_users_en_390.png",
+      "route": "/admin/users",
+      "locale": "en",
+      "width": 390,
+      "size": 123420,
+      "density": "compact"
+    },
+    {
+      "file": "admin_plans_ar_1440.png",
+      "route": "/admin/plans",
+      "locale": "ar",
+      "width": 1440,
+      "size": 73973,
+      "density": "compact"
+    },
+    {
+      "file": "admin_plans_ar_390.png",
+      "route": "/admin/plans",
+      "locale": "ar",
+      "width": 390,
+      "size": 91385,
+      "density": "compact"
+    },
+    {
+      "file": "admin_plans_en_1440.png",
+      "route": "/admin/plans",
+      "locale": "en",
+      "width": 1440,
+      "size": 79009,
+      "density": "compact"
+    },
+    {
+      "file": "admin_plans_en_390.png",
+      "route": "/admin/plans",
+      "locale": "en",
+      "width": 390,
+      "size": 100343,
+      "density": "compact"
+    },
+    {
+      "file": "design_system_ar_1440.png",
+      "route": "/design-system",
+      "locale": "ar",
+      "width": 1440,
+      "size": 92224,
+      "density": "comfortable"
+    },
+    {
+      "file": "design_system_ar_390.png",
+      "route": "/design-system",
+      "locale": "ar",
+      "width": 390,
+      "size": 56999,
+      "density": "comfortable"
+    },
+    {
+      "file": "design_system_en_1440.png",
+      "route": "/design-system",
+      "locale": "en",
+      "width": 1440,
+      "size": 94981,
+      "density": "comfortable"
+    },
+    {
+      "file": "design_system_en_390.png",
+      "route": "/design-system",
+      "locale": "en",
+      "width": 390,
+      "size": 126781,
+      "density": "comfortable"
+    }
+  ]
+}

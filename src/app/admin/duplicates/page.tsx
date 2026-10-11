@@ -115,6 +115,7 @@ interface MergeHistoryItem {
 
 export default function AdminDuplicatesPage() {
   const t = useTranslations('adminDuplicates');
+  const tNav = useTranslations('nav');
   const [candidates, setCandidates] = useState<CandidateItem[]>([]);
   const [mergeHistory, setMergeHistory] = useState<MergeHistoryItem[]>([]);
   const [stats, setStats] = useState({
@@ -249,7 +250,7 @@ export default function AdminDuplicatesPage() {
           title={t('title')}
           description={t('desc')}
           breadcrumbs={[
-            { label: 'لوحة التحكم', href: '/admin' },
+            { label: tNav('adminOverview'), href: '/admin' },
             { label: t('pageTitle') },
           ]}
           actions={
@@ -260,7 +261,7 @@ export default function AdminDuplicatesPage() {
                   size="sm"
                   startIcon={<ArrowRight className="h-4 w-4 rtl:-scale-x-100" />}
                 >
-                  لوحة التحكم
+                  {tNav('adminOverview')}
                 </Button>
               </Link>
               <Button
@@ -448,14 +449,14 @@ export default function AdminDuplicatesPage() {
                           </TableCell>
                           <TableCell className="text-body-sm text-fg-secondary">
                             <div>{item.reason}</div>
-                            <span className="text-caption font-mono text-fg-muted">
+                            <span className="text-caption text-fg-muted ltr-iso">
                               {item.mergeType}
                             </span>
                           </TableCell>
                           <TableCell className="text-caption font-medium">
                             {item.performedBy}
                           </TableCell>
-                          <TableCell className="text-caption font-mono ltr-iso text-fg-muted">
+                          <TableCell className="text-caption tabular-nums ltr-iso text-fg-muted">
                             {fmtDate(new Date(item.performedAt))}
                           </TableCell>
                           <TableCell>

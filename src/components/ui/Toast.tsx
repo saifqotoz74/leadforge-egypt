@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export type ToastVariant = 'success' | 'error' | 'info';
 
@@ -30,6 +31,8 @@ export function Toast({
   onClose,
   duration = 5000,
 }: ToastProps) {
+  const tCommon = useTranslations('common');
+
   useEffect(() => {
     // Errors persist until dismissed per Spec 7.3
     if (variant === 'error' || !onClose) return;
@@ -45,7 +48,7 @@ export function Toast({
     <div
       role="status"
       aria-live={variant === 'error' ? 'assertive' : 'polite'}
-      className="inline-flex items-center gap-3 w-full max-w-toast p-3.5 bg-surface rounded-lg border border-line shadow-md text-start animate-in fade-in slide-in-from-top-2 duration-200"
+      className="inline-flex items-center gap-3 w-full max-w-toast p-3.5 bg-surface rounded-lg border border-line shadow-md text-start transition-all duration-200"
     >
       {ICONS[variant]}
       <p className="flex-1 text-body-sm text-fg-primary leading-tight font-medium">
@@ -67,7 +70,7 @@ export function Toast({
           type="button"
           onClick={onClose}
           className="text-fg-secondary hover:text-fg-primary p-1 -me-1 rounded hover:bg-subtle"
-          aria-label="إغلاق التنبيه"
+          aria-label={tCommon('closeNotification')}
         >
           <X className="w-4 h-4" />
         </button>

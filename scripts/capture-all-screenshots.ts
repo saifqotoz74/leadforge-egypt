@@ -20,7 +20,17 @@ async function sendCdpCommand(ws: WebSocket, method: string, params: Record<stri
     }, 45000);
     const handler = (event: MessageEvent) => {
       try {
-        const msg = JSON.parse(event.data.toString());
+        let raw = '';
+        if (typeof event.data === 'string') {
+          raw = event.data;
+        } else if (Buffer.isBuffer(event.data)) {
+          raw = event.data.toString('utf8');
+        } else if (event.data instanceof ArrayBuffer) {
+          raw = Buffer.from(event.data).toString('utf8');
+        } else {
+          raw = Buffer.from(event.data as any).toString('utf8');
+        }
+        const msg = JSON.parse(raw);
         if (msg.id === id) {
           clearTimeout(timer);
           ws.removeEventListener('message', handler);
@@ -108,6 +118,13 @@ async function main() {
     { name: 'login', path: '/login', role: 'PUBLIC' },
     { name: 'register', path: '/register', role: 'PUBLIC' },
     { name: 'onboarding', path: '/onboarding', role: 'DEV' },
+    // Developer Pages
+    { name: 'dashboard', path: '/dashboard', role: 'DEV' },
+    { name: 'dashboard_analytics', path: '/dashboard/analytics', role: 'DEV' },
+    { name: 'leads', path: '/leads', role: 'DEV' },
+    { name: 'my_leads', path: '/my-leads', role: 'DEV' },
+    { name: 'subscription', path: '/subscription', role: 'DEV' },
+    { name: 'settings', path: '/settings', role: 'DEV' },
     // Admin Hub
     { name: 'admin_overview', path: '/admin', role: 'ADMIN' },
     { name: 'admin_duplicates', path: '/admin/duplicates', role: 'ADMIN' },
@@ -120,6 +137,8 @@ async function main() {
     { name: 'admin_users', path: '/admin/users', role: 'ADMIN' },
     { name: 'admin_leads', path: '/admin/leads', role: 'ADMIN' },
     { name: 'admin_plans', path: '/admin/plans', role: 'ADMIN' },
+    // Style Guide
+    { name: 'design_system', path: '/design-system', role: 'PUBLIC' },
   ];
 
   const viewports = [
@@ -127,12 +146,13 @@ async function main() {
     { label: 'mobile_390', width: 390, height: 844, isMobile: true },
   ];
 
+  const force = process.argv.includes('--force');
   let currentRole = '';
 
   for (const page of pages) {
     const desktopFile = path.join(OUTPUT_DIR, `${page.name}_desktop_1440.png`);
     const mobileFile = path.join(OUTPUT_DIR, `${page.name}_mobile_390.png`);
-    if (fs.existsSync(desktopFile) && fs.existsSync(mobileFile) && fs.statSync(desktopFile).size > 1000 && fs.statSync(mobileFile).size > 1000) {
+    if (!force && fs.existsSync(desktopFile) && fs.existsSync(mobileFile) && fs.statSync(desktopFile).size > 1000 && fs.statSync(mobileFile).size > 1000) {
       console.log(`Skipping ${page.name}, already captured.`);
       continue;
     }

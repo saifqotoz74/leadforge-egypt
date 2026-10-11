@@ -25,6 +25,9 @@ const SCHEMA_PATH = path.join(ROOT_DIR, 'prisma', 'schema.prisma');
 
 const APPROVED_LATIN = new Set([
   'leadforge',
+  'leads4dev',
+  'leads',
+  'dev',
   'egypt',
   'google',
   'maps',
@@ -128,9 +131,10 @@ function checkI18n() {
   for (const k of arKeys) {
     const val = getValByPath(ar, k);
     if (typeof val === 'string') {
-      // Strip placeholders {count}, {amount}, emails, URLs
+      // Strip placeholders {count}, {amount}, rich-text tags <tag>, emails, URLs
       let stripped = val
         .replace(/\{[^}]+\}/g, ' ')
+        .replace(/<\/?[a-zA-Z0-9_-]+>/g, ' ')
         .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, ' ')
         .replace(/https?:\/\/[^\s]+/g, ' ');
 
@@ -162,6 +166,95 @@ function checkI18n() {
     }
   }
 
+  // Check 5: Arabic values have no digits adjacent to %, +, - or / outside rich-text isolation tags
+  const ADJACENT_DIGIT_SYMBOL_REGEX = /\d\s*[%+\-\/]|\s*[%+\-\/]\s*\d/;
+  for (const k of arKeys) {
+    const val = getValByPath(ar, k);
+    if (typeof val === 'string') {
+      let stripped = val
+        .replace(/https?:\/\/[^\s]+/g, ' ')
+        .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, ' ');
+
+      // Iteratively strip all paired rich-text / isolation tags (e.g. <iso>...</iso>, <pct>...</pct>)
+      while (/<([a-zA-Z0-9_-]+)[^>]*>[\s\S]*?<\/\1>/.test(stripped)) {
+        stripped = stripped.replace(/<([a-zA-Z0-9_-]+)[^>]*>[\s\S]*?<\/\1>/g, ' ');
+      }
+
+      if (ADJACENT_DIGIT_SYMBOL_REGEX.test(stripped)) {
+        errors.push(
+          `[BiDi Vulnerability] ar.json key "${k}" has digit adjacent to %, +, - or / outside rich-text isolation tag: "${val}"`
+        );
+      }
+    }
+  }
+
+  // Check 6: ICU brace & rich-text tag syntax validation + placeholder parity between ar and en
+  function checkIcuSyntax(val, key, localeLabel) {
+    let depth = 0;
+    for (let i = 0; i < val.length; i++) {
+      if (val[i] === '{') depth++;
+      if (val[i] === '}') depth--;
+      if (depth < 0) {
+        errors.push(`[ICU Syntax] ${localeLabel} key "${key}" has unmatched closing brace "}"`);
+        break;
+      }
+    }
+    if (depth !== 0) {
+      errors.push(`[ICU Syntax] ${localeLabel} key "${key}" has unbalanced braces "{}"`);
+    }
+  }
+
+  for (const k of arKeys) {
+    const arVal = getValByPath(ar, k);
+    const enVal = getValByPath(en, k);
+    if (typeof arVal === 'string') checkIcuSyntax(arVal, k, 'ar.json');
+    if (typeof enVal === 'string') checkIcuSyntax(enVal, k, 'en.json');
+  }
+
+  // Check 7: Scan src/ for useTranslations/getTranslations namespace existence
+  function walkSrc(dir) {
+    let results = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        results = results.concat(walkSrc(fullPath));
+      } else if (/\.(ts|tsx)$/.test(entry.name)) {
+        results.push(fullPath);
+      }
+    }
+    return results;
+  }
+
+  const srcFiles = walkSrc(path.join(ROOT_DIR, 'src'));
+  const nsRegex = /(?:const|let)\s+([A-Za-z0-9_]+)\s*=\s*(?:await\s+)?(?:useTranslations|getTranslations)\(\s*['"]([A-Za-z0-9_.]+)['"]\s*\)/g;
+  const usedNamespaces = new Set();
+
+  for (const file of srcFiles) {
+    const content = fs.readFileSync(file, 'utf8');
+    let match;
+    while ((match = nsRegex.exec(content)) !== null) {
+      const varName = match[1];
+      const ns = match[2];
+      usedNamespaces.add(ns);
+      if (getValByPath(ar, ns) === undefined) {
+        errors.push(`[Missing Namespace] "${ns}" referenced in ${path.relative(ROOT_DIR, file)} does not exist in ar.json`);
+        continue;
+      }
+      // Check static calls to varName('literalKey') or varName.rich('literalKey')
+      const callRegex = new RegExp(`\\b${varName}(?:\\.rich)?\\(\\s*['"]([A-Za-z0-9_.]+)['"]`, 'g');
+      let callMatch;
+      while ((callMatch = callRegex.exec(content)) !== null) {
+        const subKey = callMatch[1];
+        const fullKey = `${ns}.${subKey}`;
+        if (getValByPath(ar, fullKey) === undefined) {
+          errors.push(
+            `[Missing Translation Key] "${fullKey}" referenced via ${varName}('${subKey}') in ${path.relative(ROOT_DIR, file)} does not exist in ar.json`
+          );
+        }
+      }
+    }
+  }
+
   if (errors.length > 0) {
     console.error(`i18n check found ${errors.length} violations:\n`);
     for (const err of errors) {
@@ -170,6 +263,8 @@ function checkI18n() {
     process.exit(1);
   } else {
     console.log(`Success! ar.json (${arKeys.size} keys) and en.json match with 100% parity.`);
+    console.log(`Validated ICU syntax across ${arKeys.size * 2} localized strings.`);
+    console.log(`Verified ${usedNamespaces.size} translation namespaces across ${srcFiles.length} source files.`);
     console.log(`All ${Object.keys(prismaEnums).length} Prisma enums mapped.`);
     console.log('Zero unauthorized Latin leaks in Arabic catalog.');
     process.exit(0);

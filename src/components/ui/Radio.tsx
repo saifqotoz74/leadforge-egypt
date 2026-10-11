@@ -28,7 +28,7 @@ export const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
             className="peer sr-only"
             {...props}
           />
-          <div className="w-5 h-5 rounded-full border border-line-strong bg-surface transition-colors peer-checked:border-brand peer-focus-visible:ring-2 peer-focus-visible:ring-brand-accent/40" />
+          <div className="w-5 h-5 rounded-full border border-line-strong bg-surface transition-colors peer-checked:border-brand peer-focus-visible:ring-2 peer-focus-visible:ring-brand" />
           <div className="absolute w-2.5 h-2.5 rounded-full bg-brand opacity-0 transition-opacity peer-checked:opacity-100 pointer-events-none" />
         </div>
 

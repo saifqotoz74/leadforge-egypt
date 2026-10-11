@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatTile } from '@/components/domain/StatTile';
@@ -21,6 +21,7 @@ import {
   TableCell,
 } from '@/components/ui/Table';
 import { fmtNumber, fmtDate } from '@/lib/format';
+import { localizeCategory, localizeCity } from '@/lib/taxonomy';
 import {
   RefreshCw,
   ExternalLink,
@@ -95,6 +96,10 @@ interface QueueLeadItem {
 
 export default function AdminQualityOverviewPage() {
   const t = useTranslations('adminQuality');
+  const tNav = useTranslations('nav');
+  const tGeo = useTranslations('geo');
+  const tCat = useTranslations('categories');
+  const locale = useLocale();
   const [overview, setOverview] = useState<QualityOverviewResponse | null>(null);
   const [queueTab, setQueueTab] = useState<'NEEDS_VERIFICATION' | 'STALE' | 'FLAGS'>(
     'NEEDS_VERIFICATION'
@@ -230,7 +235,7 @@ export default function AdminQualityOverviewPage() {
           title={t('title')}
           description={t('desc')}
           breadcrumbs={[
-            { label: 'لوحة التحكم', href: '/admin' },
+            { label: tNav('adminOverview'), href: '/admin' },
             { label: t('pageTitle') },
           ]}
           actions={
@@ -241,7 +246,7 @@ export default function AdminQualityOverviewPage() {
                   size="sm"
                   startIcon={<ArrowRight className="h-4 w-4 rtl:-scale-x-100" />}
                 >
-                  لوحة التحكم
+                  {tNav('adminOverview')}
                 </Button>
               </Link>
               <div className="flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-1.5 text-caption font-semibold">
@@ -252,7 +257,7 @@ export default function AdminQualityOverviewPage() {
                   max={100}
                   value={batchSize}
                   onChange={(e) => setBatchSize(Math.max(1, Math.min(100, Number(e.target.value) || 15)))}
-                  className="w-14 rounded border border-line bg-subtle px-1.5 py-0.5 text-center font-mono font-semibold"
+                  className="w-14 rounded border border-line bg-subtle px-1.5 py-0.5 text-center tabular-nums font-semibold"
                 />
               </div>
 
@@ -288,7 +293,7 @@ export default function AdminQualityOverviewPage() {
             <StatTile
               label={t('avgQuality')}
               value={`${fmtNumber(s.averageQualityScore)}/100`}
-              statusText="Quality Score"
+              statusText={t('avgQuality')}
             />
             <StatTile
               label={t('saleableLeads')}
@@ -315,7 +320,7 @@ export default function AdminQualityOverviewPage() {
             <StatTile
               label={t('completeness')}
               value={`${fmtNumber(s.averageCompletenessScore)}%`}
-              statusText="Completeness"
+              statusText={t('completeness')}
             />
           </div>
         ) : null}
@@ -388,10 +393,10 @@ export default function AdminQualityOverviewPage() {
                           </Link>
                         </TableCell>
                         <TableCell className="text-body-sm text-fg-secondary">
-                          {lead.city} • {lead.category}
+                          {localizeCity(lead.city, tGeo)} - {localizeCategory(lead.category, tCat)}
                         </TableCell>
                         <TableCell>
-                          <span className="font-mono font-semibold tabular-nums text-fg-primary">
+                          <span className="font-semibold tabular-nums text-fg-primary ltr-iso">
                             {fmtNumber(lead.qualityScore)}/100
                           </span>
                         </TableCell>
@@ -458,13 +463,13 @@ export default function AdminQualityOverviewPage() {
                           <TableCell className="font-semibold text-fg-primary">
                             {src.source}
                           </TableCell>
-                          <TableCell className="font-mono tabular-nums">
+                          <TableCell className="tabular-nums">
                             {fmtNumber(src.totalLeads)}
                           </TableCell>
-                          <TableCell className="font-mono font-semibold text-brand tabular-nums">
+                          <TableCell className="font-semibold text-brand tabular-nums ltr-iso">
                             {fmtNumber(src.avgQualityScore)}/100
                           </TableCell>
-                          <TableCell className="font-mono tabular-nums">
+                          <TableCell className="tabular-nums">
                             {fmtNumber(src.saleableCount)}
                           </TableCell>
                         </TableRow>
@@ -501,7 +506,7 @@ export default function AdminQualityOverviewPage() {
                           <TableCell className="font-medium text-fg-primary">
                             {v.lead?.businessName || v.leadId}
                           </TableCell>
-                          <TableCell className="text-caption font-mono text-fg-secondary">
+                          <TableCell className="text-caption text-fg-secondary ltr-iso">
                             {v.verificationType}
                           </TableCell>
                           <TableCell>
@@ -515,7 +520,7 @@ export default function AdminQualityOverviewPage() {
                               {v.status}
                             </span>
                           </TableCell>
-                          <TableCell className="font-mono text-caption text-fg-muted ltr-iso">
+                          <TableCell className="tabular-nums text-caption text-fg-muted ltr-iso">
                             {fmtDate(new Date(v.checkedAt))}
                           </TableCell>
                         </TableRow>

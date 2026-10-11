@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { AlertCircle } from 'lucide-react';
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -26,12 +26,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     },
     ref
   ) => {
-    let locale = 'ar';
-    try {
-      locale = useLocale();
-    } catch {
-      // fallback
-    }
+    const tCommon = useTranslations('common');
 
     const textareaId = id || (label ? `textarea-${label.replace(/\s+/g, '-').toLowerCase()}` : undefined);
     const hasError = Boolean(error);
@@ -46,7 +41,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             {label}
             {optional && (
               <span className="text-fg-secondary font-normal ms-2 text-caption">
-                {optionalLabel || (locale === 'en' ? '(Optional)' : '(اختياري)')}
+                {optionalLabel || tCommon('optionalTag')}
               </span>
             )}
           </label>
@@ -67,8 +62,8 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           }
           className={`w-full p-3.5 rounded-md bg-surface text-fg-primary text-body transition-colors border outline-none placeholder:text-fg-muted resize-y ${
             hasError
-              ? 'border-danger-icon focus:ring-2 focus:ring-danger-icon/30'
-              : 'border-line-strong hover:border-fg-muted focus:border-brand focus:ring-2 focus:ring-brand-accent/40'
+              ? 'border-danger-icon focus:ring-2 focus:ring-danger-icon'
+              : 'border-line-strong hover:border-fg-muted focus:border-brand focus:ring-2 focus:ring-brand-accent'
           } ${disabled ? 'bg-subtle text-fg-muted cursor-not-allowed' : ''} ${className}`}
           {...props}
         />

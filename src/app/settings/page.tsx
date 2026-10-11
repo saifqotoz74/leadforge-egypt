@@ -10,18 +10,23 @@ import { Select } from '@/components/ui/Select';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Banner } from '@/components/ui/Banner';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { EmptyState } from '@/components/ui/EmptyState';
 import {
   ALL_CITIES,
   BUSINESS_CATEGORIES,
   DEVELOPER_SERVICES,
 } from '@/lib/constants';
+import { localizeCity, localizeCategory, localizeService } from '@/lib/taxonomy';
 import { fmtNumber } from '@/lib/format';
 import { Save, Compass, Check } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 export default function SettingsPage() {
   const tSettings = useTranslations('settings');
+  const tGeo = useTranslations('geo');
+  const tCat = useTranslations('categories');
+  const tServices = useTranslations('services');
+  const locale = useLocale();
+
   const [name, setName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [phone, setPhone] = useState('');
@@ -183,7 +188,7 @@ export default function SettingsPage() {
                 <Compass className="h-4 w-4 rtl:-scale-x-100" />
                 <span>
                   {previewCount !== null
-                    ? tSettings('previewResult', { count: fmtNumber(previewCount) })
+                    ? tSettings('previewResult', { count: fmtNumber(previewCount, locale) })
                     : tSettings('previewButton')}
                 </span>
               </Button>
@@ -247,7 +252,7 @@ export default function SettingsPage() {
                         }`}
                       >
                         {active && <Check className="h-3 w-3 rtl:-scale-x-100" />}
-                        <span>{srv.labelAr}</span>
+                        <span>{localizeService(srv.value, tServices as any)}</span>
                       </button>
                     );
                   })}
@@ -281,7 +286,7 @@ export default function SettingsPage() {
                         }`}
                       >
                         {active && <Check className="h-3 w-3 rtl:-scale-x-100" />}
-                        <span>{c}</span>
+                        <span>{localizeCity(c, tGeo as any)}</span>
                       </button>
                     );
                   })}
@@ -315,7 +320,7 @@ export default function SettingsPage() {
                         }`}
                       >
                         {active && <Check className="h-3 w-3 rtl:-scale-x-100" />}
-                        <span>{cat.labelAr}</span>
+                        <span>{localizeCategory(cat.value, tCat as any)}</span>
                       </button>
                     );
                   })}
@@ -340,7 +345,7 @@ export default function SettingsPage() {
                           }`}
                         >
                           {excluded && <span>✕ {tSettings('excludedPrefix')}</span>}
-                          <span>{cat.labelAr}</span>
+                          <span>{localizeCategory(cat.value, tCat as any)}</span>
                         </button>
                       );
                     })}

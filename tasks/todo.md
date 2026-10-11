@@ -21,30 +21,30 @@
 - [x] **Checkpoint 2**: Verify `check:i18n`, `check:design`, tests, and review converted sample page with user.
 
 ## Phase 3: Route Group Conversions (Conformance + String Extraction)
-- [ ] Task 3.1: Convert Developer App routes (`/leads`, `/leads/[id]`, `/dashboard`, `/dashboard/analytics`, `/credits`, `/pipeline`, `/subscription`, `/my-leads`).
-- [ ] Task 3.2: Capture 390px/1440px screenshots for Developer App and update CONFORMANCE matrix.
-- [ ] Task 3.3: Convert Admin Batch A (`/admin` overview, `/admin/leads` with Dropzone CSV upload & Drawer, `/admin/duplicates` with MergeCompare, `/admin/quality` with QualityIndicator & Drawer).
-- [ ] Task 3.4: Capture 390px/1440px screenshots for Admin Batch A and update CONFORMANCE matrix.
-- [ ] Task 3.5: Convert Admin Batch B (`/admin/matching` diagnostic debugger & step trace, `/admin/rules` with RuleWeightEditor, `/admin/sources` with health cards & dead-letter table).
-- [ ] Task 3.6: Capture 390px/1440px screenshots for Admin Batch B and update CONFORMANCE matrix.
-- [ ] Task 3.7: Convert Admin Batch C (`/admin/users` with Drawer & danger dialog, `/admin/plans` with live PackageCard preview, `/admin/reports` with mono LTR payload Drawer, `/admin/analytics` with BarList & StatTiles).
-- [ ] Task 3.8: Capture 390px/1440px screenshots for Admin Batch C and update CONFORMANCE matrix.
-- [ ] Task 3.9: Convert Public & Auth routes (`/login`, `/register`, `/onboarding`, `/pricing`, `/settings`).
-- [ ] Task 3.10: Capture 390px/1440px screenshots for Auth/Pricing and update CONFORMANCE matrix.
-- [ ] **Checkpoint 3**: Verify all 25 routes have zero violations in `check:design` and all strings extracted.
+- [x] Task 3.1: Convert Developer App routes (`/leads`, `/leads/[id]`, `/dashboard`, `/dashboard/analytics`, `/credits`, `/pipeline`, `/subscription`, `/my-leads`).
+- [x] Task 3.2: Capture 390px/1440px screenshots for Developer App and update CONFORMANCE matrix.
+- [x] Task 3.3: Convert Admin Batch A (`/admin` overview, `/admin/leads` with Dropzone CSV upload & Drawer, `/admin/duplicates` with MergeCompare, `/admin/quality` with QualityIndicator & Drawer).
+- [x] Task 3.4: Capture 390px/1440px screenshots for Admin Batch A and update CONFORMANCE matrix.
+- [x] Task 3.5: Convert Admin Batch B (`/admin/matching` diagnostic debugger & step trace, `/admin/rules` with RuleWeightEditor, `/admin/sources` with health cards & dead-letter table).
+- [x] Task 3.6: Capture 390px/1440px screenshots for Admin Batch B and update CONFORMANCE matrix.
+- [x] Task 3.7: Convert Admin Batch C (`/admin/users` with Drawer & danger dialog, `/admin/plans` with live PackageCard preview, `/admin/reports` with mono LTR payload Drawer, `/admin/analytics` with BarList & StatTiles).
+- [x] Task 3.8: Capture 390px/1440px screenshots for Admin Batch C and update CONFORMANCE matrix.
+- [x] Task 3.9: Convert Public & Auth routes (`/login`, `/register`, `/onboarding`, `/pricing`, `/settings`).
+- [x] Task 3.10: Capture 390px/1440px screenshots for Auth/Pricing and update CONFORMANCE matrix.
+- [x] **Checkpoint 3**: Verify all 25 routes have zero violations in `check:design` and all strings extracted.
 
 ## Phase 4: High-Converting Landing Page (`/`) (Part C Step 4)
-- [ ] Task 4.1: Create `src/features/landing/demoRules.ts` pure function for deterministic Score Lab simulation.
-- [ ] Task 4.2: Build interactive `ScoreLab` component (controls, preset buttons, live `ScorePair` and `ScoreBreakdown` 200ms transitions, accessibility announcements).
-- [ ] Task 4.3: Build Sticky Storytelling `HowItWorks` component (step scroll + component crossfade).
-- [ ] Task 4.4: Build Hero, Problem Strip, Matching Showcase, Ownership/Points comparison, Pricing, Commitments, FAQ accordion, CTA band, and Footer.
-- [ ] Task 4.5: Assemble full `src/app/page.tsx` with SEO metadata landmarks.
-- [ ] Task 4.6: Capture screenshots at 390px, 768px, 1440px and generate `docs/design/LANDING_NOTES.md`.
-- [ ] **Checkpoint 4**: Verify Lighthouse performance >= 90 and accessibility >= 95.
+- [x] Task 4.1: Create `src/features/landing/demoRules.ts` pure function for deterministic Score Lab simulation.
+- [x] Task 4.2: Build interactive `ScoreLab` component (controls, preset buttons, live `ScorePair` and `ScoreBreakdown` 200ms transitions, accessibility announcements).
+- [x] Task 4.3: Build Sticky Storytelling `HowItWorks` component (step scroll + component crossfade).
+- [x] Task 4.4: Build Hero, Problem Strip, Matching Showcase, Ownership/Points comparison, Pricing, Commitments, FAQ accordion, CTA band, and Footer.
+- [x] Task 4.5: Assemble full `src/app/page.tsx` with SEO metadata landmarks and hero refinement.
+- [x] Task 4.6: Capture screenshots at 390px, 768px, 1440px and generate `docs/design/LANDING_NOTES.md`.
+- [x] **Checkpoint 4**: Verify hero first-fold at 1440x800 and 390x844 across both locales.
 
 ## Phase 5: Tailwind Lockdown & Final Verification (Step 6)
-- [ ] Task 5.1: Switch `tailwind.config.ts` from `extend` to replace root for `colors`, `borderRadius`, and `boxShadow`.
-- [ ] Task 5.2: Re-run full test suite (240 tests), typecheck, `check:design`, and `check:i18n`.
-- [ ] Task 5.3: Re-capture and compare all 32+ viewport screenshots to ensure 0 visual regressions.
-- [ ] Task 5.4: Finalize `docs/design/CONFORMANCE.md` and `docs/design/PROGRESS.md`.
-- [ ] **Final Sign-off**: Deliver complete report to user.
+- [x] Task 5.1: Switch `tailwind.config.ts` from `extend` to replace root for `colors`, `borderRadius`, and `boxShadow`.
+- [x] Task 5.2: Re-run full test suite (240 tests), typecheck, `check:design`, and `check:i18n`.
+- [x] Task 5.3: Re-capture and compare all 32+ viewport screenshots to ensure 0 visual regressions.
+- [x] Task 5.4: Finalize `docs/design/CONFORMANCE.md` and `docs/design/PROGRESS.md`.
+- [x] **Final Sign-off**: Deliver complete report to user.

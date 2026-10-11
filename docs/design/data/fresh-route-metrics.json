@@ -1,0 +1,698 @@
+[
+  {
+    "route": "/",
+    "filePath": "src/app/page.tsx",
+    "usedShared": [
+      "PublicNavbar"
+    ],
+    "fontMonoCount": 13,
+    "glyphCount": 5,
+    "deadClasses": [
+      "bg-subtle/50",
+      "border-brand/20",
+      "bg-subtle/60",
+      "bg-subtle/30",
+      "bg-subtle/40",
+      "border-line/40"
+    ],
+    "deadClassesCount": 6,
+    "literalStringsCount": 15,
+    "literalSamples": [
+      "مختبرات الدلتا الطبية",
+      "مدينة نصر، القاهرة",
+      "معامل الدلتا للتحاليل",
+      "شارع عباس العقاد، القاهرة",
+      "اجتازت"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 3,
+      "progressBars": 0,
+      "tagBadges": 3,
+      "rawTables": 0,
+      "total": 6
+    }
+  },
+  {
+    "route": "/login",
+    "filePath": "src/app/login/page.tsx",
+    "usedShared": [
+      "PublicNavbar"
+    ],
+    "fontMonoCount": 0,
+    "glyphCount": 8,
+    "deadClasses": [
+      "text-fg-inverted"
+    ],
+    "deadClassesCount": 1,
+    "literalStringsCount": 2,
+    "literalSamples": [
+      "LeadForge Egypt",
+      "name@company.com"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 1,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 1
+    }
+  },
+  {
+    "route": "/register",
+    "filePath": "src/app/register/page.tsx",
+    "usedShared": [
+      "PublicNavbar"
+    ],
+    "fontMonoCount": 0,
+    "glyphCount": 8,
+    "deadClasses": [
+      "text-fg-inverted"
+    ],
+    "deadClassesCount": 1,
+    "literalStringsCount": 3,
+    "literalSamples": [
+      "أحمد محمد",
+      "استوديو البرمجة",
+      "ahmed@example.com"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 1,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 1
+    }
+  },
+  {
+    "route": "/pricing",
+    "filePath": "src/app/pricing/page.tsx",
+    "usedShared": [
+      "EmptyState",
+      "PublicNavbar"
+    ],
+    "fontMonoCount": 0,
+    "glyphCount": 0,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/onboarding",
+    "filePath": "src/app/onboarding/page.tsx",
+    "usedShared": [
+      "PublicNavbar"
+    ],
+    "fontMonoCount": 1,
+    "glyphCount": 0,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/settings",
+    "filePath": "src/app/settings/page.tsx",
+    "usedShared": [
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 0,
+    "glyphCount": 0,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/dashboard",
+    "filePath": "src/app/dashboard/page.tsx",
+    "usedShared": [
+      "StatTile",
+      "MatchRow",
+      "PlanSummary",
+      "BarList",
+      "MetaList",
+      "StageBadge",
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 0,
+    "glyphCount": 0,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/dashboard/analytics",
+    "filePath": "src/app/dashboard/analytics/page.tsx",
+    "usedShared": [
+      "StatTile",
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 4,
+    "glyphCount": 2,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/leads",
+    "filePath": "src/app/leads/page.tsx",
+    "usedShared": [
+      "OpportunityBadge",
+      "QualityIndicator",
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 1,
+    "glyphCount": 0,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 1,
+    "literalSamples": [
+      "مدينة نصر، سموحة..."
+    ],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 1,
+      "total": 1
+    }
+  },
+  {
+    "route": "/leads/[id]",
+    "filePath": "src/app/leads/[id]/page.tsx",
+    "usedShared": [
+      "OpportunityBadge",
+      "QualityIndicator",
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 7,
+    "glyphCount": 3,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 1,
+      "rawTables": 0,
+      "total": 1
+    }
+  },
+  {
+    "route": "/credits",
+    "filePath": "src/app/credits/page.tsx",
+    "usedShared": [],
+    "fontMonoCount": 0,
+    "glyphCount": 0,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/pipeline",
+    "filePath": "src/app/pipeline/page.tsx",
+    "usedShared": [],
+    "fontMonoCount": 0,
+    "glyphCount": 0,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/my-leads",
+    "filePath": "src/app/my-leads/page.tsx",
+    "usedShared": [
+      "OpportunityBadge",
+      "StageBadge",
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 3,
+    "glyphCount": 1,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/subscription",
+    "filePath": "src/app/subscription/page.tsx",
+    "usedShared": [
+      "StatTile",
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 3,
+    "glyphCount": 1,
+    "deadClasses": [
+      "hover:bg-brand-soft/30"
+    ],
+    "deadClassesCount": 1,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 1,
+      "rawTables": 1,
+      "total": 2
+    }
+  },
+  {
+    "route": "/admin",
+    "filePath": "src/app/admin/page.tsx",
+    "usedShared": [
+      "StatTile",
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 12,
+    "glyphCount": 0,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/admin/leads",
+    "filePath": "src/app/admin/leads/page.tsx",
+    "usedShared": [
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 5,
+    "glyphCount": 0,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 2,
+    "literalSamples": [
+      "لوحة التحكم",
+      "name,category,city,area,address,phone,email,website,facebook,instagram,rating,reviewCount,source"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 4,
+      "progressBars": 0,
+      "tagBadges": 1,
+      "rawTables": 0,
+      "total": 5
+    }
+  },
+  {
+    "route": "/admin/duplicates",
+    "filePath": "src/app/admin/duplicates/page.tsx",
+    "usedShared": [
+      "StatTile",
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 2,
+    "glyphCount": 1,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 1,
+    "literalSamples": [
+      "لوحة التحكم"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/admin/quality",
+    "filePath": "src/app/admin/quality/page.tsx",
+    "usedShared": [
+      "StatTile",
+      "QualityIndicator",
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 7,
+    "glyphCount": 1,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 1,
+    "literalSamples": [
+      "لوحة التحكم"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/admin/matching",
+    "filePath": "src/app/admin/matching/page.tsx",
+    "usedShared": [
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 16,
+    "glyphCount": 5,
+    "deadClasses": [
+      "bg-brand-soft/70",
+      "bg-danger-bg/70",
+      "hover:bg-subtle/70",
+      "bg-brand-soft/40",
+      "text-fg-inverted",
+      "bg-danger-bg/40"
+    ],
+    "deadClassesCount": 6,
+    "literalStringsCount": 33,
+    "literalSamples": [
+      "الكود",
+      "PASS",
+      "WARN",
+      "FAIL",
+      "REJECTED"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 2,
+      "total": 2
+    }
+  },
+  {
+    "route": "/admin/rules",
+    "filePath": "src/app/admin/rules/page.tsx",
+    "usedShared": [
+      "PageHeader",
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 3,
+    "glyphCount": 1,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 15,
+    "literalSamples": [
+      "إدارة تفعيل وحذف القواعد",
+      "حذف",
+      "حفظ حدود الحداثة",
+      "إلغاء",
+      "إضافة القاعدة"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/admin/sources",
+    "filePath": "src/app/admin/sources/page.tsx",
+    "usedShared": [
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 45,
+    "glyphCount": 6,
+    "deadClasses": [
+      "text-fg-inverted"
+    ],
+    "deadClassesCount": 1,
+    "literalStringsCount": 51,
+    "literalSamples": [
+      "COMPLETED",
+      "PARTIALLY_COMPLETED",
+      "FAILED",
+      "CANCELLED",
+      "كل الحالات"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 6,
+      "rawTables": 4,
+      "total": 10
+    }
+  },
+  {
+    "route": "/admin/users",
+    "filePath": "src/app/admin/users/page.tsx",
+    "usedShared": [
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 2,
+    "glyphCount": 2,
+    "deadClasses": [
+      "hover:bg-subtle/50"
+    ],
+    "deadClassesCount": 1,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 1,
+      "total": 1
+    }
+  },
+  {
+    "route": "/admin/plans",
+    "filePath": "src/app/admin/plans/page.tsx",
+    "usedShared": [
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 0,
+    "glyphCount": 0,
+    "deadClasses": [],
+    "deadClassesCount": 0,
+    "literalStringsCount": 0,
+    "literalSamples": [],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 0,
+      "total": 0
+    }
+  },
+  {
+    "route": "/admin/reports",
+    "filePath": "src/app/admin/reports/page.tsx",
+    "usedShared": [
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 20,
+    "glyphCount": 3,
+    "deadClasses": [
+      "bg-brand-soft/50",
+      "bg-canvas",
+      "bg-brand-soft/40",
+      "bg-brand-soft/60",
+      "hover:bg-canvas"
+    ],
+    "deadClassesCount": 5,
+    "literalStringsCount": 7,
+    "literalSamples": [
+      "Lead Success Rate",
+      "Invalid Rate",
+      "Contact Rate",
+      "Reply Rate",
+      "Meeting Rate"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 1,
+      "total": 1
+    }
+  },
+  {
+    "route": "/admin/analytics",
+    "filePath": "src/app/admin/analytics/page.tsx",
+    "usedShared": [
+      "EmptyState",
+      "AppShell"
+    ],
+    "fontMonoCount": 31,
+    "glyphCount": 5,
+    "deadClasses": [
+      "bg-brand-soft/50",
+      "bg-surface/80",
+      "bg-canvas",
+      "text-fg-inverted",
+      "text-danger",
+      "bg-brand-soft/40",
+      "bg-canvas/70",
+      "bg-danger"
+    ],
+    "deadClassesCount": 8,
+    "literalStringsCount": 54,
+    "literalSamples": [
+      "INSUFFICIENT_DATA",
+      "Phase 7 • Deterministic Analytics & Data Flywheel",
+      "Centralized Metric Dictionary",
+      "تحديث البيانات",
+      "تصدير CSV آمن"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 2,
+      "progressBars": 0,
+      "tagBadges": 1,
+      "rawTables": 4,
+      "total": 7
+    }
+  },
+  {
+    "route": "/design-system",
+    "filePath": "src/app/design-system/page.tsx",
+    "usedShared": [
+      "StatTile",
+      "MatchRow",
+      "BarList",
+      "ChipList",
+      "OpportunityBadge",
+      "QualityIndicator",
+      "StageBadge",
+      "CreditChip",
+      "EmptyState"
+    ],
+    "fontMonoCount": 33,
+    "glyphCount": 21,
+    "deadClasses": [
+      "text-teal-900",
+      "bg-teal-50",
+      "bg-teal-100",
+      "bg-teal-200",
+      "bg-teal-300",
+      "text-teal-950",
+      "bg-teal-400",
+      "text-white",
+      "bg-teal-500",
+      "bg-teal-600",
+      "bg-teal-700",
+      "bg-teal-800",
+      "bg-teal-900",
+      "text-sand-900",
+      "bg-sand-50",
+      "bg-sand-100",
+      "bg-sand-200",
+      "bg-sand-300",
+      "text-sand-950",
+      "bg-sand-400",
+      "bg-sand-500",
+      "bg-sand-600",
+      "bg-sand-700",
+      "bg-sand-800",
+      "bg-sand-900"
+    ],
+    "deadClassesCount": 25,
+    "literalStringsCount": 90,
+    "literalSamples": [
+      "دليل نظام التصميم — LeadForge Design System",
+      "خلفية الصفحة العامة",
+      "البطاقات والحاويات",
+      "الحقول ورؤوس الجداول",
+      "التمييز التفاعلي"
+    ],
+    "handBuilt": {
+      "kpiBoxes": 0,
+      "progressBars": 0,
+      "tagBadges": 0,
+      "rawTables": 1,
+      "total": 1
+    }
+  }
+]

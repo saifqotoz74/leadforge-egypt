@@ -12,11 +12,18 @@ import {
   BUSINESS_CATEGORIES,
   DEVELOPER_SERVICES,
 } from '@/lib/constants';
-import { useTranslations } from 'next-intl';
+import { localizeCity, localizeCategory, localizeService } from '@/lib/taxonomy';
+import { fmtNumber } from '@/lib/format';
+import { useLocale, useTranslations } from 'next-intl';
 
 export default function OnboardingPage() {
   const router = useRouter();
   const tOnboard = useTranslations('onboarding');
+  const tGeo = useTranslations('geo');
+  const tCat = useTranslations('categories');
+  const tServices = useTranslations('services');
+  const locale = useLocale();
+
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -132,7 +139,7 @@ export default function OnboardingPage() {
                         : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                     }`}
                   >
-                    <span>{srv.labelAr}</span>
+                    <span>{localizeService(srv.value, tServices as any)}</span>
                     {selected && <Check className="h-4 w-4 text-brand rtl:-scale-x-100" />}
                   </button>
                 );
@@ -164,7 +171,7 @@ export default function OnboardingPage() {
                     }`}
                   >
                     {selected && <Check className="h-3 w-3 rtl:-scale-x-100" />}
-                    <span>{city}</span>
+                    <span>{localizeCity(city, tGeo as any)}</span>
                   </button>
                 );
               })}
@@ -188,7 +195,7 @@ export default function OnboardingPage() {
                     }`}
                   >
                     {selected && <Check className="h-3 w-3 rtl:-scale-x-100" />}
-                    <span>{cat.labelAr}</span>
+                    <span>{localizeCategory(cat.value, tCat as any)}</span>
                   </button>
                 );
               })}
@@ -231,13 +238,13 @@ export default function OnboardingPage() {
                   key={b}
                   type="button"
                   onClick={() => setMinBudget(b)}
-                  className={`p-3 rounded-xl border text-center font-mono font-semibold text-body-sm transition-colors ${
+                  className={`p-3 rounded-xl border text-center font-semibold tabular-nums text-body-sm transition-colors ${
                     minBudget === b
                       ? 'border-brand bg-brand-soft text-brand shadow-xs'
                       : 'border-line bg-surface text-fg-secondary hover:bg-subtle'
                   }`}
                 >
-                  <span className="ltr-iso">{b.toLocaleString()}</span> {tOnboard('currencyEg')}
+                  <span className="ltr-iso">{fmtNumber(b, locale)}</span> {tOnboard('currencyEg')}
                 </button>
               ))}
             </div>

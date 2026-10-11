@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { Coins } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { OpportunityBadge, LeadTemperature } from './OpportunityBadge';
 import { OwnershipTag, OwnershipType } from './OwnershipTag';
 import { QualityIndicator, QualityState } from './QualityIndicator';
@@ -40,9 +43,12 @@ export const LeadRow: React.FC<LeadRowProps> = ({
   onViewLead,
   className = '',
 }) => {
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+
   return (
     <tr
-      className={`border-b border-line hover:bg-brand-soft/40 transition-colors h-[var(--row-h)] group ${className}`}
+      className={`border-b border-line hover:bg-brand-soft transition-colors h-[var(--row-h)] group ${className}`}
     >
       {/* Name block */}
       <td className="px-4 py-2 align-middle">
@@ -55,14 +61,15 @@ export const LeadRow: React.FC<LeadRowProps> = ({
                 onViewLead(id);
               }
             }}
-            className="text-body font-semibold text-fg-primary hover:text-fg-brand truncate max-w-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-sm"
+            title={companyName}
+            className="text-body font-semibold text-fg-primary hover:text-fg-brand truncate max-w-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-sm" /* design-allow: truncate */
           >
-            {companyName}
+            <bdi dir="auto">{companyName}</bdi>
           </Link>
           <div className="flex items-center gap-1 text-caption text-fg-secondary">
             <span>{category}</span>
             <span className="w-1" aria-hidden="true" />
-            <span>{location}</span>
+            <span><bdi dir="auto">{location}</bdi></span>
           </div>
         </div>
       </td>
@@ -99,10 +106,10 @@ export const LeadRow: React.FC<LeadRowProps> = ({
       <td className="px-4 py-2 align-middle text-end whitespace-nowrap">
         <div className="inline-flex items-center gap-1.5 justify-end">
           <Coins className="h-4 w-4 text-fg-brand shrink-0" aria-hidden="true" />
-          <span className="ltr-iso font-mono font-semibold tabular-nums text-body-sm text-fg-primary">
-            {fmtNumber(price)}
+          <span className="ltr-iso font-semibold tabular-nums text-body-sm text-fg-primary">
+            {fmtNumber(price, locale)}
           </span>
-          <span className="text-caption text-fg-secondary">نقطة</span>
+          <span className="text-caption text-fg-secondary">{tCommon('unitPoint')}</span>
         </div>
       </td>
 
@@ -115,7 +122,7 @@ export const LeadRow: React.FC<LeadRowProps> = ({
             if (onViewLead) onViewLead(id);
           }}
         >
-          عرض الفرصة
+          {tCommon('viewLead')}
         </Button>
       </td>
     </tr>

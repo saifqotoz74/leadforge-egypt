@@ -155,7 +155,7 @@ Only **3 shared components** exist today:
 
 ## 7. Real Prisma Enum Mapping to Design System Concepts
 
-Section 6 of `LEADFORGE_DESIGN_SYSTEM.md` defines the domain visual concepts. Below is the authoritative mapping to the actual Prisma enums in [`prisma/schema.prisma`](file:///e:/Antigravity%20Projects/Leads/prisma/schema.prisma) and [`src/lib/constants.ts`](file:///e:/Antigravity%20Projects/Leads/src/lib/constants.ts):
+Section 6 of `LEADFORGE_DESIGN_SYSTEM.md` defines the domain visual concepts. Below is the authoritative mapping to the actual Prisma enums in [`prisma/schema.prisma`](../../prisma/schema.prisma) and [`src/lib/constants.ts`](../../src/lib/constants.ts):
 
 ### A. Opportunity Tier (Spec 6.1)
 - **Concept:** `COLD`, `WARM`, `HOT`, `PREMIUM`

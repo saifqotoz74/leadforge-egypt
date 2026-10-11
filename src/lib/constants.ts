@@ -194,7 +194,7 @@ export const WEBSITE_STATUS_LABELS: Record<string, { labelAr: string; labelEn: s
 
 export const TEMPERATURE_LABELS: Record<string, { labelAr: string; labelEn: string; badgeClass: string }> = {
   PREMIUM: {
-    labelAr: 'فرصة ممتازة (PREMIUM)',
+    labelAr: 'فرصة مميزة (PREMIUM)',
     labelEn: 'PREMIUM',
     badgeClass: 'bg-brand-soft text-brand border-line-brand',
   },

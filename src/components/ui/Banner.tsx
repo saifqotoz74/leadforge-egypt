@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, AlertTriangle, AlertCircle } from 'lucide-react';
+import { Info, AlertTriangle, AlertCircle, X } from 'lucide-react';
 
 export type BannerVariant = 'info' | 'warning' | 'danger';
 
@@ -11,6 +11,7 @@ export interface BannerProps {
     onClick?: () => void;
     href?: string;
   };
+  onClose?: () => void;
   className?: string;
 }
 
@@ -39,6 +40,7 @@ export function Banner({
   variant = 'info',
   children,
   action,
+  onClose,
   className = '',
 }: BannerProps) {
   const conf = STYLES[variant];
@@ -67,6 +69,16 @@ export function Banner({
             {action.label}
           </button>
         )
+      )}
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-1 rounded-md opacity-70 hover:opacity-100 transition-opacity shrink-0"
+          aria-label="Close"
+        >
+          <X className="w-4 h-4" />
+        </button>
       )}
     </div>
   );

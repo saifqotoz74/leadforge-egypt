@@ -2,6 +2,9 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
+  future: {
+    respectDefaultRingColorOpacity: true,
+  },
   theme: {
     // Phase 5 Lockdown: colors, borderRadius, and boxShadow replace root theme
     // Only token-backed utilities and standard utilities exist.
@@ -12,6 +15,7 @@ const config: Config = {
       surface: 'var(--bg-surface)',
       subtle: 'var(--bg-subtle)',
       inverse: 'var(--bg-inverse)',
+      overlay: 'var(--bg-overlay)',
       brand: {
         DEFAULT: 'var(--brand)',
         hover: 'var(--brand-hover)',
@@ -81,6 +85,15 @@ const config: Config = {
       focus: 'var(--ring-focus)',
     },
     extend: {
+      borderColor: {
+        DEFAULT: 'var(--border-default)',
+      },
+      divideColor: {
+        DEFAULT: 'var(--border-default)',
+      },
+      ringColor: {
+        DEFAULT: 'var(--focus-ring)',
+      },
       fontFamily: {
         sans: ['var(--font-sans)', 'IBM Plex Sans Arabic', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'IBM Plex Mono', 'monospace'],
@@ -136,6 +149,9 @@ const config: Config = {
         toast: '26.25rem',  // 420px
         popover: '20rem',   // 320px
         filter: '20rem',    // 320px
+        search: '17.5rem',  // 280px
+      },
+      minWidth: {
         search: '17.5rem',  // 280px
       },
       width: {

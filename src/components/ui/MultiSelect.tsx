@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Check, ChevronDown, X, Search, AlertCircle } from 'lucide-react';
 
 export interface MultiSelectOption {
@@ -29,23 +29,19 @@ export function MultiSelect({
   optionalLabel,
   helperText,
   error,
-  placeholder = 'اختر...',
+  placeholder,
   options,
   value,
   onChange,
   disabled = false,
   className = '',
 }: MultiSelectProps) {
+  const tCommon = useTranslations('common');
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  let locale = 'ar';
-  try {
-    locale = useLocale();
-  } catch {
-    // fallback
-  }
+  const resolvedPlaceholder = placeholder ?? tCommon('selectPlaceholder');
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -84,7 +80,7 @@ export function MultiSelect({
           {label}
           {optional && (
             <span className="text-fg-secondary font-normal ms-2 text-caption">
-              {optionalLabel || (locale === 'en' ? '(Optional)' : '(اختياري)')}
+              {optionalLabel || tCommon('optionalTag')}
             </span>
           )}
         </label>
@@ -105,12 +101,12 @@ export function MultiSelect({
         }}
         className={`min-h-10 w-full p-1.5 ps-3 pe-9 rounded-md bg-surface text-fg-primary text-body border transition-colors flex flex-wrap items-center gap-1.5 cursor-pointer outline-none ${
           hasError
-            ? 'border-danger-icon focus:ring-2 focus:ring-danger-icon/30'
-            : 'border-line-strong hover:border-fg-muted focus:border-brand focus:ring-2 focus:ring-brand-accent/40'
+            ? 'border-danger-icon focus:ring-2 focus:ring-danger-icon'
+            : 'border-line-strong hover:border-fg-muted focus:border-brand focus:ring-2 focus:ring-brand-accent'
         } ${disabled ? 'bg-subtle cursor-not-allowed opacity-60' : ''}`}
       >
         {value.length === 0 ? (
-          <span className="text-fg-muted text-body-sm ps-1">{placeholder}</span>
+          <span className="text-fg-muted text-body-sm ps-1">{resolvedPlaceholder}</span>
         ) : (
           value.map((val) => (
             <span
@@ -121,8 +117,8 @@ export function MultiSelect({
               <button
                 type="button"
                 onClick={(e) => removeChip(val, e)}
-                className="hover:bg-brand/10 rounded-full p-0.5 text-brand"
-                aria-label={`إزالة ${selectedOptionsMap.get(val) || val}`}
+                className="hover:bg-brand-soft rounded-full p-0.5 text-brand"
+                aria-label={tCommon('removeItem', { item: selectedOptionsMap.get(val) || val })}
               >
                 <X className="w-3 h-3" />
               </button>
@@ -146,15 +142,15 @@ export function MultiSelect({
 
       {/* Popover Menu */}
       {isOpen && (
-        <div className="absolute z-dropdown mt-1.5 w-full bg-surface rounded-lg border border-line shadow-md overflow-hidden text-start animate-in fade-in duration-100">
+        <div className="absolute z-dropdown mt-1.5 w-full bg-surface rounded-lg border border-line shadow-md overflow-hidden text-start transition-opacity duration-150">
           {/* Search box */}
-          <div className="p-2 border-b border-line bg-subtle/50 flex items-center gap-2">
+          <div className="p-2 border-b border-line bg-subtle flex items-center gap-2">
             <Search className="w-4 h-4 text-fg-secondary shrink-0 ms-1" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="بحث في القائمة..."
+              placeholder={tCommon('searchInList')}
               className="w-full bg-transparent text-body-sm text-fg-primary outline-none placeholder:text-fg-muted"
               autoFocus
               onClick={(e) => e.stopPropagation()}
@@ -165,7 +161,7 @@ export function MultiSelect({
           <div className="max-h-60 overflow-y-auto p-1" role="listbox">
             {filteredOptions.length === 0 ? (
               <div className="p-4 text-center text-caption text-fg-muted">
-                لا توجد نتائج مطابقة
+                {tCommon('noMatchingResults')}
               </div>
             ) : (
               filteredOptions.map((opt) => {
@@ -194,3 +190,4 @@ export function MultiSelect({
     </div>
   );
 }
+

@@ -3,15 +3,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { ScorePair } from '@/components/domain/ScorePair';
 import { ScoreBreakdown, ScoreRuleItem } from '@/components/domain/ScoreBreakdown';
-import { OwnershipTag, OwnershipType } from '@/components/domain/OwnershipTag';
+import { OwnershipTag } from '@/components/domain/OwnershipTag';
 import { PurchaseConfirm } from '@/components/domain/PurchaseConfirm';
 import { DealTimeline } from '@/components/domain/DealTimeline';
-import { OpportunityBadge, LeadTemperature } from '@/components/domain/OpportunityBadge';
+import { LeadTemperature } from '@/components/domain/OpportunityBadge';
 import { QualityState } from '@/components/domain/QualityIndicator';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -22,26 +22,12 @@ import { LockedField } from '@/components/ui/LockedField';
 import { Banner } from '@/components/ui/Banner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { PIPELINE_STATUS_LABELS } from '@/lib/constants';
+import { localizeCity, localizeCategory } from '@/lib/taxonomy';
+import { fmtNumber } from '@/lib/format';
 import {
-  CATEGORY_LABELS_AR,
-  FEEDBACK_REASON_LABELS,
-  PIPELINE_STATUS_LABELS,
-  WEBSITE_STATUS_LABELS,
-} from '@/lib/constants';
-import { fmtNumber, fmtDate } from '@/lib/format';
-import {
-  Phone,
-  Mail,
-  MapPin,
-  Globe,
-  Star,
   CheckCircle2,
   Copy,
-  Clock,
-  Layers,
-  Calendar,
-  Send,
-  MessageSquare,
   ThumbsUp,
   ThumbsDown,
   ArrowRight,
@@ -174,14 +160,17 @@ function mapQualityStatus(lead: LeadDetailData): QualityState {
 
 export default function LeadDetailPage() {
   const t = useTranslations('lead');
-  const tCommon = useTranslations('common');
+  const tGeo = useTranslations('geo');
+  const tCat = useTranslations('categories');
+  const tEnums = useTranslations('enums');
+  const locale = useLocale();
   const params = useParams();
   const router = useRouter();
   const leadId = String(params.id || '');
 
   const [lead, setLead] = useState<LeadDetailData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [claiming, setClaiming] = useState(false);
+  const [, setClaiming] = useState(false);
   const [actionMsg, setActionMsg] = useState<{ type: 'info' | 'warning' | 'danger'; text: string } | null>(
     null
   );
@@ -191,18 +180,12 @@ export default function LeadDetailPage() {
 
   // Status tracking state
   const [pipelineStatus, setPipelineStatus] = useState('CLAIMED');
-  const [outcomeReasonCode, setOutcomeReasonCode] = useState('PRICE');
-  const [estimatedProjectValue, setEstimatedProjectValue] = useState('');
-  const [wonReason, setWonReason] = useState('');
+  const [outcomeReasonCode] = useState('PRICE');
+  const [estimatedProjectValue] = useState('');
+  const [wonReason] = useState('');
   const [notes, setNotes] = useState('');
   const [nextFollowUpAt, setNextFollowUpAt] = useState('');
   const [savingStatus, setSavingStatus] = useState(false);
-
-  // Contact Attempt state
-  const [contactChannel, setContactChannel] = useState('PHONE');
-  const [contactResult, setContactResult] = useState('ANSWERED');
-  const [contactNote, setContactNote] = useState('');
-  const [savingContact, setSavingContact] = useState(false);
 
   // Structured Feedback state
   const [useful, setUseful] = useState<boolean | null>(null);
@@ -268,11 +251,11 @@ export default function LeadDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'danger', text: data.error || 'تعذر فتح بيانات الفرصة.' });
+        setActionMsg({ type: 'danger', text: data.error || t('claimError') });
       } else {
         setActionMsg({
           type: 'info',
-          text: `تم الشراء بنجاح! الرصيد المتبقي: ${data.remainingCredits} نقطة.`,
+          text: t('claimSuccess', { remaining: fmtNumber(data.remainingCredits, locale) }),
         });
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('leadforge:user-updated'));
@@ -281,7 +264,7 @@ export default function LeadDetailPage() {
         await loadLead();
       }
     } catch {
-      setActionMsg({ type: 'danger', text: 'حدث خطأ أثناء الاتصال بالخادم.' });
+      setActionMsg({ type: 'danger', text: t('networkError') });
     } finally {
       setClaiming(false);
     }
@@ -320,33 +303,6 @@ export default function LeadDetailPage() {
       }
     } finally {
       setSavingStatus(false);
-    }
-  }
-
-  async function handleRecordContactAttempt(e: React.FormEvent) {
-    e.preventDefault();
-    setSavingContact(true);
-    setActionMsg(null);
-    try {
-      const res = await fetch(`/api/leads/${leadId}/contact-attempts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          channel: contactChannel,
-          result: contactResult,
-          note: contactNote,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setActionMsg({ type: 'danger', text: data.error || t('contactAttemptError') });
-      } else {
-        setContactNote('');
-        setActionMsg({ type: 'info', text: t('contactAttemptSuccess') });
-        await loadLead();
-      }
-    } finally {
-      setSavingContact(false);
     }
   }
 
@@ -427,16 +383,26 @@ export default function LeadDetailPage() {
     Array.isArray(lead.qualificationRules) && lead.qualificationRules.length > 0
       ? lead.qualificationRules.map((r) => ({
           id: r.code,
-          label: r.name,
+          label: locale === 'en' ? r.nameEn || r.name : r.name,
           points: r.weight,
           maxWeight: 40,
         }))
       : (lead.websiteAnalysis?.opportunityReasons || []).map((op) => ({
           id: op.code,
-          label: op.reasonAr,
+          label: locale === 'en' ? op.reasonEn || op.reasonAr : op.reasonAr,
           points: op.points,
           maxWeight: 40,
         }));
+
+  const localizedCategory = localizeCategory(lead.category, tCat as any);
+  const localizedCity = localizeCity(lead.city, tGeo as any);
+  const localizedGov = localizeCity(lead.governorate, tGeo as any);
+  const localizedArea = lead.area ? localizeCity(lead.area, tGeo as any) : '';
+  const areaSep = locale === 'ar' ? '، ' : ', ';
+  const locationSubtitle = `${localizedCategory} • ${localizedCity}${
+    localizedArea ? `${areaSep}${localizedArea}` : ''
+  }`;
+  const fullAddressDisplay = lead.address || `${localizedGov} • ${localizedCity}`;
 
   return (
     <AppShell
@@ -448,9 +414,7 @@ export default function LeadDetailPage() {
         {/* Template T4 PageHeader with Breadcrumbs */}
         <PageHeader
           title={lead.businessName}
-          description={`${CATEGORY_LABELS_AR[lead.category] || lead.category} — ${lead.city}${
-            lead.area ? `، ${lead.area}` : ''
-          }`}
+          description={locationSubtitle}
           breadcrumbs={[
             { label: t('breadcrumbsDashboard'), href: '/dashboard' },
             { label: t('breadcrumbsLeads'), href: '/leads' },
@@ -522,7 +486,7 @@ export default function LeadDetailPage() {
                     <div className="flex items-center justify-between">
                       <a
                         href={`tel:${lead.phone}`}
-                        className="ltr-iso font-mono font-semibold text-fg-brand hover:underline"
+                        className="ltr-iso font-semibold tabular-nums text-fg-brand hover:underline"
                       >
                         {lead.phone}
                       </a>
@@ -547,7 +511,8 @@ export default function LeadDetailPage() {
                     <div className="flex items-center justify-between">
                       <a
                         href={`mailto:${lead.email}`}
-                        className="ltr-iso font-mono font-semibold text-fg-brand hover:underline truncate max-w-44"
+                        title={lead.email}
+                        className="ltr-iso font-semibold text-fg-brand hover:underline truncate max-w-44" /* design-allow: truncate */
                       >
                         {lead.email}
                       </a>
@@ -573,7 +538,8 @@ export default function LeadDetailPage() {
                       href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ltr-iso font-mono text-body-sm text-fg-brand hover:underline truncate"
+                      title={lead.website}
+                      className="ltr-iso text-body-sm text-fg-brand hover:underline truncate" /* design-allow: truncate */
                     >
                       {lead.website}
                     </a>
@@ -585,8 +551,11 @@ export default function LeadDetailPage() {
                 {/* Location */}
                 <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
                   <span className="text-caption text-fg-secondary">{t('locationAddress')}</span>
-                  <p className="text-body-sm text-fg-primary truncate">
-                    {lead.address || `${lead.governorate} — ${lead.city}`}
+                  <p
+                    title={fullAddressDisplay}
+                    className="text-body-sm text-fg-primary truncate" /* design-allow: truncate */
+                  >
+                    {fullAddressDisplay}
                   </p>
                 </div>
               </div>
@@ -613,8 +582,8 @@ export default function LeadDetailPage() {
                   </div>
                   <div className="p-3 rounded-lg bg-subtle">
                     <span className="text-caption text-fg-secondary block">{t('responseTime')}</span>
-                    <span className="ltr-iso font-mono font-semibold text-fg-primary">
-                      {lead.websiteAnalysis.responseTimeMs ? `${lead.websiteAnalysis.responseTimeMs} ms` : '—'}
+                    <span className="ltr-iso font-semibold tabular-nums text-fg-primary">
+                      {lead.websiteAnalysis.responseTimeMs ? `${fmtNumber(lead.websiteAnalysis.responseTimeMs, locale)} ms` : '-'}
                     </span>
                   </div>
                   <div className="p-3 rounded-lg bg-subtle">
@@ -629,7 +598,7 @@ export default function LeadDetailPage() {
 
             {/* 5. Claimed Lead Actions (CRM Pipeline & Feedback) */}
             {lead.isClaimedByMe && (
-              <div className="flex flex-col gap-6">
+              <div id="deal-pipeline" className="flex flex-col gap-6">
                 {/* Pipeline Stage Management */}
                 <Card>
                   <CardHeader>
@@ -641,9 +610,9 @@ export default function LeadDetailPage() {
                         label={t('stageLabel')}
                         value={pipelineStatus}
                         onChange={(e) => setPipelineStatus(e.target.value)}
-                        options={Object.entries(PIPELINE_STATUS_LABELS).map(([k, v]) => ({
+                        options={Object.keys(PIPELINE_STATUS_LABELS).map((k) => ({
                           value: k,
-                          label: v.labelAr,
+                          label: tEnums(`PipelineStatus.${k}`),
                         }))}
                       />
 
@@ -802,15 +771,15 @@ export default function LeadDetailPage() {
               <div className="flex flex-col gap-1 pb-4 border-b border-line">
                 <span className="text-caption text-fg-secondary">{t('costUnlock')}</span>
                 <div className="flex items-baseline gap-2">
-                  <span className="ltr-iso font-mono text-display font-bold leading-none tabular-nums text-fg-primary">
-                    {fmtNumber(price)}
+                  <span className="ltr-iso text-display font-bold leading-none tabular-nums text-fg-primary">
+                    {fmtNumber(price, locale)}
                   </span>
                   <span className="text-body text-fg-secondary font-medium">{t('pointCredits')}</span>
                 </div>
                 <span className="text-caption text-fg-muted mt-1">
                   {t('estimatedBudget')}{' '}
-                  <span className="ltr-iso font-mono font-medium text-fg-secondary">
-                    {fmtNumber(lead.estimatedBudget)}
+                  <span className="ltr-iso font-medium tabular-nums text-fg-secondary">
+                    {fmtNumber(lead.estimatedBudget, locale)}
                   </span>{' '}
                   {t('egp')}
                 </span>
@@ -834,16 +803,18 @@ export default function LeadDetailPage() {
                 </p>
               </div>
 
-              {/* Action Button */}
+              {/* Action Button — Block 3.3: Post-purchase clear next action */}
               {lead.isClaimedByMe ? (
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  fullWidth
-                  disabled
-                >
-                  {t('alreadyOwned')}
-                </Button>
+                <Link href="/my-leads" className="w-full">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    endIcon={<ArrowRight className="w-4 h-4 rtl:-scale-x-100" />}
+                  >
+                    {t('goToDeal')}
+                  </Button>
+                </Link>
               ) : (
                 <Button
                   variant="primary"
@@ -871,15 +842,21 @@ export default function LeadDetailPage() {
         <div className="lg:hidden fixed bottom-0 inset-x-0 bg-surface border-t border-line p-4 flex items-center justify-between z-20 shadow-md">
           <div className="flex flex-col">
             <span className="text-caption text-fg-secondary">{t('costUnlock')}</span>
-            <span className="ltr-iso font-mono font-bold text-body text-fg-primary">
-              {fmtNumber(price)} {t('points')}
+            <span className="ltr-iso font-bold tabular-nums text-body text-fg-primary">
+              {fmtNumber(price, locale)} {t('points')}
             </span>
           </div>
 
           {lead.isClaimedByMe ? (
-            <Button variant="secondary" size="md" disabled>
-              {t('purchased')}
-            </Button>
+            <Link href="/my-leads">
+              <Button
+                variant="primary"
+                size="md"
+                endIcon={<ArrowRight className="w-4 h-4 rtl:-scale-x-100" />}
+              >
+                {t('goToDeal')}
+              </Button>
+            </Link>
           ) : (
             <Button
               variant="primary"

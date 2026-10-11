@@ -61,6 +61,20 @@ This glossary controls all user-facing terminology in Arabic and English across 
 
 ---
 
-## 3. Latin Script Rules in Arabic Chrome
+## 3. Lead Tiers vs. Quality Statuses (No Shared Words)
+
+| Category | Key | Arabic UI Label | English UI Label | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **Lead Tier** | `PREMIUM` | **مميزة** | Premium | أعلى فئة للفرص (صيغة المؤنث لمطابقة "الفرصة"). محظور استخدام "ممتازة" هنا. |
+| **Lead Tier** | `HOT` | **ساخنة** | Hot | درجة 70 فأكثر (مؤنث) |
+| **Lead Tier** | `WARM` | **دافئة** | Warm | درجة من 50 إلى 69 (مؤنث) |
+| **Lead Tier** | `COLD` | **باردة** | Cold | درجة أقل من 50 (مؤنث) |
+| **Quality Status** | `EXCELLENT` | **ممتازة** | Excellent | مخصصة حصرياً لجودة واكتمال البيانات. |
+| **Action / Nav** | `Explore leads` | **استكشاف الفرص** | Explore leads | التسمية المعتمدة في القوائم والأزرار وحالات الفراغ. |
+| **Deal Outcome** | `Won` | **تمت الصفقة** | Won | التسمية المعتمدة للصفقات الناجحة في جميع الشاشات. |
+
+---
+
+## 4. Latin Script Rules in Arabic Chrome
 - **محظور تماماً في واجهة المستخدم العربية:** كلمات مثل `Dashboard, Lead, Claim, Score, Free, Hot, Pipeline, Admin, Settings, Subscription, Credits, Filter`.
 - **مسموح فقط بما ورد في `docs/i18n/ALLOWLIST.md`:** أسماء العلامات التجارية، المعرفات التقنية والأكواد في `.ltr-iso` وبخط `--font-mono`، واختصارات القائمة المعتمدة (`CSV`, `SSL`, `URL`, `API`, `ID`, `SaaS`).

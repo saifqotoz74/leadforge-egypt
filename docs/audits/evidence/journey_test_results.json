@@ -1,0 +1,107 @@
+[
+  {
+    "journey": "Journey A",
+    "step": "1. Landing Page Hero",
+    "status": "PASS",
+    "notes": "Headline, value prop, and interactive lead preview loaded cleanly.",
+    "screenshot": "journey_a_01_landing_hero_ar.png"
+  },
+  {
+    "journey": "Journey A",
+    "step": "2. Score Lab Toggles",
+    "status": "PASS",
+    "notes": "Score Lab recalculates dynamically upon switch toggle.",
+    "screenshot": "journey_a_02_score_lab_toggle.png"
+  },
+  {
+    "journey": "Journey A",
+    "step": "3. Pricing Navigation",
+    "status": "PASS",
+    "notes": "Navigated to /pricing. Note: Initial load renders skeleton cards before static fallback.",
+    "screenshot": "journey_a_03_pricing_page_ar.png"
+  },
+  {
+    "journey": "Journey A",
+    "step": "4. Locale Switch to English",
+    "status": "PASS",
+    "notes": "Switched to English cleanly. dir=\"ltr\" enforced.",
+    "screenshot": "journey_a_04_pricing_page_en.png"
+  },
+  {
+    "journey": "Journey B",
+    "step": "1. Empty Form Validation",
+    "status": "PASS",
+    "notes": "HTML5 required / custom validation prevents submission.",
+    "screenshot": "journey_b_01_login_empty_validation.png"
+  },
+  {
+    "journey": "Journey B",
+    "step": "2. Invalid Credentials Feedback",
+    "status": "PASS",
+    "notes": "Displays localized error banner on invalid credentials.",
+    "screenshot": "journey_b_02_login_invalid_creds.png"
+  },
+  {
+    "journey": "Journey B",
+    "step": "3. Valid Login & Redirect",
+    "status": "PASS",
+    "notes": "Authenticated successfully and redirected to /dashboard.",
+    "screenshot": "journey_b_03_dashboard_post_login.png"
+  },
+  {
+    "journey": "Journey B",
+    "step": "4. Onboarding Stepper",
+    "status": "PASS",
+    "notes": "Onboarding wizard steps (profile, services, budget, regions) visible.",
+    "screenshot": "journey_b_04_onboarding_stepper.png"
+  },
+  {
+    "journey": "Journey C",
+    "step": "1. Dashboard Overview",
+    "status": "PASS",
+    "notes": "Stat tiles (credit balance, active deals, opportunities) displayed.",
+    "screenshot": "journey_c_01_dashboard_ar.png"
+  },
+  {
+    "journey": "Journey C",
+    "step": "2. Leads Feed & Cards",
+    "status": "PASS",
+    "notes": "Lead cards render with opportunity score, tier badge, and requirements.",
+    "screenshot": "journey_c_02_leads_list_ar.png"
+  },
+  {
+    "journey": "Journey C",
+    "step": "3. Filter & Search",
+    "status": "PASS",
+    "notes": "Search query filters cards dynamically.",
+    "screenshot": "journey_c_03_leads_filtered_search.png"
+  },
+  {
+    "journey": "Journey D",
+    "step": "1. Lead Detail View",
+    "status": "PASS",
+    "notes": "Score breakdown, technical requirements, and locked contact info render.",
+    "screenshot": "journey_d_01_lead_detail_ar.png"
+  },
+  {
+    "journey": "Journey E",
+    "step": "1. Pipeline Board & Columns",
+    "status": "PASS",
+    "notes": "Pipeline columns and stage badges display claimed leads.",
+    "screenshot": "journey_e_01_my_leads_pipeline_ar.png"
+  },
+  {
+    "journey": "Journey F",
+    "step": "1. Subscription & Points Balance",
+    "status": "PASS",
+    "notes": "Current plan status, renewal date, and point balance displayed.",
+    "screenshot": "journey_f_01_subscription_management.png"
+  },
+  {
+    "journey": "Journey G",
+    "step": "1. Developer Settings & Preferences",
+    "status": "PASS",
+    "notes": "Profile details, company info, and preferences render cleanly.",
+    "screenshot": "journey_g_01_settings_profile.png"
+  }
+]

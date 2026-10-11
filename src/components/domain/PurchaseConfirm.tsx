@@ -1,5 +1,8 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Check, Copy, AlertTriangle, AlertCircle } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Banner } from '@/components/ui/Banner';
@@ -50,10 +53,14 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
   onGoToDeal,
   onViewSimilar,
   state: controlledState,
-  errorMessage = 'تعذّر إكمال العملية. حاول مرة أخرى.',
+  errorMessage,
 }) => {
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
   const [internalState, setInternalState] = useState<PurchaseState>('idle');
   const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const resolvedErrorMessage = errorMessage || tCommon('purchaseErrorFallback');
 
   // Derive active state
   const isBalanceInsufficient = userBalance < lead.price;
@@ -88,7 +95,7 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
       <Dialog
         isOpen={isOpen}
         onClose={onClose}
-        title="تم الشراء"
+        title={tCommon('purchasedTitle')}
         size="md"
         data-density="comfortable"
       >
@@ -99,31 +106,31 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
           </div>
 
           <h3 className="text-h3 font-semibold text-fg-primary">
-            تم شراء بيانات الفرصة
+            {tCommon('purchasedHeading')}
           </h3>
 
           <p className="text-body-sm text-fg-secondary">
-            أصبحت بيانات الاتصال الخاصة بشركة «{lead.name}» متاحة لك الآن.
+            {tCommon('purchasedDesc', { name: lead.name })}
           </p>
 
           {/* Revealed contact details with Copy button */}
           <div className="w-full rounded-lg border border-line bg-subtle p-4 flex flex-col gap-3 text-start">
             {lead.phone && (
               <div className="flex items-center justify-between gap-2">
-                <span className="text-caption text-fg-secondary">رقم الهاتف</span>
+                <span className="text-caption text-fg-secondary">{tCommon('mergeFieldPhone')}</span>
                 <div className="flex items-center gap-2">
-                  <span className="ltr-iso font-mono font-medium text-fg-primary">
+                  <span className="ltr-iso tabular-nums font-medium text-fg-primary">
                     {lead.phone}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleCopy(lead.phone!, 'phone')}
                     className="p-1 rounded text-fg-secondary hover:text-fg-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                    title="نسخ الرقم"
+                    title={tCommon('copyPhone')}
                   >
                     <Copy className="h-4 w-4" />
                     <span className="sr-only">
-                      {copiedField === 'phone' ? 'تم النسخ' : 'نسخ'}
+                      {copiedField === 'phone' ? tCommon('copied') : tCommon('copy')}
                     </span>
                   </button>
                 </div>
@@ -131,21 +138,21 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
             )}
 
             {lead.email && (
-              <div className="flex items-center justify-between gap-2 border-t border-line/60 pt-2">
-                <span className="text-caption text-fg-secondary">البريد الإلكتروني</span>
+              <div className="flex items-center justify-between gap-2 border-t border-line pt-2">
+                <span className="text-caption text-fg-secondary">{tCommon('mergeFieldEmail')}</span>
                 <div className="flex items-center gap-2">
-                  <span className="ltr-iso font-mono font-medium text-fg-primary">
+                  <span className="ltr-iso tabular-nums font-medium text-fg-primary">
                     {lead.email}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleCopy(lead.email!, 'email')}
                     className="p-1 rounded text-fg-secondary hover:text-fg-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                    title="نسخ البريد"
+                    title={tCommon('copyEmail')}
                   >
                     <Copy className="h-4 w-4" />
                     <span className="sr-only">
-                      {copiedField === 'email' ? 'تم النسخ' : 'نسخ'}
+                      {copiedField === 'email' ? tCommon('copied') : tCommon('copy')}
                     </span>
                   </button>
                 </div>
@@ -163,7 +170,7 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
                 onClose();
               }}
             >
-              الذهاب إلى الصفقة
+              {tCommon('goToDeal')}
             </Button>
           </div>
         </div>
@@ -176,7 +183,7 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
     <Dialog
       isOpen={isOpen}
       onClose={activeState === 'submitting' ? () => {} : onClose}
-      title="تأكيد الشراء"
+      title={tCommon('confirmPurchaseTitle')}
       size="md"
       data-density="comfortable"
     >
@@ -186,7 +193,7 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
           <Banner variant="danger">
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{errorMessage}</span>
+              <span>{resolvedErrorMessage}</span>
             </div>
           </Banner>
         )}
@@ -196,7 +203,7 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
           <Banner variant="info">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0" />
-              <span>اشترى مطور آخر هذه الفرصة قبل لحظات.</span>
+              <span>{tCommon('lostRaceBanner')}</span>
             </div>
           </Banner>
         )}
@@ -204,7 +211,9 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
         {/* 2. Lead summary */}
         <div className="rounded-lg border border-line bg-surface p-4 flex items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <h4 className="text-h4 font-semibold text-fg-primary">{lead.name}</h4>
+            <h4 className="text-h4 font-semibold text-fg-primary">
+              <bdi dir="auto">{lead.name}</bdi>
+            </h4>
             <OwnershipTag type={lead.ownershipType} maxSeats={lead.maxSeats} size="sm" />
           </div>
           <OpportunityBadge temperature={lead.temperature} score={lead.score} size="sm" />
@@ -213,8 +222,8 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
         {/* 3. Plain sentence explaining ownership type per Spec 7.10 */}
         <p className="text-body-sm text-fg-secondary">
           {lead.ownershipType === 'EXCLUSIVE'
-            ? 'ستكون الجهة الوحيدة التي تحصل على بيانات هذه الفرصة.'
-            : `يمكن لعدد أقصى من ${lead.maxSeats || 3} مطورين الحصول على هذه الفرصة.`}
+            ? tCommon('exclusiveOwnershipSentence')
+            : tCommon('sharedOwnershipSentence', { seats: fmtNumber(lead.maxSeats || 3, locale) })}
         </p>
 
         {/* 4. Insufficient balance state vs Summary table */}
@@ -223,28 +232,28 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>
-                رصيدك لا يكفي. تحتاج إلى {fmtNumber(pointsNeeded)} نقاط إضافية لإتمام الشراء.
+                {tCommon('insufficientBalanceBanner', { points: fmtNumber(pointsNeeded, locale) })}
               </span>
             </div>
           </Banner>
         ) : (
           <div className="rounded-lg border border-line bg-subtle p-4 flex flex-col gap-2">
             <div className="flex items-center justify-between text-body-sm h-11">
-              <span className="text-fg-secondary">رصيدك الحالي</span>
-              <span className="ltr-iso font-mono tabular-nums text-fg-primary">
-                {fmtNumber(userBalance)} نقطة
+              <span className="text-fg-secondary">{tCommon('currentBalanceLabel')}</span>
+              <span className="ltr-iso tabular-nums text-fg-primary">
+                {tCommon('points', { count: userBalance })}
               </span>
             </div>
             <div className="flex items-center justify-between text-body-sm h-11">
-              <span className="text-fg-secondary">سعر الفرصة</span>
-              <span className="ltr-iso font-mono tabular-nums text-danger-text font-medium">
-                −{fmtNumber(lead.price)} نقطة
+              <span className="text-fg-secondary">{tCommon('leadPriceLabel')}</span>
+              <span className="ltr-iso tabular-nums text-danger-text font-medium">
+                −{tCommon('points', { count: lead.price })}
               </span>
             </div>
-            <div className="border-t border-line/60 pt-2 flex items-center justify-between text-body font-semibold h-11">
-              <span className="text-fg-primary">رصيدك بعد الشراء</span>
-              <span className="ltr-iso font-mono tabular-nums text-fg-primary">
-                {fmtNumber(balanceAfter)} نقطة
+            <div className="border-t border-line pt-2 flex items-center justify-between text-body font-semibold h-11">
+              <span className="text-fg-primary">{tCommon('balanceAfterLabel')}</span>
+              <span className="ltr-iso tabular-nums text-fg-primary">
+                {tCommon('points', { count: balanceAfter })}
               </span>
             </div>
           </div>
@@ -259,7 +268,7 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
               disabled={activeState === 'submitting'}
               onClick={onClose}
             >
-              إلغاء
+              {tCommon('cancel')}
             </Button>
 
             {activeState === 'insufficient_balance' ? (
@@ -268,7 +277,7 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
                 size="lg"
                 onClick={onTopUpRedirect}
               >
-                شحن الرصيد
+                {tCommon('topUpBalanceCta')}
               </Button>
             ) : activeState === 'lost_race' ? (
               <Button
@@ -276,7 +285,7 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
                 size="lg"
                 onClick={onViewSimilar}
               >
-                عرض فرص مشابهة
+                {tCommon('viewSimilarLeadsCta')}
               </Button>
             ) : (
               <Button
@@ -285,13 +294,13 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
                 isLoading={activeState === 'submitting'}
                 onClick={handleConfirm}
               >
-                تأكيد الشراء
+                {tCommon('confirmPurchaseTitle')}
               </Button>
             )}
           </div>
 
           <p className="text-caption text-fg-muted text-center">
-            تُخصم النقاط فوراً عند إتمام التأكيد.
+            {tCommon('instantDeductionFootnote')}
           </p>
         </div>
       </div>

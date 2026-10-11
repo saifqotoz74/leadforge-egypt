@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { Coins } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { OpportunityBadge, LeadTemperature } from './OpportunityBadge';
 import { OwnershipTag, OwnershipType } from './OwnershipTag';
 import { QualityIndicator, QualityState } from './QualityIndicator';
@@ -42,6 +45,9 @@ export const LeadCard: React.FC<LeadCardProps> = ({
   onViewLead,
   className = '',
 }) => {
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+
   return (
     <article
       className={`group relative rounded-lg border border-line bg-surface p-[var(--card-pad)] transition-all duration-200 hover:border-line-strong hover:shadow-sm focus-within:ring-2 focus-within:ring-brand flex flex-col justify-between gap-3 ${className}`}
@@ -66,8 +72,8 @@ export const LeadCard: React.FC<LeadCardProps> = ({
       <div className="flex flex-col gap-1">
         <h4
           id={`lead-title-${id}`}
-          className="text-h4 font-semibold text-fg-primary truncate"
           title={companyName}
+          className="text-h4 font-semibold text-fg-primary truncate" /* design-allow: truncate */
         >
           {/* Stretched Link for accessible card click */}
           <Link
@@ -80,7 +86,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({
             }}
             className="focus:outline-none after:absolute after:inset-0 after:z-10"
           >
-            {companyName}
+            <bdi dir="auto">{companyName}</bdi>
           </Link>
         </h4>
 
@@ -88,7 +94,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({
         <div className="flex items-center gap-1 text-body-sm text-fg-secondary">
           <span>{category}</span>
           <span className="w-1" aria-hidden="true" />
-          <span>{location}</span>
+          <span><bdi dir="auto">{location}</bdi></span>
         </div>
       </div>
 
@@ -120,10 +126,10 @@ export const LeadCard: React.FC<LeadCardProps> = ({
         {/* Price display (inline credit format) */}
         <div className="flex items-center gap-1.5 text-fg-primary">
           <Coins className="h-4 w-4 text-fg-brand shrink-0" aria-hidden="true" />
-          <span className="ltr-iso font-mono font-semibold tabular-nums text-body">
-            {fmtNumber(price)}
+          <span className="ltr-iso font-semibold tabular-nums text-body">
+            {fmtNumber(price, locale)}
           </span>
-          <span className="text-caption text-fg-secondary">نقطة</span>
+          <span className="text-caption text-fg-secondary">{tCommon('unitPoint')}</span>
         </div>
 
         {/* Secondary sm action button per Spec 7.8 */}
@@ -136,7 +142,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({
               if (onViewLead) onViewLead(id);
             }}
           >
-            عرض الفرصة
+            {tCommon('viewLead')}
           </Button>
         </div>
       </div>

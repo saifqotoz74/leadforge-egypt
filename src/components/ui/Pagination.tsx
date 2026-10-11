@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { fmtNumber } from '@/lib/format';
 
 export interface PaginationProps {
@@ -21,6 +22,9 @@ export function Pagination({
   onPageChange,
   className = '',
 }: PaginationProps) {
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+
   if (totalPages <= 1) return null;
 
   const from = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -29,13 +33,16 @@ export function Pagination({
   return (
     <div
       role="navigation"
-      aria-label="التنقل بين الصفحات"
+      aria-label={tCommon('paginationNav')}
       className={`flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 select-none ${className}`}
     >
       <div className="text-caption text-fg-secondary">
-        عرض <span className="tabular font-medium text-fg-primary">{fmtNumber(from)}</span> إلى{' '}
-        <span className="tabular font-medium text-fg-primary">{fmtNumber(to)}</span> من{' '}
-        <span className="tabular font-medium text-fg-primary">{fmtNumber(totalItems)}</span>
+        {tCommon('paginationFrom')}{' '}
+        <span className="tabular font-medium text-fg-primary">{fmtNumber(from, locale)}</span>{' '}
+        {tCommon('paginationTo')}{' '}
+        <span className="tabular font-medium text-fg-primary">{fmtNumber(to, locale)}</span>{' '}
+        {tCommon('paginationOf')}{' '}
+        <span className="tabular font-medium text-fg-primary">{fmtNumber(totalItems, locale)}</span>
       </div>
 
       <div className="flex items-center gap-1">
@@ -44,7 +51,7 @@ export function Pagination({
           type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
-          aria-label="الصفحة السابقة"
+          aria-label={tCommon('prevPage')}
           className="h-8 w-8 rounded-md flex items-center justify-center text-fg-secondary hover:text-fg-primary hover:bg-subtle disabled:opacity-40 disabled:pointer-events-none transition-colors"
         >
           <ChevronLeft className="w-4 h-4 rtl:-scale-x-100" />
@@ -76,7 +83,7 @@ export function Pagination({
                       : 'text-fg-secondary hover:text-fg-primary hover:bg-subtle'
                   }`}
                 >
-                  {fmtNumber(page)}
+                  {fmtNumber(page, locale)}
                 </button>
               </React.Fragment>
             );
@@ -87,7 +94,7 @@ export function Pagination({
           type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          aria-label="الصفحة التالية"
+          aria-label={tCommon('nextPage')}
           className="h-8 w-8 rounded-md flex items-center justify-center text-fg-secondary hover:text-fg-primary hover:bg-subtle disabled:opacity-40 disabled:pointer-events-none transition-colors"
         >
           <ChevronRight className="w-4 h-4 rtl:-scale-x-100" />

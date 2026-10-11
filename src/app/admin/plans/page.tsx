@@ -1,13 +1,17 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Card } from '@/components/ui/Card';
+import { Banner } from '@/components/ui/Banner';
+import { localizePlanName } from '@/lib/taxonomy';
 import { Save } from 'lucide-react';
 
 interface AdminPlanItem {
@@ -24,6 +28,8 @@ interface AdminPlanItem {
 
 export default function AdminPlansPage() {
   const t = useTranslations('adminPlans');
+  const tPlans = useTranslations('plans');
+  const locale = useLocale();
   const [plans, setPlans] = useState<AdminPlanItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
@@ -60,7 +66,7 @@ export default function AdminPlansPage() {
       }),
     });
     if (res.ok) {
-      setMsg(t('savedSuccess', { name: plan.name }));
+      setMsg(t('savedSuccess', { name: localizePlanName(plan, locale, tPlans) }));
       await loadPlans();
     }
   }
@@ -68,19 +74,15 @@ export default function AdminPlansPage() {
   return (
     <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       <div className="space-y-6">
-        <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
-          <h1 className="text-xl font-extrabold text-fg-primary">
-            {t('title')}
-          </h1>
-          <p className="mt-1 text-xs text-fg-muted">
-            {t('desc')}
-          </p>
-        </Card>
+        <PageHeader
+          title={t('title')}
+          description={t('desc')}
+        />
 
         {msg && (
-          <div className="rounded-xl border border-line-brand bg-brand-soft p-4 text-xs font-bold text-brand">
-            ✓ {msg}
-          </div>
+          <Banner variant="info" onClose={() => setMsg(null)}>
+            {msg}
+          </Banner>
         )}
 
         {loading ? (
@@ -99,13 +101,13 @@ export default function AdminPlansPage() {
             {plans.map((plan, idx) => (
               <Card
                 key={plan.id}
-                className="rounded-xl border border-line bg-surface p-6 shadow-xs space-y-4"
+                className="rounded-xl border border-line bg-surface p-6 shadow-xs space-y-5"
               >
                 <div className="flex items-center justify-between">
-                  <span className="rounded bg-subtle px-2.5 py-0.5 text-xs font-bold text-fg-secondary">
-                    {plan.nameEn} ({plan.slug})
+                  <span className="rounded-md bg-subtle px-2.5 py-1 text-caption font-bold text-fg-secondary">
+                    <bdi dir="auto">{localizePlanName(plan, locale, tPlans)}</bdi> (<span className="ltr-iso">{plan.slug}</span>)
                   </span>
-                  <span className="text-xs font-bold text-brand">
+                  <span className="text-caption font-bold text-brand tabular-nums">
                     {t('subscribersCount', { count: plan.subscribersCount })}
                   </span>
                 </div>
@@ -131,7 +133,7 @@ export default function AdminPlansPage() {
                       next[idx] = { ...plan, priceEgp: Number(e.target.value) };
                       setPlans(next);
                     }}
-                    className="tabular-nums ltr-iso"
+                    className="tabular-nums ltr-iso font-bold"
                   />
 
                   <Input
@@ -144,30 +146,26 @@ export default function AdminPlansPage() {
                       next[idx] = { ...plan, monthlyCredits: Number(e.target.value) };
                       setPlans(next);
                     }}
-                    className="tabular-nums ltr-iso"
+                    className="tabular-nums ltr-iso font-bold"
                   />
                 </div>
 
-                <div className="flex items-center justify-between border-t border-line pt-3 text-xs">
-                  <label className="flex items-center gap-2 font-bold text-fg-secondary cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={plan.allowsExclusive}
-                      onChange={(e) => {
-                        const next = [...plans];
-                        next[idx] = { ...plan, allowsExclusive: e.target.checked };
-                        setPlans(next);
-                      }}
-                      className="h-4 w-4 rounded border-line text-brand focus:ring-brand"
-                    />
-                    <span>{t('exclusiveLabel')}</span>
-                  </label>
+                <div className="flex items-center justify-between border-t border-line pt-3.5">
+                  <Checkbox
+                    label={t('exclusiveLabel')}
+                    checked={plan.allowsExclusive}
+                    onChange={(e) => {
+                      const next = [...plans];
+                      next[idx] = { ...plan, allowsExclusive: e.target.checked };
+                      setPlans(next);
+                    }}
+                  />
 
                   <Button
                     variant="primary"
                     size="sm"
                     onClick={() => handleUpdatePlan(plan)}
-                    className="gap-1.5 text-xs"
+                    className="gap-1.5"
                   >
                     <Save className="h-3.5 w-3.5 rtl:-scale-x-100" />
                     <span>{t('btnSave')}</span>

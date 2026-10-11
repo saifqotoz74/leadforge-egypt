@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { fmtNumber } from '@/lib/format';
 
 export type LeadTemperature = 'COLD' | 'WARM' | 'HOT' | 'PREMIUM';
@@ -14,7 +17,6 @@ export interface OpportunityBadgeProps {
 const TIER_CONFIG: Record<
   LeadTemperature,
   {
-    label: string;
     bgClass: string;
     textClass: string;
     dotClass: string;
@@ -22,31 +24,27 @@ const TIER_CONFIG: Record<
   }
 > = {
   COLD: {
-    label: 'بارد',
-    bgClass: 'bg-subtle',
-    textClass: 'text-fg-secondary',
-    dotClass: 'bg-fg-secondary',
+    bgClass: 'bg-tier-cold-bg',
+    textClass: 'text-tier-cold-fg',
+    dotClass: 'bg-tier-cold-fg',
     filledDots: 1,
   },
   WARM: {
-    label: 'دافئ',
-    bgClass: 'bg-sand-100',
-    textClass: 'text-sand-700',
-    dotClass: 'bg-sand-700',
+    bgClass: 'bg-tier-warm-bg',
+    textClass: 'text-tier-warm-fg',
+    dotClass: 'bg-tier-warm-fg',
     filledDots: 2,
   },
   HOT: {
-    label: 'ساخن',
-    bgClass: 'bg-clay-50',
-    textClass: 'text-clay-700',
-    dotClass: 'bg-clay-700',
+    bgClass: 'bg-tier-hot-bg',
+    textClass: 'text-tier-hot-fg',
+    dotClass: 'bg-tier-hot-fg',
     filledDots: 3,
   },
   PREMIUM: {
-    label: 'مميز',
-    bgClass: 'bg-inverse',
-    textClass: 'text-fg-inverse',
-    dotClass: 'bg-fg-inverse',
+    bgClass: 'bg-tier-premium-bg',
+    textClass: 'text-tier-premium-fg',
+    dotClass: 'bg-tier-premium-fg',
     filledDots: 4,
   },
 };
@@ -58,8 +56,13 @@ export const OpportunityBadge: React.FC<OpportunityBadgeProps> = ({
   className = '',
   showScore = true,
 }) => {
+  const tEnums = useTranslations('enums.LeadTemperature');
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
   const config = TIER_CONFIG[temperature] || TIER_CONFIG.COLD;
   const isSmall = size === 'sm';
+
+  const label = tEnums(temperature);
 
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
@@ -71,9 +74,9 @@ export const OpportunityBadge: React.FC<OpportunityBadgeProps> = ({
           isSmall ? 'px-2 py-0.5 text-caption' : 'px-2.5 py-1 text-label'
         }`}
         role="status"
-        aria-label={`درجة الفرصة: ${config.label}`}
+        aria-label={label}
       >
-        <span>{config.label}</span>
+        <span>{label}</span>
         {/* 4-dot heat meter (Spec 6.1: 6px circles) */}
         <span className="inline-flex items-center gap-0.5" aria-hidden="true">
           {[1, 2, 3, 4].map((dotIndex) => {
@@ -90,14 +93,19 @@ export const OpportunityBadge: React.FC<OpportunityBadgeProps> = ({
         </span>
       </span>
 
-      {/* Optional Separate Numeric Score (0 to 100) next to the pill */}
+      {/* Numeric Score (0 to 100) next to the pill with quiet Opportunity caption */}
       {showScore && typeof score === 'number' && (
-        <span
-          className="ltr-iso font-mono font-semibold tabular-nums text-fg-primary text-h4"
-          aria-label={`الدرجة: ${score} من 100`}
-        >
-          {fmtNumber(score)}
-        </span>
+        <div className="flex flex-col items-start leading-none gap-0.5">
+          <span
+            className="font-semibold tabular-nums text-fg-primary text-h4 leading-none"
+            aria-label={`${score} / 100`}
+          >
+            {fmtNumber(score, locale)}
+          </span>
+          <span className="text-caption text-fg-muted font-normal leading-none">
+            {tCommon('opportunity')}
+          </span>
+        </div>
       )}
     </div>
   );

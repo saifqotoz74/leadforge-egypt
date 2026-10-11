@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { Check, X } from 'lucide-react';
 
 export type PipelineStage =
@@ -24,23 +27,23 @@ export interface StageBadgeProps {
 const STAGE_CONFIG: Record<
   PipelineStage,
   {
-    label: string;
+    fallbackLabel: string;
     variant: 'neutral-outline' | 'brand-soft' | 'brand-strong' | 'subtle';
     icon?: 'check' | 'x';
   }
 > = {
-  NEW: { label: 'جديدة', variant: 'neutral-outline' },
-  CLAIMED: { label: 'تم الشراء', variant: 'neutral-outline' },
-  CONTACTED: { label: 'تم التواصل', variant: 'brand-soft' },
-  REPLIED: { label: 'تم الرد', variant: 'brand-soft' },
-  INTERESTED: { label: 'مهتم', variant: 'brand-soft' },
-  MEETING: { label: 'اجتماع مجدول', variant: 'brand-soft' },
-  PROPOSAL_SENT: { label: 'تم إرسال العرض', variant: 'brand-soft' },
-  NEGOTIATION: { label: 'تفاوض', variant: 'brand-soft' },
-  WON: { label: 'تم التعاقد', variant: 'brand-strong', icon: 'check' },
-  LOST: { label: 'لم تكتمل', variant: 'subtle', icon: 'x' },
-  NOT_INTERESTED: { label: 'غير مهتم', variant: 'subtle', icon: 'x' },
-  INVALID: { label: 'بيانات غير صحيحة', variant: 'subtle', icon: 'x' },
+  NEW: { fallbackLabel: 'جديدة', variant: 'neutral-outline' },
+  CLAIMED: { fallbackLabel: 'تم الشراء', variant: 'neutral-outline' },
+  CONTACTED: { fallbackLabel: 'تم التواصل', variant: 'brand-soft' },
+  REPLIED: { fallbackLabel: 'تم الرد', variant: 'brand-soft' },
+  INTERESTED: { fallbackLabel: 'مهتم', variant: 'brand-soft' },
+  MEETING: { fallbackLabel: 'اجتماع', variant: 'brand-soft' },
+  PROPOSAL_SENT: { fallbackLabel: 'تم إرسال العرض', variant: 'brand-soft' },
+  NEGOTIATION: { fallbackLabel: 'تفاوض', variant: 'brand-soft' },
+  WON: { fallbackLabel: 'تمت الصفقة', variant: 'brand-strong', icon: 'check' },
+  LOST: { fallbackLabel: 'لم تتم', variant: 'subtle', icon: 'x' },
+  NOT_INTERESTED: { fallbackLabel: 'غير مهتم', variant: 'subtle', icon: 'x' },
+  INVALID: { fallbackLabel: 'بيانات غير صالحة', variant: 'subtle', icon: 'x' },
 };
 
 export const StageBadge: React.FC<StageBadgeProps> = ({
@@ -48,8 +51,11 @@ export const StageBadge: React.FC<StageBadgeProps> = ({
   className = '',
   size = 'md',
 }) => {
+  const tEnums = useTranslations('enums.PipelineStatus');
   const config = STAGE_CONFIG[stage] || STAGE_CONFIG.NEW;
   const isSmall = size === 'sm';
+
+  const label = tEnums ? tEnums(stage) : config.fallbackLabel;
 
   const variantStyles = {
     'neutral-outline': 'border border-line bg-transparent text-fg-secondary',
@@ -60,11 +66,11 @@ export const StageBadge: React.FC<StageBadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full font-medium transition-colors ${variantStyles} ${
+      className={`inline-flex items-center gap-1.5 rounded-full font-medium whitespace-nowrap shrink-0 transition-colors ${variantStyles} ${
         isSmall ? 'px-2 py-0.5 text-caption' : 'px-2.5 py-1 text-label'
       } ${className}`}
       role="status"
-      aria-label={`مرحلة الصفقة: ${config.label}`}
+      aria-label={label}
     >
       {config.icon === 'check' && (
         <Check className="h-3.5 w-3.5 shrink-0 text-fg-brand" aria-hidden="true" />
@@ -72,7 +78,7 @@ export const StageBadge: React.FC<StageBadgeProps> = ({
       {config.icon === 'x' && (
         <X className="h-3.5 w-3.5 shrink-0 text-fg-secondary" aria-hidden="true" />
       )}
-      <span>{config.label}</span>
+      <span>{label}</span>
     </span>
   );
 };

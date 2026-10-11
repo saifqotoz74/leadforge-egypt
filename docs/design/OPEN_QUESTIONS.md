@@ -32,3 +32,28 @@ The following items represent differences above 20% discovered during the calibr
 - **Spec Citation:** Section 7.10 ("Caption under the buttons: `العملية نهائية.` Only if the backend treats purchases as final.")
 - **Audit Finding:** The backend (`claimsEngine`) actually supports admin credit adjustments and refunds for invalid/closed leads.
 - **Decision Needed from Owner:** Should the purchase confirmation dialog say "العملية نهائية" or "الرصيد يُخصم فوراً مع إمكانية الإبلاغ عن أي أرقام خاطئة"? (Currently omitting the unqualified claim or using neutral copy).
+
+---
+
+### Question 4: StatTile Metrics Scope Divergence (Hot [226] and Leads This Week [250] Exceed Matched [213])
+- **Observation:** On the developer `/dashboard`, the "Hot leads" count (226) and "Leads this week" count (250) exceed "Matched leads" (213).
+- **Engineering Finding:**
+  - `matchedLeads` queries leads filtered specifically by the authenticated developer's profile preferences (`servicesOffered`, `targetGovernorates`, `minimumBudget`).
+  - `hotLeads` and `leadsThisWeek` query global, platform-wide inventory across all sectors and Egyptian governorates.
+- **Frontend Solution:** StatTiles now include explicit scope captions beneath the values ("Profile criteria match" vs. "Platform-wide (score 70+)" and "New platform additions") to ensure comparability without modifying database queries.
+- **Decision Needed from Owner:** Should `hotLeads` and `leadsThisWeek` remain platform-wide discovery metrics, or should they be scoped strictly to the developer's matched subset in future backend releases? (Currently keeping platform-wide with scope captions).
+
+---
+
+### Question 5: Information Architecture (IA) — "Top Up" Location in Navigation
+- **Observation:** "Top Up" / Credit balance management currently sits under the "Settings" group (`/subscription`) in the developer sidebar IA (per flow doc).
+- **Decision Needed from Owner:** Confirm whether "Top Up" should remain grouped under "Settings" or be elevated to a primary top-level action alongside "Explore leads" and "Pipeline". (Currently retained under Settings group).
+
+---
+
+### Question 6: Mixed Arabic and English Seed Business Names ("X - Y")
+- **Observation:** Multiple database seed business names contain mixed Arabic and English runs within a single string (e.g., `"عيادات النخبة التخصصية - Elite Clinics"`).
+- **Engineering Finding:** The frontend wraps all business names and user data in `<bdi dir="auto">` to isolate bidirectional text flow and prevent layout distortion. However, mixed strings within a single element can cause reading friction and script boundary ambiguities in both locales.
+- **Spec Constraint & Decision:** In accordance with the backend freeze invariant, database seed scripts and records remain untouched. In a future data pipeline update, consider separating localized names or standardizing seed entries to single-script names.
+
+

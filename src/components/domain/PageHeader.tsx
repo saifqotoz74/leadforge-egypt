@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 export interface PageHeaderProps {
   title: string;
@@ -15,11 +18,13 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   breadcrumbs,
   className = '',
 }) => {
+  const tCommon = useTranslations('common');
+
   return (
     <header className={`flex flex-col gap-2 mb-6 ${className}`}>
       {/* Optional Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav aria-label="فتات الخبز" className="text-caption text-fg-muted mb-1">
+        <nav aria-label={tCommon('breadcrumb')} className="text-caption text-fg-muted mb-1">
           <ol className="inline-flex items-center gap-1.5 list-none p-0 m-0">
             {breadcrumbs.map((crumb, idx) => (
               <li key={idx} className="inline-flex items-center gap-1.5">
@@ -29,11 +34,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                     href={crumb.href}
                     className="hover:text-fg-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand rounded"
                   >
-                    {crumb.label}
+                    <bdi dir="auto">{crumb.label}</bdi>
                   </a>
                 ) : (
                   <span className="text-fg-secondary font-medium" aria-current="page">
-                    {crumb.label}
+                    <bdi dir="auto">{crumb.label}</bdi>
                   </span>
                 )}
               </li>
@@ -45,8 +50,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       {/* Main Header Title & Actions Row per Spec 7.16 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1 max-w-[60ch]">
-          <h1 className="text-h1 font-bold text-fg-primary tracking-tight">
-            {title}
+          <h1 className="text-h1 font-semibold text-fg-primary tracking-tight">
+            <bdi dir="auto">{title}</bdi>
           </h1>
           {description && (
             <p className="text-body text-fg-secondary leading-relaxed">

@@ -225,7 +225,7 @@ export default function AdminOverviewPage() {
                     <span className="text-caption font-medium text-fg-secondary">
                       {t('successRate')}
                     </span>
-                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-brand">
+                    <p className="mt-1 text-h2 font-bold tabular-nums text-brand">
                       {fmtNumber(data.rates.leadSuccessRate)}%
                     </p>
                   </div>
@@ -234,7 +234,7 @@ export default function AdminOverviewPage() {
                     <span className="text-caption font-medium text-fg-secondary">
                       {t('invalidRate')}
                     </span>
-                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-warning-text">
+                    <p className="mt-1 text-h2 font-bold tabular-nums text-warning-text">
                       {fmtNumber(data.rates.invalidRate)}%
                     </p>
                   </div>
@@ -243,7 +243,7 @@ export default function AdminOverviewPage() {
                     <span className="text-caption font-medium text-fg-secondary">
                       {t('contactRate')}
                     </span>
-                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-fg-primary">
+                    <p className="mt-1 text-h2 font-bold tabular-nums text-fg-primary">
                       {fmtNumber(data.rates.contactRate)}%
                     </p>
                   </div>
@@ -252,7 +252,7 @@ export default function AdminOverviewPage() {
                     <span className="text-caption font-medium text-fg-secondary">
                       {t('replyRate')}
                     </span>
-                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-fg-primary">
+                    <p className="mt-1 text-h2 font-bold tabular-nums text-fg-primary">
                       {fmtNumber(data.rates.replyRate)}%
                     </p>
                   </div>
@@ -261,7 +261,7 @@ export default function AdminOverviewPage() {
                     <span className="text-caption font-medium text-fg-secondary">
                       {t('meetingRate')}
                     </span>
-                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-fg-primary">
+                    <p className="mt-1 text-h2 font-bold tabular-nums text-fg-primary">
                       {fmtNumber(data.rates.meetingRate)}%
                     </p>
                   </div>
@@ -270,7 +270,7 @@ export default function AdminOverviewPage() {
                     <span className="text-caption font-medium text-fg-secondary">
                       {t('wonRate')}
                     </span>
-                    <p className="mt-1 text-h2 font-bold font-mono tabular-nums text-brand">
+                    <p className="mt-1 text-h2 font-bold tabular-nums text-brand">
                       {fmtNumber(data.rates.wonRate)}%
                     </p>
                   </div>
@@ -365,7 +365,7 @@ export default function AdminOverviewPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>{t('obsTitle')}</CardTitle>
-                <span className="text-caption font-mono ltr-iso text-fg-muted">
+                <span className="text-caption tabular-nums ltr-iso text-fg-muted">
                   {t('uptime', { sec: fmtNumber(observability.systemHealth.liveness.uptimeSeconds) })}
                 </span>
               </CardHeader>
@@ -384,7 +384,7 @@ export default function AdminOverviewPage() {
                     >
                       {observability.systemHealth.readiness.status}
                     </p>
-                    <span className="text-caption text-fg-muted font-mono ltr-iso">
+                    <span className="text-caption text-fg-muted tabular-nums ltr-iso">
                       {t('latency', { ms: fmtNumber(observability.systemHealth.readiness.components.database.latencyMs ?? 1) })}
                     </span>
                   </div>
@@ -413,7 +413,7 @@ export default function AdminOverviewPage() {
                     <span className="text-caption font-medium text-fg-secondary">
                       {t('cacheEfficiency')}
                     </span>
-                    <p className="mt-1 text-label font-bold font-mono tabular-nums text-brand">
+                    <p className="mt-1 text-label font-bold tabular-nums text-brand">
                       {t('hitRate', { pct: fmtNumber(observability.performanceAndQueries.cache.hitRatePct) })}
                     </p>
                     <span className="text-caption text-fg-muted">
@@ -425,7 +425,7 @@ export default function AdminOverviewPage() {
                     <span className="text-caption font-medium text-fg-secondary">
                       {t('abuseSignals')}
                     </span>
-                    <p className="mt-1 text-label font-bold font-mono tabular-nums text-fg-primary">
+                    <p className="mt-1 text-label font-bold tabular-nums text-fg-primary">
                       {fmtNumber(observability.securityAndAbuse.flaggedAbuseSignalsCount)}
                     </p>
                     <span className="text-caption text-fg-muted">
@@ -464,14 +464,14 @@ export default function AdminOverviewPage() {
                     <TableBody>
                       {data.recentAuditLogs.map((log) => (
                         <TableRow key={log.id}>
-                          <TableCell className="font-mono text-caption text-brand">
+                          <TableCell className="text-caption font-semibold text-brand ltr-iso">
                             {log.action}
                           </TableCell>
                           <TableCell>{log.entityType}</TableCell>
                           <TableCell>
                             {log.user ? `${log.user.name} (${log.user.email})` : t('systemUser')}
                           </TableCell>
-                          <TableCell className="text-fg-muted font-mono ltr-iso text-caption">
+                          <TableCell className="text-fg-muted tabular-nums ltr-iso text-caption">
                             {fmtDate(new Date(log.createdAt))}
                           </TableCell>
                         </TableRow>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { RuleWeightEditor, ScoringRule } from '@/components/domain/RuleWeightEditor';
@@ -42,6 +42,7 @@ interface FreshnessThresholds {
 
 export default function AdminRulesPage() {
   const t = useTranslations('adminRules');
+  const locale = useLocale();
   const [rules, setRules] = useState<RuleItem[]>([]);
   const [scoringVersion, setScoringVersion] = useState<string>('v1');
   const [freshness, setFreshness] = useState<FreshnessThresholds>({
@@ -105,10 +106,10 @@ export default function AdminRulesPage() {
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
-      setMsg('تم تحديث وزن القاعدة وإعادة حساب درجات التقييم بنجاح.');
+      setMsg(t('updateSuccess'));
       await loadRules();
     } else {
-      setErrorMsg(data.error || 'تعذّر تحديث وزن القاعدة.');
+      setErrorMsg(data.error || t('updateError'));
     }
   }
 
@@ -126,10 +127,10 @@ export default function AdminRulesPage() {
     const res = await fetch(`/api/admin/rules/${ruleId}`, { method: 'DELETE' });
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
-      setMsg('تم حذف القاعدة وإعادة حساب درجات العملاء.');
+      setMsg(t('deleteSuccess'));
       await loadRules();
     } else {
-      setErrorMsg(data.error || 'تعذّر حذف القاعدة.');
+      setErrorMsg(data.error || t('deleteError'));
     }
   }
 
@@ -151,10 +152,10 @@ export default function AdminRulesPage() {
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
       setShowNewModal(false);
-      setMsg('تمت إضافة القاعدة الجديدة وإعادة تقييم جميع الفرص.');
+      setMsg(t('createSuccess'));
       await loadRules();
     } else {
-      setErrorMsg(data.error || 'تعذّر إضافة القاعدة الجديدة.');
+      setErrorMsg(data.error || t('createError'));
     }
   }
 
@@ -172,14 +173,11 @@ export default function AdminRulesPage() {
       if (res.ok) {
         const processed =
           data.report?.totalProcessed ?? data.evaluatedCount ?? data.updatedCount ?? 0;
-        const changed = data.report?.changedCount ?? data.updatedCount ?? 0;
         const ver = data.report?.scoringVersion || data.scoringVersion || scoringVersion;
         setScoringVersion(ver);
-        setMsg(
-          `تمت إعادة تقييم ${processed} نشاط تجاري بنجاح (تغيرت درجات ${changed} نشاط — الإصدار ${ver}).`
-        );
+        setMsg(t('recalcSuccess', { processed }));
       } else {
-        setErrorMsg(data.error || 'تعذّر إعادة حساب درجات التقييم.');
+        setErrorMsg(data.error || t('updateError'));
       }
     } finally {
       setRecalculating(false);
@@ -200,10 +198,10 @@ export default function AdminRulesPage() {
       if (res.ok) {
         const ver = data.scoringVersion || data.report?.scoringVersion || scoringVersion;
         setScoringVersion(ver);
-        setMsg(`تمت ترقية إصدار محرك التقييم إلى ${ver} وإعادة حساب الدرجات بنجاح.`);
+        setMsg(t('bumpSuccess', { version: ver }));
         await loadRules();
       } else {
-        setErrorMsg(data.error || 'تعذّر ترقية إصدار التقييم.');
+        setErrorMsg(data.error || t('updateError'));
       }
     } finally {
       setRecalculating(false);
@@ -223,15 +221,15 @@ export default function AdminRulesPage() {
       }),
     });
     if (res.ok) {
-      setMsg('تم تحديث حدود حداثة البيانات بنجاح.');
+      setMsg(t('updateSuccess'));
     } else {
-      setErrorMsg('تعذّر تحديث حدود حداثة البيانات.');
+      setErrorMsg(t('updateError'));
     }
   }
 
   const scoringRulesForEditor: ScoringRule[] = rules.map((r) => ({
     id: r.id,
-    name: r.name,
+    name: locale === 'en' ? r.nameEn || r.name : r.name,
     conditionDescription: `${r.field} ${r.operator} ${r.targetValue}`,
     expressionCode: r.code || r.key || r.id,
     weight: r.weight,
@@ -303,7 +301,7 @@ export default function AdminRulesPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle>{t('rulesWeightTitle')}</CardTitle>
-                <span className="text-caption text-fg-muted font-mono">
+                <span className="text-caption text-fg-muted tabular-nums">
                   {t('activeRulesCount', { count: rules.length })}
                 </span>
               </CardHeader>
@@ -318,7 +316,7 @@ export default function AdminRulesPage() {
             {/* Individual Rule Management (Enable/Disable & Delete) */}
             <Card>
               <CardHeader>
-                <CardTitle>إدارة تفعيل وحذف القواعد</CardTitle>
+                <CardTitle>{t('manageRulesTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -330,19 +328,19 @@ export default function AdminRulesPage() {
                       <div>
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <span className="font-semibold text-body-sm text-fg-primary line-clamp-1">
-                            {rule.name}
+                            {locale === 'en' ? rule.nameEn || rule.name : rule.name}
                           </span>
                           <span
-                            className={`inline-flex px-2 py-0.5 rounded-full text-caption font-mono font-semibold ${
+                            className={`inline-flex px-2 py-0.5 rounded-full text-caption tabular-nums font-semibold ${
                               rule.enabled
                                 ? 'bg-brand-soft text-brand'
                                 : 'bg-subtle text-fg-muted'
                             }`}
                           >
-                            {rule.weight} نقطة
+                            {rule.weight} {t('pointsSuffix')}
                           </span>
                         </div>
-                        <p className="text-caption font-mono text-fg-muted line-clamp-1">
+                        <p className="text-caption text-fg-muted line-clamp-1 ltr-iso">
                           {rule.code}
                         </p>
                       </div>
@@ -354,7 +352,7 @@ export default function AdminRulesPage() {
                           onClick={() => handleUpdateRule(rule.id, { enabled: !rule.enabled })}
                           className="text-caption text-fg-secondary"
                         >
-                          {rule.enabled ? 'تعطيل القاعدة' : 'تفعيل القاعدة'}
+                          {rule.enabled ? t('disableRule') : t('enableRule')}
                         </Button>
 
                         <Button
@@ -364,7 +362,7 @@ export default function AdminRulesPage() {
                           className="text-danger-text hover:text-danger-text gap-1 text-caption"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
-                          <span>حذف</span>
+                          <span>{t('deleteRule')}</span>
                         </Button>
                       </div>
                     </div>
@@ -376,12 +374,12 @@ export default function AdminRulesPage() {
             {/* Freshness Thresholds Config Form */}
             <Card>
               <CardHeader>
-                <CardTitle>حدود حداثة البيانات (Freshness Thresholds)</CardTitle>
+                <CardTitle>{t('freshnessTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSaveFreshness} className="grid gap-4 sm:grid-cols-4 items-end">
                   <Input
-                    label="الحد الأقصى للحديثة (FRESH بالايام)"
+                    label={t('freshMaxLabel')}
                     type="number"
                     min={1}
                     max={60}
@@ -392,7 +390,7 @@ export default function AdminRulesPage() {
                   />
 
                   <Input
-                    label="الحد الأقصى للقريبة (RECENT بالايام)"
+                    label={t('recentMaxLabel')}
                     type="number"
                     min={7}
                     max={120}
@@ -403,7 +401,7 @@ export default function AdminRulesPage() {
                   />
 
                   <Input
-                    label="حد التحقق (NEEDS_VERIFY بالايام)"
+                    label={t('needsVerifyMaxLabel')}
                     type="number"
                     min={30}
                     max={365}
@@ -414,7 +412,7 @@ export default function AdminRulesPage() {
                   />
 
                   <Button type="submit" variant="secondary" size="md" className="w-full">
-                    حفظ حدود الحداثة
+                    {t('saveFreshness')}
                   </Button>
                 </form>
               </CardContent>

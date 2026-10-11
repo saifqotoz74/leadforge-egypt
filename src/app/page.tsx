@@ -2,14 +2,21 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { PublicNavbar, PublicFooter, LeadCard, PackageCard } from '@/components/domain';
+import {
+  PublicNavbar,
+  PublicFooter,
+  PackageCard,
+  ScorePair,
+  StageBadge,
+  OpportunityBadge,
+} from '@/components/domain';
 import { ScoreLab } from '@/features/landing/ScoreLab';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { LockedField } from '@/components/ui/LockedField';
 import { DEFAULT_PLANS } from '@/lib/constants';
-import { fmtNumber } from '@/lib/format';
+import { localizePlanCatalog } from '@/lib/taxonomy';
 import {
-  ShieldCheck,
   Check,
   X,
   Sliders,
@@ -18,18 +25,21 @@ import {
   Layers,
   PhoneCall,
   Globe,
-  Coins,
   Lock,
   Users,
   Compass,
+  Coins,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export default function LandingPage() {
   const tLanding = useTranslations('landing');
+  const tPlans = useTranslations('plans');
+  const tPricing = useTranslations('pricing');
   const [activeStep, setActiveStep] = useState(0);
   const [ownershipMode, setOwnershipMode] = useState<'EXCLUSIVE' | 'SHARED'>('SHARED');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [highlightedField, setHighlightedField] = useState<'website' | 'reviews' | 'branches' | 'quality' | null>(null);
 
   function toggleFaq(index: number) {
     setOpenFaq((prev) => (prev === index ? null : index));
@@ -51,80 +61,253 @@ export default function LandingPage() {
       <PublicNavbar />
 
       <main className="flex-1 flex flex-col">
-        {/* 2. Hero Section */}
-        <section className="bg-surface border-b border-line py-16 sm:py-24">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid items-center gap-12 lg:grid-cols-12">
-              <div className="lg:col-span-7 flex flex-col gap-6">
-                <div className="inline-flex items-center gap-2 rounded-full border border-line bg-subtle px-3.5 py-1.5 text-caption font-semibold text-fg-secondary w-fit">
-                  <ShieldCheck className="h-4 w-4 text-brand rtl:-scale-x-100" />
-                  <span>{tLanding('heroBadge')}</span>
-                </div>
+        {/* 2. Hero Section (First fold refinement: single card hero object, SVG dot-grid, hover highlight) */}
+        <section className="relative bg-page border-b border-line py-8 sm:py-10 lg:py-10 overflow-hidden">
+          {/* Quiet SVG dot-grid pattern behind hero only (Spec: --n-100 on --bg-page, no CSS gradient) */}
+          <svg
+            className="absolute inset-0 h-full w-full pointer-events-none"
+            xmlns="http://www.w3.org/2000/svg"
+            width="100%"
+            height="100%"
+            aria-hidden="true"
+          >
+            <defs>
+              <pattern id="hero-dot-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1.25" fill="var(--n-100)" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#hero-dot-grid)" />
+          </svg>
 
-                <h1 className="text-display font-bold text-fg-primary max-w-reading">
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid items-start gap-8 lg:gap-12 lg:grid-cols-12">
+              {/* Left Column (Headline, Subtitle, CTAs, Caption) */}
+              <div className="lg:col-span-6 flex flex-col gap-5 pt-1">
+                <h1
+                  style={{ fontSize: 'clamp(2.125rem, 4.6vw, 4.5rem)', lineHeight: 1.15, fontWeight: 700 }} /* design-allow: clamp-display */
+                  className="font-bold tracking-tight text-fg-primary max-w-[18ch]"
+                >
                   {tLanding('heroHeadline')}
                 </h1>
 
-                <p className="text-body-lg text-fg-secondary max-w-reading">
+                <p className="text-body-lg text-fg-secondary max-w-[44ch] leading-relaxed">
                   {tLanding('heroSubtitle')}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-4 pt-2">
-                  <Link href="/register">
-                    <Button variant="primary" size="lg" className="gap-2">
-                      <span>{tLanding('heroCtaPrimary')}</span>
-                      <ArrowRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
-                    </Button>
-                  </Link>
-                  <a href="#score-lab">
-                    <Button variant="secondary" size="lg" className="gap-2">
-                      <Sliders className="h-4 w-4 shrink-0" />
-                      <span>{tLanding('heroCtaSecondary')}</span>
-                    </Button>
-                  </a>
-                </div>
-
-                {/* Plain Facts Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-line pt-6 text-body-sm text-fg-secondary">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-brand shrink-0 rtl:-scale-x-100" />
-                    <span>{tLanding('heroFactRules')}</span>
+                <div className="flex flex-col gap-3 pt-1">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Link href="/register">
+                      <Button variant="primary" size="lg" className="gap-2">
+                        <span>{tLanding('heroCtaPrimary')}</span>
+                        <ArrowRight className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
+                      </Button>
+                    </Link>
+                    <a href="#how-it-works">
+                      <Button variant="secondary" size="lg" className="gap-2">
+                        <Sliders className="h-4 w-4 shrink-0" />
+                        <span>{tLanding('heroCtaSecondary')}</span>
+                      </Button>
+                    </a>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-brand shrink-0 rtl:-scale-x-100" />
-                    <span>{tLanding('heroFactDuplicates')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-brand shrink-0 rtl:-scale-x-100" />
-                    <span>{tLanding('heroFactLedger')}</span>
-                  </div>
+                  <p className="text-caption text-fg-muted">
+                    {tLanding('heroCaption')}
+                  </p>
                 </div>
               </div>
 
-              {/* Hero Live LeadCard Demo Frame */}
-              <div className="lg:col-span-5">
-                <div className="relative rounded-xl border border-line bg-surface p-2 shadow-lg">
-                  <div className="mb-2 px-3 pt-2 flex items-center justify-between text-caption font-semibold text-fg-muted">
-                    <span className="inline-flex items-center gap-1">
-                      <Compass className="h-3.5 w-3.5 text-brand" />
+              {/* Right Column: Hero Lead Card Object (480-520px at 1440, padding 24, no nested boxes) */}
+              <div className="lg:col-span-6 w-full flex justify-center lg:justify-end">
+                <div
+                  className="w-full max-w-lg rounded-xl border border-line bg-surface p-6 shadow-sm flex flex-col gap-4"
+                  aria-label={tLanding('illustrativeExample')}
+                >
+                  {/* Top Bar: Illustrative Example Label & Opportunity Badge */}
+                  <div className="flex items-center justify-between text-caption text-fg-muted pb-1">
+                    <span className="inline-flex items-center gap-1.5 font-medium">
+                      <Compass className="h-3.5 w-3.5 text-brand shrink-0" aria-hidden="true" />
                       <span>{tLanding('illustrativeExample')}</span>
                     </span>
-                    <span className="font-mono text-caption text-brand">100% شفاف</span>
+
+                    <OpportunityBadge temperature="HOT" showScore={false} size="sm" />
                   </div>
-                  <LeadCard
-                    id="hero-lead-sample"
-                    companyName="عيادة النيل التخصصية للأسنان"
-                    category="عيادات ومراكز طبية"
-                    location="القاهرة الجديدة، القاهرة"
-                    temperature="HOT"
-                    score={88}
-                    ownershipType="SHARED"
-                    qualityStatus="FRESH"
-                    price={1}
-                    seatsRemaining={2}
-                    maxSeats={3}
-                    signals={['بدون موقع إلكتروني', 'هاتف موثق', 'نشاط جغرافي مؤكد']}
-                  />
+
+                  {/* Identity Row: Name, Meta & Opportunity Score */}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <h2
+                        title={tLanding('heroCardName')}
+                        className="text-h3 font-bold text-fg-primary leading-snug truncate" /* design-allow: truncate */
+                      >
+                        {tLanding('heroCardName')}
+                      </h2>
+                      <p className="text-body-sm text-fg-secondary">
+                        {tLanding('heroCardMeta')}
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 flex flex-col items-end gap-0.5 text-end">
+                      <div className="flex items-baseline justify-end gap-1">
+                        <span className="ltr-iso text-h2 font-bold tabular-nums leading-none text-fg-primary">
+                          85
+                        </span>
+                        <span className="ltr-iso text-caption tabular-nums text-fg-muted">/ 100</span>
+                      </div>
+                      <p className="text-caption text-fg-muted mt-0.5">
+                        {tLanding('heroCardScoreCaption')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Field Rows: Website, Google reviews, Branches, Phone, Quality */}
+                  <div className="space-y-1.5 py-3 border-y border-line text-body-sm">
+                    <div
+                      id="hero-field-website"
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors duration-150 motion-reduce:transition-none ${
+                        highlightedField === 'website'
+                          ? 'bg-brand-soft'
+                          : 'bg-transparent'
+                      }`}
+                    >
+                      <span className="text-fg-secondary">{tLanding('heroFieldWebsiteLabel')}</span>
+                      <span className="font-medium text-fg-primary">{tLanding('heroFieldWebsiteVal')}</span>
+                    </div>
+
+                    <div
+                      id="hero-field-reviews"
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors duration-150 motion-reduce:transition-none ${
+                        highlightedField === 'reviews'
+                          ? 'bg-brand-soft'
+                          : 'bg-transparent'
+                      }`}
+                    >
+                      <span className="text-fg-secondary">{tLanding('heroFieldReviewsLabel')}</span>
+                      <span className="ltr-iso font-medium tabular-nums text-fg-primary">
+                        {tLanding('heroFieldReviewsVal')}
+                      </span>
+                    </div>
+
+                    <div
+                      id="hero-field-branches"
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors duration-150 motion-reduce:transition-none ${
+                        highlightedField === 'branches'
+                          ? 'bg-brand-soft'
+                          : 'bg-transparent'
+                      }`}
+                    >
+                      <span className="text-fg-secondary">{tLanding('heroFieldBranchesLabel')}</span>
+                      <span className="ltr-iso font-medium tabular-nums text-fg-primary">
+                        {tLanding('heroFieldBranchesVal')}
+                      </span>
+                    </div>
+
+                    <div
+                      id="hero-field-phone"
+                      className="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-transparent"
+                    >
+                      <span className="text-fg-secondary">{tLanding('heroFieldPhoneLabel')}</span>
+                      <LockedField type="phone" />
+                    </div>
+
+                    <div
+                      id="hero-field-quality"
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-md text-caption transition-colors duration-150 motion-reduce:transition-none ${
+                        highlightedField === 'quality'
+                          ? 'bg-brand-soft'
+                          : 'bg-transparent'
+                      }`}
+                    >
+                      <span className="text-fg-muted font-normal">{tLanding('heroCardQuality')}</span>
+                      <span className="inline-flex items-center gap-1.5 text-brand font-medium">
+                        <span className="h-1.5 w-1.5 rounded-full bg-brand-accent shrink-0" aria-hidden="true" />
+                        <span>{tLanding('heroCardTier')}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Score Reasons: Why 85? With hover/focus highlighting */}
+                  <div className="space-y-1.5">
+                    <h3 className="text-label font-semibold text-fg-primary">
+                      {tLanding('heroWhyHeading')}
+                    </h3>
+
+                    <div className="flex flex-col gap-1" role="list">
+                      {/* Reason 1: No website +45 */}
+                      <button
+                        type="button"
+                        id="hero-reason-website"
+                        aria-describedby="hero-field-website"
+                        onMouseEnter={() => setHighlightedField('website')}
+                        onMouseLeave={() => setHighlightedField(null)}
+                        onFocus={() => setHighlightedField('website')}
+                        onBlur={() => setHighlightedField(null)}
+                        className="w-full text-start flex items-center justify-between px-2.5 py-1.5 rounded-md text-body-sm cursor-pointer transition-colors duration-150 motion-reduce:transition-none hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      >
+                        <span className="text-fg-secondary">{tLanding('heroReason1Label')}</span>
+                        <span className="ltr-iso font-semibold tabular-nums text-fg-brand">+45</span>
+                      </button>
+
+                      {/* Reason 2: 120 Google reviews +21 */}
+                      <button
+                        type="button"
+                        id="hero-reason-reviews"
+                        aria-describedby="hero-field-reviews"
+                        onMouseEnter={() => setHighlightedField('reviews')}
+                        onMouseLeave={() => setHighlightedField(null)}
+                        onFocus={() => setHighlightedField('reviews')}
+                        onBlur={() => setHighlightedField(null)}
+                        className="w-full text-start flex items-center justify-between px-2.5 py-1.5 rounded-md text-body-sm cursor-pointer transition-colors duration-150 motion-reduce:transition-none hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      >
+                        <span className="text-fg-secondary">{tLanding('heroReason2Label')}</span>
+                        <span className="ltr-iso font-semibold tabular-nums text-fg-brand">+21</span>
+                      </button>
+
+                      {/* Reason 3: 3 branches +14 */}
+                      <button
+                        type="button"
+                        id="hero-reason-branches"
+                        aria-describedby="hero-field-branches"
+                        onMouseEnter={() => setHighlightedField('branches')}
+                        onMouseLeave={() => setHighlightedField(null)}
+                        onFocus={() => setHighlightedField('branches')}
+                        onBlur={() => setHighlightedField(null)}
+                        className="w-full text-start flex items-center justify-between px-2.5 py-1.5 rounded-md text-body-sm cursor-pointer transition-colors duration-150 motion-reduce:transition-none hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      >
+                        <span className="text-fg-secondary">{tLanding('heroReason3Label')}</span>
+                        <span className="ltr-iso font-semibold tabular-nums text-fg-brand">+14</span>
+                      </button>
+
+                      {/* Reason 4: Verified recent data +5 */}
+                      <button
+                        type="button"
+                        id="hero-reason-quality"
+                        aria-describedby="hero-field-quality"
+                        onMouseEnter={() => setHighlightedField('quality')}
+                        onMouseLeave={() => setHighlightedField(null)}
+                        onFocus={() => setHighlightedField('quality')}
+                        onBlur={() => setHighlightedField(null)}
+                        className="w-full text-start flex items-center justify-between px-2.5 py-1.5 rounded-md text-body-sm cursor-pointer transition-colors duration-150 motion-reduce:transition-none hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      >
+                        <span className="text-fg-secondary">{tLanding('heroReason4Label')}</span>
+                        <span className="ltr-iso font-semibold tabular-nums text-fg-brand">+5</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Footer: Price & CTA Button */}
+                  <div className="pt-3 border-t border-line flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-fg-primary">
+                      <Coins className="h-4 w-4 text-fg-brand shrink-0" aria-hidden="true" />
+                      <span className="font-semibold text-body tabular-nums">
+                        {tLanding('heroCardPrice')}
+                      </span>
+                    </div>
+
+                    <Link href="/register">
+                      <Button variant="secondary" size="sm">
+                        {tLanding('heroCardCta')}
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -132,7 +315,7 @@ export default function LandingPage() {
         </section>
 
         {/* 3. Problem Strip */}
-        <section className="bg-subtle/50 border-b border-line py-16 sm:py-20">
+        <section className="bg-subtle border-b border-line py-16 sm:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h2 className="text-h1 font-bold text-fg-primary">
@@ -201,8 +384,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 4. How It Works (Storytelling) */}
-        <section className="bg-surface border-b border-line py-16 sm:py-24">
+        {/* 4. How It Works (3 Clear Stages) */}
+        <section id="how-it-works" className="bg-surface border-b border-line py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-h1 font-bold text-fg-primary">
@@ -214,7 +397,7 @@ export default function LandingPage() {
             </div>
 
             <div className="grid gap-10 lg:grid-cols-12 items-start">
-              {/* Steps Sequence List */}
+              {/* 3-Step Sequence List */}
               <div className="lg:col-span-5 space-y-4">
                 {[
                   {
@@ -232,11 +415,6 @@ export default function LandingPage() {
                     title: tLanding('howStep3Title'),
                     desc: tLanding('howStep3Desc'),
                   },
-                  {
-                    num: tLanding('howStep4Num'),
-                    title: tLanding('howStep4Title'),
-                    desc: tLanding('howStep4Desc'),
-                  },
                 ].map((step, idx) => {
                   const isActive = activeStep === idx;
                   return (
@@ -252,7 +430,7 @@ export default function LandingPage() {
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <span
-                          className={`flex h-7 w-7 items-center justify-center rounded-full font-mono text-caption font-bold ${
+                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-caption font-bold tabular-nums ${
                             isActive
                               ? 'bg-brand text-fg-on-brand'
                               : 'bg-subtle text-fg-muted'
@@ -272,30 +450,30 @@ export default function LandingPage() {
                 })}
               </div>
 
-              {/* Dynamic Frame for Selected Step */}
-              <div className="lg:col-span-7 rounded-xl border border-line bg-subtle p-6 shadow-sm min-h-96 flex flex-col justify-center">
+              {/* Dynamic Product Visual Fragment for Selected Step */}
+              <div className="lg:col-span-7 rounded-xl border border-line bg-subtle p-6 shadow-sm min-h-80 flex flex-col justify-center">
                 {activeStep === 0 && (
                   <div className="space-y-4">
                     <span className="text-caption font-bold text-brand block">
-                      المطابقة والدمج الكياني (Entity Resolution):
+                      {tLanding('howStep1FrameLabel')}
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="p-4 rounded-xl border border-line bg-surface text-body-sm space-y-2">
-                        <div className="text-caption text-fg-muted">سجل من مصدر أ:</div>
-                        <div className="font-bold text-fg-primary">مختبرات الدلتا الطبية</div>
-                        <div className="text-fg-secondary font-mono">01009876543</div>
-                        <div className="text-caption text-fg-muted">مدينة نصر، القاهرة</div>
+                        <div className="text-caption text-fg-muted">{tLanding('howStep1SourceA')}</div>
+                        <div className="font-bold text-fg-primary">{tLanding('howStep1NameA')}</div>
+                        <div className="text-fg-secondary tabular-nums ltr-iso">+20 100 987 6543</div>
+                        <div className="text-caption text-fg-muted">{tLanding('howStep1LocA')}</div>
                       </div>
                       <div className="p-4 rounded-xl border border-line bg-surface text-body-sm space-y-2">
-                        <div className="text-caption text-fg-muted">سجل من مصدر ب:</div>
-                        <div className="font-bold text-fg-primary">معامل الدلتا للتحاليل</div>
-                        <div className="text-fg-secondary font-mono">01009876543</div>
-                        <div className="text-caption text-fg-muted">شارع عباس العقاد، القاهرة</div>
+                        <div className="text-caption text-fg-muted">{tLanding('howStep1SourceB')}</div>
+                        <div className="font-bold text-fg-primary">{tLanding('howStep1NameB')}</div>
+                        <div className="text-fg-secondary tabular-nums ltr-iso">+20 100 987 6543</div>
+                        <div className="text-caption text-fg-muted">{tLanding('howStep1LocB')}</div>
                       </div>
                     </div>
-                    <div className="p-3 rounded-lg bg-brand-soft border border-brand/20 text-caption text-brand font-semibold flex items-center gap-2">
-                      <Check className="h-4 w-4 rtl:-scale-x-100" />
-                      <span>تم التعرف التلقائي على تطابق الهوية ودمجهما في سجل موحد بنسبة ثقة 100%.</span>
+                    <div className="p-3.5 rounded-lg bg-brand-soft border border-line-brand text-caption text-brand font-semibold flex items-center gap-2">
+                      <Check className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
+                      <span>{tLanding('howStep1MergedNote')}</span>
                     </div>
                   </div>
                 )}
@@ -303,20 +481,16 @@ export default function LandingPage() {
                 {activeStep === 1 && (
                   <div className="space-y-4">
                     <span className="text-caption font-bold text-brand block">
-                      التقييم الفني المزدوج (Dual Scoring):
+                      {tLanding('howStep2FrameLabel')}
                     </span>
-                    <div className="p-4 rounded-xl border border-line bg-surface space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-fg-primary">درجة فرصة البيع (Opportunity Score):</span>
-                        <span className="font-mono font-bold text-h3 text-brand">85 / 100</span>
-                      </div>
-                      <div className="flex items-center justify-between border-t border-line pt-2">
-                        <span className="font-bold text-fg-primary">درجة جودة البيانات (Quality Score):</span>
-                        <span className="font-mono font-bold text-h3 text-fg-primary">92 / 100</span>
-                      </div>
-                    </div>
+                    <ScorePair
+                      opportunityScore={85}
+                      temperature="HOT"
+                      qualityScore={95}
+                      qualityStatus="FRESH"
+                    />
                     <p className="text-caption text-fg-secondary">
-                      كل درجة تعتمد على بنود محددة يمكن مراجعتها والتأكد من أسبابها بالكامل.
+                      {tLanding('howStep2FrameNote')}
                     </p>
                   </div>
                 )}
@@ -324,48 +498,24 @@ export default function LandingPage() {
                 {activeStep === 2 && (
                   <div className="space-y-4">
                     <span className="text-caption font-bold text-brand block">
-                      بوابات الأهلية القطعية (Deterministic Gates):
+                      {tLanding('howStep3FrameLabel')}
                     </span>
-                    <div className="space-y-2">
-                      <div className="p-3 rounded-lg border border-line bg-surface flex items-center justify-between text-body-sm">
-                        <span className="text-fg-primary">بوابة المدينة الجغرافية (القاهرة والجيزة):</span>
-                        <span className="font-semibold text-brand flex items-center gap-1">
-                          <Check className="h-4 w-4" /> اجتازت
-                        </span>
-                      </div>
-                      <div className="p-3 rounded-lg border border-line bg-surface flex items-center justify-between text-body-sm">
-                        <span className="text-fg-primary">بوابة نوع الخدمة (تطوير مواقع الويب):</span>
-                        <span className="font-semibold text-brand flex items-center gap-1">
-                          <Check className="h-4 w-4" /> اجتازت
-                        </span>
-                      </div>
-                      <div className="p-3 rounded-lg border border-line bg-surface flex items-center justify-between text-body-sm">
-                        <span className="text-fg-primary">بوابة حداثة البيانات (أقل من 30 يوماً):</span>
-                        <span className="font-semibold text-brand flex items-center gap-1">
-                          <Check className="h-4 w-4" /> اجتازت
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeStep === 3 && (
-                  <div className="space-y-4">
-                    <span className="text-caption font-bold text-brand block">
-                      حيازة الفرصة وإدارتها (Purchase & Pipeline):
-                    </span>
-                    <div className="p-4 rounded-xl border border-line bg-surface space-y-3">
+                    <div className="p-5 rounded-xl border border-line bg-surface space-y-4">
                       <div className="flex items-center justify-between text-body-sm">
-                        <span className="text-fg-secondary">حالة الحيازة:</span>
-                        <span className="font-bold text-brand">تم الشراء بنجاح (نقطة واحدة)</span>
+                        <span className="text-fg-secondary">{tLanding('howStep3ClaimStatusLabel')}</span>
+                        <span className="font-bold text-brand">{tLanding('howStep3ClaimStatusVal')}</span>
                       </div>
-                      <div className="flex items-center justify-between text-body-sm border-t border-line pt-2">
-                        <span className="text-fg-secondary">مرحلة المتابعة:</span>
-                        <span className="font-bold text-fg-primary">اجتماع مجدول مع صاحب العمل</span>
+                      <div className="flex items-center justify-between text-body-sm border-t border-line pt-3">
+                        <span className="text-fg-secondary">{tLanding('howStep3StageLabel')}</span>
+                        <StageBadge stage="MEETING" />
+                      </div>
+                      <div className="flex items-center justify-between text-body-sm border-t border-line pt-3">
+                        <span className="text-fg-secondary">{tLanding('howStep3NextActionLabel')}</span>
+                        <span className="font-semibold text-fg-primary">{tLanding('howStep3NextActionVal')}</span>
                       </div>
                     </div>
-                    <div className="text-caption text-fg-muted font-mono">
-                      تسجيل كافة تحديثات العروض والنتائج في سجل مبيعات متكامل.
+                    <div className="text-caption text-fg-secondary">
+                      {tLanding('howStep3Footnote')}
                     </div>
                   </div>
                 )}
@@ -395,22 +545,22 @@ export default function LandingPage() {
                 <h3 className="text-h3 font-bold text-fg-primary border-b border-line pb-3">
                   {tLanding('matchingDevProfile')}
                 </h3>
-                <div className="space-y-2 text-body-sm">
-                  <div className="flex justify-between">
+                <div className="space-y-2.5 text-body-sm">
+                  <div className="flex justify-between gap-2">
                     <span className="text-fg-muted">{tLanding('matchingCity')}</span>
-                    <span className="font-semibold text-fg-primary">القاهرة والجيزة</span>
+                    <span className="font-semibold text-fg-primary text-end">{tLanding('matchingCityVal')}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-fg-muted">{tLanding('matchingServices')}</span>
-                    <span className="font-semibold text-fg-primary">تطوير وتصميم المواقع</span>
+                    <span className="font-semibold text-fg-primary text-end">{tLanding('matchingServicesVal')}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-fg-muted">{tLanding('matchingMinBudget')}</span>
-                    <span className="font-mono font-semibold text-fg-primary ltr-iso">5,000 ج.م</span>
+                    <span className="font-semibold text-fg-primary tabular-nums ltr-iso">{tLanding('matchingMinBudgetVal')}</span>
                   </div>
                 </div>
                 <div className="pt-2 border-t border-line text-caption text-brand font-semibold">
-                  تُقاس كل فرصة فورياً أمام هذه المعايير.
+                  {tLanding('matchingProfileFootnote')}
                 </div>
               </div>
 
@@ -419,57 +569,57 @@ export default function LandingPage() {
                 {/* Lead 1: Pass */}
                 <div className="p-4 rounded-xl border border-line bg-surface flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-fg-primary">مركز الأمل للعلاج الطبيعي</span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-caption bg-brand-soft text-brand font-semibold">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold text-fg-primary">{tLanding('matchingLead1Name')}</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-caption bg-brand-soft text-brand font-semibold">
                         {tLanding('matchingGatePassed')}
                       </span>
                     </div>
                     <p className="text-caption text-fg-secondary mt-1">
-                      مدينة نصر، القاهرة • بدون موقع إلكتروني • ميزانية 8,000 ج.م
+                      {tLanding('matchingLead1Meta')}
                     </p>
                   </div>
                   <div className="text-end shrink-0">
                     <span className="text-caption text-fg-muted block">{tLanding('matchingScoreLabel')}</span>
-                    <span className="font-mono font-bold text-h3 text-brand">94%</span>
+                    <span className="font-bold text-h3 text-brand tabular-nums ltr-iso">94%</span>
                   </div>
                 </div>
 
                 {/* Lead 2: Pass */}
                 <div className="p-4 rounded-xl border border-line bg-surface flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-fg-primary">مجموعة الفرسان للتجارة</span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-caption bg-brand-soft text-brand font-semibold">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold text-fg-primary">{tLanding('matchingLead2Name')}</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-caption bg-brand-soft text-brand font-semibold">
                         {tLanding('matchingGatePassed')}
                       </span>
                     </div>
                     <p className="text-caption text-fg-secondary mt-1">
-                      الدقي، الجيزة • موقع بحاجة لإعادة تصميم • ميزانية 12,000 ج.م
+                      {tLanding('matchingLead2Meta')}
                     </p>
                   </div>
                   <div className="text-end shrink-0">
                     <span className="text-caption text-fg-muted block">{tLanding('matchingScoreLabel')}</span>
-                    <span className="font-mono font-bold text-h3 text-brand">86%</span>
+                    <span className="font-bold text-h3 text-brand tabular-nums ltr-iso">86%</span>
                   </div>
                 </div>
 
                 {/* Lead 3: Fail Gate */}
-                <div className="p-4 rounded-xl border border-line bg-subtle/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 opacity-75">
+                <div className="p-4 rounded-xl border border-line bg-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-fg-muted">مصنع الإسكندرية للتعبئة</span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-caption bg-danger-bg text-danger-text font-semibold">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold text-fg-secondary">{tLanding('matchingLead3Name')}</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-caption bg-danger-bg text-danger-text border border-danger-border font-semibold">
                         {tLanding('matchingGateFailed')}
                       </span>
                     </div>
                     <p className="text-caption text-fg-muted mt-1">
-                      الإسكندرية (خارج النطاق الجغرافي المحدد للمطور)
+                      {tLanding('matchingLead3Meta')}
                     </p>
                   </div>
                   <div className="text-end shrink-0">
                     <span className="text-caption text-fg-muted block">{tLanding('matchingScoreLabel')}</span>
-                    <span className="font-mono font-bold text-body text-fg-muted">—</span>
+                    <span className="font-bold text-body text-fg-muted">{'-'}</span>
                   </div>
                 </div>
               </div>
@@ -478,7 +628,7 @@ export default function LandingPage() {
         </section>
 
         {/* 7. Ownership & Points */}
-        <section className="bg-subtle/30 border-b border-line py-16 sm:py-24">
+        <section className="bg-subtle border-b border-line py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h2 className="text-h1 font-bold text-fg-primary">
@@ -489,14 +639,14 @@ export default function LandingPage() {
               </p>
 
               {/* Segmented control */}
-              <div className="mt-8 inline-flex p-1 rounded-full border border-line bg-surface">
+              <div className="mt-8 inline-flex p-1.5 rounded-full border border-line-strong bg-surface shadow-xs">
                 <button
                   type="button"
                   onClick={() => setOwnershipMode('SHARED')}
                   className={`px-5 py-2 rounded-full text-body-sm font-semibold transition-all ${
                     ownershipMode === 'SHARED'
                       ? 'bg-brand text-fg-on-brand shadow-xs'
-                      : 'text-fg-secondary hover:text-fg-primary'
+                      : 'text-fg-secondary hover:text-fg-primary hover:bg-subtle'
                   }`}
                 >
                   <Users className="h-4 w-4 inline me-1.5" />
@@ -508,7 +658,7 @@ export default function LandingPage() {
                   className={`px-5 py-2 rounded-full text-body-sm font-semibold transition-all ${
                     ownershipMode === 'EXCLUSIVE'
                       ? 'bg-brand text-fg-on-brand shadow-xs'
-                      : 'text-fg-secondary hover:text-fg-primary'
+                      : 'text-fg-secondary hover:text-fg-primary hover:bg-subtle'
                   }`}
                 >
                   <Lock className="h-4 w-4 inline me-1.5" />
@@ -533,22 +683,26 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-body-sm">
-                <div className="p-4 rounded-xl bg-subtle">
-                  <span className="text-caption text-fg-muted block">{tLanding('ownershipCost')}</span>
-                  <span className="font-mono font-bold text-h2 text-brand">
-                    {ownershipMode === 'EXCLUSIVE' ? '5' : '1'} نقاط
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-body-sm">
+                <div className="p-4 rounded-xl border border-line bg-subtle">
+                  <span className="text-caption text-fg-muted block mb-1">{tLanding('ownershipCost')}</span>
+                  <span className="font-bold text-h2 text-brand tabular-nums">
+                    {ownershipMode === 'EXCLUSIVE'
+                      ? tLanding('ownershipCostExclusive')
+                      : tLanding('ownershipCostShared')}
                   </span>
                 </div>
-                <div className="p-4 rounded-xl bg-subtle">
-                  <span className="text-caption text-fg-muted block">{tLanding('ownershipSeats')}</span>
-                  <span className="font-mono font-bold text-h2 text-fg-primary">
-                    {ownershipMode === 'EXCLUSIVE' ? '1 فقط' : '3 مطورين كحد أقصى'}
+                <div className="p-4 rounded-xl border border-line bg-subtle">
+                  <span className="text-caption text-fg-muted block mb-1">{tLanding('ownershipSeats')}</span>
+                  <span className="font-bold text-h2 text-fg-primary tabular-nums">
+                    {ownershipMode === 'EXCLUSIVE'
+                      ? tLanding('ownershipSeatsExclusive')
+                      : tLanding('ownershipSeatsShared')}
                   </span>
                 </div>
               </div>
 
-              <div className="text-caption text-fg-muted text-center pt-2">
+              <div className="text-caption text-fg-secondary text-center pt-2">
                 {tLanding('ownershipBalanceNotice')}
               </div>
             </div>
@@ -556,7 +710,7 @@ export default function LandingPage() {
         </section>
 
         {/* 8. Pricing Section */}
-        <section className="bg-surface border-b border-line py-16 sm:py-24">
+        <section id="pricing" className="bg-surface border-b border-line py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-h1 font-bold text-fg-primary">
@@ -570,16 +724,18 @@ export default function LandingPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 items-stretch">
               {DEFAULT_PLANS.map((plan) => {
                 const isRecommended = plan.slug === 'pro';
+                const localized = localizePlanCatalog(plan, tPlans);
                 return (
                   <PackageCard
                     key={plan.slug}
                     id={plan.slug}
-                    name={plan.name}
+                    slug={plan.slug}
+                    name={localized.name}
                     points={plan.monthlyCredits}
                     priceEGP={plan.priceEgp}
-                    features={plan.features}
+                    features={localized.features}
                     isRecommended={isRecommended}
-                    recommendedReason={isRecommended ? 'الخيار الأنسب للشركات والمستقلين النشطين' : undefined}
+                    recommendedReason={isRecommended ? tPricing('recommendedReason') : undefined}
                   />
                 );
               })}
@@ -588,7 +744,7 @@ export default function LandingPage() {
         </section>
 
         {/* 9. Commitments Section */}
-        <section className="bg-subtle/40 border-b border-line py-16 sm:py-24">
+        <section className="bg-subtle border-b border-line py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-h1 font-bold text-fg-primary">
@@ -660,7 +816,7 @@ export default function LandingPage() {
         </section>
 
         {/* 10. FAQ Accordions */}
-        <section className="bg-surface border-b border-line py-16 sm:py-24">
+        <section id="faq" className="bg-surface border-b border-line py-16 sm:py-24">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-h1 font-bold text-fg-primary">
@@ -693,7 +849,7 @@ export default function LandingPage() {
                       />
                     </button>
                     {isOpen && (
-                      <div className="px-5 pb-5 pt-1 text-body-sm text-fg-secondary leading-relaxed border-t border-line/40">
+                      <div className="px-5 pb-5 pt-3 text-body-sm text-fg-secondary leading-relaxed border-t border-line">
                         {item.a}
                       </div>
                     )}

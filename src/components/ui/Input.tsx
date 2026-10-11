@@ -1,5 +1,7 @@
+'use client';
+
 import React from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { AlertCircle } from 'lucide-react';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -29,12 +31,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    let locale = 'ar';
-    try {
-      locale = useLocale();
-    } catch {
-      // fallback
-    }
+    const tCommon = useTranslations('common');
 
     const inputId = id || (label ? `input-${label.replace(/\s+/g, '-').toLowerCase()}` : undefined);
     const hasError = Boolean(error);
@@ -49,7 +46,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label}
             {optional && (
               <span className="text-fg-secondary font-normal ms-2 text-caption">
-                {optionalLabel || (locale === 'en' ? '(Optional)' : '(اختياري)')}
+                {optionalLabel || tCommon('optionalTag')}
               </span>
             )}
           </label>
@@ -78,8 +75,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               startIcon ? 'ps-10' : ''
             } ${endIcon ? 'pe-10' : ''} ${
               hasError
-                ? 'border-danger-icon focus:ring-2 focus:ring-danger-icon/30'
-                : 'border-line-strong hover:border-fg-muted focus:border-brand focus:ring-2 focus:ring-brand-accent/40'
+                ? 'border-danger-icon focus:ring-2 focus:ring-danger-icon'
+                : 'border-line-strong hover:border-fg-muted focus:border-brand focus:ring-2 focus:ring-brand-accent'
             } ${disabled ? 'bg-subtle text-fg-muted cursor-not-allowed' : ''} ${className}`}
             {...props}
           />
@@ -113,3 +110,4 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 
 Input.displayName = 'Input';
+

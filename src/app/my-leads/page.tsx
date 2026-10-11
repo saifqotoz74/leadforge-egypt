@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { PipelineColumn } from '@/components/domain/PipelineColumn';
@@ -19,11 +19,11 @@ import { Dialog } from '@/components/ui/Dialog';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
-  CATEGORY_LABELS_AR,
   FEEDBACK_REASON_LABELS,
   PIPELINE_STATUS_LABELS,
 } from '@/lib/constants';
-import { fmtNumber, fmtDate } from '@/lib/format';
+import { localizeCity, localizeCategory } from '@/lib/taxonomy';
+import { fmtNumber, fmtDate, formatRelativeTime } from '@/lib/format';
 import {
   Kanban,
   ListFilter,
@@ -35,6 +35,7 @@ import {
   ExternalLink,
   ThumbsUp,
   ThumbsDown,
+  ArrowRight,
 } from 'lucide-react';
 
 interface ClaimedLeadItem {
@@ -63,17 +64,6 @@ interface ClaimedLeadItem {
   } | null;
 }
 
-const BOARD_STAGES: { stage: PipelineStage; label: string }[] = [
-  { stage: 'NEW', label: 'جديدة' },
-  { stage: 'CLAIMED', label: 'تم الشراء' },
-  { stage: 'CONTACTED', label: 'تم التواصل' },
-  { stage: 'MEETING', label: 'اجتماع مجدول' },
-  { stage: 'PROPOSAL_SENT', label: 'عرض أسعار' },
-  { stage: 'NEGOTIATION', label: 'تفاوض' },
-  { stage: 'WON', label: 'تم التعاقد' },
-  { stage: 'LOST', label: 'لم تكتمل' },
-];
-
 const ALL_PIPELINE_STAGES: PipelineStage[] = [
   'NEW',
   'CLAIMED',
@@ -89,10 +79,26 @@ const ALL_PIPELINE_STAGES: PipelineStage[] = [
   'INVALID',
 ];
 
+const NEXT_STAGE_MAP: Partial<Record<PipelineStage, PipelineStage>> = {
+  NEW: 'CONTACTED',
+  CLAIMED: 'CONTACTED',
+  CONTACTED: 'MEETING',
+  REPLIED: 'MEETING',
+  INTERESTED: 'PROPOSAL_SENT',
+  MEETING: 'PROPOSAL_SENT',
+  PROPOSAL_SENT: 'NEGOTIATION',
+  NEGOTIATION: 'WON',
+};
+
 export default function MyLeadsPage() {
   const router = useRouter();
   const t = useTranslations('pipeline');
   const tCommon = useTranslations('common');
+  const tGeo = useTranslations('geo');
+  const tCat = useTranslations('categories');
+  const tEnums = useTranslations('enums');
+  const locale = useLocale();
+
   const [leads, setLeads] = useState<ClaimedLeadItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
@@ -222,8 +228,8 @@ export default function MyLeadsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <p className="text-body-sm text-fg-secondary">
             {t('totalOpenDeals')}{' '}
-            <span className="ltr-iso font-mono font-semibold tabular-nums text-fg-brand">
-              {fmtNumber(leads.length)}
+            <span className="ltr-iso font-semibold tabular-nums text-fg-brand">
+              {fmtNumber(leads.length, locale)}
             </span>{' '}
             {t('clients', { count: leads.length })}
           </p>
@@ -275,6 +281,8 @@ export default function MyLeadsPage() {
                     const cardItem: PipelineLeadItem = {
                       id: lead.id,
                       businessName: lead.businessName,
+                      location: localizeCity(lead.city, tGeo as any),
+                      category: localizeCategory(lead.category, tCat as any),
                       temperature: (lead.temperature as LeadTemperature) || 'HOT',
                       score: lead.score,
                       stage: (lead.myClaim?.pipelineStatus as PipelineStage) || 'NEW',
@@ -308,9 +316,9 @@ export default function MyLeadsPage() {
                 size="sm"
                 onClick={() => setStatusFilter('ALL')}
               >
-                {t('allCount', { count: fmtNumber(leads.length) })}
+                {t('allCount', { count: fmtNumber(leads.length, locale) })}
               </Button>
-              {Object.entries(PIPELINE_STATUS_LABELS).map(([key, info]) => {
+              {Object.keys(PIPELINE_STATUS_LABELS).map((key) => {
                 const count = leads.filter(
                   (l) => (l.myClaim?.pipelineStatus || 'NEW') === key
                 ).length;
@@ -321,7 +329,7 @@ export default function MyLeadsPage() {
                     size="sm"
                     onClick={() => setStatusFilter(key)}
                   >
-                    {info.labelAr} ({fmtNumber(count)})
+                    {tEnums(`PipelineStatus.${key}`)} ({fmtNumber(count, locale)})
                   </Button>
                 );
               })}
@@ -341,6 +349,10 @@ export default function MyLeadsPage() {
               <div className="flex flex-col gap-3">
                 {filteredLeads.map((lead) => {
                   const pStatus = (lead.myClaim?.pipelineStatus as PipelineStage) || 'NEW';
+                  const nextStage = NEXT_STAGE_MAP[pStatus];
+                  const nextActionKey = `nextAction_${pStatus}`;
+                  const nextActionLabel = t.has(nextActionKey) ? t(nextActionKey) : t('details');
+                  const lastAct = lead.myClaim?.lastContactedAt || lead.myClaim?.claimedAt;
 
                   return (
                     <Card key={lead.id} className="p-4">
@@ -349,7 +361,8 @@ export default function MyLeadsPage() {
                           <div className="flex flex-wrap items-center gap-2">
                             <Link
                               href={`/leads/${lead.id}`}
-                              className="text-body font-semibold text-fg-primary hover:text-fg-brand truncate"
+                              title={lead.businessName}
+                              className="text-body font-semibold text-fg-primary hover:text-fg-brand truncate" /* design-allow: truncate */
                             >
                               {lead.businessName}
                             </Link>
@@ -361,29 +374,37 @@ export default function MyLeadsPage() {
                             <StageBadge stage={pStatus} size="sm" />
                           </div>
 
-                          <p className="text-caption text-fg-secondary">
-                            <span>{lead.city}</span>
-                            <span className="mx-1.5">—</span>
-                            <span>{CATEGORY_LABELS_AR[lead.category] || lead.category}</span>
-                          </p>
+                          <div className="flex flex-wrap items-center gap-2 text-caption text-fg-secondary">
+                            <span>{localizeCity(lead.city, tGeo as any)}</span>
+                            <span className="h-1 w-1 rounded-full bg-fg-muted" aria-hidden="true" />
+                            <span>{localizeCategory(lead.category, tCat as any)}</span>
+                            {lastAct && (
+                              <>
+                                <span className="h-1 w-1 rounded-full bg-fg-muted" aria-hidden="true" />
+                                <span className="tabular-nums">
+                                  {tCommon('activityPrefix', { time: formatRelativeTime(lastAct, locale) })}
+                                </span>
+                              </>
+                            )}
+                          </div>
 
                           <div className="flex flex-wrap items-center gap-4 pt-1 text-caption font-semibold">
                             {lead.phone && (
                               <span className="inline-flex items-center gap-1 text-fg-brand">
                                 <Phone className="w-3.5 h-3.5" />
-                                <span className="ltr-iso font-mono">{lead.phone}</span>
+                                <span className="ltr-iso tabular-nums">{lead.phone}</span>
                               </span>
                             )}
                             {lead.email && (
                               <span className="inline-flex items-center gap-1 text-fg-primary">
                                 <Mail className="w-3.5 h-3.5" />
-                                <span className="ltr-iso font-mono">{lead.email}</span>
+                                <span className="ltr-iso">{lead.email}</span>
                               </span>
                             )}
                             {lead.myClaim?.nextFollowUpAt && (
                               <span className="inline-flex items-center gap-1 text-fg-secondary">
                                 <Calendar className="w-3.5 h-3.5" />
-                                {t('followUp')} {fmtDate(new Date(lead.myClaim.nextFollowUpAt))}
+                                {t('followUp')} {fmtDate(new Date(lead.myClaim.nextFollowUpAt), locale)}
                               </span>
                             )}
                           </div>
@@ -396,6 +417,18 @@ export default function MyLeadsPage() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2 shrink-0">
+                          {nextStage && (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              disabled={updatingId === lead.id}
+                              onClick={() => handleQuickStatusChange(lead.id, nextStage)}
+                              endIcon={<ArrowRight className="w-3.5 h-3.5 rtl:-scale-x-100" />}
+                            >
+                              {nextActionLabel}
+                            </Button>
+                          )}
+
                           <Select
                             value={pStatus}
                             disabled={updatingId === lead.id}
@@ -405,9 +438,9 @@ export default function MyLeadsPage() {
                                 e.target.value as PipelineStage
                               )
                             }
-                            options={Object.entries(PIPELINE_STATUS_LABELS).map(([k, v]) => ({
+                            options={Object.keys(PIPELINE_STATUS_LABELS).map((k) => ({
                               value: k,
-                              label: v.labelAr,
+                              label: tEnums(`PipelineStatus.${k}`),
                             }))}
                             className="w-36"
                           />
@@ -509,9 +542,9 @@ export default function MyLeadsPage() {
                   label={t('unhelpfulReason')}
                   value={fbReason}
                   onChange={(e) => setFbReason(e.target.value)}
-                  options={Object.entries(FEEDBACK_REASON_LABELS).map(([k, label]) => ({
+                  options={Object.keys(FEEDBACK_REASON_LABELS).map((k) => ({
                     value: k,
-                    label,
+                    label: tEnums(`FeedbackReason.${k}`),
                   }))}
                 />
               )}

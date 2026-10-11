@@ -30,3 +30,4 @@ export * from './IdChip';
 export * from './MetaList';
 export * from './ChipList';
 export * from './BarList';
+export * from './BrandWordmark';

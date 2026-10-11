@@ -58,6 +58,7 @@ function shouldExcludeFile(relPath) {
   const normalized = relPath.replace(/\\/g, '/');
   if (normalized === 'src/styles/tokens.css') return true;
   if (normalized === 'src/app/design-system/page.tsx') return true;
+  if (normalized === 'src/app/manifest.ts') return true;
   if (normalized.startsWith('src/lib/')) return true;
   if (normalized.startsWith('src/app/api/')) return true;
   if (normalized.startsWith('src/messages/')) return true;

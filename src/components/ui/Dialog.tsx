@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { IconButton } from './Button';
 
 export interface DialogProps {
@@ -29,6 +30,7 @@ export function Dialog({
   size = 'md',
   isSubmitting = false,
 }: DialogProps) {
+  const tCommon = useTranslations('common');
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export function Dialog({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-inverse/50 transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-overlay transition-opacity duration-200"
         onClick={() => !isSubmitting && onClose()}
         aria-hidden="true"
       />
@@ -65,7 +67,7 @@ export function Dialog({
       {/* Dialog Surface */}
       <div
         ref={dialogRef}
-        className={`relative z-10 w-full bg-surface rounded-xl border border-line shadow-lg p-6 text-start flex flex-col max-h-screen overflow-y-auto animate-in fade-in zoom-in-95 duration-200 ${DIALOG_WIDTHS[size]}`}
+        className={`relative z-10 w-full bg-surface rounded-xl border border-line shadow-lg p-6 text-start flex flex-col max-h-screen overflow-y-auto transition-all duration-200 ${DIALOG_WIDTHS[size]}`}
       >
         {/* Header */}
         {title && (
@@ -76,7 +78,7 @@ export function Dialog({
             <IconButton
               size="sm"
               variant="ghost"
-              aria-label="إغلاق النافذة"
+              aria-label={tCommon('closeDialog')}
               disabled={isSubmitting}
               onClick={onClose}
               className="text-fg-secondary hover:text-fg-primary -me-1"
@@ -99,3 +101,4 @@ export function Dialog({
     </div>
   );
 }
+

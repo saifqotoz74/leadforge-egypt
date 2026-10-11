@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { IconButton } from './Button';
 
 export interface DrawerProps {
@@ -21,6 +22,7 @@ export function Drawer({
   footer,
   isSubmitting = false,
 }: DrawerProps) {
+  const tCommon = useTranslations('common');
   const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export function Drawer({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-inverse/50 transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-overlay transition-opacity duration-200"
         onClick={() => !isSubmitting && onClose()}
         aria-hidden="true"
       />
@@ -57,7 +59,7 @@ export function Drawer({
       {/* Drawer Surface (slides from inline-end) */}
       <div
         ref={drawerRef}
-        className="relative z-10 w-full max-w-drawer h-full bg-surface border-s border-line shadow-lg p-6 text-start flex flex-col animate-in slide-in-from-end duration-300"
+        className="relative z-10 w-full max-w-drawer h-full bg-surface border-s border-line shadow-lg p-6 text-start flex flex-col transition-transform duration-300"
       >
         {/* Header */}
         {title && (
@@ -68,7 +70,7 @@ export function Drawer({
             <IconButton
               size="sm"
               variant="ghost"
-              aria-label="إغلاق اللوحة الجانبية"
+              aria-label={tCommon('closeDrawer')}
               disabled={isSubmitting}
               onClick={onClose}
               className="text-fg-secondary hover:text-fg-primary -me-1"
@@ -91,3 +93,4 @@ export function Drawer({
     </div>
   );
 }
+

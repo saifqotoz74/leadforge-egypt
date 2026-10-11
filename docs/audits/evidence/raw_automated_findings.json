@@ -1,0 +1,1895 @@
+[
+  {
+    "id": "CONSOLE-http://localhost:3000/-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_-ar-desktop_1440",
+    "type": "a11y-missing-label",
+    "route": "/",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Missing accessible label on interactive element: unlabeled-button",
+    "selector": "button[17]",
+    "details": "<button id=\"lab-has-website\" type=\"button\" role=\"switch\" aria-checked=\"false\" class=\"relative inline-flex h-6 w-11 shrin"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_-ar-tablet_768",
+    "type": "a11y-missing-label",
+    "route": "/",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Missing accessible label on interactive element: unlabeled-button",
+    "selector": "button[17]",
+    "details": "<button id=\"lab-has-website\" type=\"button\" role=\"switch\" aria-checked=\"false\" class=\"relative inline-flex h-6 w-11 shrin"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_-ar-mobile_390",
+    "type": "a11y-missing-label",
+    "route": "/",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Missing accessible label on interactive element: unlabeled-button",
+    "selector": "button[17]",
+    "details": "<button id=\"lab-has-website\" type=\"button\" role=\"switch\" aria-checked=\"false\" class=\"relative inline-flex h-6 w-11 shrin"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_-en-desktop_1440",
+    "type": "a11y-missing-label",
+    "route": "/",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Missing accessible label on interactive element: unlabeled-button",
+    "selector": "button[17]",
+    "details": "<button id=\"lab-has-website\" type=\"button\" role=\"switch\" aria-checked=\"false\" class=\"relative inline-flex h-6 w-11 shrin"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_-en-tablet_768",
+    "type": "a11y-missing-label",
+    "route": "/",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Missing accessible label on interactive element: unlabeled-button",
+    "selector": "button[17]",
+    "details": "<button id=\"lab-has-website\" type=\"button\" role=\"switch\" aria-checked=\"false\" class=\"relative inline-flex h-6 w-11 shrin"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_-en-mobile_390",
+    "type": "a11y-missing-label",
+    "route": "/",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Missing accessible label on interactive element: unlabeled-button",
+    "selector": "button[17]",
+    "details": "<button id=\"lab-has-website\" type=\"button\" role=\"switch\" aria-checked=\"false\" class=\"relative inline-flex h-6 w-11 shrin"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/pricing-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/pricing",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/register-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/register",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/non-existent-404-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/non-existent-404",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_dashboard_analytics-ar-desktop_1440",
+    "type": "a11y-missing-label",
+    "route": "/dashboard/analytics",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Missing accessible label on interactive element: unlabeled-input",
+    "selector": "select[0] id=",
+    "details": "<select aria-invalid=\"false\" class=\"w-full h-10 ps-4 pe-10 rounded-md bg-surface text-fg-primary text-body transition-co"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_dashboard_analytics-ar-tablet_768",
+    "type": "a11y-missing-label",
+    "route": "/dashboard/analytics",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Missing accessible label on interactive element: unlabeled-input",
+    "selector": "select[0] id=",
+    "details": "<select aria-invalid=\"false\" class=\"w-full h-10 ps-4 pe-10 rounded-md bg-surface text-fg-primary text-body transition-co"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "tablet_768",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_dashboard_analytics-ar-mobile_390",
+    "type": "a11y-missing-label",
+    "route": "/dashboard/analytics",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Missing accessible label on interactive element: unlabeled-input",
+    "selector": "select[0] id=",
+    "details": "<select aria-invalid=\"false\" class=\"w-full h-10 ps-4 pe-10 rounded-md bg-surface text-fg-primary text-body transition-co"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-ar-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "OF-_design-system-ar-mobile_390",
+    "type": "horizontal-overflow",
+    "route": "/design-system",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Document horizontal overflow detected: scrollWidth (394px) > clientWidth (390px)",
+    "details": [
+      {
+        "tag": "button",
+        "id": "",
+        "className": "inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors select",
+        "scrollWidth": 170,
+        "clientWidth": 390
+      },
+      {
+        "tag": "table",
+        "id": "",
+        "className": "w-full text-start border-collapse ",
+        "scrollWidth": 389,
+        "clientWidth": 390
+      },
+      {
+        "tag": "thead",
+        "id": "",
+        "className": "bg-subtle text-fg-secondary text-label font-medium border-b border-line ",
+        "scrollWidth": 389,
+        "clientWidth": 390
+      },
+      {
+        "tag": "tr",
+        "id": "",
+        "className": "h-row transition-colors hover:bg-brand-soft text-fg-primary ",
+        "scrollWidth": 389,
+        "clientWidth": 390
+      },
+      {
+        "tag": "th",
+        "id": "",
+        "className": "h-11 px-4 font-medium select-none text-end tabular-nums ",
+        "scrollWidth": 72,
+        "clientWidth": 390
+      }
+    ]
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_dashboard_analytics-en-desktop_1440",
+    "type": "a11y-missing-label",
+    "route": "/dashboard/analytics",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Missing accessible label on interactive element: unlabeled-input",
+    "selector": "select[0] id=",
+    "details": "<select aria-invalid=\"false\" class=\"w-full h-10 ps-4 pe-10 rounded-md bg-surface text-fg-primary text-body transition-co"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-desktop_1440",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_dashboard_analytics-en-tablet_768",
+    "type": "a11y-missing-label",
+    "route": "/dashboard/analytics",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Missing accessible label on interactive element: unlabeled-input",
+    "selector": "select[0] id=",
+    "details": "<select aria-invalid=\"false\" class=\"w-full h-10 ps-4 pe-10 rounded-md bg-surface text-fg-primary text-body transition-co"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-tablet_768",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "tablet_768",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/login-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/login",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/dashboard/analytics-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/dashboard/analytics",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "A11Y-LABEL-_dashboard_analytics-en-mobile_390",
+    "type": "a11y-missing-label",
+    "route": "/dashboard/analytics",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Missing accessible label on interactive element: unlabeled-input",
+    "selector": "select[0] id=",
+    "details": "<select aria-invalid=\"false\" class=\"w-full h-10 ps-4 pe-10 rounded-md bg-surface text-fg-primary text-body transition-co"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/leads/cmv13ybbp012jtxt4uso3tpfb",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/my-leads-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/my-leads",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/subscription-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/subscription",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/settings-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/settings",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/onboarding-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/onboarding",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The action has been blocked."
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "CONSOLE-http://localhost:3000/design-system-en-mobile_390",
+    "type": "console-error",
+    "route": "http://localhost:3000/design-system",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Warning: You provided a `checked` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultChecked`. Otherwise, set either `onChange` or `readOnly`.%s \n    at input\n    at div\n    at label\n    at _c (webpack-internal:///(app-pages-browser)/./src/components/ui/Checkbox.tsx:13:11)\n    at div\n    at div\n    at div\n    at Stepper (webpack-internal:///(app-pages-browser)/./src/components/domain/Stepper.tsx:19:11)\n    at div\n    at div\n    at section\n    at div\n    at div\n    at DesignSystemPage (webpack-internal:///(app-pages-browser)/./src/app/design-system/page.tsx:26:82)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at IntlProvider (webpack-internal:///(app-pages-browser)/./node_modules/use-intl/dist/development/_IntlProvider.js:16:5)\n    at r (webpack-internal:///(app-pages-browser)/./node_modules/next-intl/dist/esm/shared/NextIntlClientProvider.js:13:19)\n    at i (Server)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)"
+  },
+  {
+    "id": "A11Y-LABEL-_admin_quality-ar-desktop_1440",
+    "type": "a11y-missing-label",
+    "route": "/admin/quality",
+    "locale": "ar",
+    "viewport": "desktop_1440",
+    "description": "Missing accessible label on interactive element: unlabeled-input",
+    "selector": "input[0] id=",
+    "details": "<input type=\"number\" min=\"1\" max=\"100\" class=\"w-14 rounded border border-line bg-subtle px-1.5 py-0.5 text-center tabula"
+  },
+  {
+    "id": "A11Y-LABEL-_admin_quality-ar-mobile_390",
+    "type": "a11y-missing-label",
+    "route": "/admin/quality",
+    "locale": "ar",
+    "viewport": "mobile_390",
+    "description": "Missing accessible label on interactive element: unlabeled-input",
+    "selector": "input[0] id=",
+    "details": "<input type=\"number\" min=\"1\" max=\"100\" class=\"w-14 rounded border border-line bg-subtle px-1.5 py-0.5 text-center tabula"
+  },
+  {
+    "id": "A11Y-LABEL-_admin_quality-en-desktop_1440",
+    "type": "a11y-missing-label",
+    "route": "/admin/quality",
+    "locale": "en",
+    "viewport": "desktop_1440",
+    "description": "Missing accessible label on interactive element: unlabeled-input",
+    "selector": "input[0] id=",
+    "details": "<input type=\"number\" min=\"1\" max=\"100\" class=\"w-14 rounded border border-line bg-subtle px-1.5 py-0.5 text-center tabula"
+  },
+  {
+    "id": "A11Y-LABEL-_admin_quality-en-mobile_390",
+    "type": "a11y-missing-label",
+    "route": "/admin/quality",
+    "locale": "en",
+    "viewport": "mobile_390",
+    "description": "Missing accessible label on interactive element: unlabeled-input",
+    "selector": "input[0] id=",
+    "details": "<input type=\"number\" min=\"1\" max=\"100\" class=\"w-14 rounded border border-line bg-subtle px-1.5 py-0.5 text-center tabula"
+  }
+]

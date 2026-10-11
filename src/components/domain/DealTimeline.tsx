@@ -1,5 +1,8 @@
+'use client';
+
 import React, { useState } from 'react';
-import { Send, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 import { Dialog } from '@/components/ui/Dialog';
@@ -26,6 +29,8 @@ export const DealTimeline: React.FC<DealTimelineProps> = ({
   onReportWrongNumber,
   className = '',
 }) => {
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
   const [noteContent, setNoteContent] = useState('');
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
@@ -59,7 +64,7 @@ export const DealTimeline: React.FC<DealTimelineProps> = ({
       {/* Note Composer per Spec 7.13 */}
       <form onSubmit={handleAddNote} className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4 shadow-xs">
         <Textarea
-          placeholder="أضف ملاحظة جديدة حول التواصل مع العميل..."
+          placeholder={tCommon('notePlaceholder')}
           value={noteContent}
           onChange={(e) => setNoteContent(e.target.value)}
           rows={3}
@@ -73,7 +78,7 @@ export const DealTimeline: React.FC<DealTimelineProps> = ({
             onClick={() => setIsReportDialogOpen(true)}
             className="text-fg-secondary hover:text-danger-text"
           >
-            الإبلاغ عن رقم خاطئ
+            {tCommon('reportWrongNumber')}
           </Button>
 
           <Button
@@ -83,7 +88,7 @@ export const DealTimeline: React.FC<DealTimelineProps> = ({
             isLoading={isSubmittingNote}
             disabled={!noteContent.trim()}
           >
-            إضافة ملاحظة
+            {tCommon('addNote')}
           </Button>
         </div>
       </form>
@@ -100,11 +105,11 @@ export const DealTimeline: React.FC<DealTimelineProps> = ({
 
             <div className="flex items-center gap-2 text-caption text-fg-secondary">
               <span className="font-semibold text-fg-primary">{ev.author}</span>
-              <span className="text-fg-muted">—</span>
-              <span className="font-mono">{fmtDateTime(ev.createdAt)}</span>
+              <span className="h-1 w-1 rounded-full bg-fg-muted" aria-hidden="true" />
+              <span className="tabular-nums">{fmtDateTime(ev.createdAt, locale)}</span>
             </div>
 
-            <p className="text-body-sm text-fg-primary bg-subtle p-3 rounded-md border border-line/60">
+            <p className="text-body-sm text-fg-primary bg-subtle p-3 rounded-md border border-line">
               {ev.content}
             </p>
           </div>
@@ -115,19 +120,19 @@ export const DealTimeline: React.FC<DealTimelineProps> = ({
       <Dialog
         isOpen={isReportDialogOpen}
         onClose={() => setIsReportDialogOpen(false)}
-        title="الإبلاغ عن رقم خاطئ"
+        title={tCommon('reportWrongNumber')}
         size="sm"
       >
         <div className="flex flex-col gap-4 py-2">
-          <div className="flex items-start gap-3 p-3 bg-warning-bg/50 border border-warning-border rounded-lg text-warning-text">
+          <div className="flex items-start gap-3 p-3 bg-warning-bg border border-warning-border rounded-lg text-warning-text">
             <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
             <p className="text-body-sm leading-relaxed">
-              سنرسل إشارة لإعادة التحقق من الرقم. لن يُحذف الرقم فوراً.
+              {tCommon('reportWarningBanner')}
             </p>
           </div>
 
           <p className="text-body-sm text-fg-secondary">
-            سيقوم فريق المراجعة بالتأكد من صحة الرقم ومطابقته، وفي حال ثبوت عدم صلاحيته سيتم تعويض رصيدك وفق سياسة الضمان.
+            {tCommon('reportWarningDesc')}
           </p>
 
           <div className="flex items-center justify-end gap-3 pt-2">
@@ -136,7 +141,7 @@ export const DealTimeline: React.FC<DealTimelineProps> = ({
               size="md"
               onClick={() => setIsReportDialogOpen(false)}
             >
-              إلغاء
+              {tCommon('cancel')}
             </Button>
             <Button
               variant="danger"
@@ -144,7 +149,7 @@ export const DealTimeline: React.FC<DealTimelineProps> = ({
               isLoading={isSubmittingReport}
               onClick={handleConfirmReport}
             >
-              تأكيد الإبلاغ
+              {tCommon('confirmReport')}
             </Button>
           </div>
         </div>

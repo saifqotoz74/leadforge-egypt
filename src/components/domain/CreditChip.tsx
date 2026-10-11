@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Coins } from 'lucide-react';
 import { fmtNumber } from '@/lib/format';
 
@@ -16,13 +19,14 @@ export const CreditChip: React.FC<CreditChipProps> = ({
   lowThreshold = 10,
   className = '',
 }) => {
+  const tCommon = useTranslations('common');
   const isLow = balance < lowThreshold;
 
   const content = (
     <div
       className={`inline-flex items-center gap-2 h-9 px-3 rounded-full bg-subtle hover:bg-brand-soft/50 border border-transparent hover:border-line transition-colors group cursor-pointer ${className}`}
       role="status"
-      aria-label={`رصيد النقاط: ${balance} نقطة${isLow ? ' (رصيد منخفض)' : ''}`}
+      aria-label={`${balance} ${tCommon('unitPoint')}`}
     >
       {/* Coin Icon */}
       <Coins
@@ -32,9 +36,9 @@ export const CreditChip: React.FC<CreditChipProps> = ({
         aria-hidden="true"
       />
 
-      {/* Number */}
+      {/* Number (Plex Sans tabular-nums, no font-mono) */}
       <span
-        className={`ltr-iso font-mono font-semibold tabular-nums text-body-sm ${
+        className={`font-semibold tabular-nums text-body-sm ${
           isLow ? 'text-warning-text' : 'text-fg-primary'
         }`}
       >
@@ -45,13 +49,14 @@ export const CreditChip: React.FC<CreditChipProps> = ({
       {isLow && (
         <span
           className="h-1.5 w-1.5 rounded-full bg-warning-icon shrink-0"
-          title="رصيد منخفض"
           aria-hidden="true"
         />
       )}
 
       {/* Unit */}
-      <span className="text-caption text-fg-secondary">نقطة</span>
+      <span className="text-caption text-fg-secondary">
+        {tCommon('unitPoint')}
+      </span>
     </div>
   );
 

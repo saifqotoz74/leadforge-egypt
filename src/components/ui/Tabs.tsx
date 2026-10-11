@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { useLocale } from 'next-intl';
+import { fmtNumber } from '@/lib/format';
 
 export interface TabItem {
   id: string;
@@ -24,6 +26,8 @@ export function Tabs({
   variant = 'underline',
   className = '',
 }: TabsProps) {
+  const locale = useLocale();
+
   if (variant === 'segmented') {
     return (
       <div
@@ -49,13 +53,13 @@ export function Tabs({
               <span>{tab.label}</span>
               {typeof tab.count === 'number' && (
                 <span
-                  className={`text-caption px-1.5 py-0.5 rounded-full font-mono ${
+                  className={`text-caption px-1.5 py-0.5 rounded-full tabular-nums ${
                     isActive
                       ? 'bg-brand-soft text-brand font-semibold'
                       : 'bg-line text-fg-muted'
                   }`}
                 >
-                  {tab.count}
+                  {fmtNumber(tab.count, locale)}
                 </span>
               )}
             </button>
@@ -90,13 +94,13 @@ export function Tabs({
             <span>{tab.label}</span>
             {typeof tab.count === 'number' && (
               <span
-                className={`text-caption px-1.5 py-0.5 rounded-full font-mono ${
+                className={`text-caption px-1.5 py-0.5 rounded-full tabular-nums ${
                   isActive
                     ? 'bg-brand-soft text-brand font-semibold'
                     : 'bg-subtle text-fg-muted'
                 }`}
               >
-                {tab.count}
+                {fmtNumber(tab.count, locale)}
               </span>
             )}
             {/* Active bottom bar */}
