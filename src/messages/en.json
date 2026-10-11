@@ -238,6 +238,7 @@
     "last30Days": "Last 30 Days",
     "last90Days": "Last 90 Days",
     "monthToDate": "Month to Date",
+    "timeRange": "Time range",
     "refresh": "Refresh",
     "totalClaimed": "Total Claimed Leads",
     "avgMatch": "Avg Match: {val}",

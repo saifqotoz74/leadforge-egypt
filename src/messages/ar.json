@@ -238,6 +238,7 @@
     "last30Days": "آخر 30 يوماً",
     "last90Days": "آخر 90 يوماً",
     "monthToDate": "الشهر الحالي",
+    "timeRange": "النطاق الزمني",
     "refresh": "تحديث",
     "totalClaimed": "إجمالي الفرص المشتراة",
     "avgMatch": "متوسط المطابقة: {val}",

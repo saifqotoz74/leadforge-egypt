@@ -135,6 +135,7 @@ export function ScoreLab() {
                 type="button"
                 role="switch"
                 aria-checked={inputs.hasWebsite}
+                aria-label={tLanding('scoreLabSwitchWebsite')}
                 onClick={() =>
                   setInputs((prev) => ({
                     ...prev,
@@ -236,6 +237,7 @@ export function ScoreLab() {
                 min="1"
                 max="120"
                 value={inputs.daysSinceVerification}
+                aria-label={tLanding('scoreLabVerification')}
                 onChange={(e) =>
                   setInputs((prev) => ({
                     ...prev,

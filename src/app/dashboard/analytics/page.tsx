@@ -99,6 +99,7 @@ export default function DeveloperAnalyticsPage() {
             <div className="flex items-center gap-3">
               <div className="w-48">
                 <Select
+                  aria-label={t('timeRange')}
                   value={preset}
                   onChange={(e) => setPreset(e.target.value)}
                   options={[

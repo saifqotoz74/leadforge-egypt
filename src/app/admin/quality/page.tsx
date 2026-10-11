@@ -250,8 +250,12 @@ export default function AdminQualityOverviewPage() {
                 </Button>
               </Link>
               <div className="flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-1.5 text-caption font-semibold">
-                <span className="text-fg-secondary">{t('batchSizeLabel')}</span>
+                <label htmlFor="batch-size-input" className="text-fg-secondary cursor-pointer">
+                  {t('batchSizeLabel')}
+                </label>
                 <input
+                  id="batch-size-input"
+                  aria-label={t('batchSizeLabel')}
                   type="number"
                   min={1}
                   max={100}
