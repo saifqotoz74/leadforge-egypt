@@ -21,8 +21,8 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const tCommon = await getTranslations('common');
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://leads4dev.com';
-  const siteUrl = process.env.NODE_ENV === 'production' ? 'https://leads4dev.com' : appUrl;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://leadforge.eg';
+  const siteUrl = process.env.NODE_ENV === 'production' ? 'https://leadforge.eg' : appUrl;
   const metadataBase = new URL(siteUrl);
 
   const title = tCommon('metaTitle');
@@ -32,10 +32,10 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase,
     title: {
       default: title,
-      template: '%s | Leads4dev',
+      template: '%s | LeadForge',
     },
     description,
-    applicationName: 'Leads4dev',
+    applicationName: 'LeadForge',
     alternates: {
       canonical: '/',
       languages: {
@@ -46,8 +46,8 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: 'https://leads4dev.com',
-      siteName: 'Leads4dev',
+      url: 'https://leadforge.eg',
+      siteName: 'LeadForge Egypt',
       locale: 'ar_EG',
       alternateLocale: ['en_US'],
       type: 'website',

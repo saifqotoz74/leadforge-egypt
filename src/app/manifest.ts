@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Leads4dev',
-    short_name: 'Leads4dev',
+    name: 'LeadForge Egypt',
+    short_name: 'LeadForge',
     description: 'Qualified Sales Leads for Web Developers in Egypt',
     start_url: '/',
     display: 'standalone',

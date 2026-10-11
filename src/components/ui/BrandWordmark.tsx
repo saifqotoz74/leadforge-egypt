@@ -21,8 +21,7 @@ const sizeClasses: Record<BrandWordmarkSize, string> = {
 };
 
 /**
- * Leads4dev — Typographic SaaS Wordmark
- * Section 1: Text-only, premium, minimal, confident typography with subtle teal accent on 4.
+ * LeadForge — Typographic SaaS Wordmark
  * Directional isolation (dir="ltr" / .ltr-iso) preserves exact character order in both RTL & LTR.
  */
 export const BrandWordmark: React.FC<BrandWordmarkProps> = ({
@@ -36,11 +35,10 @@ export const BrandWordmark: React.FC<BrandWordmarkProps> = ({
     <span
       dir="ltr"
       className={`ltr-iso inline-flex items-baseline font-sans font-bold select-none ${sizeClasses[size]} ${className}`}
-      aria-label="Leads4dev"
+      aria-label="LeadForge"
     >
-      <span className="text-fg-primary transition-colors">Leads</span>
-      <span className={`text-brand font-bold transition-colors ${accentClassName}`}>4</span>
-      <span className="text-fg-primary transition-colors">dev</span>
+      <span className="text-fg-primary transition-colors">Lead</span>
+      <span className={`text-brand font-bold transition-colors ${accentClassName}`}>Forge</span>
     </span>
   );
 
@@ -58,7 +56,7 @@ export const BrandWordmark: React.FC<BrandWordmarkProps> = ({
       <Link
         href={href}
         className="inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded transition-opacity hover:opacity-90"
-        aria-label="Leads4dev"
+        aria-label="LeadForge"
       >
         {wrapper}
       </Link>

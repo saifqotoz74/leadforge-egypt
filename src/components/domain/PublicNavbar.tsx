@@ -96,7 +96,7 @@ export function PublicFooter() {
         </div>
 
         <div className="text-caption text-fg-muted text-center md:text-end">
-          <p><span dir="ltr" className="ltr-iso inline-block">© {new Date().getFullYear()} Leads4dev.</span></p>
+          <p><span dir="ltr" className="ltr-iso inline-block">© {new Date().getFullYear()} LeadForge Egypt.</span></p>
           <p className="mt-0.5 text-fg-muted">{tCommon('deterministicNotice')}</p>
         </div>
       </div>
