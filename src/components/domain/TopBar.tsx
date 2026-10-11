@@ -81,12 +81,12 @@ export const TopBar: React.FC<TopBarProps> = ({
       className={`h-16 border-b border-line bg-surface px-4 sm:px-6 flex items-center justify-between shrink-0 sticky top-0 z-30 ${className}`}
     >
       {/* Inline-Start: Menu Button (mobile) & Title */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {onToggleSidebar && (
           <button
             type="button"
             onClick={onToggleSidebar}
-            className="p-2 -ms-2 rounded-md text-fg-secondary hover:text-fg-primary hover:bg-subtle lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            className="p-2 -ms-2 rounded-md text-fg-secondary hover:text-fg-primary hover:bg-subtle lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand min-h-11 min-w-11 flex items-center justify-center"
             aria-label={tCommon('menu')}
           >
             <Menu className="h-5 w-5" />
@@ -101,7 +101,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       {/* Inline-End: CreditChip (developers), LanguageSwitcher, Notifications, User Menu */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-2 lg:gap-4">
         {/* CreditChip for developers only per Spec 7.16 */}
         {!isAdmin && typeof userCredits === 'number' && (
           <CreditChip balance={userCredits} />
@@ -113,12 +113,12 @@ export const TopBar: React.FC<TopBarProps> = ({
         {/* Notifications Icon */}
         <button
           type="button"
-          className="relative p-2 rounded-full text-fg-secondary hover:text-fg-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          className="relative p-2 rounded-full text-fg-secondary hover:text-fg-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand min-h-11 min-w-11 flex items-center justify-center"
           aria-label={`${tCommon('notifications')} (${notificationCount})`}
         >
           <Bell className="h-5 w-5" />
           {notificationCount > 0 && (
-            <span className="absolute top-1.5 end-1.5 h-2 w-2 rounded-full bg-danger-fill" />
+            <span className="absolute top-2.5 end-2.5 h-2 w-2 rounded-full bg-danger-fill" />
           )}
         </button>
 
@@ -127,7 +127,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           <button
             type="button"
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="h-9 w-9 rounded-full bg-brand-soft text-brand flex items-center justify-center font-semibold text-caption select-none border border-line-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            className="h-10 w-10 sm:h-9 sm:w-9 rounded-full bg-brand-soft text-brand flex items-center justify-center font-semibold text-caption select-none border border-line-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             title={displayName}
             aria-label={tNav('userMenu')}
             aria-haspopup="menu"

@@ -775,33 +775,35 @@ export default function DesignSystemPage() {
                 مبني بخصائص منطقية ومحاذاة أرقام جدولية Western Arabic (`tabular-nums`).
               </p>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>معرف العملية</TableHead>
-                    <TableHead>نوع العملية</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead isNumeric>النقاط</TableHead>
-                    <TableHead isNumeric>الرصيد النهائي</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell><span className="ltr-iso font-mono font-medium">TX-8012</span></TableCell>
-                    <TableCell>شراء باقة نمو</TableCell>
-                    <TableCell><Badge variant="brand" size="sm">مكتمل</Badge></TableCell>
-                    <TableCell isNumeric><span className="ltr-iso font-mono font-bold text-fg-brand">+500</span></TableCell>
-                    <TableCell isNumeric><span className="ltr-iso font-mono">500</span></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><span className="ltr-iso font-mono font-medium">TX-8013</span></TableCell>
-                    <TableCell>شراء فرصة حصرية (مستشفى الشروق)</TableCell>
-                    <TableCell><Badge variant="neutral" size="sm">معتمد</Badge></TableCell>
-                    <TableCell isNumeric><span className="ltr-iso font-mono font-bold text-danger-text">-60</span></TableCell>
-                    <TableCell isNumeric><span className="ltr-iso font-mono">440</span></TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>معرف العملية</TableHead>
+                      <TableHead>نوع العملية</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead isNumeric>النقاط</TableHead>
+                      <TableHead isNumeric>الرصيد النهائي</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell><span className="ltr-iso font-mono font-medium">TX-8012</span></TableCell>
+                      <TableCell>شراء باقة نمو</TableCell>
+                      <TableCell><Badge variant="brand" size="sm">مكتمل</Badge></TableCell>
+                      <TableCell isNumeric><span className="ltr-iso font-mono font-bold text-fg-brand">+500</span></TableCell>
+                      <TableCell isNumeric><span className="ltr-iso font-mono">500</span></TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell><span className="ltr-iso font-mono font-medium">TX-8013</span></TableCell>
+                      <TableCell>شراء فرصة حصرية (مستشفى الشروق)</TableCell>
+                      <TableCell><Badge variant="neutral" size="sm">معتمد</Badge></TableCell>
+                      <TableCell isNumeric><span className="ltr-iso font-mono font-bold text-danger-text">-60</span></TableCell>
+                      <TableCell isNumeric><span className="ltr-iso font-mono">440</span></TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
             {/* EMPTY STATES */}
