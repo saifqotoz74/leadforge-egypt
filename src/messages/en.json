@@ -526,7 +526,15 @@
     "locationsTitle": "Target locations",
     "submitRegisterAndContinue": "Create account and continue setup",
     "optional": "Optional",
-    "passwordHelper": "At least 6 characters"
+    "passwordHelper": "At least 6 characters",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordTitle": "Account Recovery",
+    "forgotPasswordSubtitle": "Password reset guidance and technical support",
+    "forgotPasswordNotice": "Because LeadForge enforces strict security standards to protect developer accounts and lead data, account recovery is currently handled directly through our verified support team to confirm account ownership.",
+    "forgotPasswordInstructions": "To request a password reset, please send an email from your registered platform address to technical support:",
+    "forgotPasswordEmailLabel": "Technical Support Email",
+    "forgotPasswordEta": "Requests are reviewed and resolved within 2 business hours.",
+    "backToLogin": "Back to login"
   },
   "enums": {
     "LeadTemperature": {

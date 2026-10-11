@@ -144,6 +144,15 @@ export default function LoginPage() {
               className="text-start"
             />
 
+            <div className="flex justify-end -mt-1">
+              <Link
+                href="/forgot-password"
+                className="text-caption text-brand hover:underline"
+              >
+                {tAuth('forgotPassword')}
+              </Link>
+            </div>
+
             <div className="pt-2">
               <Button
                 type="submit"

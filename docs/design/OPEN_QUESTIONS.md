@@ -56,4 +56,12 @@ The following items represent differences above 20% discovered during the calibr
 - **Engineering Finding:** The frontend wraps all business names and user data in `<bdi dir="auto">` to isolate bidirectional text flow and prevent layout distortion. However, mixed strings within a single element can cause reading friction and script boundary ambiguities in both locales.
 - **Spec Constraint & Decision:** In accordance with the backend freeze invariant, database seed scripts and records remain untouched. In a future data pipeline update, consider separating localized names or standardizing seed entries to single-script names.
 
+---
+
+### Question 7: Support Contact Channel & Interim Password Recovery Details (UX-010)
+- **Observation:** In the absence of an automated transactional email password recovery flow, the `/login` screen now directs users experiencing forgotten credentials to `/forgot-password`.
+- **Current Placeholder:** `support@leadforge.eg` is rendered as the primary support contact address.
+- **Decision Needed from Owner:** Please provide the official support contact email and/or WhatsApp hotline number to replace the `support@leadforge.eg` placeholder prior to public domain deployment.
+
+
 

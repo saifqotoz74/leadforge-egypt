@@ -526,7 +526,15 @@
     "locationsTitle": "المدن المستهدفة",
     "submitRegisterAndContinue": "إنشاء الحساب ومتابعة الإعداد",
     "optional": "اختياري",
-    "passwordHelper": "6 أحرف على الأقل"
+    "passwordHelper": "6 أحرف على الأقل",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "forgotPasswordTitle": "استعادة الحساب",
+    "forgotPasswordSubtitle": "إرشادات استعادة كلمة المرور والتواصل مع الدعم الفني",
+    "forgotPasswordNotice": "نظراً لأن منصة LeadForge تطبق معايير أمان صارمة لحماية حسابات المطورين وبيانات العملاء، تُدار عمليات استعادة الحسابات حالياً عبر فريق الدعم الفني المعتمد للتحقق من هوية صاحب الحساب.",
+    "forgotPasswordInstructions": "لطلب إعادة تعيين كلمة المرور، يرجى إرسال رسالة من بريدك الإلكتروني المسجل في المنصة إلى عنوان الدعم الفني:",
+    "forgotPasswordEmailLabel": "عنوان الدعم الفني",
+    "forgotPasswordEta": "يتم فحص الطلب والرد خلال ساعتي عمل.",
+    "backToLogin": "العودة لتسجيل الدخول"
   },
   "enums": {
     "LeadTemperature": {

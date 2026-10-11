@@ -124,3 +124,15 @@ This document records visual and interactive features required by the LeadForge 
   - `localizeQualificationReason()` in `src/lib/taxonomy.ts` extracts the locale-appropriate portion (`+{weight} {nameAr}` for `ar`, `+{weight} {nameEn}` for `en`) so neither locale displays mixed-script strings.
 - **Recommended Backend Action:**
   Store structured `code` keys or separate `nameAr`/`nameEn` and `featuresAr`/`featuresEn` columns in `SubscriptionPlan` and structured rule codes in `Lead.qualificationReasons`.
+
+---
+
+## 10. Self-Service Password Reset API & Transactional Email Dispatch (UX-010)
+- **Spec Citation:** Pre-Launch UX Audit Finding `[UX-010]`
+- **Backend Current State:**
+  There is currently no `/api/auth/forgot-password` endpoint, no password reset token model in `schema.prisma`, and no transactional email service configured (e.g. Resend / SendGrid / SMTP).
+- **Frontend Fallback Implemented:**
+  Added `/forgot-password` support page linked directly from `/login` ("نسيت كلمة المرور؟ / Forgot password?"). The page explains the platform security verification protocol, provides the direct support contact email (`support@leadforge.eg`), and links back to login.
+- **Recommended Backend Action:**
+  Add a `PasswordResetToken` table to Prisma, an `/api/auth/reset-password` endpoint with rate-limiting, and integrate a transactional mailer to send signed reset links.
+
