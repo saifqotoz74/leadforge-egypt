@@ -56,6 +56,34 @@ test.describe('LeadForge Egypt — Launch Fix Sprint E2E Suite', () => {
     });
   });
 
+  test('1b. Hero Lead Card Keyboard Focus & Field Correlation (UX-016)', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const websiteReason = page.locator('#hero-reason-website');
+    const websiteField = page.locator('#hero-field-website');
+
+    // Initially website field does not have highlight class
+    await expect(websiteField).not.toHaveClass(/bg-brand-soft/);
+
+    // Focus the reason via keyboard/focus
+    await websiteReason.focus();
+    await expect(websiteField).toHaveClass(/bg-brand-soft/);
+
+    // Focus next reason: reviews
+    const reviewsReason = page.locator('#hero-reason-reviews');
+    const reviewsField = page.locator('#hero-field-reviews');
+
+    await reviewsReason.focus();
+    await expect(websiteField).not.toHaveClass(/bg-brand-soft/);
+    await expect(reviewsField).toHaveClass(/bg-brand-soft/);
+
+    // Blur reviewsReason
+    await reviewsReason.blur();
+    await expect(reviewsField).not.toHaveClass(/bg-brand-soft/);
+  });
+
   test('2. Pricing Page Localization & Card Alignment (ar & en, Desktop & Mobile)', async ({
     page,
   }) => {
