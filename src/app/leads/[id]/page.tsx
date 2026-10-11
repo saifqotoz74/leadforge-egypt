@@ -22,6 +22,7 @@ import { LockedField } from '@/components/ui/LockedField';
 import { Banner } from '@/components/ui/Banner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Dialog } from '@/components/ui/Dialog';
 import { PIPELINE_STATUS_LABELS } from '@/lib/constants';
 import { localizeCity, localizeCategory } from '@/lib/taxonomy';
 import { fmtNumber } from '@/lib/format';
@@ -160,6 +161,7 @@ function mapQualityStatus(lead: LeadDetailData): QualityState {
 
 export default function LeadDetailPage() {
   const t = useTranslations('lead');
+  const tCommon = useTranslations('common');
   const tGeo = useTranslations('geo');
   const tCat = useTranslations('categories');
   const tEnums = useTranslations('enums');
@@ -186,6 +188,7 @@ export default function LeadDetailPage() {
   const [notes, setNotes] = useState('');
   const [nextFollowUpAt, setNextFollowUpAt] = useState('');
   const [savingStatus, setSavingStatus] = useState(false);
+  const [isInvalidConfirmOpen, setIsInvalidConfirmOpen] = useState(false);
 
   // Structured Feedback state
   const [useful, setUseful] = useState<boolean | null>(null);
@@ -270,8 +273,7 @@ export default function LeadDetailPage() {
     }
   }
 
-  async function handleSaveStatus(e: React.FormEvent) {
-    e.preventDefault();
+  async function executeSaveStatus(targetStatus: string) {
     setSavingStatus(true);
     setActionMsg(null);
     try {
@@ -279,17 +281,17 @@ export default function LeadDetailPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: pipelineStatus,
+          status: targetStatus,
           reasonCode:
-            pipelineStatus === 'LOST' || pipelineStatus === 'INVALID'
+            targetStatus === 'LOST' || targetStatus === 'INVALID'
               ? outcomeReasonCode
               : undefined,
           estimatedProjectValue:
-            pipelineStatus === 'WON' && estimatedProjectValue.trim() !== ''
+            targetStatus === 'WON' && estimatedProjectValue.trim() !== ''
               ? Number(estimatedProjectValue)
               : undefined,
           currency: 'EGP',
-          wonReason: pipelineStatus === 'WON' ? wonReason || notes : undefined,
+          wonReason: targetStatus === 'WON' ? wonReason || notes : undefined,
           note: notes,
           nextFollowUpAt: nextFollowUpAt || null,
         }),
@@ -304,6 +306,15 @@ export default function LeadDetailPage() {
     } finally {
       setSavingStatus(false);
     }
+  }
+
+  async function handleSaveStatus(e: React.FormEvent) {
+    e.preventDefault();
+    if (pipelineStatus === 'INVALID') {
+      setIsInvalidConfirmOpen(true);
+      return;
+    }
+    await executeSaveStatus(pipelineStatus);
   }
 
   async function handleSaveFeedback(e: React.FormEvent) {
@@ -609,7 +620,14 @@ export default function LeadDetailPage() {
                       <Select
                         label={t('stageLabel')}
                         value={pipelineStatus}
-                        onChange={(e) => setPipelineStatus(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'INVALID') {
+                            setIsInvalidConfirmOpen(true);
+                          } else {
+                            setPipelineStatus(val);
+                          }
+                        }}
                         options={Object.keys(PIPELINE_STATUS_LABELS).map((k) => ({
                           value: k,
                           label: tEnums(`PipelineStatus.${k}`),
@@ -890,6 +908,39 @@ export default function LeadDetailPage() {
           userBalance={userCredits}
           onConfirmPurchase={handleClaim}
         />
+
+        {/* Confirmation Dialog for INVALID Status (UX-013) */}
+        <Dialog
+          isOpen={isInvalidConfirmOpen}
+          onClose={() => setIsInvalidConfirmOpen(false)}
+          title={t('confirmInvalidTitle')}
+          size="sm"
+          footer={
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => setIsInvalidConfirmOpen(false)}
+              >
+                {tCommon('cancel')}
+              </Button>
+              <Button
+                variant="primary"
+                isLoading={savingStatus}
+                onClick={async () => {
+                  setPipelineStatus('INVALID');
+                  setIsInvalidConfirmOpen(false);
+                  await executeSaveStatus('INVALID');
+                }}
+              >
+                {t('confirmInvalidAction')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-body-sm text-fg-secondary leading-relaxed">
+            {t('confirmInvalidDescription')}
+          </p>
+        </Dialog>
       </div>
     </AppShell>
   );

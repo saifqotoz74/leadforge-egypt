@@ -406,7 +406,10 @@
     "purchased": "Claimed",
     "trustReassurance": "Transaction is final and protected by verified credit points.",
     "emptyTitle": "Lead Not Found",
-    "emptyDesc": "Unable to find data for this lead, it may have been deleted or is invalid."
+    "emptyDesc": "Unable to find data for this lead, it may have been deleted or is invalid.",
+    "confirmInvalidTitle": "Confirm Invalid Status",
+    "confirmInvalidDescription": "Marking this lead as \"Invalid\" will end pipeline tracking and submit a dispute review for credit refund if contact information is verified as invalid. Are you sure you want to proceed?",
+    "confirmInvalidAction": "Confirm & Mark Invalid"
   },
   "pipeline": {
     "pageTitle": "My Deals",
@@ -458,7 +461,10 @@
     "nextAction_WON": "View deal",
     "nextAction_LOST": "Review record",
     "nextAction_NOT_INTERESTED": "Review record",
-    "nextAction_INVALID": "Review record"
+    "nextAction_INVALID": "Review record",
+    "confirmInvalidTitle": "Confirm Invalid Status",
+    "confirmInvalidDescription": "Marking this lead as \"Invalid\" will end pipeline tracking and submit a dispute review for credit refund if contact information is verified as invalid. Are you sure you want to proceed?",
+    "confirmInvalidAction": "Confirm & Mark Invalid"
   },
   "nav": {
     "home": "Home",

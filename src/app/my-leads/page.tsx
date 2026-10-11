@@ -113,6 +113,12 @@ export default function MyLeadsPage() {
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [userCredits, setUserCredits] = useState<number | undefined>(undefined);
 
+  // Confirm Invalid Dialog state (UX-013)
+  const [pendingInvalidChange, setPendingInvalidChange] = useState<{
+    leadId: string;
+    newStatus: PipelineStage;
+  } | null>(null);
+
   const loadMyLeads = useCallback(async () => {
     setLoading(true);
     try {
@@ -139,7 +145,7 @@ export default function MyLeadsPage() {
     loadMyLeads();
   }, [loadMyLeads]);
 
-  async function handleQuickStatusChange(leadId: string, newStatus: PipelineStage) {
+  async function applyStatusChange(leadId: string, newStatus: PipelineStage) {
     setUpdatingId(leadId);
     try {
       const res = await fetch(`/api/leads/${leadId}/status`, {
@@ -153,6 +159,14 @@ export default function MyLeadsPage() {
     } finally {
       setUpdatingId(null);
     }
+  }
+
+  function handleQuickStatusChange(leadId: string, newStatus: PipelineStage) {
+    if (newStatus === 'INVALID') {
+      setPendingInvalidChange({ leadId, newStatus });
+      return;
+    }
+    applyStatusChange(leadId, newStatus);
   }
 
   async function handleSubmitFeedback(e: React.FormEvent) {
@@ -557,6 +571,40 @@ export default function MyLeadsPage() {
               />
             </form>
           )}
+        </Dialog>
+
+        {/* Confirmation Dialog for INVALID Status (UX-013) */}
+        <Dialog
+          isOpen={Boolean(pendingInvalidChange)}
+          onClose={() => setPendingInvalidChange(null)}
+          title={t('confirmInvalidTitle')}
+          size="sm"
+          footer={
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => setPendingInvalidChange(null)}
+              >
+                {t('cancel')}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  if (pendingInvalidChange) {
+                    const { leadId, newStatus } = pendingInvalidChange;
+                    setPendingInvalidChange(null);
+                    applyStatusChange(leadId, newStatus);
+                  }
+                }}
+              >
+                {t('confirmInvalidAction')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-body-sm text-fg-secondary leading-relaxed">
+            {t('confirmInvalidDescription')}
+          </p>
         </Dialog>
       </div>
     </AppShell>
