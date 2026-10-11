@@ -267,7 +267,7 @@
     "searchPlaceholder": "البحث بالاسم أو المدينة أو الحي أو النشاط...",
     "resultsCount": "{count, plural, =0 {لا توجد فرص} one {فرصة واحدة} two {فرصتان} few {# فرص} many {# فرصة} other {# فرصة}}",
     "filterDrawerTitle": "تصفية متقدمة للفرص",
-    "resetFilters": "إعادة تعيين",
+    "resetFilters": "إعادة ضبط الفلاتر",
     "applyFilters": "تطبيق التصفية",
     "categoryLabel": "نوع النشاط التجاري",
     "serviceLabel": "الخدمة المطلوبة",

@@ -267,7 +267,7 @@
     "searchPlaceholder": "Search by business name, city, district, or category...",
     "resultsCount": "{count, plural, =0 {No leads found} one {1 lead} other {# leads}}",
     "filterDrawerTitle": "Advanced Lead Filters",
-    "resetFilters": "Reset Filters",
+    "resetFilters": "Reset filters",
     "applyFilters": "Apply Filters",
     "categoryLabel": "Business Category",
     "serviceLabel": "Requested Service",
