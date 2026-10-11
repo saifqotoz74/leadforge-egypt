@@ -230,7 +230,7 @@ export default function LandingPage() {
                       {tLanding('heroWhyHeading')}
                     </h3>
 
-                    <div className="flex flex-col gap-1" role="list">
+                    <div className="flex flex-col gap-1" role="group" aria-label={tLanding('heroWhyHeading')}>
                       {/* Reason 1: No website +45 */}
                       <button
                         type="button"

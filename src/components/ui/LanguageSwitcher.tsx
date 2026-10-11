@@ -38,7 +38,7 @@ export function LanguageSwitcher({ className = '', size = 'sm' }: LanguageSwitch
         } ${
           currentLocale === 'ar'
             ? 'bg-surface text-fg-primary font-medium shadow-xs'
-            : 'text-fg-muted hover:text-fg-secondary'
+            : 'text-fg-secondary hover:text-fg-primary'
         }`}
       >
         <bdi dir="auto">العربية</bdi>
@@ -53,7 +53,7 @@ export function LanguageSwitcher({ className = '', size = 'sm' }: LanguageSwitch
         } ${
           currentLocale === 'en'
             ? 'bg-surface text-fg-primary font-medium shadow-xs'
-            : 'text-fg-muted hover:text-fg-secondary'
+            : 'text-fg-secondary hover:text-fg-primary'
         }`}
       >
         <bdi dir="auto">English</bdi>

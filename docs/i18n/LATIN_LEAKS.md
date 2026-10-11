@@ -1,6 +1,6 @@
 # LeadForge Egypt — Multi-Route Bilingual Script & Locale Audit
 
-> **Audit Date:** 2026-10-11T19:17:46.643Z
+> **Audit Date:** 2026-10-11T23:15:47.674Z
 > **Target Routes (12):** `/`, `/pricing`, `/login`, `/register`, `/dashboard`, `/leads`, `/leads/cmv13ybbp012jtxt4uso3tpfb`, `/my-leads`, `/subscription`, `/settings`, `/onboarding`, `/dashboard/analytics`
 > **Locales Verified:** Arabic (`lang="ar" dir="rtl"`) & English (`lang="en" dir="ltr"`)
 > **Total Leaks Found:** 0

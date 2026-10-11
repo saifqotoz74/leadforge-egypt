@@ -45,7 +45,7 @@ export const BrandWordmark: React.FC<BrandWordmarkProps> = ({
   const wrapper = subtitle ? (
     <div className="flex flex-col">
       {content}
-      <span className="text-caption text-fg-muted -mt-0.5">{subtitle}</span>
+      <span className="text-caption text-fg-secondary -mt-0.5">{subtitle}</span>
     </div>
   ) : (
     content
