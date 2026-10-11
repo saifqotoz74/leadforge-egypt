@@ -3,11 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
+import { Banner } from '@/components/ui/Banner';
+import { Tabs, TabItem } from '@/components/ui/Tabs';
+import { Select } from '@/components/ui/Select';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { localizeCity, localizeCategory } from '@/lib/taxonomy';
 import {
   Compass,
   CheckCircle2,
@@ -402,82 +408,73 @@ export default function AdminMatchingPage() {
     }
   }
 
+  const tGeo = useTranslations('geo');
+  const tCat = useTranslations('categories');
+
+  const matchingTabs: TabItem[] = [
+    {
+      id: 'debugger',
+      label: t('tabDebugger'),
+      icon: <Bug className="h-4 w-4" />,
+    },
+    {
+      id: 'rules',
+      label: `${t('tabRules')} (${rules.length})`,
+      icon: <Sliders className="h-4 w-4" />,
+    },
+    {
+      id: 'config',
+      label: t('tabConstraints'),
+      icon: <ShieldCheck className="h-4 w-4" />,
+    },
+  ];
+
   return (
     <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       <div className="space-y-6">
-        {/* Top Header Card */}
-        <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <Compass className="h-6 w-6 text-brand rtl:-scale-x-100" />
-                <h1 className="text-xl font-extrabold text-fg-primary">
-                  {t('title')}
-                </h1>
-              </div>
-              <p className="mt-1 text-xs text-fg-secondary">
-                {t('desc')}
-              </p>
-            </div>
-
+        {/* Template Standard PageHeader */}
+        <PageHeader
+          title={t('title')}
+          description={t('desc')}
+          breadcrumbs={[
+            { label: t('title') },
+          ]}
+          actions={
             <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-xl border border-line-brand bg-brand-soft px-3 py-1.5 text-xs font-extrabold text-brand font-mono tabular-nums">
+              <span className="rounded-md border border-line-brand bg-brand-soft px-3 py-1 text-caption font-semibold text-brand tabular-nums">
                 {t('activeVersion', { version: matchVersion })}
               </span>
               <Button
                 variant="primary"
+                size="sm"
                 onClick={handleRecalculateAll}
                 disabled={recalculating}
-                className="gap-2 text-xs"
+                startIcon={<RefreshCw className={`h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />}
               >
-                <RefreshCw className={`h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
                 {recalculating ? t('recalculating') : t('btnRecalculate')}
               </Button>
             </div>
-          </div>
-        </Card>
+          }
+        />
 
         {statusBanner && (
-          <div className="rounded-xl border border-line-brand bg-brand-soft p-4 text-xs font-bold text-brand">
-            ✓ {statusBanner}
-          </div>
+          <Banner variant="info" onClose={() => setStatusBanner(null)}>
+            {statusBanner}
+          </Banner>
         )}
         {errorBanner && (
-          <div className="rounded-xl border border-danger-border bg-danger-bg p-4 text-xs font-bold text-danger-text">
-            ✕ {errorBanner}
-          </div>
+          <Banner variant="danger" onClose={() => setErrorBanner(null)}>
+            {errorBanner}
+          </Banner>
         )}
 
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-line pb-4">
-          <Button
-            variant={activeTab === 'debugger' ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => setActiveTab('debugger')}
-            className="gap-2 text-xs"
-          >
-            <Bug className="h-4 w-4" />
-            <span>{t('tabDebugger')}</span>
-          </Button>
-          <Button
-            variant={activeTab === 'rules' ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => setActiveTab('rules')}
-            className="gap-2 text-xs"
-          >
-            <Sliders className="h-4 w-4" />
-            <span>{t('tabRules')} ({rules.length})</span>
-          </Button>
-          <Button
-            variant={activeTab === 'config' ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => setActiveTab('config')}
-            className="gap-2 text-xs"
-          >
-            <ShieldCheck className="h-4 w-4" />
-            <span>{t('tabConstraints')}</span>
-          </Button>
-        </div>
+        {/* Standard Design System Segmented Tabs */}
+        <Tabs
+          variant="segmented"
+          tabs={matchingTabs}
+          activeTab={activeTab}
+          onChange={(id) => setActiveTab(id as any)}
+        />
 
         {loading ? (
           <div className="space-y-4">
@@ -488,62 +485,51 @@ export default function AdminMatchingPage() {
           <div className="space-y-6">
             {/* Lead & Developer Selector */}
             <Card className="rounded-xl border border-line bg-surface p-5 shadow-xs">
-              <h2 className="text-sm font-extrabold text-fg-primary">
-                {t('title')}:
-              </h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div>
-                  <label className="block text-xs font-bold text-fg-primary mb-1.5">
-                    {t('selectLead')}
-                  </label>
-                  <select
-                    value={selectedLeadId}
-                    onChange={(e) => {
-                      const nextLead = e.target.value;
-                      setSelectedLeadId(nextLead);
-                      if (nextLead && selectedDeveloperId) {
-                        runPairInspection(nextLead, selectedDeveloperId);
-                      }
-                    }}
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
-                  >
-                    {leads.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.businessName} — ({l.category} | {l.city} | {l.score})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <CardHeader className="p-0 pb-4">
+                <CardTitle className="text-body font-semibold text-fg-primary">
+                  {t('title')}
+                </CardTitle>
+              </CardHeader>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3 items-end">
+                <Select
+                  label={t('selectLead')}
+                  value={selectedLeadId}
+                  onChange={(e) => {
+                    const nextLead = e.target.value;
+                    setSelectedLeadId(nextLead);
+                    if (nextLead && selectedDeveloperId) {
+                      runPairInspection(nextLead, selectedDeveloperId);
+                    }
+                  }}
+                  options={leads.map((l) => ({
+                    value: l.id,
+                    label: `${l.businessName} — ${localizeCategory(l.category, tCat as any)} • ${localizeCity(l.city, tGeo as any)} (${l.score})`,
+                  }))}
+                />
+
+                <Select
+                  label={t('selectDev')}
+                  value={selectedDeveloperId}
+                  onChange={(e) => {
+                    const nextDev = e.target.value;
+                    setSelectedDeveloperId(nextDev);
+                    if (selectedLeadId && nextDev) {
+                      runPairInspection(selectedLeadId, nextDev);
+                    }
+                  }}
+                  options={developers.map((d) => ({
+                    value: d.id,
+                    label: `${d.name} (${d.email}) — ${d.status}`,
+                  }))}
+                />
 
                 <div>
-                  <label className="block text-xs font-bold text-fg-primary mb-1.5">
-                    {t('selectDev')}
-                  </label>
-                  <select
-                    value={selectedDeveloperId}
-                    onChange={(e) => {
-                      const nextDev = e.target.value;
-                      setSelectedDeveloperId(nextDev);
-                      if (selectedLeadId && nextDev) {
-                        runPairInspection(selectedLeadId, nextDev);
-                      }
-                    }}
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
-                  >
-                    {developers.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} ({d.email}) — [{d.status}]
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-end">
                   <Button
                     variant="primary"
+                    size="md"
                     onClick={() => runPairInspection(selectedLeadId, selectedDeveloperId)}
                     disabled={runningDebugger}
-                    className="w-full text-xs"
+                    className="w-full"
                   >
                     {runningDebugger ? t('recalculating') : t('btnEvaluate')}
                   </Button>
@@ -562,8 +548,8 @@ export default function AdminMatchingPage() {
                 <Card
                   className={`flex flex-col justify-between gap-4 rounded-xl border p-5 sm:flex-row sm:items-center ${
                     debugReport.eligible
-                      ? 'border-line-brand bg-brand-soft/70'
-                      : 'border-danger-border bg-danger-bg/70'
+                      ? 'border-line-brand bg-brand-soft'
+                      : 'border-danger-border bg-danger-bg'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -575,12 +561,12 @@ export default function AdminMatchingPage() {
                     <div>
                       <Badge
                         variant={debugReport.eligible ? 'brand' : 'neutral'}
-                        className={debugReport.eligible ? 'bg-brand text-fg-inverted' : 'bg-danger-fill text-fg-inverted'}
+                        className={debugReport.eligible ? 'bg-brand text-fg-on-brand' : 'bg-danger-solid text-fg-on-brand'}
                       >
                         {debugReport.resultLabel} ({debugReport.eligible ? t('gateStatusPassed') : t('gateStatusFailed')})
                       </Badge>
                       <h3 className="mt-1 text-base font-extrabold text-fg-primary">
-                        {debugReport.leadData.businessName} ⇄ {debugReport.developerPreferences.name}
+                        <bdi dir="auto">{debugReport.leadData.businessName}</bdi> ⇄ <bdi dir="auto">{debugReport.developerPreferences.name}</bdi>
                       </h3>
                     </div>
                   </div>
@@ -590,7 +576,7 @@ export default function AdminMatchingPage() {
                       <span className="block text-xs font-semibold text-fg-secondary">
                         {t('matchStrength')}
                       </span>
-                      <span className="text-xl font-extrabold text-brand font-mono tabular-nums">
+                      <span className="text-xl font-extrabold text-brand tabular-nums ltr-iso">
                         {debugReport.finalMatchStrength}/100
                       </span>
                     </div>
@@ -598,7 +584,7 @@ export default function AdminMatchingPage() {
                       <span className="block text-xs font-semibold text-fg-secondary">
                         {t('totalFitScore')}
                       </span>
-                      <span className="text-xl font-extrabold text-fg-primary font-mono tabular-nums">
+                      <span className="text-xl font-extrabold text-fg-primary tabular-nums ltr-iso">
                         {debugReport.matchPoints}
                       </span>
                     </div>
@@ -606,7 +592,7 @@ export default function AdminMatchingPage() {
                       <span className="block text-xs font-semibold text-fg-secondary">
                         {t('colRule')}
                       </span>
-                      <span className="text-xs font-extrabold text-fg-primary font-mono tabular-nums">
+                      <span className="text-xs font-extrabold text-fg-primary tabular-nums ltr-iso">
                         Q: {debugReport.leadData.qualityScore} | Opp: {debugReport.leadData.opportunityScore}
                       </span>
                     </div>
@@ -618,23 +604,23 @@ export default function AdminMatchingPage() {
                   <h3 className="text-sm font-extrabold text-fg-primary">
                     {t('layerATitle')}
                   </h3>
-                  <div className="mt-3 overflow-x-auto">
-                    <table className="w-full text-start text-xs">
-                      <thead>
-                        <tr className="border-b border-line bg-subtle text-fg-secondary">
-                          <th className="p-2.5 font-bold text-start">{t('colGate')}</th>
-                          <th className="p-2.5 font-bold text-start">{t('colGateStatus')}</th>
-                          <th className="p-2.5 font-bold text-start">الكود</th>
-                          <th className="p-2.5 font-bold text-start">{t('selectLead')}</th>
-                          <th className="p-2.5 font-bold text-start">{t('selectDev')}</th>
-                          <th className="p-2.5 font-bold text-start">{t('colGateReason')}</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-line">
+                  <div className="mt-3">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t('colGate')}</TableHead>
+                          <TableHead>{t('colGateStatus')}</TableHead>
+                          <TableHead>الكود</TableHead>
+                          <TableHead>{t('selectLead')}</TableHead>
+                          <TableHead>{t('selectDev')}</TableHead>
+                          <TableHead>{t('colGateReason')}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {debugReport.hardEligibilityChecks.map((chk, idx) => (
-                          <tr key={idx} className="hover:bg-subtle/70">
-                            <td className="p-2.5 font-bold text-fg-primary">{chk.dimension}</td>
-                            <td className="p-2.5">
+                          <TableRow key={idx}>
+                            <TableCell className="font-bold text-fg-primary">{chk.dimension}</TableCell>
+                            <TableCell>
                               {chk.status === 'PASS' ? (
                                 <Badge variant="brand" className="gap-1 text-xs">
                                   <CheckCircle2 className="h-3 w-3" /> PASS
@@ -648,17 +634,17 @@ export default function AdminMatchingPage() {
                                   <XCircle className="h-3 w-3" /> FAIL
                                 </Badge>
                               )}
-                            </td>
-                            <td className="p-2.5 font-mono text-xs font-semibold text-fg-primary">
+                            </TableCell>
+                            <TableCell className="text-xs font-semibold text-fg-primary ltr-iso">
                               {chk.code}
-                            </td>
-                            <td className="p-2.5 text-fg-primary">{chk.leadValue}</td>
-                            <td className="p-2.5 text-fg-primary">{chk.developerPreference}</td>
-                            <td className="p-2.5 font-semibold text-fg-primary">{chk.reasonAr}</td>
-                          </tr>
+                            </TableCell>
+                            <TableCell className="text-fg-primary">{chk.leadValue}</TableCell>
+                            <TableCell className="text-fg-primary">{chk.developerPreference}</TableCell>
+                            <TableCell className="font-semibold text-fg-primary">{chk.reasonAr}</TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 </Card>
 
@@ -677,19 +663,19 @@ export default function AdminMatchingPage() {
                         {debugReport.appliedRules.map((rule) => (
                           <div
                             key={rule.key}
-                            className="flex items-center justify-between rounded-xl border border-line-brand bg-brand-soft/40 p-3 text-xs"
+                            className="flex items-center justify-between rounded-xl border border-line-brand bg-brand-soft p-3 text-xs"
                           >
                             <div>
-                              <span className="font-mono text-xs font-bold text-brand">
+                              <span className="text-xs font-bold text-brand ltr-iso">
                                 {rule.key} ({rule.category})
                               </span>
                               <p className="mt-0.5 font-semibold text-fg-primary">{rule.reasonAr}</p>
                             </div>
                             <span
-                              className={`rounded-lg px-2.5 py-1 text-xs font-extrabold font-mono tabular-nums ${
+                              className={`rounded-lg px-2.5 py-1 text-xs font-extrabold tabular-nums ltr-iso ${
                                 rule.points >= 0
-                                  ? 'bg-brand text-fg-inverted'
-                                  : 'bg-warning-text text-fg-inverted'
+                                  ? 'bg-brand text-fg-on-brand'
+                                  : 'bg-warning-text text-fg-on-brand'
                               }`}
                             >
                               {rule.points >= 0 ? `+${rule.points}` : rule.points}
@@ -711,12 +697,12 @@ export default function AdminMatchingPage() {
                           className="flex items-center justify-between rounded-xl border border-line bg-subtle p-2.5 text-xs"
                         >
                           <div>
-                            <span className="font-mono text-xs font-bold text-fg-primary">
+                            <span className="text-xs font-bold text-fg-primary ltr-iso">
                               {rule.key} ({rule.category})
                             </span>
                             <p className="mt-0.5 text-fg-secondary">{rule.reasonAr}</p>
                           </div>
-                          <span className="rounded bg-subtle px-2 py-0.5 text-xs font-bold text-fg-secondary font-mono">
+                          <span className="rounded bg-subtle px-2 py-0.5 text-xs font-bold text-fg-secondary tabular-nums ltr-iso">
                             {rule.outcome || '0'}
                           </span>
                         </div>
@@ -758,17 +744,17 @@ export default function AdminMatchingPage() {
                               setSelectedDeveloperId(m.developerId);
                               runPairInspection(selectedLeadId, m.developerId);
                             }}
-                            className="cursor-pointer flex items-center justify-between rounded-xl border border-line-brand bg-brand-soft/40 p-3 text-xs hover:bg-brand-soft transition-colors"
+                            className="cursor-pointer flex items-center justify-between rounded-xl border border-line-brand bg-brand-soft p-3 text-xs hover:bg-brand-soft-strong transition-colors"
                           >
                             <div>
                               <span className="font-extrabold text-brand">
-                                #{m.rank} — {developers.find((d) => d.id === m.developerId)?.name || m.developerId}
+                                #{m.rank} - <bdi dir="auto">{developers.find((d) => d.id === m.developerId)?.name || m.developerId}</bdi>
                               </span>
                               <p className="mt-0.5 text-xs text-fg-secondary">
                                 {m.matchedCriteria.map((c) => `${c.key} (+${c.points})`).join(' • ')}
                               </p>
                             </div>
-                            <span className="rounded-lg bg-brand px-2.5 py-1 font-extrabold text-fg-inverted font-mono tabular-nums">
+                            <span className="rounded-lg bg-brand px-2.5 py-1 font-extrabold text-fg-on-brand tabular-nums ltr-iso">
                               {m.matchStrength}%
                             </span>
                           </div>
@@ -789,11 +775,11 @@ export default function AdminMatchingPage() {
                             setSelectedDeveloperId(m.developerId);
                             runPairInspection(selectedLeadId, m.developerId);
                           }}
-                          className="cursor-pointer flex items-center justify-between rounded-xl border border-danger-border bg-danger-bg/40 p-3 text-xs hover:bg-danger-bg transition-colors"
+                          className="cursor-pointer flex items-center justify-between rounded-xl border border-danger-border bg-danger-bg p-3 text-xs hover:bg-danger-bg transition-colors"
                         >
                           <div>
                             <span className="font-bold text-fg-primary">
-                              {developers.find((d) => d.id === m.developerId)?.name || m.developerId}
+                              <bdi dir="auto">{developers.find((d) => d.id === m.developerId)?.name || m.developerId}</bdi>
                             </span>
                             <p className="mt-0.5 text-xs font-semibold text-danger-text">
                               {m.hardFailures.map((hf) => `${hf.key}: ${hf.reasonAr}`).join(' | ')}
@@ -817,40 +803,40 @@ export default function AdminMatchingPage() {
               <h2 className="text-sm font-extrabold text-fg-primary">
                 {t('tabRules')}
               </h2>
-              <div className="mt-4 overflow-x-auto">
-                <table className="w-full text-start text-xs">
-                  <thead>
-                    <tr className="border-b border-line bg-subtle text-fg-secondary">
-                      <th className="p-2.5 font-bold text-start">المفتاح</th>
-                      <th className="p-2.5 font-bold text-start">{t('colRule')}</th>
-                      <th className="p-2.5 font-bold text-start">الفئة</th>
-                      <th className="p-2.5 font-bold text-start">المجموعة</th>
-                      <th className="p-2.5 font-bold text-start">الأولوية</th>
-                      <th className="p-2.5 font-bold text-start">{t('colWeight')}</th>
-                      <th className="p-2.5 font-bold text-start">{t('colGateStatus')}</th>
-                      <th className="p-2.5 font-bold text-start">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line">
+              <div className="mt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>المفتاح</TableHead>
+                      <TableHead>{t('colRule')}</TableHead>
+                      <TableHead>الفئة</TableHead>
+                      <TableHead>المجموعة</TableHead>
+                      <TableHead>الأولوية</TableHead>
+                      <TableHead>{t('colWeight')}</TableHead>
+                      <TableHead>{t('colGateStatus')}</TableHead>
+                      <TableHead>إجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {rules.map((r) => (
-                      <tr key={r.id} className="hover:bg-subtle">
-                        <td className="p-2.5 font-mono text-xs font-bold text-fg-primary">
+                      <TableRow key={r.id}>
+                        <TableCell className="text-xs font-bold text-fg-primary ltr-iso">
                           {r.key}
-                        </td>
-                        <td className="p-2.5 font-semibold text-fg-primary">
+                        </TableCell>
+                        <TableCell className="font-semibold text-fg-primary">
                           {r.name}
-                          <span className="block text-xs text-fg-muted font-mono">{r.nameEn}</span>
-                        </td>
-                        <td className="p-2.5">
+                          <span className="block text-xs text-fg-muted ltr-iso">{r.nameEn}</span>
+                        </TableCell>
+                        <TableCell>
                           <span className="rounded bg-subtle px-2 py-0.5 font-bold text-fg-primary text-xs">
                             {r.category}
                           </span>
-                        </td>
-                        <td className="p-2.5 font-mono text-xs text-fg-secondary">
-                          {r.ruleGroup || '—'}
-                        </td>
-                        <td className="p-2.5 font-bold text-fg-primary font-mono tabular-nums">{r.priority}</td>
-                        <td className="p-2.5">
+                        </TableCell>
+                        <TableCell className="text-xs text-fg-secondary ltr-iso">
+                          {r.ruleGroup || '-'}
+                        </TableCell>
+                        <TableCell className="font-bold text-fg-primary tabular-nums">{r.priority}</TableCell>
+                        <TableCell>
                           <input
                             type="number"
                             defaultValue={r.points}
@@ -860,10 +846,10 @@ export default function AdminMatchingPage() {
                                 handleUpdateRulePoints(r, val);
                               }
                             }}
-                            className="w-20 rounded-lg border border-line bg-surface px-2 py-1 text-center font-bold text-fg-primary font-mono tabular-nums text-xs"
+                            className="w-20 rounded-lg border border-line bg-surface px-2 py-1 text-center font-bold text-fg-primary tabular-nums text-xs"
                           />
-                        </td>
-                        <td className="p-2.5">
+                        </TableCell>
+                        <TableCell>
                           <button
                             onClick={() => handleToggleRule(r)}
                             className={`rounded-full px-3 py-1 text-xs font-bold ${
@@ -874,8 +860,8 @@ export default function AdminMatchingPage() {
                           >
                             {r.enabled ? 'مفعلة' : 'معطلة'}
                           </button>
-                        </td>
-                        <td className="p-2.5">
+                        </TableCell>
+                        <TableCell>
                           <button
                             onClick={() => handleDeleteRule(r.id, r.key)}
                             className="rounded-lg p-1.5 text-danger-text hover:bg-danger-bg"
@@ -883,11 +869,11 @@ export default function AdminMatchingPage() {
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </Card>
 
@@ -928,13 +914,10 @@ export default function AdminMatchingPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-fg-primary mb-1">
-                    الفئة:
-                  </label>
-                  <select
+                  <Select
+                    label="الفئة:"
                     value={newRuleCategory}
                     onChange={(e) => setNewRuleCategory(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
                   >
                     <option value="SERVICE">SERVICE</option>
                     <option value="NICHE">NICHE</option>
@@ -945,16 +928,13 @@ export default function AdminMatchingPage() {
                     <option value="FRESHNESS">FRESHNESS</option>
                     <option value="PREFERENCE">PREFERENCE</option>
                     <option value="PERFORMANCE">PERFORMANCE</option>
-                  </select>
+                  </Select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-fg-primary mb-1">
-                    الحقل الشرطي:
-                  </label>
-                  <select
+                  <Select
+                    label="الحقل الشرطي:"
                     value={newRuleField}
                     onChange={(e) => setNewRuleField(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
                   >
                     <option value="matchedPrimaryService">matchedPrimaryService</option>
                     <option value="leadOpportunityScore">leadOpportunityScore</option>
@@ -962,23 +942,20 @@ export default function AdminMatchingPage() {
                     <option value="hasPriorityPreferenceMatch">hasPriorityPreferenceMatch</option>
                     <option value="locationMatchTier">locationMatchTier</option>
                     <option value="budgetMatchTier">budgetMatchTier</option>
-                  </select>
+                  </Select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-fg-primary mb-1">
-                    المعامل:
-                  </label>
-                  <select
+                  <Select
+                    label="المعامل:"
                     value={newRuleOperator}
                     onChange={(e) => setNewRuleOperator(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
                   >
                     <option value="eq">eq (يساوي)</option>
                     <option value="neq">neq (لا يساوي)</option>
                     <option value="gte">gte (أكبر أو يساوي)</option>
                     <option value="gt">gt (أكبر من)</option>
                     <option value="lte">lte (أصغر أو يساوي)</option>
-                  </select>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-fg-primary mb-1">
@@ -998,7 +975,7 @@ export default function AdminMatchingPage() {
                       required
                       value={newRulePoints}
                       onChange={(e) => setNewRulePoints(Number(e.target.value))}
-                      className="w-24 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-bold font-mono tabular-nums text-fg-primary"
+                      className="w-24 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-bold tabular-nums text-fg-primary"
                       placeholder="+5"
                     />
                   </div>
@@ -1027,10 +1004,8 @@ export default function AdminMatchingPage() {
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold text-fg-primary mb-1">
-                    نمط مطابقة الخدمات المتعددة:
-                  </label>
-                  <select
+                  <Select
+                    label="نمط مطابقة الخدمات المتعددة:"
                     value={config.serviceMatchMode}
                     onChange={(e) =>
                       setConfig({
@@ -1038,18 +1013,15 @@ export default function AdminMatchingPage() {
                         serviceMatchMode: e.target.value as MatchingConfigState['serviceMatchMode'],
                       })
                     }
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     <option value="ALL_REQUIRED">ALL_REQUIRED (يجب دعم جميع خدمات العميل المطلوبة)</option>
                     <option value="ANY_REQUIRED">ANY_REQUIRED (يكفي دعم خدمة واحدة من المطلوبة)</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-fg-primary mb-1">
-                    سياسة العملاء قيد المراجعة:
-                  </label>
-                  <select
+                  <Select
+                    label="سياسة العملاء قيد المراجعة:"
                     value={config.requiresVerificationPolicy}
                     onChange={(e) =>
                       setConfig({
@@ -1058,7 +1030,6 @@ export default function AdminMatchingPage() {
                           .value as MatchingConfigState['requiresVerificationPolicy'],
                       })
                     }
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     <option value="EXCLUDE">EXCLUDE (استبعاد صارم من المطابقة)</option>
                     <option value="VERIFIED_DEVELOPERS_ONLY">
@@ -1067,14 +1038,12 @@ export default function AdminMatchingPage() {
                     <option value="INCLUDE_WITH_WARNING">
                       INCLUDE_WITH_WARNING (السماح مع تنبيه وتحذير)
                     </option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-fg-primary mb-1">
-                    سياسة الموقع الجغرافي غير المعروف:
-                  </label>
-                  <select
+                  <Select
+                    label="سياسة الموقع الجغرافي غير المعروف:"
                     value={config.unknownLocationPolicy}
                     onChange={(e) =>
                       setConfig({
@@ -1083,19 +1052,16 @@ export default function AdminMatchingPage() {
                           .value as MatchingConfigState['unknownLocationPolicy'],
                       })
                     }
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     <option value="ALLOW_WITH_PENALTY">ALLOW_WITH_PENALTY (السماح مع خصم نقاط)</option>
                     <option value="REQUIRE_VERIFICATION">REQUIRE_VERIFICATION (يشترط التوثيق)</option>
                     <option value="FAIL">FAIL (رفض واستبعاد فوري)</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-fg-primary mb-1">
-                    سياسة الميزانية غير المحددة:
-                  </label>
-                  <select
+                  <Select
+                    label="سياسة الميزانية غير المحددة:"
                     value={config.unknownBudgetPolicy}
                     onChange={(e) =>
                       setConfig({
@@ -1104,12 +1070,11 @@ export default function AdminMatchingPage() {
                           .value as MatchingConfigState['unknownBudgetPolicy'],
                       })
                     }
-                    className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-xs font-semibold text-fg-primary"
                   >
                     <option value="ALLOW_WITH_PENALTY">ALLOW_WITH_PENALTY (السماح مع خصم نقاط)</option>
                     <option value="REQUIRE_VERIFICATION">REQUIRE_VERIFICATION (يشترط التوثيق)</option>
                     <option value="FAIL">FAIL (رفض واستبعاد فوري)</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
 

@@ -3,12 +3,20 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { StatTile } from '@/components/domain/StatTile';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
+import { Banner } from '@/components/ui/Banner';
+import { Tabs, TabItem } from '@/components/ui/Tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Select } from '@/components/ui/Select';
+import { Input } from '@/components/ui/Input';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
+import { fmtNumber } from '@/lib/format';
 import {
   Activity,
   AlertTriangle,
@@ -557,30 +565,48 @@ export default function AdminSourcesPage() {
     }
   }
 
+  const sourceTabs: TabItem[] = [
+    {
+      id: 'sources',
+      label: `${t('tabSources')} (${sources.length})`,
+      icon: <Database className="h-4 w-4" />,
+    },
+    {
+      id: 'jobs',
+      label: `${t('tabJobs')} (${jobs.length})`,
+      icon: <Clock className="h-4 w-4" />,
+    },
+    {
+      id: 'deadletter',
+      label: `${t('tabDeadletter')} (${deadLetters.length})`,
+      icon: <ShieldAlert className="h-4 w-4" />,
+    },
+    {
+      id: 'supply',
+      label: `${t('tabSupply')} (${alerts.length})`,
+      icon: <Activity className="h-4 w-4" />,
+    },
+  ];
+
   return (
     <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       <div className="space-y-6">
-        {/* Header */}
-        <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
-          <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-            <div>
-              <h1 className="text-xl font-extrabold text-fg-primary">
-                {t('title')}
-              </h1>
-              <p className="mt-1 text-xs text-fg-secondary">
-                {t('desc')}
-              </p>
-            </div>
-
+        {/* Template Standard PageHeader */}
+        <PageHeader
+          title={t('title')}
+          description={t('desc')}
+          breadcrumbs={[
+            { label: t('title') },
+          ]}
+          actions={
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={() => setShowCreateModal(true)}
-                className="gap-1.5 text-xs"
+                startIcon={<Plus className="h-4 w-4 text-brand rtl:-scale-x-100" />}
               >
-                <Plus className="h-4 w-4 text-brand rtl:-scale-x-100" />
-                <span>{t('btnAddSource')}</span>
+                {t('btnAddSource')}
               </Button>
 
               <Button
@@ -588,14 +614,11 @@ export default function AdminSourcesPage() {
                 size="sm"
                 onClick={handleTriggerReplenishment}
                 disabled={actionLoading === 'trigger-replenishment'}
-                className="gap-1.5 text-xs"
+                startIcon={<TrendingUp className="h-4 w-4 rtl:-scale-x-100" />}
               >
-                <TrendingUp className="h-4 w-4 rtl:-scale-x-100" />
-                <span>
-                  {actionLoading === 'trigger-replenishment'
-                    ? t('btnReplenishing')
-                    : t('btnReplenish')}
-                </span>
+                {actionLoading === 'trigger-replenishment'
+                  ? t('btnReplenishing')
+                  : t('btnReplenish')}
               </Button>
 
               <Button
@@ -603,132 +626,60 @@ export default function AdminSourcesPage() {
                 size="sm"
                 onClick={loadAllData}
                 disabled={loading}
-                className="gap-1.5 text-xs"
+                startIcon={<RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />}
               >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                <span>{t('btnRefresh')}</span>
+                {t('btnRefresh')}
               </Button>
             </div>
-          </div>
-        </Card>
+          }
+        />
 
-        {/* KPI Summary Cards */}
+        {/* Standard Design System StatTiles */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
-            <span className="text-xs font-bold text-fg-secondary">{t('kpiHealthy')}</span>
-            <p className="mt-1 text-xl font-extrabold text-brand font-mono tabular-nums">
-              {summary.healthySources ?? 0} / {summary.totalSources ?? sources.length}
-            </p>
-          </Card>
-          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
-            <span className="text-xs font-bold text-fg-secondary">{t('kpiNotConfigured')}</span>
-            <p className="mt-1 text-xl font-extrabold text-brand font-mono tabular-nums">
-              {summary.notConfiguredSources ?? 0}
-            </p>
-          </Card>
-          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
-            <span className="text-xs font-bold text-fg-secondary">{t('kpiTotalJobs')}</span>
-            <p className="mt-1 text-xl font-extrabold text-fg-primary font-mono tabular-nums">
-              {summary.totalJobs ?? jobs.length}
-            </p>
-          </Card>
-          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
-            <span className="text-xs font-bold text-fg-secondary">{t('kpiCompletedJobs')}</span>
-            <p className="mt-1 text-xl font-extrabold text-brand font-mono tabular-nums">
-              {summary.completedJobs ?? 0}
-            </p>
-          </Card>
-          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
-            <span className="text-xs font-bold text-fg-secondary">{t('kpiDeadLetter')}</span>
-            <p className="mt-1 text-xl font-extrabold text-warning-text font-mono tabular-nums">
-              {summary.unresolvedDeadLetters ?? deadLetters.length}
-            </p>
-          </Card>
-          <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
-            <span className="text-xs font-bold text-fg-secondary">{t('kpiActiveAlerts')}</span>
-            <p className="mt-1 text-xl font-extrabold text-danger-text font-mono tabular-nums">
-              {summary.activeAlertsCount ?? alerts.length}
-            </p>
-          </Card>
+          <StatTile
+            label={t('kpiHealthy')}
+            value={`${summary.healthySources ?? 0} / ${summary.totalSources ?? sources.length}`}
+          />
+          <StatTile
+            label={t('kpiNotConfigured')}
+            value={summary.notConfiguredSources ?? 0}
+          />
+          <StatTile
+            label={t('kpiTotalJobs')}
+            value={summary.totalJobs ?? jobs.length}
+          />
+          <StatTile
+            label={t('kpiCompletedJobs')}
+            value={summary.completedJobs ?? 0}
+          />
+          <StatTile
+            label={t('kpiDeadLetter')}
+            value={summary.unresolvedDeadLetters ?? deadLetters.length}
+            isOutOfRange={(summary.unresolvedDeadLetters ?? deadLetters.length) > 0}
+          />
+          <StatTile
+            label={t('kpiActiveAlerts')}
+            value={summary.activeAlertsCount ?? alerts.length}
+            isOutOfRange={(summary.activeAlertsCount ?? alerts.length) > 0}
+          />
         </div>
 
         {bannerMessage && (
-          <div
-            className={`rounded-xl border p-4 text-xs font-bold ${
-              bannerMessage.type === 'success'
-                ? 'border-line-brand bg-brand-soft text-brand'
-                : 'border-danger-border bg-danger-bg text-danger-text'
-            }`}
+          <Banner
+            variant={bannerMessage.type === 'success' ? 'info' : 'danger'}
+            onClose={() => setBannerMessage(null)}
           >
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                {bannerMessage.type === 'success' ? (
-                  <CheckCircle2 className="h-4 w-4 text-brand" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4 text-danger-text" />
-                )}
-                {bannerMessage.text}
-              </span>
-              <button
-                onClick={() => setBannerMessage(null)}
-                className="text-fg-secondary hover:text-fg-primary"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
+            {bannerMessage.text}
+          </Banner>
         )}
 
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 border-b border-line pb-3">
-          <button
-            onClick={() => setActiveTab('sources')}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
-              activeTab === 'sources'
-                ? 'bg-brand text-fg-inverted shadow-xs'
-                : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
-            }`}
-          >
-            <Database className="h-4 w-4" />
-            <span>{t('tabSources')} ({sources.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('jobs')}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
-              activeTab === 'jobs'
-                ? 'bg-brand text-fg-inverted shadow-xs'
-                : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
-            }`}
-          >
-            <Clock className="h-4 w-4" />
-            <span>{t('tabJobs')} ({jobs.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('deadletter')}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
-              activeTab === 'deadletter'
-                ? 'bg-brand text-fg-inverted shadow-xs'
-                : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
-            }`}
-          >
-            <ShieldAlert className="h-4 w-4" />
-            <span>{t('tabDeadletter')} ({deadLetters.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('supply')}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
-              activeTab === 'supply'
-                ? 'bg-brand text-fg-inverted shadow-xs'
-                : 'border border-line bg-surface text-fg-secondary hover:bg-subtle'
-            }`}
-          >
-            <Activity className="h-4 w-4" />
-            <span>{t('tabSupply')} ({alerts.length})</span>
-          </button>
-        </div>
+        {/* Standard Design System Segmented Tabs */}
+        <Tabs
+          variant="segmented"
+          tabs={sourceTabs}
+          activeTab={activeTab}
+          onChange={(id) => setActiveTab(id as any)}
+        />
 
         {loading ? (
           <div className="space-y-4">
@@ -755,17 +706,17 @@ export default function AdminSourcesPage() {
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="rounded bg-subtle px-2.5 py-0.5 font-mono text-xs font-bold text-fg-primary">
+                        <span className="rounded bg-subtle px-2.5 py-0.5 text-xs font-bold text-fg-primary">
                           {src.collectorVersion || src.type}
                         </span>
-                        <span className="rounded bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand font-mono tabular-nums">
+                        <span className="rounded bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand tabular-nums">
                           {t('priorityPrefix', { priority: src.priority })}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         {renderHealthBadge(src.healthStatus)}
                         {src.circuitState !== 'CLOSED' && (
-                          <span className="rounded-full bg-danger-fill px-2 py-0.5 text-xs font-extrabold text-fg-inverted">
+                          <span className="rounded-full border border-danger-border bg-danger-bg px-2 py-0.5 text-xs font-extrabold text-danger-text">
                             Circuit: {src.circuitState}
                           </span>
                         )}
@@ -774,34 +725,38 @@ export default function AdminSourcesPage() {
 
                     <h2 className="mt-3 flex items-center gap-2 text-base font-extrabold text-fg-primary">
                       <Database className="h-4 w-4 text-brand" />
-                      <span>{src.name}</span>
+                      <span><bdi dir="auto">{src.name}</bdi></span>
                     </h2>
-                    <p className="mt-1 text-xs text-fg-secondary">{src.description}</p>
+                    {src.description && (
+                      <p className="mt-1 text-xs text-fg-secondary">
+                        <bdi dir="auto">{src.description}</bdi>
+                      </p>
+                    )}
 
                     {/* Funnel & Quality Metrics */}
                     {src.funnelStats && (
                       <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl bg-subtle p-3 text-center text-xs">
                         <div>
                           <span className="block text-fg-muted">{t('metricFetched')}</span>
-                          <span className="font-extrabold text-fg-primary font-mono tabular-nums">
+                          <span className="font-extrabold text-fg-primary tabular-nums">
                             {src.funnelStats.fetched}
                           </span>
                         </div>
                         <div>
                           <span className="block text-fg-muted">{t('metricAccepted')}</span>
-                          <span className="font-extrabold text-brand font-mono tabular-nums">
+                          <span className="font-extrabold text-brand tabular-nums">
                             {src.funnelStats.accepted}
                           </span>
                         </div>
                         <div>
                           <span className="block text-fg-muted">{t('metricDuplicate', { rate: src.rates?.duplicateRate ?? 0 })}</span>
-                          <span className="font-extrabold text-warning-text font-mono tabular-nums">
+                          <span className="font-extrabold text-warning-text tabular-nums">
                             {src.funnelStats.duplicate}
                           </span>
                         </div>
                         <div>
                           <span className="block text-fg-muted">{t('metricSaleable')}</span>
-                          <span className="font-extrabold text-brand font-mono tabular-nums">
+                          <span className="font-extrabold text-brand tabular-nums">
                             {src.funnelStats.saleable}
                           </span>
                         </div>
@@ -820,7 +775,7 @@ export default function AdminSourcesPage() {
                       </span>
                       <span>
                         {t('costPerLeadLabel')}{' '}
-                        <strong className="text-fg-primary font-mono tabular-nums">
+                        <strong className="text-fg-primary tabular-nums ltr-iso">
                           {src.economics?.costPerSaleableLead.status === 'OK' &&
                           src.economics.costPerSaleableLead.value !== null
                             ? `${src.economics.costPerSaleableLead.value} EGP`
@@ -831,11 +786,11 @@ export default function AdminSourcesPage() {
                   </div>
 
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-xs">
-                    <div className="text-xs text-fg-muted font-mono tabular-nums">
+                    <div className="text-xs text-fg-muted tabular-nums">
                       {t('lastSuccessLabel')}{' '}
                       {src.lastSuccessAt
-                        ? new Date(src.lastSuccessAt).toLocaleDateString()
-                        : '—'}{' '}
+                        ? new Date(src.lastSuccessAt).toLocaleDateString('en-US')
+                        : '-'}{' '}
                       | {t('avgDurationLabel')} {src.averageDurationMs || 0}ms
                     </div>
 
@@ -913,113 +868,115 @@ export default function AdminSourcesPage() {
               </h2>
 
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <select
-                  value={jobStatusFilter}
-                  onChange={(e) => setJobStatusFilter(e.target.value)}
-                  className="rounded-lg border border-line bg-surface px-3 py-1.5 font-bold text-fg-primary"
-                >
-                  <option value="">كل الحالات</option>
-                  <option value="COMPLETED">COMPLETED</option>
-                  <option value="PARTIALLY_COMPLETED">PARTIALLY_COMPLETED</option>
-                  <option value="FAILED">FAILED</option>
-                  <option value="RUNNING">RUNNING</option>
-                  <option value="CANCELLED">CANCELLED</option>
-                </select>
+                <div className="w-36">
+                  <Select
+                    value={jobStatusFilter}
+                    onChange={(e) => setJobStatusFilter(e.target.value)}
+                  >
+                    <option value="">كل الحالات</option>
+                    <option value="COMPLETED">COMPLETED</option>
+                    <option value="PARTIALLY_COMPLETED">PARTIALLY_COMPLETED</option>
+                    <option value="FAILED">FAILED</option>
+                    <option value="RUNNING">RUNNING</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                  </Select>
+                </div>
 
-                <select
-                  value={jobSourceFilter}
-                  onChange={(e) => setJobSourceFilter(e.target.value)}
-                  className="rounded-lg border border-line bg-surface px-3 py-1.5 font-bold text-fg-primary"
-                >
-                  <option value="">كل المصادر</option>
-                  {sources.map((s) => (
-                    <option key={s.id} value={s.name}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="w-36">
+                  <Select
+                    value={jobSourceFilter}
+                    onChange={(e) => setJobSourceFilter(e.target.value)}
+                  >
+                    <option value="">كل المصادر</option>
+                    {sources.map((s) => (
+                      <option key={s.id} value={s.name}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-start text-xs">
-                <thead>
-                  <tr className="border-b border-line text-fg-secondary">
-                    <th className="py-2.5 px-3 text-start">{t('thSourceVersion')}</th>
-                    <th className="py-2.5 px-3 text-start">{t('thType')}</th>
-                    <th className="py-2.5 px-3 text-start">{t('thStatus')}</th>
-                    <th className="py-2.5 px-3 text-start">{t('thDiscovered')}</th>
-                    <th className="py-2.5 px-3 text-start">{t('thNewUpdated')}</th>
-                    <th className="py-2.5 px-3 text-start">{t('thDuplicate')}</th>
-                    <th className="py-2.5 px-3 text-start">{t('thInvalid')}</th>
-                    <th className="py-2.5 px-3 text-start">{t('thSaleable')}</th>
-                    <th className="py-2.5 px-3 text-start">{t('thDuration')}</th>
-                    <th className="py-2.5 px-3 text-start">{t('thDate')}</th>
-                    <th className="py-2.5 px-3 text-start">{t('thActions')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line font-semibold">
-                  {jobs.map((job) => (
-                    <tr key={job.id} className="hover:bg-subtle">
-                      <td className="py-3 px-3">
-                        <span className="block font-bold text-fg-primary">{job.sourceName}</span>
-                        <span className="font-mono text-xs text-fg-muted">
-                          {job.collectorVersion || 'v1'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 font-mono text-xs text-fg-secondary">
-                        {job.triggerType || 'MANUAL'}
-                      </td>
-                      <td className="py-3 px-3">{renderJobStatusBadge(job.status)}</td>
-                      <td className="py-3 px-3 font-mono tabular-nums">
-                        {job.discoveredCount || job.totalRecords} /{' '}
-                        {job.fetchedCount || job.totalRecords}
-                      </td>
-                      <td className="py-3 px-3 text-brand font-mono tabular-nums">
-                        {job.validCount}
-                      </td>
-                      <td className="py-3 px-3 text-warning-text font-mono tabular-nums">
-                        {job.duplicateCount} / {job.conflictCount || 0}
-                      </td>
-                      <td className="py-3 px-3 text-danger-text font-mono tabular-nums">
-                        {job.invalidCount} / {job.failedCount || 0}
-                      </td>
-                      <td className="py-3 px-3 font-bold text-brand font-mono tabular-nums">
-                        {job.saleableCount || 0}
-                      </td>
-                      <td className="py-3 px-3 font-mono text-fg-secondary">
-                        {job.durationMs ? `${job.durationMs}ms` : '—'}
-                      </td>
-                      <td className="py-3 px-3 text-fg-secondary font-mono tabular-nums">
-                        {new Date(job.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="py-3 px-3">
-                        <div className="flex items-center gap-1.5">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('thSourceVersion')}</TableHead>
+                  <TableHead>{t('thType')}</TableHead>
+                  <TableHead>{t('thStatus')}</TableHead>
+                  <TableHead>{t('thDiscovered')}</TableHead>
+                  <TableHead>{t('thNewUpdated')}</TableHead>
+                  <TableHead>{t('thDuplicate')}</TableHead>
+                  <TableHead>{t('thInvalid')}</TableHead>
+                  <TableHead>{t('thSaleable')}</TableHead>
+                  <TableHead>{t('thDuration')}</TableHead>
+                  <TableHead>{t('thDate')}</TableHead>
+                  <TableHead>{t('thActions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {jobs.map((job) => (
+                  <TableRow key={job.id}>
+                    <TableCell>
+                      <span className="block font-bold text-fg-primary">{job.sourceName}</span>
+                      <span className="text-xs text-fg-muted">
+                        {job.collectorVersion || 'v1'}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-xs text-fg-secondary">
+                      {job.triggerType || 'MANUAL'}
+                    </TableCell>
+                    <TableCell>{renderJobStatusBadge(job.status)}</TableCell>
+                    <TableCell className="tabular-nums">
+                      {job.discoveredCount || job.totalRecords} /{' '}
+                      {job.fetchedCount || job.totalRecords}
+                    </TableCell>
+                    <TableCell className="text-brand tabular-nums">
+                      {job.validCount}
+                    </TableCell>
+                    <TableCell className="text-warning-text tabular-nums">
+                      {job.duplicateCount} / {job.conflictCount || 0}
+                    </TableCell>
+                    <TableCell className="text-danger-text tabular-nums">
+                      {job.invalidCount} / {job.failedCount || 0}
+                    </TableCell>
+                    <TableCell className="font-bold text-brand tabular-nums">
+                      {job.saleableCount || 0}
+                    </TableCell>
+                    <TableCell className="text-fg-secondary tabular-nums">
+                      {job.durationMs ? `${job.durationMs}ms` : '-'}
+                    </TableCell>
+                    <TableCell className="text-fg-secondary tabular-nums">
+                      {new Date(job.createdAt).toLocaleDateString('en-US')}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleInspectJob(job.id)}
+                          className="gap-1 text-xs"
+                        >
+                          <Eye className="h-3 w-3" />
+                          <span>{t('btnViewDetails')}</span>
+                        </Button>
+                        {(job.status === 'RUNNING' || job.status === 'PROCESSING') && (
                           <Button
-                            variant="secondary"
+                            variant="danger"
                             size="sm"
-                            onClick={() => handleInspectJob(job.id)}
+                            onClick={() => handleCancelJob(job.id)}
                             className="gap-1 text-xs"
                           >
-                            <Eye className="h-3 w-3" />
-                            <span>{t('btnViewDetails')}</span>
+                            <XCircle className="h-3 w-3" />
+                            <span>إلغاء</span>
                           </Button>
-                          {(job.status === 'RUNNING' || job.status === 'PROCESSING') && (
-                            <button
-                              onClick={() => handleCancelJob(job.id)}
-                              className="inline-flex items-center gap-1 rounded-lg bg-danger-bg px-2.5 py-1 text-xs font-bold text-danger-text hover:opacity-90"
-                            >
-                              <XCircle className="h-3 w-3" />
-                              <span>إلغاء</span>
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </Card>
         ) : activeTab === 'deadletter' ? (
           <Card className="space-y-4 rounded-xl border border-line bg-surface p-6 shadow-xs">
@@ -1033,96 +990,100 @@ export default function AdminSourcesPage() {
                 </p>
               </div>
 
-              <select
-                value={dlStatusFilter}
-                onChange={(e) => setDlStatusFilter(e.target.value)}
-                className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-bold text-fg-primary"
-              >
-                <option value="">كل الحالات</option>
-                <option value="DEAD_LETTER">معلق (DEAD_LETTER)</option>
-                <option value="RETRIED_RESOLVED">تمت إعادة المحاولة والحل (RETRIED_RESOLVED)</option>
-                <option value="RETRIED_FAILED">فشلت إعادة المحاولة (RETRIED_FAILED)</option>
-                <option value="PERMANENTLY_INVALID">غير صالح نهائياً (PERMANENTLY_INVALID)</option>
-              </select>
+              <div className="w-40">
+                <Select
+                  value={dlStatusFilter}
+                  onChange={(e) => setDlStatusFilter(e.target.value)}
+                >
+                  <option value="">كل الحالات</option>
+                  <option value="DEAD_LETTER">DEAD_LETTER</option>
+                  <option value="RETRIED_RESOLVED">RETRIED_RESOLVED</option>
+                  <option value="RETRIED_FAILED">RETRIED_FAILED</option>
+                  <option value="PERMANENTLY_INVALID">PERMANENTLY_INVALID</option>
+                </Select>
+              </div>
             </div>
 
             {deadLetters.length === 0 ? (
               <div className="rounded-xl border border-line bg-subtle p-8 text-center text-xs font-bold text-fg-secondary">
-                لا توجد سجلات معلقة في طابور Dead-Letter حالياً.
+                لا توجد سجلات معلقة حالياً.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-start text-xs">
-                  <thead>
-                    <tr className="border-b border-line text-fg-secondary">
-                      <th className="py-2.5 px-3 text-start">المصدر</th>
-                      <th className="py-2.5 px-3 text-start">المرحلة / رمز الخطأ</th>
-                      <th className="py-2.5 px-3 text-start">سبب الفشل</th>
-                      <th className="py-2.5 px-3 text-start">المحاولات</th>
-                      <th className="py-2.5 px-3 text-start">الحالة</th>
-                      <th className="py-2.5 px-3 text-start">آخر فشل</th>
-                      <th className="py-2.5 px-3 text-start">الإجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line font-semibold">
-                    {deadLetters.map((dl) => (
-                      <tr key={dl.id} className="hover:bg-subtle">
-                        <td className="py-3 px-3">
-                          <span className="block font-bold text-fg-primary">{dl.sourceName}</span>
-                          <span className="font-mono text-xs text-fg-muted">
-                            {dl.externalId || dl.collectorVersion}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 font-mono text-xs text-danger-text">
-                          {dl.failureStage} / {dl.errorCode}
-                        </td>
-                        <td className="py-3 px-3 text-fg-primary">{dl.errorMessage}</td>
-                        <td className="py-3 px-3 font-mono tabular-nums">
-                          {dl.retryCount} / {dl.maxRetries}
-                        </td>
-                        <td className="py-3 px-3">
-                          <span
-                            className={`rounded px-2 py-0.5 text-xs font-bold ${
-                              dl.status === 'DEAD_LETTER'
-                                ? 'bg-warning-bg text-warning-text'
-                                : dl.status === 'RETRIED_RESOLVED' || dl.status === 'RESOLVED' || dl.status === 'RETRIED'
-                                  ? 'bg-brand-soft text-brand'
-                                  : dl.status === 'RETRIED_FAILED'
-                                    ? 'bg-danger-bg text-danger-text'
-                                    : 'bg-subtle text-fg-primary'
-                            }`}
-                          >
-                            {dl.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-fg-secondary font-mono tabular-nums">
-                          {new Date(dl.lastFailedAt).toLocaleString('ar-EG')}
-                        </td>
-                        <td className="py-3 px-3">
-                          {dl.status === 'DEAD_LETTER' && (
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                onClick={() => handleDeadLetterAction(dl.id, 'RETRY')}
-                                disabled={actionLoading === `dl-${dl.id}-RETRY`}
-                                className="rounded-lg bg-brand px-2.5 py-1 text-xs font-bold text-fg-inverted hover:bg-brand-hover"
-                              >
-                                إعادة المحاولة
-                              </button>
-                              <button
-                                onClick={() => handleDeadLetterAction(dl.id, 'MARK_INVALID')}
-                                disabled={actionLoading === `dl-${dl.id}-MARK_INVALID`}
-                                className="rounded-lg border border-line px-2.5 py-1 text-xs font-bold text-fg-primary hover:bg-subtle"
-                              >
-                                غير صالح
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>المصدر</TableHead>
+                    <TableHead>المرحلة / رمز الخطأ</TableHead>
+                    <TableHead>سبب الفشل</TableHead>
+                    <TableHead>المحاولات</TableHead>
+                    <TableHead>الحالة</TableHead>
+                    <TableHead>آخر فشل</TableHead>
+                    <TableHead>الإجراءات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {deadLetters.map((dl) => (
+                    <TableRow key={dl.id}>
+                      <TableCell>
+                        <span className="block font-bold text-fg-primary">{dl.sourceName}</span>
+                        <span className="text-xs text-fg-muted">
+                          {dl.externalId || dl.collectorVersion}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-xs text-danger-text">
+                        {dl.failureStage} / {dl.errorCode}
+                      </TableCell>
+                      <TableCell className="text-fg-primary">{dl.errorMessage}</TableCell>
+                      <TableCell className="tabular-nums">
+                        {dl.retryCount} / {dl.maxRetries}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            dl.status === 'DEAD_LETTER'
+                              ? 'neutral'
+                              : dl.status === 'RETRIED_RESOLVED' || dl.status === 'RESOLVED' || dl.status === 'RETRIED'
+                                ? 'brand'
+                                : dl.status === 'RETRIED_FAILED'
+                                  ? 'danger'
+                                  : 'neutral'
+                          }
+                          className="text-xs"
+                        >
+                          {dl.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-fg-secondary tabular-nums">
+                        {new Date(dl.lastFailedAt).toLocaleString('en-US')}
+                      </TableCell>
+                      <TableCell>
+                        {dl.status === 'DEAD_LETTER' && (
+                          <div className="flex items-center gap-1.5">
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => handleDeadLetterAction(dl.id, 'RETRY')}
+                              disabled={actionLoading === `dl-${dl.id}-RETRY`}
+                              className="text-xs"
+                            >
+                              إعادة المحاولة
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleDeadLetterAction(dl.id, 'MARK_INVALID')}
+                              disabled={actionLoading === `dl-${dl.id}-MARK_INVALID`}
+                              className="text-xs"
+                            >
+                              غير صالح
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </Card>
         ) : (
@@ -1148,12 +1109,12 @@ export default function AdminSourcesPage() {
                       }`}
                     >
                       <div>
-                        <span className="font-mono text-xs font-extrabold uppercase">
+                        <span className="text-xs font-extrabold">
                           [{alert.severity}] {alert.code}
                         </span>
                         <p className="mt-0.5 font-bold">{alert.message}</p>
                       </div>
-                      <span className="font-mono text-xs tabular-nums">
+                      <span className="text-xs tabular-nums">
                         القيمة: {alert.observedValue} (الحد: {alert.thresholdValue})
                       </span>
                     </div>
@@ -1174,49 +1135,49 @@ export default function AdminSourcesPage() {
                 </div>
               </div>
 
-              <div className="mt-4 overflow-x-auto">
-                <table className="w-full text-start text-xs">
-                  <thead>
-                    <tr className="border-b border-line text-fg-secondary">
-                      <th className="py-2.5 px-3 text-start">القطاع</th>
-                      <th className="py-2.5 px-3 text-start">المدينة / المحافظة</th>
-                      <th className="py-2.5 px-3 text-start">الخدمة المطلوبة</th>
-                      <th className="py-2.5 px-3 text-start">الحد الأدنى المطلوب</th>
-                      <th className="py-2.5 px-3 text-start">المتوفر حالياً</th>
-                      <th className="py-2.5 px-3 text-start">العجز</th>
-                      <th className="py-2.5 px-3 text-start">المصادر المرشحة للإمداد</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line font-semibold">
+              <div className="mt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>القطاع</TableHead>
+                      <TableHead>المدينة / المحافظة</TableHead>
+                      <TableHead>الخدمة المطلوبة</TableHead>
+                      <TableHead>الحد الأدنى المطلوب</TableHead>
+                      <TableHead>المتوفر حالياً</TableHead>
+                      <TableHead>العجز</TableHead>
+                      <TableHead>المصادر المرشحة للإمداد</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {replenishmentDecisions.map((d) => (
-                      <tr key={d.ruleId}>
-                        <td className="py-3 px-3 font-bold text-fg-primary">{d.category}</td>
-                        <td className="py-3 px-3">{d.city || d.governorate || 'كل المدن'}</td>
-                        <td className="py-3 px-3 font-mono text-xs">
+                      <TableRow key={d.ruleId}>
+                        <TableCell className="font-bold text-fg-primary">{d.category}</TableCell>
+                        <TableCell>{d.city || d.governorate || 'كل المدن'}</TableCell>
+                        <TableCell className="text-xs">
                           {d.requiredService || 'الكل'}
-                        </td>
-                        <td className="py-3 px-3 font-mono tabular-nums">{d.minRequired}</td>
-                        <td className="py-3 px-3 text-brand font-mono tabular-nums">{d.currentAvailable}</td>
-                        <td className="py-3 px-3">
+                        </TableCell>
+                        <TableCell className="tabular-nums">{d.minRequired}</TableCell>
+                        <TableCell className="text-brand tabular-nums">{d.currentAvailable}</TableCell>
+                        <TableCell>
                           {d.needsReplenishment ? (
-                            <span className="rounded bg-danger-bg px-2 py-0.5 font-bold text-danger-text font-mono tabular-nums">
+                            <Badge variant="neutral" className="bg-danger-bg text-danger-text tabular-nums">
                               عجز -{d.deficit}
-                            </span>
+                            </Badge>
                           ) : (
-                            <span className="rounded bg-brand-soft px-2 py-0.5 font-bold text-brand">
+                            <Badge variant="brand">
                               مكتمل
-                            </span>
+                            </Badge>
                           )}
-                        </td>
-                        <td className="py-3 px-3 text-xs text-fg-secondary">
+                        </TableCell>
+                        <TableCell className="text-xs text-fg-secondary">
                           {d.selectedSources.length > 0
                             ? d.selectedSources.map((s) => s.sourceName).join(' ، ')
-                            : '—'}
-                        </td>
-                      </tr>
+                            : '-'}
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </Card>
           </div>
@@ -1243,11 +1204,10 @@ export default function AdminSourcesPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-fg-primary">{t('collectorTypeLabel')}</label>
-              <select
+              <Select
+                label={t('collectorTypeLabel')}
                 value={newSourceForm.type}
                 onChange={(e) => setNewSourceForm({ ...newSourceForm, type: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs text-fg-primary"
               >
                 <option value="OPEN_DATA">OPEN_DATA</option>
                 <option value="DIRECTORY">DIRECTORY</option>
@@ -1255,7 +1215,7 @@ export default function AdminSourcesPage() {
                 <option value="WEBSITE">WEBSITE</option>
                 <option value="GOOGLE_MAPS">GOOGLE_MAPS</option>
                 <option value="MANUAL">MANUAL</option>
-              </select>
+              </Select>
             </div>
 
             <div>
@@ -1279,7 +1239,7 @@ export default function AdminSourcesPage() {
                   onChange={(e) =>
                     setNewSourceForm({ ...newSourceForm, priority: Number(e.target.value) })
                   }
-                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs tabular-nums text-fg-primary"
                 />
               </div>
               <div>
@@ -1295,7 +1255,7 @@ export default function AdminSourcesPage() {
                       scheduleIntervalMinutes: Number(e.target.value),
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs tabular-nums text-fg-primary"
                 />
               </div>
             </div>
@@ -1338,7 +1298,7 @@ export default function AdminSourcesPage() {
                   onChange={(e) =>
                     setEditForm({ ...editForm, priority: Number(e.target.value) })
                   }
-                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs tabular-nums text-fg-primary"
                 />
               </div>
               <div>
@@ -1351,7 +1311,7 @@ export default function AdminSourcesPage() {
                   onChange={(e) =>
                     setEditForm({ ...editForm, scheduleIntervalMinutes: e.target.value })
                   }
-                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs tabular-nums text-fg-primary"
                 />
               </div>
             </div>
@@ -1367,7 +1327,7 @@ export default function AdminSourcesPage() {
                   onChange={(e) =>
                     setEditForm({ ...editForm, maxRecordsPerRun: Number(e.target.value) })
                   }
-                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs tabular-nums text-fg-primary"
                 />
               </div>
               <div>
@@ -1378,7 +1338,7 @@ export default function AdminSourcesPage() {
                   onChange={(e) =>
                     setEditForm({ ...editForm, batchSize: Number(e.target.value) })
                   }
-                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono tabular-nums text-fg-primary"
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs tabular-nums text-fg-primary"
                 />
               </div>
             </div>
@@ -1415,20 +1375,20 @@ export default function AdminSourcesPage() {
               <div className="grid grid-cols-3 gap-3 text-xs">
                 <div className="rounded-lg bg-subtle p-3">
                   <span className="text-fg-muted">معرف المهمة</span>
-                  <p className="mt-1 font-mono font-bold text-fg-primary">
+                  <p className="mt-1 font-bold text-fg-primary">
                     {String(selectedJobDetail.id)}
                   </p>
                 </div>
                 <div className="rounded-lg bg-subtle p-3">
                   <span className="text-fg-muted">نسخة المجمّع والعقد</span>
-                  <p className="mt-1 font-mono font-bold text-fg-primary">
+                  <p className="mt-1 font-bold text-fg-primary">
                     {String(selectedJobDetail.collectorVersion || 'v1')} /{' '}
                     {String(selectedJobDetail.contractVersion || 'INGESTION_CONTRACT_V1')}
                   </p>
                 </div>
                 <div className="rounded-lg bg-subtle p-3">
                   <span className="text-fg-muted">نقطة الاستئناف</span>
-                  <p className="mt-1 font-mono font-bold text-fg-primary">
+                  <p className="mt-1 font-bold text-fg-primary">
                     {selectedJobDetail.checkpoint
                       ? `Offset: ${(selectedJobDetail.checkpoint as { offset?: number }).offset ?? 0}`
                       : 'لا يوجد'}
@@ -1447,44 +1407,42 @@ export default function AdminSourcesPage() {
                 <h4 className="text-xs font-extrabold text-fg-primary mb-2">
                   السجلات المعالجة داخل المهمة
                 </h4>
-                <div className="max-h-60 overflow-y-auto rounded-xl border border-line">
-                  <table className="w-full text-start text-xs">
-                    <thead className="bg-subtle text-fg-secondary">
-                      <tr>
-                        <th className="py-2 px-3 text-start">#</th>
-                        <th className="py-2 px-3 text-start">المعرف الخارجي</th>
-                        <th className="py-2 px-3 text-start">المرحلة</th>
-                        <th className="py-2 px-3 text-start">الحالة</th>
-                        <th className="py-2 px-3 text-start">ملاحظات</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-line">
-                      {Array.isArray(selectedJobDetail.records) &&
-                        (
-                          selectedJobDetail.records as {
-                            id: string;
-                            rowNumber: number;
-                            externalId?: string;
-                            lifecycleStage?: string;
-                            status: string;
-                            errorMessage?: string;
-                          }[]
-                        ).map((rec) => (
-                          <tr key={rec.id}>
-                            <td className="py-2 px-3 font-mono">{rec.rowNumber}</td>
-                            <td className="py-2 px-3 font-mono">{rec.externalId || '—'}</td>
-                            <td className="py-2 px-3 font-mono">
-                              {rec.lifecycleStage || rec.status}
-                            </td>
-                            <td className="py-2 px-3 font-bold">{rec.status}</td>
-                            <td className="py-2 px-3 text-fg-secondary">
-                              {rec.errorMessage || '—'}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
+                <Table containerClassName="max-h-60 overflow-y-auto">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>المعرف الخارجي</TableHead>
+                      <TableHead>المرحلة</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead>ملاحظات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.isArray(selectedJobDetail.records) &&
+                      (
+                        selectedJobDetail.records as {
+                          id: string;
+                          rowNumber: number;
+                          externalId?: string;
+                          lifecycleStage?: string;
+                          status: string;
+                          errorMessage?: string;
+                        }[]
+                      ).map((rec) => (
+                        <TableRow key={rec.id}>
+                          <TableCell className="tabular-nums">{rec.rowNumber}</TableCell>
+                          <TableCell>{rec.externalId || '-'}</TableCell>
+                          <TableCell>
+                            {rec.lifecycleStage || rec.status}
+                          </TableCell>
+                          <TableCell className="font-bold">{rec.status}</TableCell>
+                          <TableCell className="text-fg-secondary">
+                            {rec.errorMessage || '-'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
               </div>
             </div>
           )}

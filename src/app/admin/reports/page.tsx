@@ -3,11 +3,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { StatTile } from '@/components/domain/StatTile';
+import { BarList } from '@/components/ui/BarList';
+import { Banner } from '@/components/ui/Banner';
+import { Select } from '@/components/ui/Select';
+import { Input } from '@/components/ui/Input';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import {
   CATEGORY_LABELS_AR,
   CATEGORY_LABELS_EN,
@@ -16,6 +23,7 @@ import {
   PIPELINE_STATUS_LABELS,
   WEBSITE_STATUS_LABELS,
 } from '@/lib/constants';
+import { localizeCity } from '@/lib/taxonomy';
 import { AlertTriangle, BarChart3, ShieldAlert, ThumbsDown, ThumbsUp, Wrench, ArrowRight } from 'lucide-react';
 
 interface AdminEngagementItem {
@@ -111,6 +119,7 @@ const ENGAGEMENT_STATES = [
 
 export default function AdminReportsPage() {
   const t = useTranslations('adminReports');
+  const tCities = useTranslations('geo');
   const locale = useLocale();
   const [data, setData] = useState<ReportsPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -177,130 +186,92 @@ export default function AdminReportsPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
-            <h1 className="flex items-center gap-2 text-xl font-extrabold text-fg-primary">
-              <BarChart3 className="h-6 w-6 text-brand rtl:-scale-x-100" />
-              {t('title')}
-            </h1>
-            <p className="mt-1 text-xs text-fg-muted">
-              {t('desc')}
-            </p>
-          </Card>
+          <PageHeader
+            title={t('title')}
+            description={t('desc')}
+          />
 
           {msg && (
-            <div
-              className={`rounded-xl border p-4 text-xs font-bold ${
-                msg.type === 'success'
-                  ? 'border-line-brand bg-brand-soft text-brand'
-                  : 'border-danger-border bg-danger-bg text-danger-text'
-              }`}
+            <Banner
+              variant={msg.type === 'success' ? 'info' : 'danger'}
+              onClose={() => setMsg(null)}
             >
               {msg.text}
-            </div>
+            </Banner>
           )}
 
-          {/* 6 Required Rates */}
+          {/* 6 Required Rates via StatTile */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-            <Card className="rounded-xl border border-line-brand bg-brand-soft/50 p-4 text-center shadow-xs">
-              <span className="text-xs font-bold text-brand">Lead Success Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-brand tabular-nums ltr-iso font-mono">
-                {data.rates.leadSuccessRate}%
-              </p>
-              <span className="text-xs text-brand">{t('kpiSuccessRate')}</span>
-            </Card>
-
-            <Card className="rounded-xl border border-danger-border bg-danger-bg p-4 text-center shadow-xs">
-              <span className="text-xs font-bold text-danger-text">Invalid Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-danger-text tabular-nums ltr-iso font-mono">
-                {data.rates.invalidRate}%
-              </p>
-              <span className="text-xs text-danger-text">{t('kpiInvalidRate')}</span>
-            </Card>
-
-            <Card className="rounded-xl border border-line bg-surface p-4 text-center shadow-xs">
-              <span className="text-xs font-bold text-fg-secondary">Contact Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-fg-primary tabular-nums ltr-iso font-mono">
-                {data.rates.contactRate}%
-              </p>
-              <span className="text-xs text-fg-muted">{t('kpiContactRate')}</span>
-            </Card>
-
-            <Card className="rounded-xl border border-line bg-surface p-4 text-center shadow-xs">
-              <span className="text-xs font-bold text-fg-secondary">Reply Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-fg-secondary tabular-nums ltr-iso font-mono">
-                {data.rates.replyRate}%
-              </p>
-              <span className="text-xs text-fg-muted">{t('kpiReplyRate')}</span>
-            </Card>
-
-            <Card className="rounded-xl border border-line bg-surface p-4 text-center shadow-xs">
-              <span className="text-xs font-bold text-fg-secondary">Meeting Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-fg-secondary tabular-nums ltr-iso font-mono">
-                {data.rates.meetingRate}%
-              </p>
-              <span className="text-xs text-fg-muted">{t('kpiMeetingRate')}</span>
-            </Card>
-
-            <Card className="rounded-xl border border-line-brand bg-brand-soft/50 p-4 text-center shadow-xs">
-              <span className="text-xs font-bold text-brand">Won Rate</span>
-              <p className="mt-2 text-2xl font-extrabold text-brand tabular-nums ltr-iso font-mono">
-                {data.rates.wonRate}%
-              </p>
-              <span className="text-xs text-brand">{t('kpiWonRate')}</span>
-            </Card>
+            <StatTile
+              label={t('kpiSuccessRate')}
+              value={`${data.rates.leadSuccessRate}%`}
+            />
+            <StatTile
+              label={t('kpiInvalidRate')}
+              value={`${data.rates.invalidRate}%`}
+              isOutOfRange={data.rates.invalidRate > 15}
+              statusText={data.rates.invalidRate > 15 ? t('kpiInvalidRate') : undefined}
+            />
+            <StatTile
+              label={t('kpiContactRate')}
+              value={`${data.rates.contactRate}%`}
+            />
+            <StatTile
+              label={t('kpiReplyRate')}
+              value={`${data.rates.replyRate}%`}
+            />
+            <StatTile
+              label={t('kpiMeetingRate')}
+              value={`${data.rates.meetingRate}%`}
+            />
+            <StatTile
+              label={t('kpiWonRate')}
+              value={`${data.rates.wonRate}%`}
+            />
           </div>
 
           {/* Phase 6 Engagement Conversion Funnel & Won Projects Summary */}
           {data.engagementsOverview && (
             <div className="grid gap-6 lg:grid-cols-12">
-              <Card className="lg:col-span-8 rounded-xl border border-line bg-surface p-6 shadow-xs">
+              <Card className="lg:col-span-8 rounded-xl border border-line bg-surface p-6 shadow-xs space-y-4">
                 <h2 className="text-base font-extrabold text-fg-primary">
                   {t('funnelTitle')}
                 </h2>
-                <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-6 text-xs">
-                  {ENGAGEMENT_STATES.map((st) => {
+                <BarList
+                  items={ENGAGEMENT_STATES.map((st) => {
                     const count = data.engagementsOverview?.conversionFunnel[st] ?? 0;
-                    const badge =
-                      PIPELINE_STATUS_LABELS[st]?.badgeClass ||
-                      'bg-canvas text-fg-secondary border-line';
-                    return (
-                      <div
-                        key={st}
-                        className={`rounded-xl border p-3 text-center ${badge}`}
-                      >
-                        <div className="font-mono text-xs font-bold">{st}</div>
-                        <div className="mt-1 text-lg font-extrabold font-mono tabular-nums">{count}</div>
-                        <div className="text-xs">
-                          {locale === 'en'
-                            ? PIPELINE_STATUS_LABELS[st]?.labelEn || st
-                            : PIPELINE_STATUS_LABELS[st]?.labelAr || st}
-                        </div>
-                      </div>
-                    );
+                    const label =
+                      locale === 'en'
+                        ? PIPELINE_STATUS_LABELS[st]?.labelEn || st
+                        : PIPELINE_STATUS_LABELS[st]?.labelAr || st;
+                    return {
+                      label,
+                      value: count,
+                    };
                   })}
-                </div>
+                />
               </Card>
 
-              <Card className="lg:col-span-4 rounded-xl border border-line-brand bg-brand-soft/40 p-6 shadow-xs space-y-3">
+              <Card className="lg:col-span-4 rounded-xl border border-line-brand bg-brand-soft p-6 shadow-xs space-y-3">
                 <h2 className="text-base font-extrabold text-brand">
                   {t('wonSummaryTitle')}
                 </h2>
-                <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between">
+                <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between items-center">
                   <span className="font-bold text-fg-secondary">{t('wonClosedLabel')}</span>
-                  <strong className="text-brand text-base font-mono tabular-nums">
+                  <strong className="text-brand text-base tabular-nums">
                     {data.engagementsOverview.wonSummary.totalWon}
                   </strong>
                 </div>
-                <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between">
+                <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between items-center">
                   <span className="font-bold text-fg-secondary">{t('wonEstimatedValueLabel')}</span>
-                  <strong className="text-brand text-base font-mono tabular-nums">
-                    {data.engagementsOverview.wonSummary.totalEstimatedValue.toLocaleString()} EGP
+                  <strong className="text-brand text-base tabular-nums ltr-iso">
+                    {data.engagementsOverview.wonSummary.totalEstimatedValue.toLocaleString('en-US')} EGP
                   </strong>
                 </div>
-                <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between">
+                <div className="rounded-xl bg-surface p-3.5 border border-line text-xs flex justify-between items-center">
                   <span className="font-bold text-fg-secondary">{t('wonAverageValueLabel')}</span>
-                  <strong className="text-fg-primary font-mono tabular-nums">
-                    {data.engagementsOverview.wonSummary.averageEstimatedValue.toLocaleString()} EGP
+                  <strong className="text-fg-primary tabular-nums ltr-iso">
+                    {data.engagementsOverview.wonSummary.averageEstimatedValue.toLocaleString('en-US')} EGP
                   </strong>
                 </div>
               </Card>
@@ -309,41 +280,41 @@ export default function AdminReportsPage() {
 
           {/* Feedback Breakdown & Distributions */}
           <div className="grid gap-6 lg:grid-cols-12">
-            <Card className="lg:col-span-5 rounded-xl border border-line bg-surface p-6 shadow-xs">
+            <Card className="lg:col-span-5 rounded-xl border border-line bg-surface p-6 shadow-xs space-y-4">
               <h2 className="text-base font-extrabold text-fg-primary">
                 {t('feedbackTitle')}
               </h2>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-bold">
+              <div className="grid grid-cols-2 gap-3 text-xs font-bold">
                 <div className="flex items-center justify-between rounded-xl bg-brand-soft p-3 text-brand">
                   <span className="flex items-center gap-1.5">
                     <ThumbsUp className="h-4 w-4" />
                     {t('feedbackUseful')}
                   </span>
-                  <strong className="text-lg font-mono tabular-nums">{data.feedbackStats.usefulFeedbacks}</strong>
+                  <strong className="text-lg tabular-nums">{data.feedbackStats.usefulFeedbacks}</strong>
                 </div>
                 <div className="flex items-center justify-between rounded-xl bg-danger-bg p-3 text-danger-text">
                   <span className="flex items-center gap-1.5">
                     <ThumbsDown className="h-4 w-4" />
                     {t('feedbackNotUseful')}
                   </span>
-                  <strong className="text-lg font-mono tabular-nums">{data.feedbackStats.notUsefulFeedbacks}</strong>
+                  <strong className="text-lg tabular-nums">{data.feedbackStats.notUsefulFeedbacks}</strong>
                 </div>
               </div>
 
-              <h3 className="mt-5 text-xs font-extrabold text-fg-secondary">
+              <h3 className="text-xs font-extrabold text-fg-secondary pt-2 border-t border-line">
                 {t('feedbackNegativeReasons')}
               </h3>
-              <div className="mt-2 space-y-2 text-xs">
+              <div className="space-y-2 text-xs">
                 {Object.entries(FEEDBACK_REASON_LABELS).map(([code, labelAr]) => {
                   const count = data.feedbackStats.reasonsBreakdown[code] || 0;
                   const label = locale === 'en' ? (FEEDBACK_REASON_LABELS_EN[code] || code) : labelAr;
                   return (
                     <div
                       key={code}
-                      className="flex items-center justify-between rounded-lg bg-canvas px-3 py-2 font-semibold"
+                      className="flex items-center justify-between rounded-lg bg-subtle px-3 py-2 font-semibold"
                     >
                       <span>{label}</span>
-                      <span className="font-extrabold text-fg-primary font-mono tabular-nums">{count}</span>
+                      <span className="font-extrabold text-fg-primary tabular-nums">{count}</span>
                     </div>
                   );
                 })}
@@ -351,53 +322,38 @@ export default function AdminReportsPage() {
             </Card>
 
             <div className="lg:col-span-7 grid gap-6 sm:grid-cols-2">
-              <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
+              <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs space-y-4">
                 <h2 className="text-base font-extrabold text-fg-primary">
                   {t('categoryDistTitle')}
                 </h2>
-                <div className="mt-4 space-y-2 text-xs">
-                  {Object.entries(data.distributions.byCategory).map(([cat, count]) => (
-                    <div
-                      key={cat}
-                      className="flex items-center justify-between rounded-lg bg-canvas px-3 py-2 font-semibold"
-                    >
-                      <span>
-                        {locale === 'en' ? (CATEGORY_LABELS_EN[cat] || cat) : (CATEGORY_LABELS_AR[cat] || cat)}
-                      </span>
-                      <strong className="text-brand font-mono tabular-nums">{count}</strong>
-                    </div>
-                  ))}
-                </div>
+                <BarList
+                  items={Object.entries(data.distributions.byCategory).map(([cat, count]) => ({
+                    label: locale === 'en' ? (CATEGORY_LABELS_EN[cat] || cat) : (CATEGORY_LABELS_AR[cat] || cat),
+                    value: count,
+                  }))}
+                />
               </Card>
 
-              <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
+              <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs space-y-4">
                 <h2 className="text-base font-extrabold text-fg-primary">
                   {t('websiteDistTitle')}
                 </h2>
-                <div className="mt-4 space-y-2 text-xs">
-                  {Object.entries(data.distributions.byWebsiteStatus).map(([st, count]) => (
-                    <div
-                      key={st}
-                      className="flex items-center justify-between rounded-lg bg-brand-soft/60 px-3 py-2 font-bold text-brand"
-                    >
-                      <span>{locale === 'en' ? (WEBSITE_STATUS_LABELS[st]?.labelEn || st) : (WEBSITE_STATUS_LABELS[st]?.labelAr || st)}</span>
-                      <strong className="font-mono tabular-nums">{count}</strong>
-                    </div>
-                  ))}
-                </div>
+                <BarList
+                  items={Object.entries(data.distributions.byWebsiteStatus).map(([st, count]) => ({
+                    label: locale === 'en' ? (WEBSITE_STATUS_LABELS[st]?.labelEn || st) : (WEBSITE_STATUS_LABELS[st]?.labelAr || st),
+                    value: count,
+                  }))}
+                />
 
-                <h3 className="mt-5 text-xs font-extrabold text-fg-secondary">{t('topCitiesTitle')}</h3>
-                <div className="mt-2 space-y-1.5 text-xs">
-                  {Object.entries(data.distributions.byCity).map(([city, count]) => (
-                    <div
-                      key={city}
-                      className="flex items-center justify-between border-b border-line py-1.5 font-semibold"
-                    >
-                      <span>{city}</span>
-                      <strong className="font-mono tabular-nums">{count}</strong>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="pt-2 border-t border-line text-xs font-extrabold text-fg-secondary">
+                  {t('topCitiesTitle')}
+                </h3>
+                <BarList
+                  items={Object.entries(data.distributions.byCity).map(([city, count]) => ({
+                    label: localizeCity(city, tCities),
+                    value: count,
+                  }))}
+                />
               </Card>
             </div>
           </div>
@@ -410,48 +366,48 @@ export default function AdminReportsPage() {
                   <Wrench className="h-5 w-5 text-fg-secondary" />
                   {t('engagementsTitle')}
                 </h2>
-                <div className="mt-4 overflow-x-auto">
-                  <table className="w-full text-start text-xs">
-                    <thead>
-                      <tr className="border-b border-line text-fg-muted">
-                        <th className="py-2 px-2 text-start">{t('colLead')}</th>
-                        <th className="py-2 px-2 text-start">{t('colDev')}</th>
-                        <th className="py-2 px-2 text-start">{t('colType')}</th>
-                        <th className="py-2 px-2 text-start">{t('colStatus')}</th>
-                        <th className="py-2 px-2 text-start">{t('colOutcome')}</th>
-                        <th className="py-2 px-2 text-start">{t('colAction')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-line">
+                <div className="mt-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('colLead')}</TableHead>
+                        <TableHead>{t('colDev')}</TableHead>
+                        <TableHead>{t('colType')}</TableHead>
+                        <TableHead>{t('colStatus')}</TableHead>
+                        <TableHead>{t('colOutcome')}</TableHead>
+                        <TableHead>{t('colAction')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {data.engagementsOverview.engagements.map((eng) => (
-                        <tr key={eng.id} className="hover:bg-canvas">
-                          <td className="py-2.5 px-2 font-bold text-fg-primary">
-                            {eng.lead.businessName}
-                          </td>
-                          <td className="py-2.5 px-2 text-fg-secondary">
-                            {eng.developer.name}
-                          </td>
-                          <td className="py-2.5 px-2 font-mono text-xs">
+                        <TableRow key={eng.id}>
+                          <TableCell className="font-bold text-fg-primary">
+                            <bdi dir="auto">{eng.lead.businessName}</bdi>
+                          </TableCell>
+                          <TableCell className="text-fg-secondary">
+                            <bdi dir="auto">{eng.developer.name}</bdi>
+                          </TableCell>
+                          <TableCell className="text-xs">
                             {eng.lead.leadType}
-                          </td>
-                          <td className="py-2.5 px-2">
-                            <span
-                              className={`rounded-full border px-2 py-0.5 text-xs font-bold ${
-                                PIPELINE_STATUS_LABELS[eng.currentStatus]?.badgeClass ||
-                                'bg-subtle text-fg-secondary'
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="neutral"
+                              className={`text-xs ${
+                                PIPELINE_STATUS_LABELS[eng.currentStatus]?.badgeClass || ''
                               }`}
                             >
                               {locale === 'en'
                                 ? PIPELINE_STATUS_LABELS[eng.currentStatus]?.labelEn || eng.currentStatus
                                 : PIPELINE_STATUS_LABELS[eng.currentStatus]?.labelAr || eng.currentStatus}
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-2 text-xs text-fg-secondary font-mono tabular-nums">
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs text-fg-secondary tabular-nums ltr-iso">
                             {eng.estimatedProjectValue
-                              ? `${eng.estimatedProjectValue.toLocaleString()} ${eng.currency || 'EGP'}`
-                              : eng.outcomeReasonCode || '—'}
-                          </td>
-                          <td className="py-2.5 px-2">
+                              ? `${eng.estimatedProjectValue.toLocaleString('en-US')} ${eng.currency || 'EGP'}`
+                              : eng.outcomeReasonCode || '-'}
+                          </TableCell>
+                          <TableCell>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -463,17 +419,17 @@ export default function AdminReportsPage() {
                             >
                               {t('btnCorrectStatus')}
                             </Button>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
 
                 {correctingEngagement && (
                   <form
                     onSubmit={handleAdminCorrectStatus}
-                    className="mt-4 rounded-xl border border-warning-border bg-warning-bg p-4 space-y-3 text-xs"
+                    className="mt-5 rounded-xl border border-warning-border bg-warning-bg p-4 space-y-4 text-xs"
                   >
                     <div className="flex items-center justify-between font-extrabold text-warning-text">
                       <span>
@@ -491,41 +447,31 @@ export default function AdminReportsPage() {
                       </button>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div>
-                        <label className="block font-bold text-fg-secondary">
-                          {t('labelNewState')}
-                        </label>
-                        <select
-                          value={newState}
-                          onChange={(e) => setNewState(e.target.value)}
-                          className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 font-bold"
-                        >
-                          {ENGAGEMENT_STATES.map((st) => (
-                            <option key={st} value={st}>
-                              {st} — {PIPELINE_STATUS_LABELS[st]?.labelAr || st}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block font-bold text-fg-secondary">
-                          {t('labelCorrectionReason')}
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={correctionReason}
-                          onChange={(e) => setCorrectionReason(e.target.value)}
-                          placeholder="مثال: تصحيح إغلاق خاطئ بناءً على طلب المطور..."
-                          className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 font-semibold"
-                        />
-                      </div>
+                      <Select
+                        label={t('labelNewState')}
+                        value={newState}
+                        onChange={(e) => setNewState(e.target.value)}
+                        options={ENGAGEMENT_STATES.map((st) => ({
+                          value: st,
+                          label:
+                            locale === 'en'
+                              ? PIPELINE_STATUS_LABELS[st]?.labelEn || st
+                              : PIPELINE_STATUS_LABELS[st]?.labelAr || st,
+                        }))}
+                      />
+                      <Input
+                        label={t('labelCorrectionReason')}
+                        required
+                        value={correctionReason}
+                        onChange={(e) => setCorrectionReason(e.target.value)}
+                        placeholder={t('labelCorrectionReason')}
+                      />
                     </div>
                     <Button
                       variant="primary"
                       type="submit"
                       disabled={savingCorrection}
-                      className="gap-1.5 text-xs"
+                      className="gap-1.5"
                     >
                       <ArrowRight className="h-3.5 w-3.5 rtl:-scale-x-100" />
                       <span>{savingCorrection ? t('applyingCorrection') : t('btnApplyCorrection')}</span>
@@ -555,9 +501,9 @@ export default function AdminReportsPage() {
                           <span>{flag.action}</span>
                         </div>
                         <div className="text-xs text-fg-secondary">
-                          المطور: {flag.user?.name || flag.user?.email || '—'}
+                          <bdi dir="auto">{flag.user?.name || flag.user?.email || '-'}</bdi>
                         </div>
-                        <div className="font-mono text-xs text-warning-text" dir="ltr">
+                        <div className="text-xs text-warning-text ltr-iso" dir="ltr">
                           {JSON.stringify(flag.details)}
                         </div>
                       </div>

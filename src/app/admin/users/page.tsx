@@ -3,12 +3,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
+import { PageHeader } from '@/components/domain/PageHeader';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
+import { localizePlanName } from '@/lib/taxonomy';
 import { Search, ShieldBan, CheckCircle, Coins, ArrowRight } from 'lucide-react';
 
 interface AdminUserItem {
@@ -27,6 +32,7 @@ interface AdminUserItem {
     creditsUsed: number;
     plan: {
       id: string;
+      slug?: string;
       name: string;
       nameEn: string;
     };
@@ -35,6 +41,7 @@ interface AdminUserItem {
 
 interface PlanOption {
   id: string;
+  slug?: string;
   name: string;
   nameEn: string;
   monthlyCredits: number;
@@ -42,6 +49,7 @@ interface PlanOption {
 
 export default function AdminUsersPage() {
   const t = useTranslations('adminUsers');
+  const tPlans = useTranslations('plans');
   const locale = useLocale();
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [plans, setPlans] = useState<PlanOption[]>([]);
@@ -113,106 +121,106 @@ export default function AdminUsersPage() {
   return (
     <AppShell isAdmin={true} density="compact" pageTitle={t('pageTitle')}>
       <div className="space-y-6">
-        <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs">
-          <h1 className="text-xl font-extrabold text-fg-primary">
-            {t('title')}
-          </h1>
-          <p className="mt-1 text-xs text-fg-muted">
-            {t('desc')}
-          </p>
+        <PageHeader
+          title={t('title')}
+          description={t('desc')}
+        />
 
-          <div className="mt-4 flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-56">
-              <Search className="absolute start-3 top-2.5 h-4 w-4 text-fg-muted" />
-              <input
-                type="text"
+        <Card className="rounded-xl border border-line bg-surface p-4 shadow-xs">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex-1 min-w-56">
+              <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('searchPlaceholder')}
-                className="w-full rounded-xl border border-line bg-surface py-2 ps-9 pe-3 text-xs font-semibold text-fg-primary placeholder:text-fg-muted focus:border-brand"
+                startIcon={<Search className="h-4 w-4" />}
               />
             </div>
 
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-line bg-surface px-4 py-2 text-xs font-bold text-fg-primary"
-            >
-              <option value="ALL">{t('statusAll')}</option>
-              <option value="ACTIVE">{t('statusActive')}</option>
-              <option value="SUSPENDED">{t('statusSuspended')}</option>
-            </select>
+            <div className="w-48">
+              <Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                options={[
+                  { value: 'ALL', label: t('statusAll') },
+                  { value: 'ACTIVE', label: t('statusActive') },
+                  { value: 'SUSPENDED', label: t('statusSuspended') },
+                ]}
+              />
+            </div>
           </div>
         </Card>
 
-        <Card className="rounded-xl border border-line bg-surface p-6 shadow-xs overflow-x-auto">
+        <Card className="rounded-xl border border-line bg-surface shadow-xs overflow-hidden">
           {loading ? (
-            <div className="space-y-4">
+            <div className="p-6 space-y-4">
               <Skeleton className="h-12 w-full rounded-xl" />
               <Skeleton className="h-48 w-full rounded-xl" />
             </div>
           ) : users.length === 0 ? (
-            <EmptyState
-              title={t('emptyTitle')}
-              description={t('emptyDesc')}
-              action={{
-                label: t('statusAll'),
-                onClick: () => {
-                  setSearch('');
-                  setStatusFilter('ALL');
-                },
-              }}
-            />
+            <div className="p-6">
+              <EmptyState
+                title={t('emptyTitle')}
+                description={t('emptyDesc')}
+                action={{
+                  label: t('statusAll'),
+                  onClick: () => {
+                    setSearch('');
+                    setStatusFilter('ALL');
+                  },
+                }}
+              />
+            </div>
           ) : (
-            <table className="w-full text-start text-xs">
-              <thead>
-                <tr className="border-b border-line text-fg-muted">
-                  <th className="py-3 px-3 text-start">{t('colUser')}</th>
-                  <th className="py-3 px-3 text-start">{t('colRole')}</th>
-                  <th className="py-3 px-3 text-start">{t('colStatus')}</th>
-                  <th className="py-3 px-3 text-start">{t('colPlan')}</th>
-                  <th className="py-3 px-3 text-start">{t('colBalance')}</th>
-                  <th className="py-3 px-3 text-start">{t('colUsage')}</th>
-                  <th className="py-3 px-3 text-start">{t('colActions')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line font-semibold">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('colUser')}</TableHead>
+                  <TableHead>{t('colRole')}</TableHead>
+                  <TableHead>{t('colStatus')}</TableHead>
+                  <TableHead>{t('colPlan')}</TableHead>
+                  <TableHead>{t('colBalance')}</TableHead>
+                  <TableHead>{t('colUsage')}</TableHead>
+                  <TableHead>{t('colActions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-subtle/50 transition-colors">
-                    <td className="py-3.5 px-3">
-                      <p className="font-bold text-fg-primary">{u.name}</p>
-                      <p className="text-xs text-fg-muted font-mono">{u.email}</p>
-                    </td>
-                    <td className="py-3.5 px-3">
+                  <TableRow key={u.id}>
+                    <TableCell>
+                      <p className="font-bold text-fg-primary">
+                        <bdi dir="auto">{u.name}</bdi>
+                      </p>
+                      <p className="text-caption text-fg-muted ltr-iso">{u.email}</p>
+                    </TableCell>
+                    <TableCell>
                       <Badge
                         variant={u.role === 'ADMIN' ? 'brand' : 'neutral'}
-                        className="text-xs"
+                        className="text-caption"
                       >
                         {u.role}
                       </Badge>
-                    </td>
-                    <td className="py-3.5 px-3">
+                    </TableCell>
+                    <TableCell>
                       <Badge
                         variant={u.status === 'ACTIVE' ? 'brand' : 'danger'}
-                        className="text-xs"
+                        className="text-caption"
                       >
                         {u.status === 'ACTIVE' ? t('statusActive') : t('statusSuspended')}
                       </Badge>
-                    </td>
-                    <td className="py-3.5 px-3">
+                    </TableCell>
+                    <TableCell className="text-body-sm">
                       {u.subscription?.plan
-                        ? locale === 'en'
-                          ? u.subscription.plan.nameEn || u.subscription.plan.name
-                          : u.subscription.plan.name
-                        : '—'}
-                    </td>
-                    <td className="py-3.5 px-3 font-extrabold text-brand tabular-nums ltr-iso">
-                      {u.subscription ? `${u.subscription.credits} ${t('pointsSuffix')}` : '—'}
-                    </td>
-                    <td className="py-3.5 px-3 font-mono tabular-nums">
+                        ? localizePlanName(u.subscription.plan, locale, tPlans)
+                        : '-'}
+                    </TableCell>
+                    <TableCell className="font-extrabold text-brand tabular-nums ltr-iso text-body-sm">
+                      {u.subscription ? `${u.subscription.credits} ${t('pointsSuffix')}` : '-'}
+                    </TableCell>
+                    <TableCell className="tabular-nums text-caption text-fg-secondary">
                       {t('claimsSummary', { claims: u.claimsCount, feedbacks: u.feedbacksCount })}
-                    </td>
-                    <td className="py-3.5 px-3">
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="secondary"
@@ -222,7 +230,7 @@ export default function AdminUsersPage() {
                             setEditPlanId(u.subscription?.plan?.id || plans[0]?.id || '');
                             setEditCredits(u.subscription?.credits ?? 0);
                           }}
-                          className="gap-1 text-xs"
+                          className="gap-1.5"
                         >
                           <Coins className="h-3.5 w-3.5 text-warning-icon" />
                           <span>{t('btnEditPlan')}</span>
@@ -230,10 +238,14 @@ export default function AdminUsersPage() {
 
                         {u.role !== 'ADMIN' && (
                           <Button
-                            variant={u.status === 'ACTIVE' ? 'danger' : 'secondary'}
+                            variant="secondary"
                             size="sm"
                             onClick={() => handleToggleSuspend(u)}
-                            className="gap-1 text-xs"
+                            className={`gap-1.5 ${
+                              u.status === 'ACTIVE'
+                                ? 'text-danger-text hover:bg-danger-bg hover:border-danger-border'
+                                : 'text-brand hover:bg-brand-soft'
+                            }`}
                           >
                             {u.status === 'ACTIVE' ? (
                               <>
@@ -249,11 +261,11 @@ export default function AdminUsersPage() {
                           </Button>
                         )}
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           )}
         </Card>
 
@@ -266,45 +278,35 @@ export default function AdminUsersPage() {
         >
           {editUser && (
             <form onSubmit={handleSaveSubscription} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-fg-secondary">{t('labelPlan')}</label>
-                <select
-                  value={editPlanId}
-                  onChange={(e) => {
-                    const pId = e.target.value;
-                    setEditPlanId(pId);
-                    const found = plans.find((p) => p.id === pId);
-                    if (found) setEditCredits(found.monthlyCredits);
-                  }}
-                  className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-xs font-bold text-fg-primary"
-                >
-                  {plans.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {locale === 'en' ? p.nameEn || p.name : p.name} ({p.monthlyCredits} {t('pointsSuffix')})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                label={t('labelPlan')}
+                value={editPlanId}
+                onChange={(e) => {
+                  const pId = e.target.value;
+                  setEditPlanId(pId);
+                  const found = plans.find((p) => p.id === pId);
+                  if (found) setEditCredits(found.monthlyCredits);
+                }}
+                options={plans.map((p) => ({
+                  value: p.id,
+                  label: `${localizePlanName(p, locale, tPlans)} (${p.monthlyCredits} ${t('pointsSuffix')})`,
+                }))}
+              />
 
-              <div>
-                <label className="block text-xs font-bold text-fg-secondary">
-                  {t('labelCredits')}
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  value={editCredits}
-                  onChange={(e) => setEditCredits(Number(e.target.value))}
-                  className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm font-bold text-fg-primary tabular-nums ltr-iso"
-                />
-              </div>
+              <Input
+                label={t('labelCredits')}
+                type="number"
+                min={0}
+                value={editCredits}
+                onChange={(e) => setEditCredits(Number(e.target.value))}
+                className="font-bold tabular-nums ltr-iso"
+              />
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button
                   variant="ghost"
                   type="button"
                   onClick={() => setEditUser(null)}
-                  className="text-xs"
                 >
                   {t('btnCancel')}
                 </Button>
@@ -312,7 +314,7 @@ export default function AdminUsersPage() {
                   variant="primary"
                   type="submit"
                   disabled={saving}
-                  className="gap-1.5 text-xs"
+                  className="gap-1.5"
                 >
                   <ArrowRight className="h-3.5 w-3.5 rtl:-scale-x-100" />
                   <span>{saving ? t('saving') : t('btnSave')}</span>

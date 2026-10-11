@@ -12,12 +12,12 @@ Phases 0 through 5 (Batch 1: Developer Pages, Batch 2: Public & Auth Pages, Batc
 
 | Phase / Section | Description | Status | Verification & Artifacts |
 | :--- | :--- | :---: | :--- |
-| **Phase 0** | Codebase Audit & Enum Discovery | **DONE** | [`docs/design/AUDIT.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/AUDIT.md) — Real Prisma enums mapped. |
-| **Phase 1** | Foundations & Token Infrastructure | **DONE** | [`src/styles/tokens.css`](file:///e:/Antigravity%20Projects/Leads/src/styles/tokens.css), IBM Plex fonts, RTL globals, [`src/lib/format.ts`](file:///e:/Antigravity%20Projects/Leads/src/lib/format.ts). |
-| **Phase 2** | Accessible UI Primitives | **DONE** | 26 headless components in [`src/components/ui/`](file:///e:/Antigravity%20Projects/Leads/src/components/ui/). |
-| **Sec. 13** | Calibration against Hostinger UAE | **DONE** | [`docs/design/hostinger-reference-notes.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/hostinger-reference-notes.md), [`docs/design/OPEN_QUESTIONS.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/OPEN_QUESTIONS.md). |
-| **Phase 3** | Domain Components & Enum Mapping | **DONE** | 19 domain components in [`src/components/domain/`](file:///e:/Antigravity%20Projects/Leads/src/components/domain/). |
-| **Phase 4** | Living Style Guide (`/design-system`) | **DONE** | Interactive page with density & direction switchers at [`src/app/design-system/page.tsx`](file:///e:/Antigravity%20Projects/Leads/src/app/design-system/page.tsx). |
+| **Phase 0** | Codebase Audit & Enum Discovery | **DONE** | [`docs/design/AUDIT.md`](./AUDIT.md) — Real Prisma enums mapped. |
+| **Phase 1** | Foundations & Token Infrastructure | **DONE** | [`src/styles/tokens.css`](../../src/styles/tokens.css), IBM Plex fonts, RTL globals, [`src/lib/format.ts`](../../src/lib/format.ts). |
+| **Phase 2** | Accessible UI Primitives | **DONE** | 26 headless components in [`src/components/ui/`](../../src/components/ui/). |
+| **Sec. 13** | Calibration against Hostinger UAE | **DONE** | [`docs/design/hostinger-reference-notes.md`](./hostinger-reference-notes.md), [`docs/design/OPEN_QUESTIONS.md`](./OPEN_QUESTIONS.md). |
+| **Phase 3** | Domain Components & Enum Mapping | **DONE** | 19 domain components in [`src/components/domain/`](../../src/components/domain/). |
+| **Phase 4** | Living Style Guide (`/design-system`) | **DONE** | Interactive page with density & direction switchers at [`src/app/design-system/page.tsx`](../../src/app/design-system/page.tsx). |
 | **Phase 5 (Batch 1)** | Developer Pages Migration | **DONE** | 5 developer pages wrapped with `AppShell` and Section 8 templates (1 commit per page). |
 | **Phase 5 (Batch 2)** | Public & Auth Pages Migration | **DONE** | `/login`, `/register`, `/onboarding`, `/`, `/pricing`, `/settings`, `/dashboard/analytics`. |
 | **Phase 5 (Batch 3)** | Admin Hub & Management Pages Migration | **DONE** | All 11 Admin pages (`/admin`, `/admin/duplicates`, `/admin/quality`, `/admin/rules`, `/admin/sources`, `/admin/matching`, `/admin/analytics`, `/admin/reports`, `/admin/users`, `/admin/leads`, `/admin/plans`). |
@@ -27,7 +27,7 @@ Phases 0 through 5 (Batch 1: Developer Pages, Batch 2: Public & Auth Pages, Batc
 
 ## 2. Phase 5 (Batch 1): Developer Pages Migration Detail
 
-All 5 developer application routes have been migrated to the authoritative Section 8 templates, wrapped with [`AppShell`](file:///e:/Antigravity%20Projects/Leads/src/components/domain/AppShell.tsx), and upgraded to design system components while preserving all data fetching, logic, and route handlers:
+All 5 developer application routes have been migrated to the authoritative Section 8 templates, wrapped with [`AppShell`](../../src/components/domain/AppShell.tsx), and upgraded to design system components while preserving all data fetching, logic, and route handlers:
 
 ### 1. `/leads` — Template T3 Feed / List Page
 - **Template:** Section 8 Template T3 (Feed with FilterBar, View Switcher, Pagination).
@@ -95,35 +95,35 @@ All screenshots have been captured and saved to the `screenshots/` directory cov
 ### A. Developer Portal Templates
 | Template / Page | Mobile (390px) | Tablet (768px) | Laptop (1024px) | Desktop (1440px) |
 | :--- | :---: | :---: | :---: | :---: |
-| **Feed (`/leads`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/leads_desktop_1440.png) |
-| **Lead Detail (`/leads/[id]`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/lead_detail_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/lead_detail_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/lead_detail_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/lead_detail_desktop_1440.png) |
-| **Overview (`/dashboard`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/dashboard_desktop_1440.png) |
-| **Credits (`/subscription`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/credits_desktop_1440.png) |
-| **Pipeline (`/my-leads`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_mobile_390.png) | [768px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_tablet_768.png) | [1024px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_laptop_1024.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/pipeline_desktop_1440.png) |
+| **Feed (`/leads`)** | [390px](../../screenshots/leads_mobile_390.png) | [768px](../../screenshots/leads_tablet_768.png) | [1024px](../../screenshots/leads_laptop_1024.png) | [1440px](../../screenshots/leads_desktop_1440.png) |
+| **Lead Detail (`/leads/[id]`)** | [390px](../../screenshots/lead_detail_mobile_390.png) | [768px](../../screenshots/lead_detail_tablet_768.png) | [1024px](../../screenshots/lead_detail_laptop_1024.png) | [1440px](../../screenshots/lead_detail_desktop_1440.png) |
+| **Overview (`/dashboard`)** | [390px](../../screenshots/dashboard_mobile_390.png) | [768px](../../screenshots/dashboard_tablet_768.png) | [1024px](../../screenshots/dashboard_laptop_1024.png) | [1440px](../../screenshots/dashboard_desktop_1440.png) |
+| **Credits (`/subscription`)** | [390px](../../screenshots/credits_mobile_390.png) | [768px](../../screenshots/credits_tablet_768.png) | [1024px](../../screenshots/credits_laptop_1024.png) | [1440px](../../screenshots/credits_desktop_1440.png) |
+| **Pipeline (`/my-leads`)** | [390px](../../screenshots/pipeline_mobile_390.png) | [768px](../../screenshots/pipeline_tablet_768.png) | [1024px](../../screenshots/pipeline_laptop_1024.png) | [1440px](../../screenshots/pipeline_desktop_1440.png) |
 
 ### B. Public & Auth Templates
 | Template / Page | Mobile (390px) | Desktop (1440px) | Status |
 | :--- | :---: | :---: | :---: |
-| **Landing (`/`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/landing_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/landing_desktop_1440.png) | **PASS** |
-| **Pricing (`/pricing`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/pricing_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/pricing_desktop_1440.png) | **PASS** |
-| **Login (`/login`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/login_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/login_desktop_1440.png) | **PASS** |
-| **Register (`/register`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/register_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/register_desktop_1440.png) | **PASS** |
-| **Onboarding (`/onboarding`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/onboarding_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/onboarding_desktop_1440.png) | **PASS** |
+| **Landing (`/`)** | [390px](../../screenshots/landing_mobile_390.png) | [1440px](../../screenshots/landing_desktop_1440.png) | **PASS** |
+| **Pricing (`/pricing`)** | [390px](../../screenshots/pricing_mobile_390.png) | [1440px](../../screenshots/pricing_desktop_1440.png) | **PASS** |
+| **Login (`/login`)** | [390px](../../screenshots/login_mobile_390.png) | [1440px](../../screenshots/login_desktop_1440.png) | **PASS** |
+| **Register (`/register`)** | [390px](../../screenshots/register_mobile_390.png) | [1440px](../../screenshots/register_desktop_1440.png) | **PASS** |
+| **Onboarding (`/onboarding`)** | [390px](../../screenshots/onboarding_mobile_390.png) | [1440px](../../screenshots/onboarding_desktop_1440.png) | **PASS** |
 
 ### C. Admin Hub Pages
 | Admin Page | Mobile (390px) | Desktop (1440px) | Status |
 | :--- | :---: | :---: | :---: |
-| **Overview (`/admin`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_overview_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_overview_desktop_1440.png) | **PASS** |
-| **Duplicates (`/admin/duplicates`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_duplicates_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_duplicates_desktop_1440.png) | **PASS** |
-| **Quality (`/admin/quality`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_quality_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_quality_desktop_1440.png) | **PASS** |
-| **Rules (`/admin/rules`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_rules_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_rules_desktop_1440.png) | **PASS** |
-| **Sources (`/admin/sources`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_sources_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_sources_desktop_1440.png) | **PASS** |
-| **Matching (`/admin/matching`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_matching_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_matching_desktop_1440.png) | **PASS** |
-| **Analytics (`/admin/analytics`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_analytics_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_analytics_desktop_1440.png) | **PASS** |
-| **Reports (`/admin/reports`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_reports_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_reports_desktop_1440.png) | **PASS** |
-| **Users (`/admin/users`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_users_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_users_desktop_1440.png) | **PASS** |
-| **Leads (`/admin/leads`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_leads_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_leads_desktop_1440.png) | **PASS** |
-| **Plans (`/admin/plans`)** | [390px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_plans_mobile_390.png) | [1440px](file:///e:/Antigravity%20Projects/Leads/screenshots/admin_plans_desktop_1440.png) | **PASS** |
+| **Overview (`/admin`)** | [390px](../../screenshots/admin_overview_mobile_390.png) | [1440px](../../screenshots/admin_overview_desktop_1440.png) | **PASS** |
+| **Duplicates (`/admin/duplicates`)** | [390px](../../screenshots/admin_duplicates_mobile_390.png) | [1440px](../../screenshots/admin_duplicates_desktop_1440.png) | **PASS** |
+| **Quality (`/admin/quality`)** | [390px](../../screenshots/admin_quality_mobile_390.png) | [1440px](../../screenshots/admin_quality_desktop_1440.png) | **PASS** |
+| **Rules (`/admin/rules`)** | [390px](../../screenshots/admin_rules_mobile_390.png) | [1440px](../../screenshots/admin_rules_desktop_1440.png) | **PASS** |
+| **Sources (`/admin/sources`)** | [390px](../../screenshots/admin_sources_mobile_390.png) | [1440px](../../screenshots/admin_sources_desktop_1440.png) | **PASS** |
+| **Matching (`/admin/matching`)** | [390px](../../screenshots/admin_matching_mobile_390.png) | [1440px](../../screenshots/admin_matching_desktop_1440.png) | **PASS** |
+| **Analytics (`/admin/analytics`)** | [390px](../../screenshots/admin_analytics_mobile_390.png) | [1440px](../../screenshots/admin_analytics_desktop_1440.png) | **PASS** |
+| **Reports (`/admin/reports`)** | [390px](../../screenshots/admin_reports_mobile_390.png) | [1440px](../../screenshots/admin_reports_desktop_1440.png) | **PASS** |
+| **Users (`/admin/users`)** | [390px](../../screenshots/admin_users_mobile_390.png) | [1440px](../../screenshots/admin_users_desktop_1440.png) | **PASS** |
+| **Leads (`/admin/leads`)** | [390px](../../screenshots/admin_leads_mobile_390.png) | [1440px](../../screenshots/admin_leads_desktop_1440.png) | **PASS** |
+| **Plans (`/admin/plans`)** | [390px](../../screenshots/admin_plans_mobile_390.png) | [1440px](../../screenshots/admin_plans_desktop_1440.png) | **PASS** |
 
 ---
 
@@ -176,7 +176,7 @@ All 11 Admin platform pages have been completely migrated to `AppShell` (`isAdmi
 
 ### 1. Tooling & Conformance Matrix (`scripts/check-conformance.mjs`)
 - Automated AST/regex scanner checking 8 strict design system rules (palette utilities, raw black/white, raw hex colors, gradients, physical directions, arbitrary values, off-scale radius/shadows, forbidden motion/AI icons).
-- Generates and maintains [`docs/design/CONFORMANCE.md`](file:///e:/Antigravity%20Projects/Leads/docs/design/CONFORMANCE.md) across all 25 application routes.
+- Generates and maintains [`docs/design/CONFORMANCE.md`](./CONFORMANCE.md) across all 25 application routes.
 - **Result:** **0 violations in 0 files** across the codebase. All 25 routes are marked **Done**.
 
 ### 2. Internationalization Architecture (`next-intl` & `scripts/check-i18n.mjs`)
@@ -200,4 +200,83 @@ All 11 Admin platform pages have been completely migrated to `AppShell` (`isAdmi
 ### 5. Tailwind Lockdown (Phase 5)
 - In `tailwind.config.ts`, `colors`, `borderRadius`, and `boxShadow` replace the root theme directly, preventing any accidental use of off-scale colors, radiuses, or shadows.
 - All 240 backend and integration tests in Vitest continue to pass with 0 failures (`12/12 test files passed`).
+
+---
+
+## 9. Landing Hero Refinement Milestone (First Fold Verification)
+> **Date:** October 11, 2026  
+> **Status:** Completed, Verified, and Screen-Captured Across Both Locales
+
+### 1. Headline & CTA First-Fold Geometry
+- Refined display headline via responsive clamp typography (`clamp(2.125rem, 4.6vw, 4.5rem)` delivering 66px at 1440px viewport), `font-weight: 700`, `line-height: 1.15`, max 3 lines.
+- Removed all badges, pills, icon chips, and shield logos above the headline.
+- Formatted subtitle with `text-body-lg text-fg-secondary max-w-[44ch]`.
+- Replaced 3 icon facts with a single caption line under primary/secondary action buttons.
+
+### 2. Single Hero Object (Lead Card)
+- Replaced nested preview frames with a single, un-nested card object (`max-w-lg` / 512px, padding 24px, `rounded-xl border border-line bg-surface shadow-sm`).
+- Top meta: Illustrative example label (`Compass` icon) and quality status (`Fresh, verified 3 days ago` / `حديث، تم التحقق منذ 3 أيام`).
+- Identity: Business name (*"Al Nour Dental Clinics"* / *"عيادات النور للأسنان"*), category & location (*"Dental clinics, Maadi"* / *"عيادات أسنان، المعادي"*).
+- Opportunity tier & score: `OpportunityBadge` with "Hot" / "ساخنة" tier, heat meter, `85 / 100`, and caption "Opportunity score" / "درجة الفرصة".
+- Field rows: Website ("None" / "لا يوجد"), Google reviews ("120"), Branches ("3"), and Phone (`LockedField`).
+- Score breakdown: "Why 85?" / "لماذا 85؟" with four verified rule items adding up to 85:
+  1. No website (+45)
+  2. 120 Google reviews (+21)
+  3. 3 branches (+14)
+  4. Verified, recent data (+5)
+- Footer: "5 points" / "5 نقاط" and "View lead" / "عرض الفرصة".
+
+### 3. Interactive Reason-to-Field Highlighting
+- Hovering or focusing (`tabIndex={0}`) any reason row highlights the corresponding field in the card with `--bg-brand-soft` and `--brand-accent` ring (`150ms` transition).
+- Semantic `aria-describedby` links each reason trigger to its target field.
+- Respects reduced motion (`motion-reduce:transition-none`).
+
+### 4. Background & Formatters
+- Quiet SVG dot-grid pattern using `<circle r="1.25" fill="var(--n-100)" />` on `var(--bg-page)` behind the hero only. Zero CSS gradient functions.
+- Updated `src/lib/format.ts` enforcing `latn` numbering system across all locales so that digits are strictly Western (`0-9`) in both English and Arabic views.
+
+### 5. Multi-Viewport & Dual-Locale Screenshots
+- `screenshots/landing_hero_ar_1440x800.png` (Arabic above-the-fold)
+- `screenshots/landing_full_ar_1440.png` (Arabic full page)
+- `screenshots/landing_hero_ar_390.png` (Arabic mobile above-the-fold)
+- `screenshots/landing_hero_en_1440x800.png` (English above-the-fold)
+- `screenshots/landing_full_en_1440.png` (English full page)
+- `screenshots/landing_hero_en_390.png` (English mobile above-the-fold)
+
+---
+
+## 10. Analytics Pages Design System Propagation Milestone
+> **Date:** October 11, 2026  
+> **Status:** Completed, Verified, and Screen-Captured
+
+### 1. Developer Analytics (`/dashboard/analytics`) Overhaul
+- **StatTile Standard:** Standardized all 4 key metrics (Claimed Leads, Won Deals, Conversion Rate, Points Invested) to [`StatTile`](../../src/components/domain/StatTile.tsx) with strict numeric formatting.
+- **BarList Funnel & Breakdown:**
+  - Integrated 6px track [`BarList`](../../src/components/ui/BarList.tsx) with `--bg-brand-soft` track and `--brand-accent` fill for the 5-stage sales funnel (Contact, Reply, Interest, Meeting, Closed Rates).
+  - Replaced ad-hoc horizontal distributions with `BarList` for both Top Niches and Top Cities.
+- **MetaList Cleanup:** Replaced all manual middle dots and bullet separators (` • `) with the accessible [`MetaList`](../../src/components/ui/MetaList.tsx) component.
+- **Card Primitives:** Structured sections using `Card`, `CardHeader`, `CardTitle`, `CardDescription`, and `CardContent`.
+
+### 2. Admin Analytics Hub (`/admin/analytics`) Overhaul
+- **Component Replacement:** Eliminated 31 custom divs and hand-rolled stat cards by delegating directly to [`StatTile`](../../src/components/domain/StatTile.tsx).
+- **Filter Bar Modernization:** Replaced raw HTML `<select>`, `<input>`, and `<button>` elements with design system [`Select`](../../src/components/ui/Select.tsx), [`Input`](../../src/components/ui/Input.tsx), and [`Button`](../../src/components/ui/Button.tsx) primitives inside a `Card`.
+- **Table Modernization:** Replaced all raw HTML `<table>` elements across tabs with design system [`Table`](../../src/components/ui/Table.tsx) components (`TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`).
+- **Comprehensive BarLists:** Deployed `BarList` for:
+  - Lead sources and acquisition funnels.
+  - Lost deal and invalid rejection reasons.
+  - Opportunity score and quality grade distributions.
+  - Niches, locations, and requested service categories.
+- **Badge Integration:** Standardized status tags with [`Badge`](../../src/components/ui/Badge.tsx).
+
+### 3. Verification & Quality Gates
+- **Design System Conformance:** `npm run check:design` passes with 0 violations across 95 files.
+- **i18n Parity:** `npm run check:i18n` passes with 100% parity across 1,612 keys in `ar.json` and `en.json`.
+- **Type Safety:** `npm run typecheck` passes with 0 errors.
+- **Test Suite:** `npm test` passes 100% (240/240 tests across 12 suites).
+- **Visual Validation Screenshots Captured:**
+  - `screenshots/dashboard_analytics_desktop_1440.png`
+  - `screenshots/dashboard_analytics_mobile_390.png`
+  - `screenshots/admin_analytics_desktop_1440.png`
+  - `screenshots/admin_analytics_mobile_390.png`
+
 

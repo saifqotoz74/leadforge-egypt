@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatTile } from '@/components/domain/StatTile';
@@ -13,8 +13,11 @@ import { Button } from '@/components/ui/Button';
 import { Banner } from '@/components/ui/Banner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
-import Link from 'next/link';
+import { IdChip } from '@/components/ui/IdChip';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
+import { Badge } from '@/components/ui/Badge';
 import { fmtDate, fmtNumber } from '@/lib/format';
+import { localizePlanName } from '@/lib/taxonomy';
 import { CreditCard, ArrowRight } from 'lucide-react';
 
 interface PlanItem {
@@ -47,11 +50,14 @@ interface PaymentRecord {
   providerRef: string;
   status: string;
   createdAt: string;
-  plan: { name: string };
+  plan: { name: string; slug?: string };
 }
 
 export default function SubscriptionPage() {
   const t = useTranslations('credits');
+  const tPlans = useTranslations('plans');
+  const tEnums = useTranslations('enums');
+  const locale = useLocale();
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [plans, setPlans] = useState<PlanItem[]>([]);
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
@@ -105,9 +111,13 @@ export default function SubscriptionPage() {
       if (!res.ok) {
         setMsg({ type: 'danger', text: data.error || t('activateError') });
       } else {
+        const localizedName = localizePlanName(confirmPlan, tPlans as any);
         setMsg({
           type: 'info',
-          text: t('activateSuccess', { name: confirmPlan.name, credits: fmtNumber(data.subscription?.credits ?? 0) }),
+          text: t('activateSuccess', {
+            name: localizedName,
+            credits: fmtNumber(data.subscription?.credits ?? 0, locale),
+          }),
         });
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('leadforge:user-updated'));
@@ -119,6 +129,13 @@ export default function SubscriptionPage() {
       setProcessing(false);
     }
   }
+
+  const activePlanName = subscription?.plan
+    ? localizePlanName(subscription.plan, tPlans as any)
+    : t('freePlan');
+  const confirmPlanName = confirmPlan
+    ? localizePlanName(confirmPlan, tPlans as any)
+    : '';
 
   return (
     <AppShell
@@ -151,15 +168,15 @@ export default function SubscriptionPage() {
               { label: t('bcCredits') },
             ]}
             actions={
-              <Link href="/leads">
+              <a href="#plans-section">
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   size="sm"
-                  startIcon={<ArrowRight className="w-4 h-4 rtl:-scale-x-100" />}
+                  endIcon={<ArrowRight className="w-4 h-4 rtl:-scale-x-100" />}
                 >
-                  {t('bcDashboard')}
+                  {t('plansTitle')}
                 </Button>
-              </Link>
+              </a>
             }
           />
 
@@ -178,7 +195,7 @@ export default function SubscriptionPage() {
               label={t('grantedBalance')}
               value={subscription?.totalCreditsGranted ?? 0}
               unit={t('pointsMonthly')}
-              statusText={t('planPrefix', { name: subscription?.plan?.name || t('freePlan') })}
+              statusText={t('planPrefix', { name: activePlanName })}
             />
             <StatTile
               label={t('consumedThisMonth')}
@@ -190,15 +207,15 @@ export default function SubscriptionPage() {
               label={t('nextRenewalDate')}
               value={
                 subscription?.currentPeriodEnd
-                  ? fmtDate(new Date(subscription.currentPeriodEnd))
-                  : '—'
+                  ? fmtDate(new Date(subscription.currentPeriodEnd), locale)
+                  : '-'
               }
               statusText={t('autoRenewal')}
             />
           </div>
 
           {/* Template T6 Top-up: Package Cards (Spec 7.12 Hostinger Pricing Pattern) */}
-          <div className="flex flex-col gap-4">
+          <div id="plans-section" className="flex flex-col gap-4 scroll-mt-20">
             <div className="flex flex-col gap-1">
               <h2 className="text-h2 font-semibold text-fg-primary">
                 {t('plansTitle')}
@@ -208,22 +225,26 @@ export default function SubscriptionPage() {
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 items-stretch">
               {plans.map((plan) => {
                 const isCurrent = subscription?.plan?.id === plan.id;
+                const isRecommended = plan.slug === 'pro';
                 return (
                   <PackageCard
                     key={plan.id}
                     id={plan.id}
+                    slug={plan.slug}
                     name={plan.name}
                     points={plan.monthlyCredits}
                     priceEGP={plan.priceEgp}
+                    allowsExclusive={plan.allowsExclusive}
                     features={plan.features}
-                    isRecommended={isCurrent || plan.slug === 'pro'}
+                    isRecommended={isRecommended}
+                    isCurrent={isCurrent}
                     recommendedReason={
                       isCurrent
                         ? t('currentActivePlan')
-                        : plan.slug === 'pro'
+                        : isRecommended
                         ? t('mostPopular')
                         : undefined
                     }
@@ -265,42 +286,48 @@ export default function SubscriptionPage() {
                 />
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-start border-collapse text-body-sm">
-                  <thead>
-                    <tr className="border-b border-line bg-subtle text-caption font-semibold text-fg-secondary h-11">
-                      <th className="py-2.5 px-4 text-start">{t('colRef')}</th>
-                      <th className="py-2.5 px-4 text-start">{t('colPlan')}</th>
-                      <th className="py-2.5 px-4 text-start">{t('colAmount')}</th>
-                      <th className="py-2.5 px-4 text-start">{t('colCredits')}</th>
-                      <th className="py-2.5 px-4 text-start">{t('colStatus')}</th>
-                      <th className="py-2.5 px-4 text-end">{t('colDate')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line">
-                    {payments.map((p) => (
-                      <tr key={p.id} className="h-12 hover:bg-brand-soft/30 transition-colors">
-                        <td className="py-2.5 px-4 font-mono text-fg-primary">{p.providerRef}</td>
-                        <td className="py-2.5 px-4 font-medium text-fg-primary">{p.plan?.name}</td>
-                        <td className="py-2.5 px-4 ltr-iso font-mono tabular-nums text-fg-primary">
-                          {fmtNumber(p.amountEgp)} {t('egp')}
-                        </td>
-                        <td className="py-2.5 px-4 ltr-iso font-mono font-semibold tabular-nums text-fg-brand">
-                          +{fmtNumber(p.creditsGranted)} {t('pointsUnit')}
-                        </td>
-                        <td className="py-2.5 px-4">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-brand-soft text-fg-brand text-caption font-semibold">
-                            {p.status}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-4 text-end text-fg-secondary">
-                          {fmtDate(new Date(p.createdAt))}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('colRef')}</TableHead>
+                    <TableHead>{t('colPlan')}</TableHead>
+                    <TableHead>{t('colAmount')}</TableHead>
+                    <TableHead>{t('colCredits')}</TableHead>
+                    <TableHead>{t('colStatus')}</TableHead>
+                    <TableHead isNumeric>{t('colDate')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        <IdChip id={p.providerRef} />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {localizePlanName(p.plan, tPlans as any)}
+                      </TableCell>
+                      <TableCell className="ltr-iso tabular-nums">
+                        {fmtNumber(p.amountEgp, locale)} {t('egp')}
+                      </TableCell>
+                      <TableCell className="ltr-iso font-semibold tabular-nums text-fg-brand">
+                        +{fmtNumber(p.creditsGranted, locale)} {t('pointsUnit')}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="brand">
+                          {p.status === 'COMPLETED'
+                            ? t('paymentCompleted')
+                            : tEnums.has(`SubscriptionStatus.${p.status}` as any)
+                              ? tEnums(`SubscriptionStatus.${p.status}` as any)
+                              : p.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell isNumeric className="text-fg-secondary">
+                        {fmtDate(new Date(p.createdAt), locale)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </Card>
 
@@ -308,7 +335,7 @@ export default function SubscriptionPage() {
           <Dialog
             isOpen={confirmPlan !== null}
             onClose={() => setConfirmPlan(null)}
-            title={confirmPlan ? t('confirmTitle', { name: confirmPlan.name }) : ''}
+            title={confirmPlan ? t('confirmTitle', { name: confirmPlanName }) : ''}
             footer={
               <div className="flex items-center justify-end gap-3 w-full">
                 <Button
@@ -332,9 +359,9 @@ export default function SubscriptionPage() {
               <div className="flex flex-col gap-3 py-2 text-body">
                 <p className="text-fg-primary leading-relaxed">
                   {t('confirmBody', {
-                    name: confirmPlan.name,
-                    price: fmtNumber(confirmPlan.priceEgp),
-                    credits: fmtNumber(confirmPlan.monthlyCredits),
+                    name: confirmPlanName,
+                    price: fmtNumber(confirmPlan.priceEgp, locale),
+                    credits: fmtNumber(confirmPlan.monthlyCredits, locale),
                   })}
                 </p>
                 <div className="p-3 rounded-lg bg-subtle border border-line text-body-sm text-fg-secondary">
@@ -348,3 +375,4 @@ export default function SubscriptionPage() {
     </AppShell>
   );
 }
+

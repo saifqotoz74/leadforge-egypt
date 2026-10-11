@@ -25,3 +25,8 @@ export * from './Badge';
 export * from './Card';
 export * from './NumberStepper';
 export * from './LanguageSwitcher';
+export * from './CodeChip';
+export * from './IdChip';
+export * from './MetaList';
+export * from './ChipList';
+export * from './BarList';

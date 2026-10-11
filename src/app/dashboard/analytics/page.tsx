@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatTile } from '@/components/domain/StatTile';
@@ -10,7 +10,10 @@ import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { BarList } from '@/components/ui/BarList';
+import { MetaList } from '@/components/ui/MetaList';
 import Link from 'next/link';
+import { localizeCity, localizeCategory } from '@/lib/taxonomy';
 import { fmtNumber, formatEGP } from '@/lib/format';
 import { RefreshCw, ArrowRight } from 'lucide-react';
 
@@ -59,6 +62,11 @@ interface AnalyticsDataDto {
 
 export default function DeveloperAnalyticsPage() {
   const t = useTranslations('analytics');
+  const tNav = useTranslations('nav');
+  const tGeo = useTranslations('geo');
+  const tCat = useTranslations('categories');
+  const locale = useLocale();
+
   const [preset, setPreset] = useState<string>('all_time');
   const [loading, setLoading] = useState<boolean>(true);
   const [data, setData] = useState<AnalyticsDataDto | null>(null);
@@ -109,7 +117,7 @@ export default function DeveloperAnalyticsPage() {
                   size="md"
                   startIcon={<ArrowRight className="h-4 w-4 rtl:-scale-x-100" />}
                 >
-                  {t('bcDashboard')}
+                  {tNav('dashboard')}
                 </Button>
               </Link>
 
@@ -139,26 +147,32 @@ export default function DeveloperAnalyticsPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatTile
                 label={t('totalClaimed')}
-                value={fmtNumber(perf.leadsClaimed)}
-                statusText={t('avgMatch', { val: perf.averageMatchStrength != null ? fmtNumber(perf.averageMatchStrength) + '%' : '—' })}
+                value={fmtNumber(perf.leadsClaimed, locale)}
+                statusText={t('avgMatch', {
+                  val: perf.averageMatchStrength != null ? fmtNumber(perf.averageMatchStrength, locale) + '%' : '-',
+                })}
               />
 
               <StatTile
                 label={t('totalWins')}
-                value={fmtNumber(perf.totalWins)}
-                statusText={t('winRate', { val: perf.winRate?.displayValue || '—', num: perf.winRate?.numerator ?? 0, den: perf.winRate?.denominator ?? 0 })}
+                value={fmtNumber(perf.totalWins, locale)}
+                statusText={t('winRate', {
+                  val: perf.winRate?.displayValue || '-',
+                  num: perf.winRate?.numerator ?? 0,
+                  den: perf.winRate?.denominator ?? 0,
+                })}
               />
 
               <StatTile
                 label={t('projectValue')}
-                value={formatEGP(perf.estimatedProjectValueEgp || 0)}
+                value={formatEGP(perf.estimatedProjectValueEgp || 0, locale)}
                 statusText={t('projectValueDesc')}
               />
 
               <StatTile
                 label={t('netCredits')}
-                value={fmtNumber(perf.creditsConsumed)}
-                statusText={t('currentBalance', { val: fmtNumber(perf.creditsBalance) })}
+                value={fmtNumber(perf.creditsConsumed, locale)}
+                statusText={t('currentBalance', { val: fmtNumber(perf.creditsBalance, locale) })}
               />
             </div>
 
@@ -168,7 +182,7 @@ export default function DeveloperAnalyticsPage() {
                 <CardTitle>{t('funnelTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5 mb-6">
                   {[
                     { label: t('contactRate'), metric: perf.contactRate },
                     { label: t('replyRate'), metric: perf.replyRate },
@@ -181,19 +195,62 @@ export default function DeveloperAnalyticsPage() {
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className="rounded-xl border border-line bg-subtle p-4 flex flex-col justify-between"
+                      className="rounded-lg border border-line bg-surface p-4 flex flex-col justify-between gap-2 shadow-xs"
                     >
                       <div className="flex items-center justify-between text-caption text-fg-secondary">
                         <span className="font-medium line-clamp-1">{item.label}</span>
-                        <span className="font-mono font-medium ltr-iso text-fg-muted">
+                        <span className="font-medium tabular-nums ltr-iso text-fg-muted">
                           {item.metric?.numerator ?? 0}/{item.metric?.denominator ?? 0}
                         </span>
                       </div>
-                      <p className="mt-2 text-h3 font-bold font-mono tabular-nums text-brand">
+                      <p className="mt-1 text-2xl font-bold tabular-nums text-brand ltr-iso">
                         {item.metric?.displayValue || t('insufficientData')}
                       </p>
                     </div>
                   ))}
+                </div>
+
+                <div className="pt-4 border-t border-line">
+                  <BarList
+                    maxValue={100}
+                    items={[
+                      {
+                        label: t('contactRate'),
+                        value: perf.contactRate?.denominator
+                          ? Math.round((perf.contactRate.numerator / perf.contactRate.denominator) * 100)
+                          : 0,
+                        secondaryText: `${perf.contactRate?.numerator ?? 0}/${perf.contactRate?.denominator ?? 0}`,
+                      },
+                      {
+                        label: t('replyRate'),
+                        value: perf.replyRate?.denominator
+                          ? Math.round((perf.replyRate.numerator / perf.replyRate.denominator) * 100)
+                          : 0,
+                        secondaryText: `${perf.replyRate?.numerator ?? 0}/${perf.replyRate?.denominator ?? 0}`,
+                      },
+                      {
+                        label: t('interestRate'),
+                        value: perf.interestRate?.denominator
+                          ? Math.round((perf.interestRate.numerator / perf.interestRate.denominator) * 100)
+                          : 0,
+                        secondaryText: `${perf.interestRate?.numerator ?? 0}/${perf.interestRate?.denominator ?? 0}`,
+                      },
+                      {
+                        label: t('meetingRate'),
+                        value: perf.meetingRate?.denominator
+                          ? Math.round((perf.meetingRate.numerator / perf.meetingRate.denominator) * 100)
+                          : 0,
+                        secondaryText: `${perf.meetingRate?.numerator ?? 0}/${perf.meetingRate?.denominator ?? 0}`,
+                      },
+                      {
+                        label: t('winRateMeetings'),
+                        value: perf.winRateOfMeetings?.denominator
+                          ? Math.round((perf.winRateOfMeetings.numerator / perf.winRateOfMeetings.denominator) * 100)
+                          : 0,
+                        secondaryText: `${perf.winRateOfMeetings?.numerator ?? 0}/${perf.winRateOfMeetings?.denominator ?? 0}`,
+                      },
+                    ]}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -205,33 +262,51 @@ export default function DeveloperAnalyticsPage() {
                   <CardTitle>{t('byNicheTitle')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-col gap-2">
-                    {!data.byNiche || data.byNiche.length === 0 ? (
-                      <EmptyState title={t('noData')} description={t('desc')} />
-                    ) : (
-                      data.byNiche.map((n) => (
-                        <div
-                          key={n.niche}
-                          className="flex items-center justify-between rounded-xl bg-subtle p-3 text-body-sm"
-                        >
-                          <div>
-                            <span className="font-semibold text-fg-primary">{n.labelAr}</span>
-                            <span className="block text-caption text-fg-muted">
-                              {t('breakdownMetrics', { claimed: fmtNumber(n.claimed), contacted: fmtNumber(n.contacted), meetings: fmtNumber(n.meetings) })}
-                            </span>
-                          </div>
-                          <div className="text-end">
-                            <span className="block font-bold text-brand">
-                              {t('winCount', { count: fmtNumber(n.wins) })}
-                            </span>
-                            <span className="block text-caption text-fg-muted font-mono ltr-iso">
-                              {formatEGP(n.estimatedValueEgp || 0)}
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                  {!data.byNiche || data.byNiche.length === 0 ? (
+                    <EmptyState title={t('noData')} description={t('description')} />
+                  ) : (
+                    <div className="space-y-6">
+                      <BarList
+                        items={data.byNiche.map((n) => ({
+                          label: localizeCategory(n.niche, tCat as any),
+                          value: n.claimed,
+                          secondaryText: t('winCount', { count: fmtNumber(n.wins, locale) }),
+                        }))}
+                      />
+
+                      <div className="space-y-2 pt-4 border-t border-line">
+                        {data.byNiche.map((n) => {
+                          const metaParts = t('breakdownMetrics', {
+                            claimed: fmtNumber(n.claimed, locale),
+                            contacted: fmtNumber(n.contacted, locale),
+                            meetings: fmtNumber(n.meetings, locale),
+                          }).split(' • ');
+
+                          return (
+                            <div
+                              key={n.niche}
+                              className="flex items-center justify-between rounded-lg bg-subtle p-3 text-body-sm"
+                            >
+                              <div className="space-y-1">
+                                <span className="font-semibold text-fg-primary block">
+                                  <bdi dir="auto">{localizeCategory(n.niche, tCat as any)}</bdi>
+                                </span>
+                                <MetaList items={metaParts} />
+                              </div>
+                              <div className="text-end shrink-0">
+                                <span className="block font-bold text-brand">
+                                  {t('winCount', { count: fmtNumber(n.wins, locale) })}
+                                </span>
+                                <span className="block text-caption text-fg-muted tabular-nums ltr-iso">
+                                  {formatEGP(n.estimatedValueEgp || 0, locale)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -240,33 +315,51 @@ export default function DeveloperAnalyticsPage() {
                   <CardTitle>{t('byCityTitle')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-col gap-2">
-                    {!data.byCity || data.byCity.length === 0 ? (
-                      <p className="text-body-sm text-fg-muted">{t('noData')}</p>
-                    ) : (
-                      data.byCity.map((c) => (
-                        <div
-                          key={c.city}
-                          className="flex items-center justify-between rounded-xl bg-subtle p-3 text-body-sm"
-                        >
-                          <div>
-                            <span className="font-semibold text-fg-primary">{c.city}</span>
-                            <span className="block text-caption text-fg-muted">
-                              {t('breakdownMetrics', { claimed: fmtNumber(c.claimed), contacted: fmtNumber(c.contacted), meetings: fmtNumber(c.meetings) })}
-                            </span>
-                          </div>
-                          <div className="text-end">
-                            <span className="block font-bold text-brand">
-                              {t('winCount', { count: fmtNumber(c.wins) })}
-                            </span>
-                            <span className="block text-caption text-fg-muted font-mono ltr-iso">
-                              {formatEGP(c.estimatedValueEgp || 0)}
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                  {!data.byCity || data.byCity.length === 0 ? (
+                    <EmptyState title={t('noData')} description={t('description')} />
+                  ) : (
+                    <div className="space-y-6">
+                      <BarList
+                        items={data.byCity.map((c) => ({
+                          label: localizeCity(c.city, tGeo as any),
+                          value: c.claimed,
+                          secondaryText: t('winCount', { count: fmtNumber(c.wins, locale) }),
+                        }))}
+                      />
+
+                      <div className="space-y-2 pt-4 border-t border-line">
+                        {data.byCity.map((c) => {
+                          const metaParts = t('breakdownMetrics', {
+                            claimed: fmtNumber(c.claimed, locale),
+                            contacted: fmtNumber(c.contacted, locale),
+                            meetings: fmtNumber(c.meetings, locale),
+                          }).split(' • ');
+
+                          return (
+                            <div
+                              key={c.city}
+                              className="flex items-center justify-between rounded-lg bg-subtle p-3 text-body-sm"
+                            >
+                              <div className="space-y-1">
+                                <span className="font-semibold text-fg-primary block">
+                                  <bdi dir="auto">{localizeCity(c.city, tGeo as any)}</bdi>
+                                </span>
+                                <MetaList items={metaParts} />
+                              </div>
+                              <div className="text-end shrink-0">
+                                <span className="block font-bold text-brand">
+                                  {t('winCount', { count: fmtNumber(c.wins, locale) })}
+                                </span>
+                                <span className="block text-caption text-fg-muted tabular-nums ltr-iso">
+                                  {formatEGP(c.estimatedValueEgp || 0, locale)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

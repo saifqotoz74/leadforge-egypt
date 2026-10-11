@@ -2,12 +2,12 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { AppShell } from '@/components/domain/AppShell';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { LeadCard } from '@/components/domain/LeadCard';
 import { LeadRow } from '@/components/domain/LeadRow';
-import { OpportunityBadge, LeadTemperature } from '@/components/domain/OpportunityBadge';
+import { LeadTemperature } from '@/components/domain/OpportunityBadge';
 import { OwnershipType } from '@/components/domain/OwnershipTag';
 import { QualityState } from '@/components/domain/QualityIndicator';
 import { FilterBar, QuickFilter } from '@/components/ui/FilterBar';
@@ -18,15 +18,21 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Table, TableHeader, TableBody, TableRow, TableHead } from '@/components/ui/Table';
 import { Checkbox } from '@/components/ui/Checkbox';
 import {
   ALL_CITIES,
   ALL_GOVERNORATES,
   BUSINESS_CATEGORIES,
-  CATEGORY_LABELS_AR,
   EGYPT_LOCATIONS,
-  SCORE_RANGES,
 } from '@/lib/constants';
+import {
+  localizeCity,
+  localizeCategory,
+  localizeQualificationReason,
+  localizeService,
+  localizeWebsiteStatus,
+} from '@/lib/taxonomy';
 import { fmtNumber } from '@/lib/format';
 import { LayoutGrid, Table as TableIcon, ArrowRight } from 'lucide-react';
 
@@ -92,6 +98,12 @@ function mapQualityStatus(lead: LeadItem): QualityState {
 export default function LeadDiscoveryPage() {
   const t = useTranslations('leads');
   const tCommon = useTranslations('common');
+  const tGeo = useTranslations('geo');
+  const tCat = useTranslations('categories');
+  const tServices = useTranslations('services');
+  const tEnums = useTranslations('enums');
+  const locale = useLocale();
+
   const [leads, setLeads] = useState<LeadItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -273,6 +285,14 @@ export default function LeadDiscoveryPage() {
     { id: 'table', label: t('viewTable'), icon: <TableIcon className="w-4 h-4" /> },
   ];
 
+  const getLocationDisplay = (lead: LeadItem) => {
+    const cityStr = localizeCity(lead.city, tGeo as any);
+    if (!lead.area) return cityStr;
+    const areaStr = localizeCity(lead.area, tGeo as any);
+    const sep = locale === 'ar' ? '، ' : ', ';
+    return `${cityStr}${sep}${areaStr}`;
+  };
+
   return (
     <AppShell
       density="compact"
@@ -318,8 +338,8 @@ export default function LeadDiscoveryPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
           <p className="text-body-sm text-fg-secondary">
             {t('totalMatched')}{' '}
-            <span className="ltr-iso font-mono font-semibold tabular-nums text-fg-brand">
-              {fmtNumber(leads.length)}
+            <span className="ltr-iso font-semibold tabular-nums text-fg-brand">
+              {fmtNumber(leads.length, locale)}
             </span>{' '}
             {t('businesses', { count: leads.length })}
           </p>
@@ -382,8 +402,8 @@ export default function LeadDiscoveryPage() {
                 key={lead.id}
                 id={lead.id}
                 companyName={lead.businessName}
-                category={CATEGORY_LABELS_AR[lead.category] || lead.category}
-                location={`${lead.city}${lead.area ? `، ${lead.area}` : ''}`}
+                category={localizeCategory(lead.category, tCat as any)}
+                location={getLocationDisplay(lead)}
                 temperature={(lead.temperature as LeadTemperature) || 'HOT'}
                 score={lead.score}
                 ownershipType={
@@ -394,7 +414,9 @@ export default function LeadDiscoveryPage() {
                 qualityStatus={mapQualityStatus(lead)}
                 qualityTimestamp={lead.lastVerifiedAt}
                 price={lead.creditCost || (lead.exclusive ? 5 : 1)}
-                signals={lead.qualificationReasons || []}
+                signals={(lead.qualificationReasons || []).map((r) =>
+                  localizeQualificationReason(r, locale)
+                )}
                 seatsRemaining={
                   lead.exclusive
                     ? undefined
@@ -405,47 +427,45 @@ export default function LeadDiscoveryPage() {
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-line bg-surface shadow-xs">
-            <table className="w-full text-start border-collapse text-body-sm">
-              <thead>
-                <tr className="border-b border-line bg-subtle text-caption font-semibold text-fg-secondary h-11">
-                  <th className="py-2.5 px-4 text-start">{t('thBusiness')}</th>
-                  <th className="py-2.5 px-4 text-start">{t('thScore')}</th>
-                  <th className="py-2.5 px-4 text-start">{t('thQuality')}</th>
-                  <th className="py-2.5 px-4 text-start">{t('thOwnership')}</th>
-                  <th className="py-2.5 px-4 text-end">{t('thCost')}</th>
-                  <th className="py-2.5 px-4 text-end">{t('thAction')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {leads.map((lead) => (
-                  <LeadRow
-                    key={lead.id}
-                    id={lead.id}
-                    companyName={lead.businessName}
-                    category={CATEGORY_LABELS_AR[lead.category] || lead.category}
-                    location={`${lead.city}${lead.area ? `، ${lead.area}` : ''}`}
-                    temperature={(lead.temperature as LeadTemperature) || 'HOT'}
-                    score={lead.score}
-                    ownershipType={
-                      (lead.exclusive || lead.leadType === 'EXCLUSIVE'
-                        ? 'EXCLUSIVE'
-                        : 'SHARED') as OwnershipType
-                    }
-                    qualityStatus={mapQualityStatus(lead)}
-                    qualityTimestamp={lead.lastVerifiedAt}
-                    price={lead.creditCost || (lead.exclusive ? 5 : 1)}
-                    seatsRemaining={
-                      lead.exclusive
-                        ? undefined
-                        : Math.max(0, (lead.maxPurchasers || 3) - (lead.currentPurchasers || 0))
-                    }
-                    maxSeats={lead.exclusive ? undefined : lead.maxPurchasers || 3}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('thBusiness')}</TableHead>
+                <TableHead>{t('thScore')}</TableHead>
+                <TableHead>{t('thQuality')}</TableHead>
+                <TableHead>{t('thOwnership')}</TableHead>
+                <TableHead isNumeric>{t('thCost')}</TableHead>
+                <TableHead isNumeric>{t('thAction')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {leads.map((lead) => (
+                <LeadRow
+                  key={lead.id}
+                  id={lead.id}
+                  companyName={lead.businessName}
+                  category={localizeCategory(lead.category, tCat as any)}
+                  location={getLocationDisplay(lead)}
+                  temperature={(lead.temperature as LeadTemperature) || 'HOT'}
+                  score={lead.score}
+                  ownershipType={
+                    (lead.exclusive || lead.leadType === 'EXCLUSIVE'
+                      ? 'EXCLUSIVE'
+                      : 'SHARED') as OwnershipType
+                  }
+                  qualityStatus={mapQualityStatus(lead)}
+                  qualityTimestamp={lead.lastVerifiedAt}
+                  price={lead.creditCost || (lead.exclusive ? 5 : 1)}
+                  seatsRemaining={
+                    lead.exclusive
+                      ? undefined
+                      : Math.max(0, (lead.maxPurchasers || 3) - (lead.currentPurchasers || 0))
+                  }
+                  maxSeats={lead.exclusive ? undefined : lead.maxPurchasers || 3}
+                />
+              ))}
+            </TableBody>
+          </Table>
         )}
 
         {/* Template T3 Advanced Filters Drawer */}
@@ -487,7 +507,10 @@ export default function LeadDiscoveryPage() {
               }}
               options={[
                 { value: 'ALL', label: t('allGovernorates') },
-                ...ALL_GOVERNORATES.map((g) => ({ value: g, label: g })),
+                ...ALL_GOVERNORATES.map((g) => ({
+                  value: g,
+                  label: localizeCity(g, tGeo as any),
+                })),
               ]}
             />
 
@@ -498,7 +521,10 @@ export default function LeadDiscoveryPage() {
               onChange={(e) => setCity(e.target.value)}
               options={[
                 { value: 'ALL', label: t('allCities') },
-                ...availableCities.map((c) => ({ value: c, label: c })),
+                ...availableCities.map((c) => ({
+                  value: c,
+                  label: localizeCity(c, tGeo as any),
+                })),
               ]}
             />
 
@@ -507,7 +533,7 @@ export default function LeadDiscoveryPage() {
               label={t('areaLabel')}
               value={area}
               onChange={(e) => setArea(e.target.value)}
-              placeholder="مدينة نصر، سموحة..."
+              placeholder={t('areaPlaceholder')}
             />
 
             {/* Category */}
@@ -519,7 +545,7 @@ export default function LeadDiscoveryPage() {
                 { value: 'ALL', label: t('allCategories') },
                 ...BUSINESS_CATEGORIES.map((c) => ({
                   value: c.value,
-                  label: `${c.labelAr} (${c.value})`,
+                  label: localizeCategory(c.value, tCat as any),
                 })),
               ]}
             />
@@ -531,13 +557,18 @@ export default function LeadDiscoveryPage() {
               onChange={(e) => setService(e.target.value)}
               options={[
                 { value: 'ALL', label: t('allServices') },
-                { value: 'WEBSITE_DEVELOPMENT', label: 'تطوير موقع إلكتروني' },
-                { value: 'WEBSITE_REDESIGN', label: 'إعادة تصميم وتطوير موقع' },
-                { value: 'ECOMMERCE', label: 'متجر إلكتروني' },
-                { value: 'LANDING_PAGE', label: 'صفحة هبوط' },
-                { value: 'BOOKING_SYSTEM', label: 'نظام حجز مواعيد' },
-                { value: 'CUSTOM_SOFTWARE', label: 'أنظمة مخصصة وتطبيقات ويب' },
-                { value: 'SEO', label: 'تحسين محركات البحث' },
+                ...[
+                  'WEBSITE_DEVELOPMENT',
+                  'WEBSITE_REDESIGN',
+                  'ECOMMERCE',
+                  'LANDING_PAGE',
+                  'BOOKING_SYSTEM',
+                  'CUSTOM_SOFTWARE',
+                  'SEO',
+                ].map((srvKey) => ({
+                  value: srvKey,
+                  label: localizeService(srvKey, tServices as any),
+                })),
               ]}
             />
 
@@ -548,10 +579,10 @@ export default function LeadDiscoveryPage() {
               onChange={(e) => setWebsiteStatus(e.target.value)}
               options={[
                 { value: 'ALL', label: t('allStatuses') },
-                { value: 'NO_WEBSITE', label: 'بدون موقع إلكتروني' },
-                { value: 'POOR_WEBSITE', label: 'موقع قديم أو ضعيف' },
-                { value: 'HAS_WEBSITE', label: 'يمتلك موقعاً' },
-                { value: 'UNKNOWN', label: 'غير معروف' },
+                ...['NO_WEBSITE', 'POOR_WEBSITE', 'HAS_WEBSITE', 'UNKNOWN'].map((ws) => ({
+                  value: ws,
+                  label: localizeWebsiteStatus(ws, (k) => tEnums(k)),
+                })),
               ]}
             />
 
@@ -562,7 +593,10 @@ export default function LeadDiscoveryPage() {
               onChange={(e) => setScoreRange(e.target.value)}
               options={[
                 { value: '', label: t('allScores') },
-                ...SCORE_RANGES.map((sr) => ({ value: sr.value, label: sr.labelAr })),
+                { value: '85-100', label: t('scoreRange85_100') },
+                { value: '70-84', label: t('scoreRange70_84') },
+                { value: '50-69', label: t('scoreRange50_69') },
+                { value: '0-49', label: t('scoreRange0_49') },
               ]}
             />
 
@@ -624,10 +658,10 @@ export default function LeadDiscoveryPage() {
               onChange={(e) => setTemperature(e.target.value)}
               options={[
                 { value: 'ALL', label: t('allTemperatures') },
-                { value: 'PREMIUM', label: 'فرصة مميزة' },
-                { value: 'HOT', label: 'فرصة ساخنة' },
-                { value: 'WARM', label: 'فرصة دافئة' },
-                { value: 'COLD', label: 'فرصة باردة' },
+                { value: 'PREMIUM', label: t('tempPremium') },
+                { value: 'HOT', label: t('tempHot') },
+                { value: 'WARM', label: t('tempWarm') },
+                { value: 'COLD', label: t('tempCold') },
               ]}
             />
 
