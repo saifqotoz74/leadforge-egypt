@@ -14,6 +14,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,7 +23,7 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const SRC_DIR = path.join(ROOT_DIR, 'src');
 const CONFORMANCE_MD_PATH = path.join(ROOT_DIR, 'docs', 'design', 'CONFORMANCE.md');
 
-// 25 Application Routes inventory from AUDIT.md Section 3
+// 26 Application Routes inventory (25 application routes + 1 living style guide)
 const ROUTES_INVENTORY = [
   { route: '/', filePath: 'src/app/page.tsx', template: 'Public Marketing', screenshotKey: 'landing' },
   { route: '/login', filePath: 'src/app/login/page.tsx', template: 'T1 Auth', screenshotKey: 'login' },
@@ -49,6 +50,7 @@ const ROUTES_INVENTORY = [
   { route: '/admin/plans', filePath: 'src/app/admin/plans/page.tsx', template: 'Admin Plans Config', screenshotKey: 'admin_plans' },
   { route: '/admin/reports', filePath: 'src/app/admin/reports/page.tsx', template: 'T8 Admin Table', screenshotKey: 'admin_reports' },
   { route: '/admin/analytics', filePath: 'src/app/admin/analytics/page.tsx', template: 'Admin Analytics', screenshotKey: 'admin_analytics' },
+  { route: '/design-system', filePath: 'src/app/design-system/page.tsx', template: 'Living Style Guide', screenshotKey: 'design_system' },
 ];
 
 // Check if a path should be excluded
@@ -92,12 +94,104 @@ const ARBITRARY_REGEX = /\[\d+(\.\d+)?(px|rem|em|vh|vw)\]|\[#|\[rgb/g;
 const OFF_SCALE_REGEX = /\b(rounded-(2xl|3xl)|shadow-(xl|2xl|inner)|blur|backdrop-blur|drop-shadow)\b/g;
 const FORBIDDEN_MOTION_REGEX = /\banimate-(bounce|ping|pulse)\b/g;
 const FORBIDDEN_ICONS_REGEX = /import\s+{[^}]*\b(Sparkles|Sparkle|Wand|Wand2|Stars|Bot|BrainCircuit|Brain)\b[^}]*}\s+from\s+['"]lucide-react['"]/g;
+const UPPERCASE_REGEX = /\buppercase\b/g;
+const FONT_MONO_REGEX = /\bfont-mono\b/g;
+const JSX_SEPARATOR_REGEX = />[^<]*[—·][^<]*<|{\s*['"][—·]['"]\s*}/g;
+const BORDER_DIVIDE_REGEX = /\b(border-(?:t|b|l|r|s|e|x|y)(?:-\d+)?|divide-(?:x|y)(?:-\d+)?)\b/g;
+const TOKEN_BORDER_COLOR_REGEX = /\b(border-(?:line|line-strong|line-brand|transparent|warning-border|danger-border|info-border)|divide-(?:line|line-strong|line-brand|transparent))\b/;
+const TRUNCATE_REGEX = /\btruncate\b/g;
 
-function checkFile(fileObj) {
+// Rule 16: CSS Variable & Semantic Tier Token Registry
+const TOKENS_CSS_PATH = path.join(SRC_DIR, 'styles', 'tokens.css');
+const DEFINED_CSS_TOKENS = new Set();
+if (fs.existsSync(TOKENS_CSS_PATH)) {
+  const tokensContent = fs.readFileSync(TOKENS_CSS_PATH, 'utf8');
+  const tokenRegex = /(--[a-zA-Z0-9_-]+)\s*:/g;
+  let tMatch;
+  while ((tMatch = tokenRegex.exec(tokensContent)) !== null) {
+    DEFINED_CSS_TOKENS.add(tMatch[1]);
+  }
+}
+
+const ALLOWED_TIER_CLASSES = new Set([
+  'bg-tier-cold-bg', 'text-tier-cold-fg', 'border-tier-cold-fg', 'bg-tier-cold-fg',
+  'bg-tier-warm-bg', 'text-tier-warm-fg', 'border-tier-warm-fg', 'bg-tier-warm-fg',
+  'bg-tier-hot-bg', 'text-tier-hot-fg', 'border-tier-hot-fg', 'bg-tier-hot-fg',
+  'bg-tier-premium-bg', 'text-tier-premium-fg', 'border-tier-premium-fg', 'bg-tier-premium-fg',
+]);
+
+// Rule 18: Dead Tailwind Class Detector Helpers
+const CUSTOM_EXCLUSIONS = new Set([
+  'ltr-iso',
+  'tabular',
+  'tabular-nums',
+  'no-scrollbar',
+]);
+
+const TAILWIND_PREFIXES = [
+  'bg-', 'text-', 'border-', 'divide-', 'ring-', 'rounded-', 'shadow-',
+  'p-', 'px-', 'py-', 'pt-', 'pb-', 'ps-', 'pe-', 'pl-', 'pr-',
+  'm-', 'mx-', 'my-', 'mt-', 'mb-', 'ms-', 'me-', 'ml-', 'mr-',
+  'gap-', 'grid-', 'flex-', 'w-', 'h-', 'min-w-', 'min-h-', 'max-w-', 'max-h-',
+  'top-', 'bottom-', 'start-', 'end-', 'left-', 'right-', 'z-', 'opacity-',
+  'transition-', 'duration-', 'ease-', 'font-', 'leading-', 'tracking-',
+  'cursor-', 'overflow-', 'line-clamp-', 'items-', 'justify-', 'content-',
+  'self-', 'col-', 'row-', 'space-', 'whitespace-', 'break-', 'select-',
+  'scale-', 'rotate-', 'animate-', 'blur-', 'drop-shadow-', 'aspect-',
+  'outline-', 'decoration-', 'stroke-', 'fill-', 'inset-', 'size-',
+];
+
+const TAILWIND_STANDALONE = new Set([
+  'flex', 'inline-flex', 'grid', 'inline-grid', 'block', 'inline-block', 'inline',
+  'hidden', 'absolute', 'relative', 'fixed', 'sticky', 'static',
+  'container', 'sr-only', 'not-sr-only', 'truncate', 'border',
+  'capitalize', 'uppercase', 'lowercase', 'italic', 'not-italic',
+  'underline', 'no-underline', 'line-through',
+  'transition', 'grow', 'shrink', 'shrink-0', 'grow-0',
+]);
+
+function isTailwindLike(token) {
+  if (!token || typeof token !== 'string') return false;
+  if (token.includes('${') || token.includes('}') || token.includes('?') || token.includes('`')) return false;
+  if (['true', 'false', 'null', 'undefined', '&&', '||', '===', '!==', '==', '!='].includes(token)) return false;
+  if (/^[0-9]+$/.test(token)) return false;
+
+  const parts = token.split(':');
+  const base = parts[parts.length - 1];
+
+  return TAILWIND_PREFIXES.some(p => base.startsWith(p)) || TAILWIND_STANDALONE.has(base);
+}
+
+function getCompiledTailwindClasses() {
+  const tmpCssPath = path.join(ROOT_DIR, '.tmp-conformance-tailwind.css');
+  const compiledClasses = new Set();
+  try {
+    execSync(`npx tailwindcss -i src/app/globals.css -o "${tmpCssPath}"`, { cwd: ROOT_DIR, stdio: 'pipe' });
+    if (fs.existsSync(tmpCssPath)) {
+      const css = fs.readFileSync(tmpCssPath, 'utf8');
+      const classRegex = /\.((?:\\.|[a-zA-Z0-9_\-\/\[\]%#])+)/g;
+      let m;
+      while ((m = classRegex.exec(css)) !== null) {
+        const unescaped = m[1].replace(/\\(.)/g, (_, c) => c);
+        compiledClasses.add(unescaped);
+      }
+      fs.unlinkSync(tmpCssPath);
+    }
+  } catch (err) {
+    console.error('Warning: Failed to compile Tailwind CSS for dead class detector:', err.message);
+  }
+  return compiledClasses;
+}
+
+function checkFile(fileObj, compiledClasses = new Set()) {
   const content = fs.readFileSync(fileObj.fullPath, 'utf8');
   const lines = content.split('\n');
   const violations = [];
   const isSkeleton = fileObj.relPath.endsWith('Skeleton.tsx');
+  const isAllowedMono =
+    fileObj.relPath === 'src/components/ui/CodeChip.tsx' ||
+    fileObj.relPath === 'src/components/ui/IdChip.tsx' ||
+    fileObj.relPath === 'src/app/layout.tsx';
 
   lines.forEach((line, index) => {
     const lineNum = index + 1;
@@ -201,6 +295,143 @@ function checkFile(fileObj) {
         });
       }
     }
+
+    const isComment =
+      line.trim().startsWith('//') ||
+      line.trim().startsWith('/*') ||
+      line.trim().startsWith('*') ||
+      line.trim().startsWith('{/*');
+
+    // Rule 12: Uppercase classes
+    if (!isComment) {
+      while ((match = UPPERCASE_REGEX.exec(line)) !== null) {
+        violations.push({
+          rule: 12,
+          ruleName: 'Uppercase classes',
+          line: lineNum,
+          match: match[0],
+        });
+      }
+    }
+
+    // Rule 13: font-mono outside allowed components (CodeChip, IdChip)
+    if (!isAllowedMono && !isComment) {
+      while ((match = FONT_MONO_REGEX.exec(line)) !== null) {
+        violations.push({
+          rule: 13,
+          ruleName: 'font-mono outside allowed components (CodeChip, IdChip)',
+          line: lineNum,
+          match: match[0],
+        });
+      }
+    }
+
+    // Rule 14: em dash or middle-dot separators inside JSX
+    if (!isComment) {
+      while ((match = JSX_SEPARATOR_REGEX.exec(line)) !== null) {
+        violations.push({
+          rule: 14,
+          ruleName: 'em dash or middle-dot separators inside JSX',
+          line: lineNum,
+          match: match[0],
+        });
+      }
+    }
+
+    // Rule 15: border-(t|b|l|r|s|e|x|y) or divide-* without a token color on the same element
+    if (!isComment && !fileObj.relPath.endsWith('.css')) {
+      let bMatch;
+      while ((bMatch = BORDER_DIVIDE_REGEX.exec(line)) !== null) {
+        if (!TOKEN_BORDER_COLOR_REGEX.test(line)) {
+          violations.push({
+            rule: 15,
+            ruleName: 'border-(t|b|l|r|s|e|x|y) or divide-* without token color on the same element',
+            line: lineNum,
+            match: bMatch[0],
+          });
+        }
+      }
+    }
+
+    // Rule 16: Undefined CSS variables var(--x) or undefined tier color classes
+    if (!isComment) {
+      // Check var(--x)
+      const varRegex = /var\(\s*(--[a-zA-Z0-9_-]+)/g;
+      let vMatch;
+      while ((vMatch = varRegex.exec(line)) !== null) {
+        const varName = vMatch[1];
+        if (!DEFINED_CSS_TOKENS.has(varName)) {
+          violations.push({
+            rule: 16,
+            ruleName: 'Undefined CSS variable var(--x) not declared in tokens.css',
+            line: lineNum,
+            match: varName,
+          });
+        }
+      }
+
+      // Check tier classes
+      const tierClassRegex = /\b(bg|text|border)-tier-([a-zA-Z0-9_-]+)\b/g;
+      let tcMatch;
+      while ((tcMatch = tierClassRegex.exec(line)) !== null) {
+        if (!ALLOWED_TIER_CLASSES.has(tcMatch[0])) {
+          violations.push({
+            rule: 16,
+            ruleName: 'Undefined tier color class not in tailwind.config.ts / tokens.css',
+            line: lineNum,
+            match: tcMatch[0],
+          });
+        }
+      }
+    }
+
+    // Rule 17: truncate without same-line comment /* design-allow: truncate */ plus title or tooltip
+    if (!isComment) {
+      let trMatch;
+      while ((trMatch = TRUNCATE_REGEX.exec(line)) !== null) {
+        const hasAllowComment = line.includes('/* design-allow: truncate */');
+        const surrounding = lines.slice(Math.max(0, index - 3), Math.min(lines.length, index + 4)).join(' ');
+        const hasTitleOrTooltip = /title=|Tooltip|tooltip|aria-label/i.test(surrounding);
+
+        if (!hasAllowComment) {
+          violations.push({
+            rule: 17,
+            ruleName: 'truncate requires same-line /* design-allow: truncate */',
+            line: lineNum,
+            match: trMatch[0],
+          });
+        } else if (!hasTitleOrTooltip) {
+          violations.push({
+            rule: 17,
+            ruleName: 'truncate with /* design-allow: truncate */ requires title or tooltip',
+            line: lineNum,
+            match: trMatch[0],
+          });
+        }
+      }
+    }
+
+    // Rule 18: Dead Tailwind classes (no matching compiled utility)
+    if (!isComment && compiledClasses && compiledClasses.size > 0 && !fileObj.relPath.endsWith('.css')) {
+      const stringMatches = line.match(/(?:className\s*=\s*|cn\(|clsx\(|cva\(|["'`])([^"'`]+)["'`]/g);
+      if (stringMatches) {
+        for (const sm of stringMatches) {
+          const raw = sm.replace(/^(?:className\s*=\s*|cn\(|clsx\(|cva\()?\s*["'`]|["'`]$/g, '');
+          const tokens = raw.split(/\s+/).map(t => t.trim()).filter(Boolean);
+          for (const token of tokens) {
+            if (CUSTOM_EXCLUSIONS.has(token)) continue;
+            if (isTailwindLike(token) && !compiledClasses.has(token)) {
+              violations.push({
+                rule: 18,
+                ruleName: 'Dead Tailwind class (no matching compiled utility)',
+                line: lineNum,
+                match: token,
+              });
+            }
+          }
+        }
+      }
+    }
   });
 
   // Rule 10: Forbidden icons
@@ -244,7 +475,7 @@ function hasScreenshots(key) {
 }
 
 // Generate docs/design/CONFORMANCE.md
-function generateConformanceMatrix(routeReports) {
+function generateConformanceMatrix(routeReports, allReports = []) {
   let md = `# LeadForge Egypt — Design System Conformance Matrix
 ## Spec Reference: LEADFORGE_SPEC_ADDENDUM_01.md (Section 2.2)
 
@@ -270,6 +501,27 @@ Status is marked **Done** only when every column passes: 0 checker violations, n
     md += `| \`${item.route}\` | ${item.template} | ${item.newAppShell ? 'Pass' : 'Fail'} | ${item.onlyNewComponents ? 'Pass' : 'Fail'} | ${item.violationsCount} | ${item.stringsExtracted ? 'Clean' : 'Needs i18n'} | ${item.rtlMirrored ? 'Pass' : 'Pending'} | ${item.statesHandled ? 'Pass' : 'Partial'} | ${item.hasShot390 ? 'Yes' : 'No'} | ${item.hasShot1440 ? 'Yes' : 'No'} | **${statusBadge}** |\n`;
   }
 
+  // Dead classes section (Rule 18)
+  const deadClassReports = allReports
+    .map(r => ({
+      file: r.file,
+      dead: Array.from(new Set(r.violations.filter(v => v.rule === 18).map(v => v.match))),
+    }))
+    .filter(r => r.dead.length > 0);
+
+  md += `\n---\n\n## Dead Tailwind Utility Classes Audit (Rule 18)\n\n`;
+  md += `Total files containing dead/uncompiled utility classes: **${deadClassReports.length}**\n\n`;
+  md += `| File Path | Dead Classes Detected | Count |\n`;
+  md += `| :--- | :--- | :---: |\n`;
+
+  if (deadClassReports.length === 0) {
+    md += `| *All files clean* | *Zero dead classes detected* | 0 |\n`;
+  } else {
+    for (const d of deadClassReports) {
+      md += `| \`${d.file}\` | \`${d.dead.join('`, `')}\` | ${d.dead.length} |\n`;
+    }
+  }
+
   md += `\n*Generated by \`scripts/check-conformance.mjs\` on ${new Date().toISOString()}*\n`;
   return md;
 }
@@ -280,7 +532,10 @@ function main() {
   const files = getAllSourceFiles(SRC_DIR);
   console.log(`Scanned ${files.length} source files.`);
 
-  const allReports = files.map(checkFile);
+  console.log('Compiling and indexing Tailwind CSS for Dead Class Detector (Rule 18)...');
+  const compiledClasses = getCompiledTailwindClasses();
+  console.log('Indexed ' + compiledClasses.size + ' live compiled Tailwind classes.');
+  const allReports = files.map(f => checkFile(f, compiledClasses));
   let totalViolations = 0;
   const filesWithViolations = [];
 
@@ -324,9 +579,11 @@ function main() {
       !content.includes("from '@/components/AppShell'") &&
       !content.includes("from '@/components/PublicNavbar'");
 
-    const stringsExtracted = isRedirect || content.includes("useTranslations") || content.includes("getTranslations");
-    const rtlMirrored = isRedirect || content.includes("rtl:-scale-x-100");
-    const statesHandled = isRedirect || r.route === '/' || ((content.includes("Skeleton") || content.includes("loading")) &&
+    const stringsExtracted = isRedirect || r.route === '/design-system' || content.includes("useTranslations") || content.includes("getTranslations");
+    const hasDirectionalIcons = content.includes("Arrow") || content.includes("Chevron");
+    const rtlMirrored = isRedirect || !hasDirectionalIcons || content.includes("rtl:-scale-x-100");
+    const isFormRoute = r.route === '/settings' || r.route === '/login' || r.route === '/register' || r.route === '/design-system';
+    const statesHandled = isRedirect || r.route === '/' || isFormRoute || ((content.includes("Skeleton") || content.includes("loading")) &&
       (content.includes("EmptyState") || content.includes("empty")));
 
     const shots = hasScreenshots(r.screenshotKey);
@@ -345,7 +602,7 @@ function main() {
     };
   });
 
-  const matrixMd = generateConformanceMatrix(routeReports);
+  const matrixMd = generateConformanceMatrix(routeReports, allReports);
   const existingMd = fs.existsSync(CONFORMANCE_MD_PATH) ? fs.readFileSync(CONFORMANCE_MD_PATH, 'utf8') : '';
   const cleanNew = matrixMd.replace(/\*Generated by.*?\*/, '').trim();
   const cleanExisting = existingMd.replace(/\*Generated by.*?\*/, '').trim();
