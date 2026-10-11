@@ -198,11 +198,10 @@ export default function AdminMatchingPage() {
   async function fetchInitialData() {
     setLoading(true);
     try {
-      const [leadsRes, devsRes, rulesRes, cfgRes] = await Promise.all([
+      const [leadsRes, devsRes, rulesRes] = await Promise.all([
         fetch('/api/admin/leads?limit=30'),
         fetch('/api/admin/users?role=DEVELOPER'),
         fetch('/api/admin/matching/rules'),
-        fetch('/api/admin/matching/config'),
       ]);
 
       if (leadsRes.ok) {
@@ -226,14 +225,13 @@ export default function AdminMatchingPage() {
       if (rulesRes.ok) {
         const rJson = await rulesRes.json();
         setRules(rJson.rules || []);
-        if (rJson.version) setMatchVersion(rJson.version);
-      }
-
-      if (cfgRes.ok) {
-        const cJson = await cfgRes.json();
-        setConfig(cJson.config || null);
-        if (cJson.config?.currentVersion) {
-          setMatchVersion(cJson.config.currentVersion);
+        if (rJson.config) {
+          setConfig(rJson.config);
+          if (rJson.config.currentVersion) {
+            setMatchVersion(rJson.config.currentVersion);
+          }
+        } else if (rJson.matchVersion) {
+          setMatchVersion(rJson.matchVersion);
         }
       }
     } catch {
@@ -248,18 +246,27 @@ export default function AdminMatchingPage() {
     setRunningDebugger(true);
     setErrorBanner(null);
     try {
-      const res = await fetch(
-        `/api/admin/matching/debug?leadId=${encodeURIComponent(leadId)}&developerId=${encodeURIComponent(devId)}`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setDebugReport(data.report);
-        if (data.leadRanking) {
-          setLeadRanking(data.leadRanking);
-        }
+      const [pairRes, rankingRes] = await Promise.all([
+        fetch(
+          `/api/matching/leads/${encodeURIComponent(leadId)}/developers/${encodeURIComponent(devId)}`
+        ),
+        fetch(
+          `/api/matching/leads/${encodeURIComponent(leadId)}?includeRejected=true`
+        ),
+      ]);
+
+      if (pairRes.ok) {
+        const data = await pairRes.json();
+        const report = data.debugReport || data;
+        setDebugReport(report);
       } else {
-        const err = await res.json();
+        const err = await pairRes.json();
         setErrorBanner(err.error || 'تعذر فحص المطابقة.');
+      }
+
+      if (rankingRes.ok) {
+        const rankData = await rankingRes.json();
+        setLeadRanking(rankData);
       }
     } catch {
       setErrorBanner('حدث خطأ أثناء فحص المطابقة.');
@@ -390,15 +397,26 @@ export default function AdminMatchingPage() {
     e.preventDefault();
     if (!config) return;
     try {
-      const res = await fetch('/api/admin/matching/config', {
-        method: 'PUT',
+      const res = await fetch('/api/admin/matching/rules', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config),
+        body: JSON.stringify({
+          action: 'UPDATE_CONFIG',
+          serviceMatchMode: config.serviceMatchMode,
+          unknownLocationPolicy: config.unknownLocationPolicy,
+          unknownBudgetPolicy: config.unknownBudgetPolicy,
+          requiresVerificationPolicy: config.requiresVerificationPolicy,
+          budgetHardRequirement: config.budgetHardRequirement,
+          requireActiveSubscription: config.requireActiveSubscription,
+          requireDeveloperVerified: config.requireDeveloperVerified,
+        }),
       });
       if (res.ok) {
         const d = await res.json();
-        setStatusBanner(t('configSaved', { version: d.version || 'v2' }));
-        if (d.version) setMatchVersion(d.version);
+        const v = d.matchVersion || d.config?.currentVersion || 'v2';
+        setStatusBanner(t('configSaved', { version: v }));
+        if (v) setMatchVersion(v);
+        if (d.config) setConfig(d.config);
       } else {
         const err = await res.json();
         setErrorBanner(err.error || t('configError'));
@@ -991,10 +1009,9 @@ export default function AdminMatchingPage() {
               </Button>
             </form>
           </div>
-        ) : (
-          config && (
-            <form
-              onSubmit={handleSaveConfig}
+        ) : config ? (
+          <form
+            onSubmit={handleSaveConfig}
               className="rounded-xl border border-line bg-surface p-6 shadow-xs space-y-5"
             >
               <h2 className="flex items-center gap-2 text-sm font-extrabold text-fg-primary">
@@ -1113,8 +1130,12 @@ export default function AdminMatchingPage() {
                 {t('saveConfig')}
               </Button>
             </form>
-          )
-        )}
+          ) : (
+            <EmptyState
+              title={t('configNotAvailableTitle')}
+              description={t('configNotAvailableDesc')}
+            />
+          )}
       </div>
     </AppShell>
   );

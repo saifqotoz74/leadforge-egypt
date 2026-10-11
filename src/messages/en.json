@@ -1078,7 +1078,9 @@
     "saveConfig": "Save & Apply Policies",
     "configSaved": "Matching policies saved successfully, updated to version {version}",
     "configError": "Failed to save matching configuration.",
-    "noData": "Please select a developer and lead to perform diagnostic evaluation"
+    "noData": "Please select a developer and lead to perform diagnostic evaluation",
+    "configNotAvailableTitle": "Matching policies not available",
+    "configNotAvailableDesc": "Unable to retrieve matching policies and gates at this time. Please reload or check server status."
   },
   "adminRules": {
     "pageTitle": "Scoring Rules & Freshness",
