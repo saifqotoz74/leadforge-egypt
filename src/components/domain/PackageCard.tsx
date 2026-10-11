@@ -94,13 +94,21 @@ export const PackageCard: React.FC<PackageCardProps> = ({
       </div>
 
       {/* 4. Price with per-point caption (no parentheses, tabular-nums) */}
-      <div className="flex flex-col gap-1 pb-6 mb-6 border-b border-line">
-        <div className="ltr-iso text-h2 font-bold tabular-nums text-fg-primary">
-          {formatEGP(priceEGP, locale)}
-        </div>
-        <span className="text-caption text-fg-secondary tabular-nums">
-          {tPlans('perPointCaption', { price: fmtNumber(pricePerPoint, locale) })}
-        </span>
+      <div className="flex flex-col gap-1 pb-6 mb-6 border-b border-line min-h-16 justify-center">
+        {priceEGP === 0 ? (
+          <div className="text-h2 font-bold text-fg-primary">
+            {tPlans('freePrice')}
+          </div>
+        ) : (
+          <>
+            <div className="ltr-iso text-h2 font-bold tabular-nums text-fg-primary">
+              {formatEGP(priceEGP, locale)}
+            </div>
+            <span className="text-caption text-fg-secondary tabular-nums">
+              {tPlans('perPointCaption', { price: fmtNumber(pricePerPoint, locale) })}
+            </span>
+          </>
+        )}
       </div>
 
       {/* 5. Feature list (flex-1 aligns primary action across all cards in a row) */}

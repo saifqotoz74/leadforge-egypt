@@ -1686,6 +1686,7 @@
     "pointsUnit": "points",
     "perPointCaption": "Approx. {price} EGP per point",
     "freePlanCaption": "Approx. 0 EGP per point",
+    "freePrice": "Free",
     "selectPlanCta": "Select plan",
     "currentPlanCta": "Current plan",
     "defaultReassurance": "Points are added immediately to your balance after payment",

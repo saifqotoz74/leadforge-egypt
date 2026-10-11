@@ -1686,6 +1686,7 @@
     "pointsUnit": "نقطة",
     "perPointCaption": "حوالي {price} ج.م للنقطة",
     "freePlanCaption": "حوالي 0 ج.م للنقطة",
+    "freePrice": "مجاناً",
     "selectPlanCta": "اختيار الباقة",
     "currentPlanCta": "الباقة الحالية",
     "defaultReassurance": "تُضاف النقاط فوراً إلى حسابك بعد الدفع",
