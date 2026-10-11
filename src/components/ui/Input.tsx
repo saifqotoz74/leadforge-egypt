@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -12,6 +12,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?: string;
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
+  showPasswordToggle?: boolean;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -24,6 +25,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       error,
       startIcon,
       endIcon,
+      showPasswordToggle,
+      type = 'text',
       id,
       className = '',
       disabled,
@@ -32,6 +35,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     const tCommon = useTranslations('common');
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+    const isPasswordField = type === 'password' || showPasswordToggle;
+    const effectiveType = isPasswordField
+      ? isPasswordVisible
+        ? 'text'
+        : 'password'
+      : type;
 
     const inputId = id || (label ? `input-${label.replace(/\s+/g, '-').toLowerCase()}` : undefined);
     const hasError = Boolean(error);
@@ -62,6 +73,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
+            type={effectiveType}
             disabled={disabled}
             aria-invalid={hasError}
             aria-describedby={
@@ -73,7 +85,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             }
             className={`w-full h-10 px-4 rounded-md bg-surface text-fg-primary text-body transition-colors border outline-none placeholder:text-fg-muted ${
               startIcon ? 'ps-10' : ''
-            } ${endIcon ? 'pe-10' : ''} ${
+            } ${endIcon || isPasswordField ? 'pe-10' : ''} ${
               hasError
                 ? 'border-danger-icon focus:ring-2 focus:ring-danger-icon'
                 : 'border-line-strong hover:border-fg-muted focus:border-brand focus:ring-2 focus:ring-brand-accent'
@@ -81,11 +93,25 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
 
-          {endIcon && (
+          {isPasswordField ? (
+            <button
+              type="button"
+              onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+              className="absolute end-3 p-1 rounded text-fg-secondary hover:text-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              aria-label={isPasswordVisible ? tCommon('hidePassword') : tCommon('showPassword')}
+              title={isPasswordVisible ? tCommon('hidePassword') : tCommon('showPassword')}
+            >
+              {isPasswordVisible ? (
+                <EyeOff className="w-4 h-4" aria-hidden="true" />
+              ) : (
+                <Eye className="w-4 h-4" aria-hidden="true" />
+              )}
+            </button>
+          ) : endIcon ? (
             <div className="absolute end-3 flex items-center justify-center text-fg-secondary pointer-events-none w-5 h-5">
               {endIcon}
             </div>
-          )}
+          ) : null}
         </div>
 
         {hasError ? (

@@ -33,6 +33,8 @@
     "deterministicNotice": "نفس المدخلات تعطي نفس النتيجة دائماً.",
     "notifications": "التنبيهات",
     "menu": "القائمة",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
     "leadUnit": "{count, plural, zero {فرصة} one {فرصة} two {فرصتان} few {فرص} many {فرصة} other {فرصة}}",
     "pointUnit": "{count, plural, zero {نقطة} one {نقطة} two {نقطتان} few {نقاط} many {نقطة} other {نقطة}}",
     "leadCount": "{count, plural, zero {# فرصة} one {فرصة واحدة} two {فرصتان} few {# فرص} many {# فرصة} other {# فرصة}}",

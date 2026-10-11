@@ -123,6 +123,7 @@ export default function LoginPage() {
             <Input
               label={tAuth('emailLabel')}
               type="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -134,6 +135,7 @@ export default function LoginPage() {
             <Input
               label={tAuth('passwordLabel')}
               type="password"
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}

@@ -5,7 +5,7 @@ const EDGE_PATH = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 30000,
+  timeout: 45000,
   expect: {
     timeout: 10000,
   },

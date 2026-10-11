@@ -33,6 +33,8 @@
     "deterministicNotice": "Same inputs produce identical outputs every time.",
     "notifications": "Notifications",
     "menu": "Menu",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "leadUnit": "{count, plural, one {lead} other {leads}}",
     "pointUnit": "{count, plural, one {pt} other {pts}}",
     "leadCount": "{count, plural, one {# lead} other {# leads}}",

@@ -111,6 +111,7 @@ export default function RegisterPage() {
               <Input
                 label={tAuth('nameLabel')}
                 type="text"
+                autoComplete="name"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -120,6 +121,7 @@ export default function RegisterPage() {
               <Input
                 label={`${tAuth('companyLabel')} (${tAuth('optional')})`}
                 type="text"
+                autoComplete="organization"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder={tAuth('companyPlaceholder')}
@@ -130,6 +132,7 @@ export default function RegisterPage() {
               <Input
                 label={tAuth('emailLabel')}
                 type="email"
+                autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -141,6 +144,7 @@ export default function RegisterPage() {
               <Input
                 label={`${tAuth('phoneLabel')} (${tAuth('optional')})`}
                 type="tel"
+                autoComplete="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder={tAuth('phonePlaceholder')}
@@ -152,6 +156,7 @@ export default function RegisterPage() {
             <Input
               label={tAuth('passwordLabel')}
               type="password"
+              autoComplete="new-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
