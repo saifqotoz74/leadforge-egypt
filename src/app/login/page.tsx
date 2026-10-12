@@ -80,7 +80,7 @@ export default function LoginPage() {
             </h1>
             <p className="text-body-sm text-fg-secondary">
               {tAuth('welcomeBack')}{' '}
-              <span className="font-semibold text-fg-primary ltr-iso" dir="ltr">LeadForge</span>
+              <span className="font-semibold text-fg-primary ltr-iso" dir="ltr">Leads4dev</span>
             </p>
           </div>
 

@@ -151,7 +151,7 @@ export default function DesignSystemPage() {
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-brand" />
               <h1 className="text-h2 font-bold tracking-tight">
-                دليل نظام التصميم — LeadForge Egypt Design System
+                دليل نظام التصميم — Leads4dev Design System
               </h1>
             </div>
             <p className="text-body-sm text-fg-secondary">
@@ -359,7 +359,7 @@ export default function DesignSystemPage() {
             <div className="flex flex-col gap-1 border-b border-line pb-4">
               <span className="text-caption text-fg-muted font-mono">Body (16px, 400, line-height 1.7)</span>
               <p className="text-body text-fg-secondary max-w-[70ch]">
-                نظام LeadForge يعتمد على معايير حتمية صارمة لاكتشاف واحتساب جودة الفرص التجارية دون أي تخمينات عشوائية أو أيقونات ذكاء اصطناعي مضللة.
+                نظام Leads4dev يعتمد على معايير حتمية صارمة لاكتشاف واحتساب جودة الفرص التجارية دون أي تخمينات عشوائية أو أيقونات ذكاء اصطناعي مضللة.
               </p>
             </div>
 
@@ -383,7 +383,7 @@ export default function DesignSystemPage() {
 
             {/* BRAND WORDMARK SHOWCASE */}
             <div className="flex flex-col gap-3 border-t border-line pt-4">
-              <span className="text-caption text-fg-muted font-mono">شعار وهوية المنصة (Brand Wordmark — LeadForge)</span>
+              <span className="text-caption text-fg-muted font-mono">شعار وهوية المنصة (Brand Wordmark — Leads4dev)</span>
               <div className="flex flex-wrap items-baseline gap-6 p-4 rounded-lg border border-line bg-subtle">
                 <div className="flex flex-col gap-1">
                   <span className="text-caption text-fg-muted">XL (30px)</span>

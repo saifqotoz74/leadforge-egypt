@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
                 </span>
               </div>
               <a
-                href="mailto:support@leadforge.eg?subject=LeadForge%20Password%20Reset%20Request"
+                href="mailto:support@leadforge.eg?subject=Leads4dev%20Password%20Reset%20Request"
                 className="text-caption font-semibold text-brand hover:underline shrink-0"
               >
                 <span className="sr-only">{tAuth('forgotPasswordEmailLabel')}</span>
