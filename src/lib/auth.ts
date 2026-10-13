@@ -175,10 +175,26 @@ export async function getSessionFromRequest(req?: NextRequest): Promise<SessionP
   return verifySessionToken(token);
 }
 
+const userSessionCache = new Map<string, { user: any; expiresAt: number }>();
+
+export function invalidateUserSessionCache(userId?: string): void {
+  if (userId) {
+    userSessionCache.delete(userId);
+  } else {
+    userSessionCache.clear();
+  }
+}
+
 export async function getCurrentUser(req?: NextRequest) {
   await ensureDbReady();
   const session = await getSessionFromRequest(req);
   if (!session) return null;
+
+  const now = Date.now();
+  const cached = userSessionCache.get(session.userId);
+  if (cached && cached.expiresAt > now) {
+    return cached.user;
+  }
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
@@ -191,9 +207,11 @@ export async function getCurrentUser(req?: NextRequest) {
   });
 
   if (!user || user.status === 'SUSPENDED') {
+    userSessionCache.delete(session.userId);
     return null;
   }
 
+  userSessionCache.set(session.userId, { user, expiresAt: now + 15_000 });
   return user;
 }
 

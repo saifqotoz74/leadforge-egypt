@@ -34,6 +34,29 @@ function maskEmail(email?: string | null): string | null {
   return `${local.slice(0, 2)}***@${domain}`;
 }
 
+let cachedFreshnessConfig: { data: any; expiresAt: number } | null = null;
+let cachedPricingConfig: { data: any; expiresAt: number } | null = null;
+
+async function getCachedFreshnessConfig() {
+  const now = Date.now();
+  if (cachedFreshnessConfig && cachedFreshnessConfig.expiresAt > now) {
+    return cachedFreshnessConfig.data;
+  }
+  const data = await prisma.freshnessConfig.findUnique({ where: { id: 'default' } });
+  cachedFreshnessConfig = { data, expiresAt: now + 60_000 };
+  return data;
+}
+
+async function getCachedPricingConfig() {
+  const now = Date.now();
+  if (cachedPricingConfig && cachedPricingConfig.expiresAt > now) {
+    return cachedPricingConfig.data;
+  }
+  const data = await prisma.creditPricingConfig.findUnique({ where: { id: 'default' } });
+  cachedPricingConfig = { data, expiresAt: now + 60_000 };
+  return data;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const user = await requireAuth(req);
@@ -201,9 +224,9 @@ export async function GET(req: NextRequest) {
     }
 
     const [freshnessRow, matchingCtx, pricingConfigRow] = await Promise.all([
-      prisma.freshnessConfig.findUnique({ where: { id: 'default' } }),
+      getCachedFreshnessConfig(),
       getActiveMatchingConfigAndRules(),
-      prisma.creditPricingConfig.findUnique({ where: { id: 'default' } }),
+      getCachedPricingConfig(),
     ]);
     const thresholds = freshnessRow || DEFAULT_FRESHNESS_THRESHOLDS;
     const { config: matchingConfig, rules: matchingRules } = matchingCtx;

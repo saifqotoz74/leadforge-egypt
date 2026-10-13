@@ -83,11 +83,30 @@ export async function ensureMatchingRulesSeeded(): Promise<void> {
   }
 }
 
+let cachedMatchingBundle: {
+  data: { config: MatchingConfigData; rules: MatchingRuleDefinition[] };
+  expiresAt: number;
+} | null = null;
+
+let isMatchingRulesSeededChecked = false;
+
+export function invalidateMatchingConfigCache(): void {
+  cachedMatchingBundle = null;
+}
+
 export async function getActiveMatchingConfigAndRules(): Promise<{
   config: MatchingConfigData;
   rules: MatchingRuleDefinition[];
 }> {
-  await ensureMatchingRulesSeeded();
+  const now = Date.now();
+  if (cachedMatchingBundle && cachedMatchingBundle.expiresAt > now) {
+    return cachedMatchingBundle.data;
+  }
+
+  if (!isMatchingRulesSeededChecked) {
+    await ensureMatchingRulesSeeded();
+    isMatchingRulesSeededChecked = true;
+  }
 
   const [dbConfig, dbRules] = await Promise.all([
     prisma.matchingConfig.findUnique({ where: { id: 'default' } }),
@@ -135,7 +154,9 @@ export async function getActiveMatchingConfigAndRules(): Promise<{
         }))
       : DEFAULT_MATCHING_RULES;
 
-  return { config, rules };
+  const result = { config, rules };
+  cachedMatchingBundle = { data: result, expiresAt: now + 60_000 };
+  return result;
 }
 
 /**
@@ -159,6 +180,7 @@ export async function bumpMatchingVersion(): Promise<string> {
     data: { isStale: true },
   });
 
+  invalidateMatchingConfigCache();
   return nextVersion;
 }
 
