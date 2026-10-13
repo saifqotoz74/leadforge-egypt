@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron?job=stale_lead_lifecycle_sweep",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron?job=verification_batch_refresh",
+      "schedule": "15 */2 * * *"
+    },
+    {
+      "path": "/api/cron?job=analytics_daily_snapshot",
+      "schedule": "5 1 * * *"
+    },
+    {
+      "path": "/api/cron?job=ingestion_scheduled_sync",
+      "schedule": "*/30 * * * *"
+    }
+  ]
+}

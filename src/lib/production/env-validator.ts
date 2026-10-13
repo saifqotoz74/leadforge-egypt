@@ -35,6 +35,7 @@ export const ENVIRONMENT_VARIABLE_CATALOG: readonly EnvVariableDescriptor[] = [
   { key: 'ALLOWED_ORIGINS', category: 'Application', requiredInProduction: false, isSecret: false, description: 'Comma-separated list of allowed CORS HTTPS origins' },
   { key: 'DEBUG', category: 'Application', requiredInProduction: false, isSecret: false, description: 'Debug flag (must be disabled in production)' },
   { key: 'ALLOW_PRODUCTION_SEED', category: 'Application', requiredInProduction: false, isSecret: false, description: 'Seed safety gate (must never be true in production)' },
+  { key: 'CRON_SECRET', category: 'Application', requiredInProduction: false, isSecret: true, description: 'Bearer token secret used by Vercel Cron to authenticate calls to /api/cron' },
 
   // Database
   { key: 'DATABASE_URL', category: 'Database', requiredInProduction: true, isSecret: true, description: 'PostgreSQL connection string' },
