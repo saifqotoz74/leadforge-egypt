@@ -2372,13 +2372,12 @@ async function ensurePhase7AndRefundSeedData(prisma: PrismaClient) {
       leadId: lead.id,
       developerId: idx < 8 ? primaryDev.id : secondDev.id,
       eligible: idx !== 11,
-      ineligibleReason: idx === 11 ? 'EXCLUDED_NICHE_MISMATCH' : null,
-      matchScore: idx === 11 ? 0 : Math.max(45, 92 - idx * 4),
+      rank: idx + 1,
       matchStrength: idx === 11 ? 0 : Math.max(45, 92 - idx * 4),
-      finalRankScore: idx === 11 ? 0 : Math.max(50, 90 - idx * 3),
+      rawMatchPoints: idx === 11 ? 0 : Math.max(45, 92 - idx * 4),
       opportunityScore: lead.score ?? 75,
       qualityScore: lead.qualityScore ?? 80,
-      freshnessScore: 85,
+      freshness: 'FRESH',
       matchedCriteria: [
         { ruleKey: 'EXACT_SERVICE_MATCH', key: 'EXACT_SERVICE_MATCH', points: 30 },
         { ruleKey: 'PRIMARY_CITY_MATCH', key: 'PRIMARY_CITY_MATCH', points: 25 },
@@ -2392,10 +2391,9 @@ async function ensurePhase7AndRefundSeedData(prisma: PrismaClient) {
             ]
           : []),
       ],
-      unmatchedCriteria: [],
-      penalties: [],
+      failedCriteria: idx === 11 ? [{ ruleKey: 'EXCLUDED_NICHE_MISMATCH', reason: 'Niche is excluded' }] : [],
+      hardFailures: idx === 11 ? ['EXCLUDED_NICHE_MISMATCH'] : [],
       warnings: [],
-      boosts: [],
       matchVersion: 'v1',
     }));
 
