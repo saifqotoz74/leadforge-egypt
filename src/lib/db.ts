@@ -1442,7 +1442,13 @@ export async function ensureDbReady(): Promise<void> {
   globalForPrisma.initPromise = (async () => {
     const { prisma: activePrisma, pglite: activePg } = getOrCreateDefaultInstance();
     try {
+      if (shouldUseExternalPg()) {
+        await activePrisma.user.count();
+        globalForPrisma.schemaInitialized = true;
+        return;
+      }
       await activePrisma.user.count();
+      globalForPrisma.schemaInitialized = true;
       if (activePg) {
         await activePg.exec(PHASE1_SCHEMA_UPGRADE_SQL);
         await activePg.exec(PHASE2_SCHEMA_UPGRADE_SQL);

@@ -39,6 +39,68 @@ export const TopBar: React.FC<TopBarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(notificationCount);
+  const [notifications, setNotifications] = useState<
+    Array<{ id: string; title: string; message: string; createdAt: string; isRead: boolean }>
+  >([]);
+  const [isLoadingNotifs, setIsLoadingNotifs] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setUnreadCount(notificationCount);
+  }, [notificationCount]);
+
+  useEffect(() => {
+    if (!isNotifOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setIsNotifOpen(false);
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setIsNotifOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isNotifOpen]);
+
+  const handleToggleNotifs = async () => {
+    const nextState = !isNotifOpen;
+    setIsNotifOpen(nextState);
+    if (nextState) {
+      setIsLoadingNotifs(true);
+      try {
+        const res = await fetch('/api/notifications');
+        if (res.ok) {
+          const data = await res.json();
+          setNotifications(data.notifications || []);
+          setUnreadCount(data.unreadCount ?? 0);
+        }
+      } catch {
+        // silent fallback
+      } finally {
+        setIsLoadingNotifs(false);
+      }
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await fetch('/api/notifications', { method: 'PATCH' });
+      setUnreadCount(0);
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch {
+      // silent
+    }
+  };
+
   const displayName = userName || tCommon('defaultUser');
   const displayInitials = userInitials || displayName.slice(0, 2).toUpperCase();
 
@@ -110,17 +172,61 @@ export const TopBar: React.FC<TopBarProps> = ({
         {/* LanguageSwitcher per Spec 3.8 */}
         <LanguageSwitcher size="sm" />
 
-        {/* Notifications Icon */}
-        <button
-          type="button"
-          className="relative p-2 rounded-full text-fg-secondary hover:text-fg-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand min-h-11 min-w-11 flex items-center justify-center"
-          aria-label={`${tCommon('notifications')} (${notificationCount})`}
-        >
-          <Bell className="h-5 w-5" />
-          {notificationCount > 0 && (
-            <span className="absolute top-2.5 end-2.5 h-2 w-2 rounded-full bg-danger-fill" />
+        {/* Notifications Icon & Dropdown */}
+        <div className="relative" ref={notifRef}>
+          <button
+            type="button"
+            onClick={handleToggleNotifs}
+            className="relative p-2 rounded-full text-fg-secondary hover:text-fg-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand min-h-11 min-w-11 flex items-center justify-center"
+            aria-label={`${tCommon('notifications')} (${unreadCount})`}
+            aria-expanded={isNotifOpen}
+          >
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute top-2.5 end-2.5 h-2 w-2 rounded-full bg-danger-fill" />
+            )}
+          </button>
+
+          {isNotifOpen && (
+            <div
+              className="absolute end-0 top-full mt-2 w-80 sm:w-96 rounded-lg border border-line bg-surface p-3 shadow-lg z-50 text-start"
+            >
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-line">
+                <span className="font-semibold text-body-sm text-fg-primary">
+                  {tCommon('notifications')}
+                </span>
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleMarkAllRead}
+                    className="text-caption text-brand hover:underline font-medium"
+                  >
+                    تحديد الكل كمقروء
+                  </button>
+                )}
+              </div>
+              <div className="max-h-72 overflow-y-auto space-y-2">
+                {isLoadingNotifs ? (
+                  <div className="py-6 text-center text-fg-muted text-caption">جاري التحميل...</div>
+                ) : notifications.length === 0 ? (
+                  <div className="py-6 text-center text-fg-muted text-caption">لا توجد إشعارات حالياً</div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      className={`p-2 rounded-md text-caption transition-colors ${
+                        n.isRead ? 'bg-surface text-fg-secondary' : 'bg-brand-soft/40 text-fg-primary font-medium'
+                      }`}
+                    >
+                      <div className="font-semibold text-fg-primary mb-0.5">{n.title}</div>
+                      <div className="text-fg-secondary text-caption leading-relaxed">{n.message}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           )}
-        </button>
+        </div>
 
         {/* User Menu Dropdown */}
         <div className="relative" ref={menuRef}>

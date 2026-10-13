@@ -191,7 +191,30 @@ const QUALITY_RULE_DEFINITIONS = [
   },
 ];
 
-let inFlightRawDatasetPromise: ReturnType<typeof queryRawAnalyticsDataset> | null = null;
+let cachedRawDataset: {
+  data: Awaited<ReturnType<typeof queryRawAnalyticsDataset>>;
+  expiresAt: number;
+} | null = null;
+
+let inFlightRawDatasetPromise: Promise<Awaited<ReturnType<typeof queryRawAnalyticsDataset>>> | null = null;
+
+function fetchRawAnalyticsDatasetCoalesced() {
+  const now = Date.now();
+  if (cachedRawDataset && cachedRawDataset.expiresAt > now) {
+    return Promise.resolve(cachedRawDataset.data);
+  }
+  if (!inFlightRawDatasetPromise) {
+    inFlightRawDatasetPromise = queryRawAnalyticsDataset()
+      .then((data) => {
+        cachedRawDataset = { data, expiresAt: Date.now() + 30_000 };
+        return data;
+      })
+      .finally(() => {
+        inFlightRawDatasetPromise = null;
+      });
+  }
+  return inFlightRawDatasetPromise;
+}
 
 async function queryRawAnalyticsDataset() {
   return Promise.all([
@@ -279,14 +302,6 @@ async function queryRawAnalyticsDataset() {
   ]);
 }
 
-function fetchRawAnalyticsDatasetCoalesced() {
-  if (!inFlightRawDatasetPromise) {
-    inFlightRawDatasetPromise = queryRawAnalyticsDataset().finally(() => {
-      inFlightRawDatasetPromise = null;
-    });
-  }
-  return inFlightRawDatasetPromise;
-}
 
 /**
  * Loads the analytical dataset context with database-level filtering where possible

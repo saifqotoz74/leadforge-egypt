@@ -88,7 +88,7 @@ export default function OnboardingPage() {
     setError(null);
     try {
       const res = await fetch('/api/developer/profile', {
-        method: 'PUT',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           companyName: companyName.trim() || undefined,

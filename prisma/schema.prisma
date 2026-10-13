@@ -492,6 +492,9 @@ model Lead {
   @@index([accessType])
   @@index([availableForClaim])
   @@index([exclusiveClaimedAt])
+  @@index([score(sort: Desc), createdAt(sort: Desc)])
+  @@index([status, score(sort: Desc)])
+  @@index([saleabilityStatus, isCanonical, score(sort: Desc)])
 }
 
 model LeadSource {

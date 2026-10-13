@@ -273,3 +273,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'تعذر إتمام طلب حذف الحساب.' }, { status: 500 });
   }
 }
+
+export const PUT = PATCH;
+
