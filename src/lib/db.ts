@@ -12,13 +12,59 @@ const globalForPrisma = globalThis as unknown as {
   initPromise: Promise<void> | undefined;
 };
 
+export function sanitizeDatabaseUrl(rawUrl?: string): string | undefined {
+  if (!rawUrl) return undefined;
+  let clean = rawUrl.trim();
+  // Strip outer quotes if pasted with quotes
+  clean = clean.replace(/^["']|["']$/g, '');
+  // Strip literal brackets around password: :[password]@ or :%5Bpassword%5D@ -> :password@
+  clean = clean.replace(/:(\[|%5B)(.*?)(\]|%5D)@/, ':$2@');
+
+  try {
+    const parsed = new URL(clean);
+    // If user provided direct Supabase host db.<ref>.supabase.co, auto-rewrite to IPv4 pooler
+    // because direct db.<ref>.supabase.co has only IPv6 records, which time out on Vercel
+    const hostMatch = parsed.hostname.match(/^db\.([a-z0-9]+)\.supabase\.co$/);
+    if (hostMatch) {
+      const projectRef = hostMatch[1];
+      parsed.hostname = 'aws-0-eu-west-1.pooler.supabase.com';
+      parsed.port = '6543';
+      if (parsed.username === 'postgres') {
+        parsed.username = `postgres.${projectRef}`;
+      }
+      parsed.searchParams.set('pgbouncer', 'true');
+    }
+    // Clean any brackets from username if pasted like postgres.[ref]
+    parsed.username = parsed.username.replace(/\[|\]/g, '');
+    return parsed.toString();
+  } catch {
+    return clean;
+  }
+}
+
+function shouldUseExternalPg(): boolean {
+  if (process.env.USE_EXTERNAL_PG === 'true') return true;
+  if (process.env.NODE_ENV === 'production') return true;
+  if (Boolean(process.env.VERCEL)) return true;
+  const rawDbUrl = process.env.DATABASE_URL;
+  if (rawDbUrl && !rawDbUrl.includes('localhost') && !rawDbUrl.includes('127.0.0.1')) return true;
+  return false;
+}
+
 function getOrCreateDefaultInstance(): { prisma: PrismaClient; pglite?: PGlite } {
   if (globalForPrisma.prisma) {
     return { prisma: globalForPrisma.prisma, pglite: globalForPrisma.pglite };
   }
 
-  if (process.env.USE_EXTERNAL_PG === 'true') {
-    const client = new PrismaClient();
+  if (shouldUseExternalPg()) {
+    const rawUrl = process.env.DATABASE_URL;
+    const sanitizedUrl = sanitizeDatabaseUrl(rawUrl);
+    if (sanitizedUrl && sanitizedUrl !== rawUrl) {
+      process.env.DATABASE_URL = sanitizedUrl;
+    }
+    const client = new PrismaClient(
+      sanitizedUrl ? { datasources: { db: { url: sanitizedUrl } } } : undefined
+    );
     globalForPrisma.prisma = client;
     return { prisma: client };
   }
@@ -1407,18 +1453,21 @@ export async function ensureDbReady(): Promise<void> {
         await activePg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
         await activePg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
       }
-      globalForPrisma.schemaInitialized = true;
-    } catch {
-      const migrationPath = path.resolve(process.cwd(), 'prisma/migrations/0001_init/migration.sql');
-      if (fs.existsSync(migrationPath) && activePg) {
-        const sql = fs.readFileSync(migrationPath, 'utf-8');
-        await activePg.exec(sql);
-        await activePg.exec(PHASE5_SCHEMA_UPGRADE_SQL);
-        await activePg.exec(PHASE6_SCHEMA_UPGRADE_SQL);
-        await activePg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
-        await activePg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
-        globalForPrisma.schemaInitialized = true;
+    } catch (err: any) {
+      if (activePg) {
+        const migrationPath = path.resolve(process.cwd(), 'prisma/migrations/0001_init/migration.sql');
+        if (fs.existsSync(migrationPath)) {
+          const sql = fs.readFileSync(migrationPath, 'utf-8');
+          await activePg.exec(sql);
+          await activePg.exec(PHASE5_SCHEMA_UPGRADE_SQL);
+          await activePg.exec(PHASE6_SCHEMA_UPGRADE_SQL);
+          await activePg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
+          await activePg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
+        }
+      } else {
+        console.error('[DB] ensureDbReady connection probe error:', err?.message || err);
       }
+      globalForPrisma.schemaInitialized = true;
     } finally {
       globalForPrisma.initPromise = undefined;
     }

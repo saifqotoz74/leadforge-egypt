@@ -202,11 +202,11 @@ export async function evaluateReadinessCheck(
       status: 'HEALTHY',
       latencyMs: Math.max(1, Date.now() - dbStart),
     };
-  } catch {
+  } catch (err: any) {
     components.database = {
       status: 'UNHEALTHY',
       latencyMs: Math.max(1, Date.now() - dbStart),
-      reason: 'Database connectivity check failed',
+      reason: err?.message || 'Database connectivity check failed',
     };
   }
 

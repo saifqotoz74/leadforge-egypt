@@ -188,7 +188,8 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch {
+  } catch (err: any) {
+    console.error('Registration error:', err);
     return NextResponse.json({ error: 'حدث خطأ أثناء إنشاء الحساب.' }, { status: 500 });
   }
 }
