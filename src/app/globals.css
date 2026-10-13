@@ -3,36 +3,31 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 220 32% 7%;
-    --foreground: 210 40% 96%;
-    --muted: 220 23% 13%;
-    --muted-foreground: 215 16% 64%;
-    --border: 220 18% 20%;
-    --primary: 158 84% 45%;
-    --primary-foreground: 220 32% 7%;
-    --accent: 190 92% 52%;
-  }
-
   html {
     direction: rtl;
-    font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: hsl(var(--background));
+    font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   body {
-    @apply bg-[#070b12] text-slate-100 antialiased;
+    @apply bg-slate-50 text-slate-900 antialiased;
   }
 }
 
-::selection { background: hsl(var(--primary) / 0.28); color: white; }
+/* Custom scrollbar for tables and sidebars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0b111b; }
-::-webkit-scrollbar-thumb { background: #243244; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #33465c; }
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
 
-@layer utilities {
-  .text-gradient { background: linear-gradient(110deg, #f8fafc 15%, #6ee7b7 52%, #67e8f9 90%); background-clip: text; -webkit-background-clip: text; color: transparent; }
-  .grid-glow { background-image: linear-gradient(rgba(100, 116, 139, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(100, 116, 139, .08) 1px, transparent 1px); background-size: 42px 42px; }
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
