@@ -20,6 +20,7 @@ import {
   assertValidCollectorContractRecord,
   calculateIngestionChecksum,
 } from './contract';
+import { fetchEgyptOverpassBusinesses } from './osm';
 import {
   assertSafeExternalUrl,
   SafeFetchOptions,
@@ -911,11 +912,24 @@ export class OpenDataCollector
   async discover(
     context: CollectorExecutionContext<Record<string, unknown>>
   ): Promise<CollectorDiscoveryResult<OpenDataRawRecord | RawLeadInput>> {
-    const customRecords = Array.isArray(context.inputPayload)
-      ? (context.inputPayload as (OpenDataRawRecord | RawLeadInput)[])
-      : Array.isArray(context.config?.dataset)
-        ? (context.config?.dataset as (OpenDataRawRecord | RawLeadInput)[])
-        : DEFAULT_OPEN_DATA_DATASET;
+    let customRecords: (OpenDataRawRecord | RawLeadInput)[] = [];
+
+    if (Array.isArray(context.inputPayload) && context.inputPayload.length > 0) {
+      customRecords = context.inputPayload as (OpenDataRawRecord | RawLeadInput)[];
+    } else if (Array.isArray(context.config?.dataset) && (context.config.dataset as unknown[]).length > 0) {
+      customRecords = context.config.dataset as (OpenDataRawRecord | RawLeadInput)[];
+    } else {
+      // 100% Free Live Ingestion: Query OpenStreetMap Overpass API for real Egyptian businesses
+      try {
+        const liveOsm = await fetchEgyptOverpassBusinesses({
+          timeoutMs: context.quota?.timeoutMs ?? 7000,
+          maxRecords: context.quota?.maxRecordsPerRun ?? 50,
+        });
+        customRecords = liveOsm.length > 0 ? liveOsm : DEFAULT_OPEN_DATA_DATASET;
+      } catch {
+        customRecords = DEFAULT_OPEN_DATA_DATASET;
+      }
+    }
 
     // Apply backfill date filter if specified
     let filtered = customRecords;

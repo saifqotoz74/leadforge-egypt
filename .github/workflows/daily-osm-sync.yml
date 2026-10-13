@@ -1,0 +1,37 @@
+name: LeadForge Egypt — Autonomous Daily Lead Ingestion (No Visa / OSM)
+
+on:
+  schedule:
+    # Runs automatically every day at 02:00 AM UTC (4:00 AM Cairo Time)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Allows manual 1-click execution anytime from GitHub Actions tab
+
+jobs:
+  autonomous-lead-sync:
+    name: Sync Real Egyptian Businesses from OpenStreetMap
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      - name: Run Autonomous Overpass Egypt Sync
+        env:
+          NODE_ENV: production
+          USE_EXTERNAL_PG: 'true'
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run sync:osm

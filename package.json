@@ -14,7 +14,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:setup": "prisma generate && tsx prisma/migrate.ts && tsx prisma/seed.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "sync:osm": "tsx scripts/sync-osm.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.2.17",
