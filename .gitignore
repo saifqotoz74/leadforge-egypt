@@ -13,3 +13,6 @@ build
 next-env.d.ts
 coverage
 scripts/axe.min.js
+
+.vercel
+.env*
