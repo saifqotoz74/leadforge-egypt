@@ -1,0 +1,24 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/worker?job=ingestion_scheduled_sync",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/worker?job=verification_batch_refresh",
+      "schedule": "15 */2 * * *"
+    },
+    {
+      "path": "/api/cron/worker?job=scoring_recalculation_batch",
+      "schedule": "30 */4 * * *"
+    },
+    {
+      "path": "/api/cron/worker?job=analytics_daily_snapshot",
+      "schedule": "5 1 * * *"
+    },
+    {
+      "path": "/api/cron/worker?job=stale_lead_lifecycle_sweep",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}

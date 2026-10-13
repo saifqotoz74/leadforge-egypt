@@ -38,12 +38,14 @@ export const ENVIRONMENT_VARIABLE_CATALOG: readonly EnvVariableDescriptor[] = [
 
   // Database
   { key: 'DATABASE_URL', category: 'Database', requiredInProduction: true, isSecret: true, description: 'PostgreSQL connection string' },
+  { key: 'DIRECT_URL', category: 'Database', requiredInProduction: false, isSecret: true, description: 'Direct unpooled PostgreSQL connection string for Prisma migrations' },
   { key: 'USE_EXTERNAL_PG', category: 'Database', requiredInProduction: true, isSecret: false, description: 'Must be "true" in production/staging to use managed PostgreSQL instead of PGlite' },
   { key: 'DB_POOL_MAX', category: 'Database', requiredInProduction: false, isSecret: false, description: 'Maximum database pool connections' },
   { key: 'DB_CONNECT_TIMEOUT_MS', category: 'Database', requiredInProduction: false, isSecret: false, description: 'Database connection timeout in milliseconds' },
 
-  // Authentication
+  // Authentication & Security
   { key: 'AUTH_SECRET', category: 'Authentication', requiredInProduction: true, isSecret: true, description: 'HMAC-SHA256 signing secret for sessions (minimum 32 chars in production)' },
+  { key: 'CRON_SECRET', category: 'Authentication', requiredInProduction: false, isSecret: true, description: 'Bearer authentication secret for Vercel Cron jobs' },
   { key: 'SESSION_TTL_SECONDS', category: 'Authentication', requiredInProduction: false, isSecret: false, description: 'Session lifetime in seconds' },
 
   // Payment
@@ -71,6 +73,7 @@ export const ENVIRONMENT_VARIABLE_CATALOG: readonly EnvVariableDescriptor[] = [
   { key: 'COLLECTORS_ENABLED', category: 'Collectors', requiredInProduction: false, isSecret: false, description: 'Master switch for automated scheduled collectors (true/false)' },
   { key: 'COLLECTOR_ALLOWED_SOURCES', category: 'Collectors', requiredInProduction: false, isSecret: false, description: 'Comma-separated list of verified collector source keys allowed in production' },
   { key: 'COLLECTOR_MAX_RECORDS_PER_RUN', category: 'Collectors', requiredInProduction: false, isSecret: false, description: 'Hard cap on records ingested per collector execution' },
+  { key: 'GOOGLE_PLACES_API_KEY', category: 'Collectors', requiredInProduction: false, isSecret: true, description: 'Official Google Places API key for business profile ingestion' },
 
   // Observability
   { key: 'LOG_LEVEL', category: 'Observability', requiredInProduction: false, isSecret: false, description: 'Minimum structured log level (debug, info, warn, error)' },

@@ -27,7 +27,82 @@ export class ConsoleEmailNotificationProvider implements EmailNotificationProvid
   }
 }
 
-export const emailProvider: EmailNotificationProvider = new ConsoleEmailNotificationProvider();
+export class DisabledEmailNotificationProvider implements EmailNotificationProvider {
+  readonly name = 'DisabledEmailProvider';
+
+  async sendEmail(_message: EmailMessage): Promise<{ delivered: boolean; messageId: string }> {
+    return {
+      delivered: false,
+      messageId: 'email-sending-disabled',
+    };
+  }
+}
+
+export class ApiEmailNotificationProvider implements EmailNotificationProvider {
+  readonly name = 'ResendApiEmailProvider';
+
+  async sendEmail(message: EmailMessage): Promise<{ delivered: boolean; messageId: string }> {
+    const apiKey = process.env.EMAIL_API_KEY?.trim();
+    const fromAddress = process.env.EMAIL_FROM?.trim() || 'LeadForge Egypt <notifications@leadforge.eg>';
+
+    if (!apiKey) {
+      throw new Error('EMAIL_API_KEY is not configured for API email provider.');
+    }
+
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromAddress,
+          to: [message.to],
+          subject: message.subject,
+          text: message.bodyText,
+          html: message.bodyHtml || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Resend API error (${response.status}): ${errorText}`);
+      }
+
+      const data = await response.json();
+      return {
+        delivered: true,
+        messageId: data.id || `resend-${Date.now()}`,
+      };
+    } catch (err: any) {
+      return {
+        delivered: false,
+        messageId: `error-${Date.now()}`,
+      };
+    }
+  }
+}
+
+export function resolveEmailNotificationProvider(): EmailNotificationProvider {
+  const provider = (process.env.EMAIL_PROVIDER || '').trim().toUpperCase();
+  if (provider === 'API') {
+    return new ApiEmailNotificationProvider();
+  }
+  if (provider === 'DISABLED') {
+    return new DisabledEmailNotificationProvider();
+  }
+  return new ConsoleEmailNotificationProvider();
+}
+
+export const emailProvider: EmailNotificationProvider = {
+  get name() {
+    return resolveEmailNotificationProvider().name;
+  },
+  sendEmail(message: EmailMessage) {
+    return resolveEmailNotificationProvider().sendEmail(message);
+  },
+};
 
 /**
  * Redacts raw Egyptian phone numbers and email addresses from notification bodies
