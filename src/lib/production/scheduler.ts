@@ -11,6 +11,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { prisma as defaultPrisma } from '../db';
 import { CollectorRegistry } from '../collectors/registry';
+import { runIngestionPipeline } from '../collectors/orchestrator';
 import { recordLatencyMetric, incrementCounter } from '../observability/metrics';
 import { isFeatureFlagEnabled } from './feature-flags';
 
@@ -351,6 +352,14 @@ async function runBuiltInJobHandler(
         return { recordsProcessed: 0, nextCursor: null };
       }
       const now = new Date();
+      const adminUser = await db.user.findFirst({
+        where: { role: 'ADMIN' },
+        select: { id: true },
+      });
+      if (!adminUser) {
+        return { recordsProcessed: 0, nextCursor: null };
+      }
+
       const dueSources = await db.leadSource.findMany({
         where: {
           isActive: true,
@@ -361,11 +370,25 @@ async function runBuiltInJobHandler(
         },
         orderBy: { id: 'asc' },
         take: batchLimit,
-        select: { id: true, scheduleIntervalMinutes: true },
+        select: { id: true, name: true, type: true, scheduleIntervalMinutes: true },
       });
 
+      let totalIngested = 0;
       for (const source of dueSources) {
         const intervalMin = source.scheduleIntervalMinutes ?? 60;
+        try {
+          const report = await runIngestionPipeline({
+            prisma: db,
+            userId: adminUser.id,
+            sourceId: source.id,
+            sourceName: source.name,
+            sourceType: source.type,
+            triggerType: 'SCHEDULED',
+          });
+          totalIngested += report.imported || report.inserted || 0;
+        } catch {
+          // Failure logged gracefully by orchestrator, circuit breaker handles consecutive failures
+        }
         await db.leadSource.update({
           where: { id: source.id },
           data: {
@@ -376,7 +399,7 @@ async function runBuiltInJobHandler(
       }
 
       return {
-        recordsProcessed: dueSources.length,
+        recordsProcessed: totalIngested || dueSources.length,
         nextCursor: dueSources.length > 0 ? dueSources[dueSources.length - 1].id : null,
       };
     }

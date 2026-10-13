@@ -1090,11 +1090,40 @@ export class DirectoryCollector
   async discover(
     context: CollectorExecutionContext<Record<string, unknown>>
   ): Promise<CollectorDiscoveryResult<DirectoryRawRecord | RawLeadInput>> {
-    const rawList: (DirectoryRawRecord | RawLeadInput)[] = Array.isArray(context.inputPayload)
+    let rawList: (DirectoryRawRecord | RawLeadInput)[] = Array.isArray(context.inputPayload)
       ? (context.inputPayload as (DirectoryRawRecord | RawLeadInput)[])
       : Array.isArray(context.config?.feedRecords)
         ? (context.config?.feedRecords as (DirectoryRawRecord | RawLeadInput)[])
         : [];
+
+    if (rawList.length === 0) {
+      const feedUrl =
+        (context.config?.feedUrl as string | undefined) || process.env.DIRECTORY_FEED_URL;
+      if (feedUrl) {
+        try {
+          const fetchRes = await safeExternalFetch(feedUrl, {
+            timeoutMs: context.quota?.timeoutMs ?? 10_000,
+            allowedContentTypes: ['application/json', 'text/plain'],
+          });
+          const parsed = JSON.parse(fetchRes.bodyText);
+          rawList = Array.isArray(parsed)
+            ? parsed
+            : Array.isArray(parsed.data)
+              ? parsed.data
+              : Array.isArray(parsed.leads)
+                ? parsed.leads
+                : Array.isArray(parsed.businesses)
+                  ? parsed.businesses
+                  : [];
+        } catch (fetchErr) {
+          throw new IngestionError(
+            `Failed to fetch directory feed from ${feedUrl}: ${(fetchErr as Error)?.message}`,
+            'SOURCE_UNAVAILABLE',
+            { statusCode: 502, retryable: true }
+          );
+        }
+      }
+    }
 
     if (rawList.length === 0) {
       const val = this.validateConfiguration(context.config);
