@@ -44,10 +44,56 @@ export async function GET(req: NextRequest) {
 
     // 2. Parse job parameter
     const { searchParams } = new URL(req.url);
-    const jobKeyParam = searchParams.get('job')?.trim() as WorkerJobKey | undefined;
+    const jobKeyParam = searchParams.get('job')?.trim();
 
-    if (!jobKeyParam || !WORKER_JOB_DEFINITIONS[jobKeyParam]) {
-      const availableJobs = Object.keys(WORKER_JOB_DEFINITIONS);
+    // Special handler for Vercel Hobby plan (single daily maintenance run)
+    if (jobKeyParam === 'daily_maintenance') {
+      const maintenanceJobs: WorkerJobKey[] = [
+        'ingestion_scheduled_sync',
+        'verification_batch_refresh',
+        'scoring_recalculation_batch',
+        'analytics_daily_snapshot',
+        'stale_lead_lifecycle_sweep',
+      ];
+
+      const executions: Record<string, unknown> = {};
+      let hasFailure = false;
+
+      for (const key of maintenanceJobs) {
+        try {
+          const res = await executeScheduledWorkerJob({ jobKey: key });
+          executions[key] = res;
+          if (res.status === 'FAILED') hasFailure = true;
+        } catch (err: any) {
+          executions[key] = { status: 'FAILED', error: err?.message };
+          hasFailure = true;
+        }
+      }
+
+      recordHttpRequestMetric({
+        route: '/api/cron/worker',
+        method: 'GET',
+        statusCode: hasFailure ? 500 : 200,
+        durationMs: Date.now() - startMs,
+        requestId,
+      });
+
+      return NextResponse.json(
+        {
+          success: !hasFailure,
+          jobKey: 'daily_maintenance',
+          executions,
+          requestId,
+        },
+        {
+          status: hasFailure ? 500 : 200,
+          headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+        }
+      );
+    }
+
+    if (!jobKeyParam || !WORKER_JOB_DEFINITIONS[jobKeyParam as WorkerJobKey]) {
+      const availableJobs = [...Object.keys(WORKER_JOB_DEFINITIONS), 'daily_maintenance'];
       recordHttpRequestMetric({
         route: '/api/cron/worker',
         method: 'GET',
@@ -69,7 +115,7 @@ export async function GET(req: NextRequest) {
 
     // 3. Execute worker job
     const result = await executeScheduledWorkerJob({
-      jobKey: jobKeyParam,
+      jobKey: jobKeyParam as WorkerJobKey,
       requestedBatchSize: Number.isFinite(requestedBatchSize) ? requestedBatchSize : undefined,
     });
 
