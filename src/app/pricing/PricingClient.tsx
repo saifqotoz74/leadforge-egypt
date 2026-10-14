@@ -10,6 +10,7 @@ import { localizePlanName } from '@/lib/taxonomy';
 import { fmtNumber } from '@/lib/format';
 import { CreditCard } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
+import { TransferPaymentModal } from '@/components/domain/TransferPaymentModal';
 
 interface PlanItem {
   id?: string;
@@ -34,6 +35,7 @@ export function PricingClient({ initialIsLoggedIn }: PricingClientProps) {
   const [plans, setPlans] = useState<PlanItem[]>(DEFAULT_PLANS);
   const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn);
   const [currentPlanSlug, setCurrentPlanSlug] = useState<string | null>(null);
+  const [modalPlan, setModalPlan] = useState<PlanItem | null>(null);
   const [, setSubscribingId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -67,6 +69,12 @@ export function PricingClient({ initialIsLoggedIn }: PricingClientProps) {
 
     if (!isLoggedIn || !plan.id) {
       router.push('/register');
+      return;
+    }
+
+    // For paid plans, open the InstaPay & Cash Wallet transfer modal
+    if (plan.priceEgp > 0) {
+      setModalPlan(plan);
       return;
     }
 
@@ -164,6 +172,31 @@ export function PricingClient({ initialIsLoggedIn }: PricingClientProps) {
               );
             })}
           </div>
+        )}
+
+        {/* InstaPay & Mobile Wallet Transfer Modal */}
+        {modalPlan && (
+          <TransferPaymentModal
+            isOpen={modalPlan !== null}
+            onClose={() => setModalPlan(null)}
+            plan={
+              modalPlan.id
+                ? {
+                    id: modalPlan.id,
+                    slug: modalPlan.slug,
+                    name: modalPlan.name,
+                    priceEgp: modalPlan.priceEgp,
+                    monthlyCredits: modalPlan.monthlyCredits,
+                  }
+                : null
+            }
+            onSuccess={() => {
+              setMessage({
+                type: 'success',
+                text: 'تم استلام إيصال التحويل بنجاح! جاري مراجعته وتفعيل باقتك فوراً.',
+              });
+            }}
+          />
         )}
       </main>
 

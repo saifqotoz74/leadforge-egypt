@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/Badge';
 import { fmtDate, fmtNumber } from '@/lib/format';
 import { localizePlanName } from '@/lib/taxonomy';
 import { CreditCard, ArrowRight } from 'lucide-react';
+import { TransferPaymentModal } from '@/components/domain/TransferPaymentModal';
 
 interface PlanItem {
   id: string;
@@ -64,6 +65,7 @@ export default function SubscriptionPage() {
   const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmPlan, setConfirmPlan] = useState<PlanItem | null>(null);
+  const [transferModalPlan, setTransferModalPlan] = useState<PlanItem | null>(null);
   const [processing, setProcessing] = useState(false);
   const [msg, setMsg] = useState<{ type: 'info' | 'danger'; text: string } | null>(null);
 
@@ -248,7 +250,13 @@ export default function SubscriptionPage() {
                         ? t('mostPopular')
                         : undefined
                     }
-                    onSelectPackage={() => setConfirmPlan(plan)}
+                    onSelectPackage={() => {
+                      if (plan.priceEgp > 0) {
+                        setTransferModalPlan(plan);
+                      } else {
+                        setConfirmPlan(plan);
+                      }
+                    }}
                   />
                 );
               })}
@@ -370,6 +378,22 @@ export default function SubscriptionPage() {
               </div>
             )}
           </Dialog>
+
+          {/* InstaPay & Cash Wallet Transfer Modal */}
+          {transferModalPlan && (
+            <TransferPaymentModal
+              isOpen={transferModalPlan !== null}
+              onClose={() => setTransferModalPlan(null)}
+              plan={transferModalPlan}
+              onSuccess={() => {
+                setMsg({
+                  type: 'info',
+                  text: 'تم استلام إيصال التحويل بنجاح! جاري مراجعته وتفعيل باقتك فوراً.',
+                });
+                loadData();
+              }}
+            />
+          )}
         </div>
       )}
     </AppShell>

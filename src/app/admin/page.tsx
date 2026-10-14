@@ -29,6 +29,7 @@ import {
   Users,
   Activity,
   ChevronRight,
+  CreditCard,
 } from 'lucide-react';
 
 interface AdminOverviewData {
@@ -335,6 +336,15 @@ export default function AdminOverviewPage() {
                   >
                     <Layers className="h-4 w-4 text-brand" />
                     <span>{t('navPlans')}</span>
+                    <ChevronRight className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
+                  </Link>
+
+                  <Link
+                    href="/admin/payments"
+                    className="flex items-center gap-2 rounded-xl border border-line p-3 text-fg-primary hover:border-line-brand hover:bg-subtle transition-colors"
+                  >
+                    <CreditCard className="h-4 w-4 text-brand" />
+                    <span>مراجعة المدفوعات والتحويلات</span>
                     <ChevronRight className="h-3.5 w-3.5 ms-auto rtl:-scale-x-100 text-fg-muted" />
                   </Link>
 

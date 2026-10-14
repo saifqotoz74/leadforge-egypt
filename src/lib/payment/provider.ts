@@ -249,6 +249,276 @@ export async function subscribeUserToPlan(params: {
   return result;
 }
 
+/**
+ * Submits a manual transfer (InstaPay / Vodafone Cash) payment request with receipt screenshot.
+ * The receipt is stored temporarily in status PENDING and permanently purged upon approve/reject.
+ */
+export async function submitTransferPayment(params: {
+  prisma: PrismaClient;
+  userId: string;
+  planId: string;
+  receiptImageBase64: string;
+  transferPhone?: string;
+  senderPhone?: string;
+}) {
+  const { prisma, userId, planId, receiptImageBase64, transferPhone = '01229105279', senderPhone } = params;
+
+  const [user, plan] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, include: { subscription: true } }),
+    prisma.plan.findUnique({ where: { id: planId } }),
+  ]);
+
+  if (!user) throw new Error('المستخدم غير موجود.');
+  if (!plan) throw new Error('الباقة المختارة غير موجودة.');
+  if (!receiptImageBase64) throw new Error('صورة إيصال التحويل مطلوبة.');
+
+  const now = new Date();
+  const providerRef = `TRANSFER-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  const payment = await prisma.payment.create({
+    data: {
+      userId,
+      planId: plan.id,
+      amountEgp: plan.priceEgp,
+      creditsGranted: plan.monthlyCredits,
+      provider: 'INSTAPAY_WALLET',
+      providerRef,
+      status: 'PENDING',
+      metadata: {
+        receiptImage: receiptImageBase64,
+        paymentMethod: 'INSTAPAY_WALLET',
+        transferredTo: transferPhone,
+        senderPhone: senderPhone || null,
+        submittedAt: now.toISOString(),
+      },
+    },
+    include: {
+      plan: true,
+      user: { select: { id: true, name: true, email: true } },
+    },
+  });
+
+  await createInAppNotification(
+    {
+      userId,
+      title: 'تم استلام إيصال التحويل',
+      message: `تم استلام إيصال تحويل ${plan.name} بمبلغ ${plan.priceEgp} ج.م. جاري مراجعة الإيصال وتفعيل باقتك فوراً.`,
+      type: 'SUBSCRIPTION',
+      link: '/subscription',
+    },
+    prisma
+  );
+
+  await createAuditLog(
+    {
+      userId,
+      action: 'PAYMENT_RECEIPT_SUBMITTED',
+      entityType: 'Payment',
+      entityId: payment.id,
+      details: {
+        planSlug: plan.slug,
+        priceEgp: plan.priceEgp,
+        providerRef,
+        transferredTo: transferPhone,
+      },
+    },
+    prisma
+  );
+
+  return payment;
+}
+
+/**
+ * Approves a pending manual transfer payment.
+ * Upgrades subscription, awards credits, and PERMANENTLY PURGES the receipt image for privacy.
+ */
+export async function approveTransferPayment(params: {
+  prisma: PrismaClient;
+  paymentId: string;
+  adminId: string;
+}) {
+  const { prisma, paymentId, adminId } = params;
+
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    include: { plan: true, user: { include: { subscription: true } } },
+  });
+
+  if (!payment) throw new Error('سجل الدفع غير موجود.');
+  if (payment.status !== 'PENDING') {
+    throw new Error(`حالة المعاملة الحالية (${payment.status}) لا تسمح بالموافقة.`);
+  }
+
+  const { plan, user } = payment;
+  const now = new Date();
+  const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  const existingMeta = (payment.metadata as Record<string, unknown>) || {};
+  // CRITICAL: Permanently purge the receipt image per privacy policy
+  const { receiptImage: _purged, ...cleanMeta } = existingMeta;
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Update Payment to COMPLETED and PURGE receipt image
+    const updatedPayment = await tx.payment.update({
+      where: { id: paymentId },
+      data: {
+        status: 'COMPLETED',
+        metadata: {
+          ...cleanMeta,
+          approvedAt: now.toISOString(),
+          approvedBy: adminId,
+          receiptPurged: true,
+        },
+      },
+      include: { plan: true, user: true },
+    });
+
+    // 2. Update or create subscription
+    const subscription = user.subscription
+      ? await tx.subscription.update({
+          where: { id: user.subscription.id },
+          data: {
+            planId: plan.id,
+            status: 'ACTIVE',
+            credits: { increment: plan.monthlyCredits },
+            totalCreditsGranted: { increment: plan.monthlyCredits },
+            currentPeriodStart: now,
+            currentPeriodEnd: periodEnd,
+          },
+          include: { plan: true },
+        })
+      : await tx.subscription.create({
+          data: {
+            userId: user.id,
+            planId: plan.id,
+            status: 'ACTIVE',
+            credits: plan.monthlyCredits,
+            totalCreditsGranted: plan.monthlyCredits,
+            creditsUsed: 0,
+            currentPeriodStart: now,
+            currentPeriodEnd: periodEnd,
+          },
+          include: { plan: true },
+        });
+
+    // 3. Sync credit ledger
+    await syncSubscriptionCreditsToLedgerInTx(tx, {
+      developerId: user.id,
+      targetBalance: subscription.credits,
+      type: 'PURCHASE',
+      reason: `Manual transfer approved: ${plan.nameEn} (${plan.slug})`,
+      referenceType: 'PAYMENT',
+      referenceId: payment.id,
+      performedById: adminId,
+    });
+
+    return { payment: updatedPayment, subscription };
+  });
+
+  // 4. In-app notification
+  await createInAppNotification(
+    {
+      userId: user.id,
+      title: 'تم تفعيل باقتك بنجاح ✅',
+      message: `تم التحقق من إيصال التحويل وتفعيل ${plan.name} وإضافة ${plan.monthlyCredits} نقطة رصيد إلى حسابك.`,
+      type: 'SUBSCRIPTION',
+      link: '/subscription',
+    },
+    prisma
+  );
+
+  // 5. Audit log
+  await createAuditLog(
+    {
+      userId: adminId,
+      action: 'PAYMENT_TRANSFER_APPROVED',
+      entityType: 'Payment',
+      entityId: paymentId,
+      details: {
+        planSlug: plan.slug,
+        priceEgp: plan.priceEgp,
+        creditsGranted: plan.monthlyCredits,
+        recipientUserId: user.id,
+      },
+    },
+    prisma
+  );
+
+  return result;
+}
+
+/**
+ * Rejects a pending manual transfer payment.
+ * Marks status as REJECTED and PERMANENTLY PURGES the receipt image.
+ */
+export async function rejectTransferPayment(params: {
+  prisma: PrismaClient;
+  paymentId: string;
+  adminId: string;
+  reason?: string;
+}) {
+  const { prisma, paymentId, adminId, reason = 'إيصال التحويل غير صالح أو لم يصل إلى الحساب.' } = params;
+
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    include: { plan: true, user: true },
+  });
+
+  if (!payment) throw new Error('سجل الدفع غير موجود.');
+  if (payment.status !== 'PENDING') {
+    throw new Error(`حالة المعاملة الحالية (${payment.status}) لا تسمح بالرفض.`);
+  }
+
+  const now = new Date();
+  const existingMeta = (payment.metadata as Record<string, unknown>) || {};
+  // CRITICAL: Permanently purge the receipt image per privacy policy
+  const { receiptImage: _purged, ...cleanMeta } = existingMeta;
+
+  const updatedPayment = await prisma.payment.update({
+    where: { id: paymentId },
+    data: {
+      status: 'REJECTED',
+      metadata: {
+        ...cleanMeta,
+        rejectedAt: now.toISOString(),
+        rejectedBy: adminId,
+        rejectionReason: reason,
+        receiptPurged: true,
+      },
+    },
+    include: { plan: true, user: true },
+  });
+
+  await createInAppNotification(
+    {
+      userId: payment.userId,
+      title: 'تعذر قبول إيصال التحويل ❌',
+      message: `لم نتمكن من تأكيد التحويل الخاص بـ ${payment.plan.name}. السبب: ${reason}`,
+      type: 'SUBSCRIPTION',
+      link: '/pricing',
+    },
+    prisma
+  );
+
+  await createAuditLog(
+    {
+      userId: adminId,
+      action: 'PAYMENT_TRANSFER_REJECTED',
+      entityType: 'Payment',
+      entityId: paymentId,
+      details: {
+        planSlug: payment.plan.slug,
+        priceEgp: payment.amountEgp,
+        reason,
+        developerUserId: payment.userId,
+      },
+    },
+    prisma
+  );
+
+  return updatedPayment;
+}
+
 // ============================================================================
 // PHASE 10 — PAYMENT PRODUCTION READINESS & WEBHOOK PROCESSING (SECTIONS 21 & 22)
 // ============================================================================
