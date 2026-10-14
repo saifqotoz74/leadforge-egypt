@@ -515,6 +515,38 @@ export default function AdminSourcesPage() {
     }
   }
 
+  async function handleBulkCrawl() {
+    setActionLoading('bulk-crawl');
+    setBannerMessage(null);
+    try {
+      const res = await fetch('/api/admin/ingestion/crawl-bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetCount: 30 }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setBannerMessage({
+          type: 'success',
+          text: data.message || 'تم سحب وإدراج الفرص الحية بنجاح!',
+        });
+        await loadAllData();
+      } else {
+        setBannerMessage({
+          type: 'error',
+          text: data.error || 'تعذر استكمال سحب الفرص.',
+        });
+      }
+    } catch (err: any) {
+      setBannerMessage({
+        type: 'error',
+        text: err?.message || 'حدث خطأ في الاتصال أثناء سحب الفرص.',
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   function renderHealthBadge(status: SourceItem['healthStatus']) {
     switch (status) {
       case 'HEALTHY':
@@ -611,6 +643,18 @@ export default function AdminSourcesPage() {
 
               <Button
                 variant="primary"
+                size="sm"
+                onClick={handleBulkCrawl}
+                disabled={actionLoading === 'bulk-crawl'}
+                startIcon={<Play className={`h-4 w-4 rtl:-scale-x-100 ${actionLoading === 'bulk-crawl' ? 'animate-spin' : ''}`} />}
+              >
+                {actionLoading === 'bulk-crawl'
+                  ? 'جاري سحب الفرص الحية...'
+                  : 'سحب دفعة فرص مصرية حية'}
+              </Button>
+
+              <Button
+                variant="secondary"
                 size="sm"
                 onClick={handleTriggerReplenishment}
                 disabled={actionLoading === 'trigger-replenishment'}
