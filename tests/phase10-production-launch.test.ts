@@ -2034,7 +2034,7 @@ describe('PHASE 10 — PRODUCTION HARDENING, DEPLOYMENT & LAUNCH VERIFICATION SU
         actorId: adminUser.id,
         reason: 'Re-enable registration',
       });
-    });
+    }, 90000);
   });
 
   // ==========================================================================

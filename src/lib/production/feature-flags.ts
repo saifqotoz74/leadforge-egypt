@@ -37,7 +37,7 @@ export const FEATURE_FLAG_DEFINITIONS: Record<FeatureFlagKey, FeatureFlagDefinit
   collector_scheduled_runs: {
     key: 'collector_scheduled_runs',
     description: 'Controls whether automated external collector jobs execute on schedule.',
-    defaultEnabled: true,
+    defaultEnabled: false,
     riskLevel: 'HIGH',
     owner: 'Data Ingestion Engineering',
   },

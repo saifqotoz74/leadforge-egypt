@@ -295,6 +295,7 @@ describe('Integration, Database, Security & API Tests (PostgreSQL + Prisma)', ()
           rating: 4.9,
           reviewCount: 210,
           leadType: 'EXCLUSIVE',
+          creditCost: 1,
         },
       ],
     });
@@ -562,6 +563,7 @@ ABC Dental Clinic,Dental,Cairo,Nasr City,Abbas El Akkad,01005556677,,,,,4.7,320,
           city: 'Cairo',
           phone: '01099990001',
           leadType: 'SHARED',
+          creditCost: 1,
         },
         {
           name: 'Concurrent Clinic Beta',
@@ -569,6 +571,7 @@ ABC Dental Clinic,Dental,Cairo,Nasr City,Abbas El Akkad,01005556677,,,,,4.7,320,
           city: 'Cairo',
           phone: '01099990002',
           leadType: 'EXCLUSIVE',
+          creditCost: 1,
         },
       ],
     });
