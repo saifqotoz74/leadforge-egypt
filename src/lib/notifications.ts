@@ -43,7 +43,7 @@ export class ApiEmailNotificationProvider implements EmailNotificationProvider {
 
   async sendEmail(message: EmailMessage): Promise<{ delivered: boolean; messageId: string }> {
     const apiKey = process.env.EMAIL_API_KEY?.trim();
-    const fromAddress = process.env.EMAIL_FROM?.trim() || 'LeadForge Egypt <notifications@leadforge.eg>';
+    const fromAddress = process.env.EMAIL_FROM?.trim() || 'LeadForge Egypt <notifications@leads4dev.com>';
 
     if (!apiKey) {
       throw new Error('EMAIL_API_KEY is not configured for API email provider.');
@@ -76,6 +76,7 @@ export class ApiEmailNotificationProvider implements EmailNotificationProvider {
         messageId: data.id || `resend-${Date.now()}`,
       };
     } catch (err: any) {
+      console.error('[Resend Email Dispatch Error]:', err?.message || err);
       return {
         delivered: false,
         messageId: `error-${Date.now()}`,
@@ -85,6 +86,9 @@ export class ApiEmailNotificationProvider implements EmailNotificationProvider {
 }
 
 export function resolveEmailNotificationProvider(): EmailNotificationProvider {
+  if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+    return new ConsoleEmailNotificationProvider();
+  }
   const provider = (process.env.EMAIL_PROVIDER || '').trim().toUpperCase();
   if (provider === 'API') {
     return new ApiEmailNotificationProvider();

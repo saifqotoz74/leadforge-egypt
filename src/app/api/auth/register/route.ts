@@ -149,9 +149,11 @@ export async function POST(req: NextRequest) {
       prisma
     );
 
-    sendWelcomeEmailSafe({
+    await sendWelcomeEmailSafe({
       email: user.email,
       name: user.name,
+    }).catch((err) => {
+      console.error('[Welcome Email Error]:', err);
     });
 
     await createAuditLog(

@@ -155,21 +155,21 @@ export async function sendPasswordResetEmailSafe(params: {
 
   const text = `استعادة كلمة المرور لحسابك في LeadForge Egypt:\n\nلإعادة تعيين كلمة المرور، يرجى فتح الرابط التالي (صالح لمدة 30 دقيقة):\n${params.resetUrl}\n\nإذا لم تطلب هذا، يرجى تجاهل هذه الرسالة.`;
 
-  // Asynchronous non-blocking dispatch
-  setImmediate(async () => {
-    try {
-      await dispatchTransactionalEmailSafe({
-        message: {
-          to: params.email,
-          subject: 'استعادة كلمة المرور - LeadForge Egypt',
-          bodyText: text,
-          bodyHtml: html,
-        },
-      });
-    } catch (err) {
-      console.error('[Email Dispatch] Failed to send password reset email:', err);
+  try {
+    const res = await dispatchTransactionalEmailSafe({
+      message: {
+        to: params.email,
+        subject: 'استعادة كلمة المرور - LeadForge Egypt',
+        bodyText: text,
+        bodyHtml: html,
+      },
+    });
+    if (!res.delivered) {
+      console.warn('[Email Dispatch] Password reset email not delivered:', res.errorMessage);
     }
-  });
+  } catch (err) {
+    console.error('[Email Dispatch] Failed to send password reset email:', err);
+  }
 }
 
 /**
@@ -179,7 +179,6 @@ export async function sendWelcomeEmailSafe(params: {
   email: string;
   name: string;
 }): Promise<void> {
-  const loginUrl = `${process.env.APP_URL || 'https://www.leads4dev.com'}/login`;
   const leadsUrl = `${process.env.APP_URL || 'https://www.leads4dev.com'}/leads`;
 
   const html = wrapBrandedEmailLayout({
@@ -201,20 +200,21 @@ export async function sendWelcomeEmailSafe(params: {
 
   const text = `مرحباً بك يا ${params.name} في LeadForge Egypt!\n\nتم إنشاء حسابك بنجاح. يمكنك تسجيل الدخول والبدء في تصفح الفرص عبر الرابط:\n${leadsUrl}`;
 
-  setImmediate(async () => {
-    try {
-      await dispatchTransactionalEmailSafe({
-        message: {
-          to: params.email,
-          subject: 'مرحباً بك في LeadForge Egypt 🚀',
-          bodyText: text,
-          bodyHtml: html,
-        },
-      });
-    } catch (err) {
-      console.error('[Email Dispatch] Failed to send welcome email:', err);
+  try {
+    const res = await dispatchTransactionalEmailSafe({
+      message: {
+        to: params.email,
+        subject: 'مرحباً بك في LeadForge Egypt 🚀',
+        bodyText: text,
+        bodyHtml: html,
+      },
+    });
+    if (!res.delivered) {
+      console.warn('[Email Dispatch] Welcome email not delivered:', res.errorMessage);
     }
-  });
+  } catch (err) {
+    console.error('[Email Dispatch] Failed to send welcome email:', err);
+  }
 }
 
 /**
@@ -252,20 +252,21 @@ export async function sendLeadClaimedEmailSafe(params: {
 
   const text = `تم تأكيد حجز الفرصة: ${params.businessName}\nالهاتف: ${params.phone}\nالموقع: ${params.city}\nرابط الفرصة: ${leadDetailsUrl}`;
 
-  setImmediate(async () => {
-    try {
-      await dispatchTransactionalEmailSafe({
-        message: {
-          to: params.email,
-          subject: `تم حجز الفرصة: ${params.businessName} - LeadForge Egypt`,
-          bodyText: text,
-          bodyHtml: html,
-        },
-      });
-    } catch (err) {
-      console.error('[Email Dispatch] Failed to send lead claimed email:', err);
+  try {
+    const res = await dispatchTransactionalEmailSafe({
+      message: {
+        to: params.email,
+        subject: `تم حجز الفرصة: ${params.businessName} - LeadForge Egypt`,
+        bodyText: text,
+        bodyHtml: html,
+      },
+    });
+    if (!res.delivered) {
+      console.warn('[Email Dispatch] Lead claimed email not delivered:', res.errorMessage);
     }
-  });
+  } catch (err) {
+    console.error('[Email Dispatch] Failed to send lead claimed email:', err);
+  }
 }
 
 /**
@@ -276,36 +277,54 @@ export async function sendMatchingLeadsAlertEmailSafe(params: {
   name: string;
   count: number;
   city?: string;
+  businessName?: string;
+  category?: string;
+  leadId?: string;
 }): Promise<void> {
-  const leadsUrl = `${process.env.APP_URL || 'https://www.leads4dev.com'}/leads`;
+  const leadsUrl = params.leadId
+    ? `${process.env.APP_URL || 'https://www.leads4dev.com'}/leads/${params.leadId}`
+    : `${process.env.APP_URL || 'https://www.leads4dev.com'}/leads`;
+
+  const leadName = params.businessName || 'نشاط تجاري مؤهل';
+  const preheaderText = params.count > 1
+    ? `تم رصد ${params.count} فرص جديدة متوافقة مع تخصصك`
+    : `فرصة جديدة متوافقة مع تخصصك: ${leadName}`;
 
   const html = wrapBrandedEmailLayout({
     title: 'تنبيه فرص جديدة',
-    preheader: `تم رصد ${params.count} فرص جديدة متوافقة مع تخصصك`,
+    preheader: preheaderText,
     contentHtml: `
       <h2 style="margin-top:0; color:#1C1917; font-size:18px;">فرص جديدة متوافقة مع تخصصك 🔔</h2>
       <p>مرحباً ${params.name}،</p>
-      <p>تم رصد <strong>${params.count} فرص تجارية جديدة</strong> في نظام LeadForge تتوافق مع معاييرك وتخصصك التقني ${params.city ? `في منطقة ${params.city}` : ''}.</p>
-      <p>الفرص متاحة الآن للاستعراض والحجز قبل اكتمال عدد المطورين المسموح به لكل فرصة.</p>
+      <p>تم رصد <strong>${params.count > 1 ? `${params.count} فرص تجارية جديدة` : `فرصة تجارية مؤهلة جديدة: "${leadName}"`}</strong> تتوافق مع تخصصك وموقعك الجغرافي ${params.city ? `في ${params.city}` : ''}.</p>
+      ${params.category ? `
+      <div class="info-card">
+        <div class="info-row"><span class="info-label">اسم النشاط: </span><span class="info-value">${leadName}</span></div>
+        <div class="info-row"><span class="info-label">النشاط التجاري: </span><span class="info-value">${params.category}</span></div>
+        ${params.city ? `<div class="info-row"><span class="info-label">المدينة: </span><span class="info-value">${params.city}</span></div>` : ''}
+      </div>
+      ` : ''}
+      <p>الفرصة متاحة الآن للاستعراض والحجز عبر المنصة قبل اكتمال العدد الأقصى للمطورين.</p>
     `,
-    ctaText: 'تصفح الفرص الجديدة الآن',
+    ctaText: 'عرض الفرصة الآن',
     ctaUrl: leadsUrl,
   });
 
-  const text = `تم رصد ${params.count} فرص جديدة متوافقة مع تخصصك في LeadForge Egypt!\nلتصفح الفرص: ${leadsUrl}`;
+  const text = `تم رصد فرصة جديدة متوافقة مع تخصصك في LeadForge Egypt!\nالنشاط: ${leadName}\nالموقع: ${params.city || 'مصر'}\nلتصفح الفرصة: ${leadsUrl}`;
 
-  setImmediate(async () => {
-    try {
-      await dispatchTransactionalEmailSafe({
-        message: {
-          to: params.email,
-          subject: `تم رصد ${params.count} فرص جديدة متوافقة معك - LeadForge Egypt`,
-          bodyText: text,
-          bodyHtml: html,
-        },
-      });
-    } catch (err) {
-      console.error('[Email Dispatch] Failed to send matching leads alert email:', err);
+  try {
+    const res = await dispatchTransactionalEmailSafe({
+      message: {
+        to: params.email,
+        subject: `🎯 فرصة جديدة متوافقة معك: ${leadName} - LeadForge Egypt`,
+        bodyText: text,
+        bodyHtml: html,
+      },
+    });
+    if (!res.delivered) {
+      console.warn('[Email Dispatch] Matching leads alert email not delivered:', res.errorMessage);
     }
-  });
+  } catch (err) {
+    console.error('[Email Dispatch] Failed to send matching leads alert email:', err);
+  }
 }

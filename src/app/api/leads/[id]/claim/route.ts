@@ -91,14 +91,16 @@ export async function POST(
     });
 
     if (claimRecord?.lead) {
-      sendLeadClaimedEmailSafe({
+      await sendLeadClaimedEmailSafe({
         email: user.email,
         name: user.name,
         businessName: claimRecord.lead.businessName,
-        phone: claimRecord.lead.phone || 'غير متوفر',
+        phone: claimRecord.lead.phone || 'غير متوفر (فرصة ميدانية)',
         city: claimRecord.lead.city || 'مصر',
         estimatedBudget: claimRecord.lead.estimatedBudget,
         leadId: claimRecord.lead.id,
+      }).catch((err) => {
+        console.error('[Claim Email Error]:', err);
       });
     }
 

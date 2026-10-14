@@ -53,6 +53,7 @@ import {
   sanitizeRawPayloadForStorage,
 } from './security';
 import { logIngestionEvent } from './logger';
+import { notifyDevelopersOfNewLead } from '../lead-matching-notifier';
 
 export const DEFAULT_RETENTION_POLICY: RetentionPolicyConfig = {
   RAW_SOURCE_PAYLOAD: 30,
@@ -1433,6 +1434,9 @@ export async function runIngestionPipeline(
                 insertedCount += 1;
                 if (isSaleable) {
                   saleableCount += 1;
+                  notifyDevelopersOfNewLead(createdLead).catch((err) => {
+                    console.error('[notifyDevelopersOfNewLead Error]:', err);
+                  });
                 }
 
                 await prisma.importRecord.create({
