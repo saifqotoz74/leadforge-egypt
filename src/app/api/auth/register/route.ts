@@ -8,6 +8,7 @@ import { createInAppNotification } from '@/lib/notifications';
 import { DEFAULT_PLANS } from '@/lib/payment/provider';
 import { ensureDeveloperCreditAccount } from '@/lib/claims/credit-service';
 import { isFeatureFlagEnabled } from '@/lib/production/feature-flags';
+import { sendWelcomeEmailSafe } from '@/lib/email-templates';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'الاسم الكامل مطلوب (حرفين على الأقل)'),
@@ -147,6 +148,11 @@ export async function POST(req: NextRequest) {
       },
       prisma
     );
+
+    sendWelcomeEmailSafe({
+      email: user.email,
+      name: user.name,
+    });
 
     await createAuditLog(
       {

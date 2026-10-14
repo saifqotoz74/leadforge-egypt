@@ -6,6 +6,7 @@ import { LeadServiceError } from '@/lib/lead-service';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { recordClaimMetric } from '@/lib/observability';
 import { applySecurityHeaders, recordSecuritySignal } from '@/lib/security';
+import { sendLeadClaimedEmailSafe } from '@/lib/email-templates';
 
 export async function POST(
   req: NextRequest,
@@ -76,7 +77,30 @@ export async function POST(
 
     const claimRecord = await prisma.leadClaim.findUnique({
       where: { id: result.claimId },
+      include: {
+        lead: {
+          select: {
+            id: true,
+            businessName: true,
+            phone: true,
+            city: true,
+            estimatedBudget: true,
+          },
+        },
+      },
     });
+
+    if (claimRecord?.lead) {
+      sendLeadClaimedEmailSafe({
+        email: user.email,
+        name: user.name,
+        businessName: claimRecord.lead.businessName,
+        phone: claimRecord.lead.phone || 'غير متوفر',
+        city: claimRecord.lead.city || 'مصر',
+        estimatedBudget: claimRecord.lead.estimatedBudget,
+        leadId: claimRecord.lead.id,
+      });
+    }
 
     return applySecurityHeaders(
       NextResponse.json({

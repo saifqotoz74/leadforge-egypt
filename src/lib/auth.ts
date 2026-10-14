@@ -292,3 +292,46 @@ export function getClientIp(req?: NextRequest | Request): string {
   }
   return req.headers.get('x-real-ip') || 'unknown';
 }
+
+export async function generatePasswordResetToken(user: {
+  id: string;
+  email: string;
+  passwordHash: string;
+}): Promise<string> {
+  const secret = getSecretKey();
+  const hashFingerprint = user.passwordHash.slice(-10);
+  return new SignJWT({
+    sub: user.id,
+    email: user.email,
+    hfp: hashFingerprint,
+    type: 'pwd_reset',
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('30m')
+    .sign(secret);
+}
+
+export async function verifyPasswordResetToken(
+  token: string
+): Promise<{ userId: string; email: string } | null> {
+  try {
+    const secret = getSecretKey();
+    const { payload } = await jwtVerify(token, secret);
+    if (payload.type !== 'pwd_reset' || typeof payload.sub !== 'string') {
+      return null;
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, email: true, passwordHash: true, status: true },
+    });
+    if (!user || user.status === 'SUSPENDED') return null;
+    if (user.passwordHash.slice(-10) !== payload.hfp) {
+      return null; // Automatically invalidated on password change
+    }
+    return { userId: user.id, email: user.email };
+  } catch {
+    return null;
+  }
+}
+
