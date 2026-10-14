@@ -605,8 +605,27 @@ export async function claimLead(input: ClaimLeadInput): Promise<ClaimLeadResult>
             }
           : DEFAULT_CREDIT_PRICING_CONFIG;
 
+        const effectivePricingSubject = {
+          ...lead,
+          creditCost:
+            typeof lead.creditCost === 'number' && lead.creditCost > 0
+              ? lead.creditCost
+              : !lead.phone && !lead.hasPhone
+              ? 1
+              : lead.exclusive
+              ? 25
+              : 5,
+          creditCostReason:
+            lead.creditCostReason?.trim() ||
+            (!lead.phone && !lead.hasPhone
+              ? 'FIELD_VISIT_DISCOUNT'
+              : lead.exclusive
+              ? 'EXCLUSIVE_LEAD'
+              : 'SHARED_LEAD'),
+        };
+
         const { creditCost, creditCostReason, explanation } = calculateLeadCreditCost(
-          lead,
+          effectivePricingSubject,
           pricingConfigToUse,
           {
             legacyDefaultCostOneWhenUnset: Boolean(legacyCompatibilityMode && !dbPricingConfig),

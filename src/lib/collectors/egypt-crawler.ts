@@ -224,7 +224,7 @@ export async function crawlLiveEgyptianLeads(options: {
       const leadInput: RawLeadInput = {
         name: rawName,
         businessName: rawName,
-        phone: parsedPhone.phone || `+2010${Math.floor(10000000 + Math.random() * 90000000)}`,
+        phone: parsedPhone.phone || null,
         website: hasWebsite ? websiteUrl : null,
         category: target.category,
         governorate: state,

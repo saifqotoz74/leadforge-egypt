@@ -112,7 +112,29 @@ export function calculateLeadCreditCost(
     };
   }
 
-  // 2. Legacy compatibility mode (for existing Phase 0-4 tests where lead.creditCost is unset and no CreditPricingConfig exists)
+  // 2. Field Visit Discount (no phone available)
+  if (lead.creditCostReason === 'FIELD_VISIT_DISCOUNT') {
+    return {
+      creditCost: 1,
+      creditCostReason: 'FIELD_VISIT_DISCOUNT',
+      explanation: {
+        baseCost: 1,
+        baseReason: 'FIELD_VISIT_DISCOUNT',
+        factors: [
+          {
+            code: 'FIELD_VISIT_DISCOUNT',
+            delta: 0,
+            reason: 'فرصة زيارة ميدانية / تواصل سوشيال (بدون هاتف) بسعر نقطة واحدة',
+          },
+        ],
+        rawTotal: 1,
+        finalCost: 1,
+        creditCostReason: 'FIELD_VISIT_DISCOUNT',
+      },
+    };
+  }
+
+  // 3. Legacy compatibility mode (for existing Phase 0-4 tests where lead.creditCost is unset and no CreditPricingConfig exists)
   if (options?.legacyDefaultCostOneWhenUnset) {
     return {
       creditCost: 1,

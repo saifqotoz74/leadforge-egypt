@@ -106,8 +106,9 @@ export function evaluateLeadCompleteness(
     emailVal.status === 'DOMAIN_VALID' || emailVal.status === 'VALID_FORMAT';
 
   // 5. primaryContact (REQUIRED - 15 pts)
+  const hasPhysicalLocation = Boolean(lead.address && lead.address.trim().length > 0);
   const hasPrimaryContact =
-    phoneVal.status === 'VALID' || hasValidWebsite || hasSocial || hasValidEmail;
+    phoneVal.status === 'VALID' || hasValidWebsite || hasSocial || hasValidEmail || hasPhysicalLocation;
   const hasOnlyInvalidContact =
     !hasPrimaryContact &&
     (phoneVal.status === 'INVALID' ||
@@ -123,10 +124,10 @@ export function evaluateLeadCompleteness(
     maxPoints: 15,
     awardedPoints: hasPrimaryContact ? 15 : 0,
     reason: hasPrimaryContact
-      ? 'At least one valid contact channel is present'
+      ? 'At least one valid contact channel or physical location is present'
       : hasOnlyInvalidContact
       ? 'Provided contact channels are invalid'
-      : 'No contact channel (phone, website, social, or email) provided',
+      : 'No contact channel (phone, website, social, email, or physical location) provided',
   });
   if (!hasPrimaryContact) missingRequiredFields.push('primaryContact');
 

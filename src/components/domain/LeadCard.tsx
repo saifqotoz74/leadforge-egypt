@@ -24,6 +24,8 @@ export interface LeadCardProps {
   signals?: string[];
   seatsRemaining?: number;
   maxSeats?: number;
+  hasPhone?: boolean;
+  isFieldVisit?: boolean;
   onViewLead?: (id: string) => void;
   className?: string;
 }
@@ -42,6 +44,8 @@ export const LeadCard: React.FC<LeadCardProps> = ({
   signals = [],
   seatsRemaining,
   maxSeats,
+  hasPhone,
+  isFieldVisit,
   onViewLead,
   className = '',
 }) => {
@@ -55,11 +59,18 @@ export const LeadCard: React.FC<LeadCardProps> = ({
     >
       {/* 1. Header row: OpportunityBadge (start) and OwnershipTag (end) */}
       <div className="flex items-center justify-between gap-2">
-        <OpportunityBadge
-          temperature={temperature}
-          score={score}
-          size="sm"
-        />
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <OpportunityBadge
+            temperature={temperature}
+            score={score}
+            size="sm"
+          />
+          {(isFieldVisit || hasPhone === false) && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-caption font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+              📍 زيارة ميدانية / سوشيال
+            </span>
+          )}
+        </div>
         <OwnershipTag
           type={ownershipType}
           seatsRemaining={seatsRemaining}

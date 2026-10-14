@@ -84,7 +84,12 @@ export interface CreditPricingFactor {
 
 export interface CreditPricingExplanation {
   baseCost: number;
-  baseReason: 'SHARED_LEAD' | 'EXCLUSIVE_LEAD' | 'EXPLICIT_LEAD_COST' | 'LEGACY_DEFAULT_COST';
+  baseReason:
+    | 'SHARED_LEAD'
+    | 'EXCLUSIVE_LEAD'
+    | 'EXPLICIT_LEAD_COST'
+    | 'LEGACY_DEFAULT_COST'
+    | 'FIELD_VISIT_DISCOUNT';
   factors: CreditPricingFactor[];
   rawTotal: number;
   finalCost: number;

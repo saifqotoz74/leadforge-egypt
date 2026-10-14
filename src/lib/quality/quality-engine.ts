@@ -320,6 +320,15 @@ export function evaluateLeadQuality(
     anyExpiredOrNeedsReverify = true;
   }
 
+  // Determine alternate contact channels
+  const hasAlternateValidContact =
+    websiteResult.isReachable ||
+    Boolean(lead.facebook && lead.facebook.trim()) ||
+    Boolean(lead.hasFacebook) ||
+    Boolean(lead.instagram && lead.instagram.trim()) ||
+    Boolean(lead.hasInstagram) ||
+    emailValidationStatus === 'DOMAIN_VALID';
+
   // Determine overall Lead VerificationStatus
   let verificationStatus: VerificationStatus = 'UNVERIFIED';
   const hasAllCoreDimensionsVerified =
@@ -335,7 +344,9 @@ export function evaluateLeadQuality(
     snapshotsMap.size === 0 &&
     lead.isVerified !== false &&
     businessStatus === 'OPEN' &&
-    phoneValidationStatus === 'VALID' &&
+    (phoneValidationStatus === 'VALID' ||
+      (phoneValidationStatus === 'UNKNOWN' &&
+        (hasAlternateValidContact || Boolean(lead.address)))) &&
     !categoryResult.hasCategoryMismatch &&
     !locationResult.hasLocationMismatch &&
     completeness.missingRequiredFields.length === 0 &&
@@ -685,14 +696,6 @@ export function evaluateLeadQuality(
   const qualityStatus = classifyQualityStatus(qualityScore, qCfg);
 
   // 7. Evaluate Quality Gates & Saleability Status
-  const hasAlternateValidContact =
-    websiteResult.isReachable ||
-    Boolean(lead.facebook && lead.facebook.trim()) ||
-    Boolean(lead.hasFacebook) ||
-    Boolean(lead.instagram && lead.instagram.trim()) ||
-    Boolean(lead.hasInstagram) ||
-    emailValidationStatus === 'DOMAIN_VALID';
-
   let saleabilityStatus: LeadAvailabilityStatus = 'AVAILABLE';
   let saleabilityReason = 'Lead passes all quality, freshness, and verification gates';
 

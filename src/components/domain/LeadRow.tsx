@@ -23,6 +23,8 @@ export interface LeadRowProps {
   price: number;
   seatsRemaining?: number;
   maxSeats?: number;
+  hasPhone?: boolean;
+  isFieldVisit?: boolean;
   onViewLead?: (id: string) => void;
   className?: string;
 }
@@ -40,6 +42,8 @@ export const LeadRow: React.FC<LeadRowProps> = ({
   price,
   seatsRemaining,
   maxSeats,
+  hasPhone,
+  isFieldVisit,
   onViewLead,
   className = '',
 }) => {
@@ -53,19 +57,26 @@ export const LeadRow: React.FC<LeadRowProps> = ({
       {/* Name block */}
       <td className="px-4 py-2 align-middle">
         <div className="flex flex-col">
-          <Link
-            href={`/leads/${id}`}
-            onClick={(e) => {
-              if (onViewLead) {
-                e.preventDefault();
-                onViewLead(id);
-              }
-            }}
-            title={companyName}
-            className="text-body font-semibold text-fg-primary hover:text-fg-brand truncate max-w-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-sm" /* design-allow: truncate */
-          >
-            <bdi dir="auto">{companyName}</bdi>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/leads/${id}`}
+              onClick={(e) => {
+                if (onViewLead) {
+                  e.preventDefault();
+                  onViewLead(id);
+                }
+              }}
+              title={companyName}
+              className="text-body font-semibold text-fg-primary hover:text-fg-brand truncate max-w-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-sm" /* design-allow: truncate */
+            >
+              <bdi dir="auto">{companyName}</bdi>
+            </Link>
+            {(isFieldVisit || hasPhone === false) && (
+              <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[11px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap">
+                📍 زيارة ميدانية / سوشيال
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-1 text-caption text-fg-secondary">
             <span>{category}</span>
             <span className="w-1" aria-hidden="true" />

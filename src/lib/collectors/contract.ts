@@ -53,6 +53,8 @@ export const RawLeadInputSchema = z.object({
   leadType: z.enum(['SHARED', 'EXCLUSIVE']).nullable().optional(),
   maxPurchasers: z.union([z.number(), z.string()]).nullable().optional(),
   estimatedBudget: z.union([z.number(), z.string()]).nullable().optional(),
+  creditCost: z.number().nullable().optional(),
+  creditCostReason: z.string().nullable().optional(),
 });
 
 export const IngestionContractRecordSchema = z.object({

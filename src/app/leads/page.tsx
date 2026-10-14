@@ -125,6 +125,7 @@ export default function LeadDiscoveryPage() {
   const [temperature, setTemperature] = useState('ALL');
   const [ownershipType, setOwnershipType] = useState('ALL');
   const [hasPhone, setHasPhone] = useState(false);
+  const [fieldVisitOnly, setFieldVisitOnly] = useState(false);
   const [hasEmail, setHasEmail] = useState(false);
   const [hasSocial, setHasSocial] = useState(false);
   const [matchedOnly, setMatchedOnly] = useState(false);
@@ -156,6 +157,7 @@ export default function LeadDiscoveryPage() {
       if (temperature !== 'ALL') params.set('temperature', temperature);
       if (ownershipType !== 'ALL') params.set('ownershipType', ownershipType);
       if (hasPhone) params.set('hasPhone', 'true');
+      if (fieldVisitOnly) params.set('fieldVisitOnly', 'true');
       if (hasEmail) params.set('hasEmail', 'true');
       if (hasSocial) params.set('hasSocial', 'true');
       if (matchedOnly) params.set('matchedOnly', 'true');
@@ -187,6 +189,7 @@ export default function LeadDiscoveryPage() {
     hasEmail,
     hasSocial,
     matchedOnly,
+    fieldVisitOnly,
   ]);
 
   useEffect(() => {
@@ -209,6 +212,7 @@ export default function LeadDiscoveryPage() {
     setTemperature('ALL');
     setOwnershipType('ALL');
     setHasPhone(false);
+    setFieldVisitOnly(false);
     setHasEmail(false);
     setHasSocial(false);
     setMatchedOnly(false);
@@ -231,6 +235,7 @@ export default function LeadDiscoveryPage() {
       temperature !== 'ALL' ||
       ownershipType !== 'ALL' ||
       hasPhone ||
+      fieldVisitOnly ||
       hasEmail ||
       hasSocial ||
       matchedOnly
@@ -251,6 +256,7 @@ export default function LeadDiscoveryPage() {
     temperature,
     ownershipType,
     hasPhone,
+    fieldVisitOnly,
     hasEmail,
     hasSocial,
     matchedOnly,
@@ -267,6 +273,7 @@ export default function LeadDiscoveryPage() {
     { id: 'exclusive', label: t('exclusiveLeads'), isActive: ownershipType === 'EXCLUSIVE' },
     { id: 'hot', label: t('hotLeads'), isActive: temperature === 'HOT' || temperature === 'PREMIUM' },
     { id: 'hasPhone', label: t('phoneAvailable'), isActive: hasPhone },
+    { id: 'fieldVisit', label: '📍 زيارة ميدانية (1 نقطة)', isActive: fieldVisitOnly },
   ];
 
   function handleToggleQuickFilter(id: string) {
@@ -276,7 +283,17 @@ export default function LeadDiscoveryPage() {
     } else if (id === 'hot') {
       setTemperature((prev) => (prev === 'HOT' ? 'ALL' : 'HOT'));
     } else if (id === 'hasPhone') {
-      setHasPhone((prev) => !prev);
+      setHasPhone((prev) => {
+        const next = !prev;
+        if (next) setFieldVisitOnly(false);
+        return next;
+      });
+    } else if (id === 'fieldVisit') {
+      setFieldVisitOnly((prev) => {
+        const next = !prev;
+        if (next) setHasPhone(false);
+        return next;
+      });
     }
   }
 
@@ -413,7 +430,9 @@ export default function LeadDiscoveryPage() {
                 }
                 qualityStatus={mapQualityStatus(lead)}
                 qualityTimestamp={lead.lastVerifiedAt}
-                price={lead.creditCost || (lead.exclusive ? 5 : 1)}
+                price={lead.creditCost ?? (!lead.hasPhone && !lead.phone ? 1 : (lead.exclusive ? 25 : 5))}
+                hasPhone={lead.hasPhone}
+                isFieldVisit={!lead.hasPhone && !lead.phone}
                 signals={(lead.qualificationReasons || []).map((r) =>
                   localizeQualificationReason(r, locale)
                 )}
@@ -455,7 +474,9 @@ export default function LeadDiscoveryPage() {
                   }
                   qualityStatus={mapQualityStatus(lead)}
                   qualityTimestamp={lead.lastVerifiedAt}
-                  price={lead.creditCost || (lead.exclusive ? 5 : 1)}
+                  price={lead.creditCost ?? (!lead.hasPhone && !lead.phone ? 1 : (lead.exclusive ? 25 : 5))}
+                  hasPhone={lead.hasPhone}
+                  isFieldVisit={!lead.hasPhone && !lead.phone}
                   seatsRemaining={
                     lead.exclusive
                       ? undefined

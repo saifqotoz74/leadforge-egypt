@@ -33,6 +33,9 @@ import {
   ThumbsDown,
   ArrowRight,
   MessageCircle,
+  MapPin,
+  Navigation,
+  ExternalLink,
 } from 'lucide-react';
 import { WhatsAppOutreachModal } from '@/components/domain/WhatsAppOutreachModal';
 
@@ -392,7 +395,8 @@ export default function LeadDetailPage() {
     );
   }
 
-  const price = lead.creditCost || (lead.exclusive ? 5 : 1);
+  const isFieldVisit = !lead.hasPhone && !lead.phone;
+  const price = lead.creditCost ?? (isFieldVisit ? 1 : (lead.exclusive ? 25 : 5));
   const derivedRules: ScoreRuleItem[] =
     Array.isArray(lead.qualificationRules) && lead.qualificationRules.length > 0
       ? lead.qualificationRules.map((r) => ({
@@ -452,6 +456,24 @@ export default function LeadDetailPage() {
           <Banner variant={actionMsg.type}>
             {actionMsg.text}
           </Banner>
+        )}
+
+        {/* Field Visit Notice Callout */}
+        {isFieldVisit && (
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50/70 dark:bg-amber-950/20 dark:border-amber-800/40 text-amber-900 dark:text-amber-200">
+            <MapPin className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-body">فرصة زيارة ميدانية / تواصل سوشيال ميديا 📍</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-caption font-semibold bg-amber-200/60 text-amber-900 dark:bg-amber-800/60 dark:text-amber-100">
+                  سعر مخفض: 1 نقطة فقط
+                </span>
+              </div>
+              <p className="text-body-sm text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
+                هذا النشاط التجاري متاح للزيارة الميدانية المباشرة أو التواصل عبر منصات التواصل الاجتماعي. نظراً لعدم توفر رقم هاتف مباشر، تم تخفيض تكلفة الحصول على بياناته إلى نقطة واحدة فقط بدلاً من 5 نقاط.
+              </p>
+            </div>
+          </div>
         )}
 
         {/* Template T4 Layout: Main (8 cols) and Aside (4 cols) */}
@@ -525,6 +547,12 @@ export default function LeadDetailPage() {
                         بدء محادثة واتساب مع العميل 💬
                       </Button>
                     </div>
+                  ) : isFieldVisit ? (
+                    <div className="py-1">
+                      <span className="text-body-sm text-fg-muted font-medium">
+                        غير متوفر (فرصة مخصصة للزيارة الميدانية / تواصل سوشيال)
+                      </span>
+                    </div>
                   ) : (
                     <LockedField type="phone" />
                   )}
@@ -575,14 +603,57 @@ export default function LeadDetailPage() {
                 </div>
 
                 {/* Location */}
-                <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
-                  <span className="text-caption text-fg-secondary">{t('locationAddress')}</span>
+                <div className="flex flex-col gap-2 p-3 rounded-lg bg-subtle border border-line sm:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-caption text-fg-secondary">{t('locationAddress')}</span>
+                    <span className="inline-flex items-center gap-1 text-caption text-fg-brand">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>موقع النشاط التجاري</span>
+                    </span>
+                  </div>
                   <p
                     title={fullAddressDisplay}
-                    className="text-body-sm text-fg-primary truncate" /* design-allow: truncate */
+                    className="text-body-sm text-fg-primary"
                   >
                     {fullAddressDisplay}
                   </p>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        `${lead.businessName} ${lead.address || `${localizedGov} ${localizedCity}`}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-line bg-surface text-fg-primary hover:border-line-strong hover:bg-subtle text-caption font-semibold transition-colors"
+                    >
+                      <Navigation className="w-3.5 h-3.5 text-brand" />
+                      <span>فتح الموقع على خرائط جوجل (Google Maps) 📍</span>
+                    </a>
+
+                    {lead.facebook && (
+                      <a
+                        href={lead.facebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line bg-surface text-fg-primary hover:border-line-strong hover:bg-subtle text-caption font-medium transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>صفحة فيسبوك</span>
+                      </a>
+                    )}
+
+                    {lead.instagram && (
+                      <a
+                        href={lead.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line bg-surface text-fg-primary hover:border-line-strong hover:bg-subtle text-caption font-medium transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>حساب إنستغرام</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             </Card>
@@ -802,7 +873,14 @@ export default function LeadDetailPage() {
             <div className="sticky top-20 flex flex-col gap-5 p-6 rounded-xl border border-line bg-surface shadow-xs">
               {/* Price Section */}
               <div className="flex flex-col gap-1 pb-4 border-b border-line">
-                <span className="text-caption text-fg-secondary">{t('costUnlock')}</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-caption text-fg-secondary">{t('costUnlock')}</span>
+                  {isFieldVisit && (
+                    <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+                      خصم زيارة ميدانية (1 نقطة)
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-baseline gap-2">
                   <span className="ltr-iso text-display font-bold leading-none tabular-nums text-fg-primary">
                     {fmtNumber(price, locale)}

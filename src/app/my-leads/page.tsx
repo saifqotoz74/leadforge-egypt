@@ -408,10 +408,14 @@ export default function MyLeadsPage() {
                           </div>
 
                           <div className="flex flex-wrap items-center gap-4 pt-1 text-caption font-semibold">
-                            {lead.phone && (
+                            {lead.phone ? (
                               <span className="inline-flex items-center gap-1 text-fg-brand">
                                 <Phone className="w-3.5 h-3.5" />
                                 <span className="ltr-iso tabular-nums">{lead.phone}</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400 font-medium">
+                                📍 زيارة ميدانية / سوشيال
                               </span>
                             )}
                             {lead.email && (
@@ -483,7 +487,7 @@ export default function MyLeadsPage() {
                             {lead.myFeedback ? t('feedbackDone') : t('giveFeedback')}
                           </Button>
 
-                          {lead.phone && (
+                          {lead.phone ? (
                             <Button
                               variant="secondary"
                               size="sm"
@@ -493,6 +497,17 @@ export default function MyLeadsPage() {
                             >
                               واتساب 💬
                             </Button>
+                          ) : (
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                `${lead.businessName} ${lead.city}`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line bg-surface text-fg-primary hover:border-line-strong hover:bg-subtle text-caption font-semibold transition-colors"
+                            >
+                              <span>خريطة الموقع 📍</span>
+                            </a>
                           )}
 
                           <Link href={`/leads/${lead.id}`}>

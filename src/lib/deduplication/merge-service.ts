@@ -1325,6 +1325,10 @@ export async function unmergeLead(params: {
             qualificationRules: sepScore.qualificationRules as unknown as object,
             leadType: norm.leadType || 'SHARED',
             exclusive: Boolean(norm.exclusive),
+            creditCost: Boolean(norm.normalizedPhone) ? (Boolean(norm.exclusive) ? 25 : 5) : 1,
+            creditCostReason: Boolean(norm.normalizedPhone)
+              ? (Boolean(norm.exclusive) ? 'EXCLUSIVE_LEAD' : 'SHARED_LEAD')
+              : 'FIELD_VISIT_DISCOUNT',
             maxPurchasers: norm.maxPurchasers || 3,
             currentPurchasers: 0,
             source: norm.source || history.sourceRecord.sourceName,

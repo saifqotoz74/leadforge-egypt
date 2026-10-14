@@ -1194,6 +1194,14 @@ export async function runIngestionPipeline(
                       leadType: normalized.leadType,
                       accessType: normalized.leadType,
                       exclusive: normalized.exclusive,
+                      creditCost:
+                        normalized.creditCost ??
+                        (normalized.hasPhone ? (normalized.exclusive ? 25 : 5) : 1),
+                      creditCostReason:
+                        normalized.creditCostReason ??
+                        (normalized.hasPhone
+                          ? (normalized.exclusive ? 'EXCLUSIVE_LEAD' : 'SHARED_LEAD')
+                          : 'FIELD_VISIT_DISCOUNT'),
                       maxPurchasers: normalized.maxPurchasers,
                       currentPurchasers: 0,
                       availableForClaim: isSaleable,

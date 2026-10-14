@@ -44,6 +44,8 @@ export interface RawLeadInput {
   leadType?: 'SHARED' | 'EXCLUSIVE' | null;
   maxPurchasers?: number | string | null;
   estimatedBudget?: number | string | null;
+  creditCost?: number | null;
+  creditCostReason?: string | null;
 }
 
 export interface NormalizedLeadData {
@@ -86,6 +88,8 @@ export interface NormalizedLeadData {
   source: string;
   sourceType: SourceType;
   externalId: string | null;
+  creditCost?: number | null;
+  creditCostReason?: string | null;
 }
 
 export interface ValidationResult {
@@ -281,6 +285,17 @@ export function validateAndNormalizeLead(raw: RawLeadInput): ValidationResult {
       source,
       sourceType,
       externalId,
+      creditCost:
+        typeof raw.creditCost === 'number' && raw.creditCost > 0
+          ? raw.creditCost
+          : normalizedPhone
+          ? (leadType === 'EXCLUSIVE' ? 25 : 5)
+          : 1,
+      creditCostReason:
+        raw.creditCostReason?.trim() ||
+        (normalizedPhone
+          ? (leadType === 'EXCLUSIVE' ? 'EXCLUSIVE_LEAD' : 'SHARED_LEAD')
+          : 'FIELD_VISIT_DISCOUNT'),
     },
   };
 }

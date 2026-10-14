@@ -128,7 +128,25 @@ export async function GET(
     const isUnlocked = hasActiveClaim || user.role === 'ADMIN';
 
     const effectiveAccessType = resolveEffectiveAccessType(lead);
-    const pricing = calculateLeadCreditCost(lead, pricingConfigRow);
+    const effectivePricingSubject = {
+      ...lead,
+      creditCost:
+        typeof lead.creditCost === 'number' && lead.creditCost > 0
+          ? lead.creditCost
+          : !lead.phone && !lead.hasPhone
+          ? 1
+          : lead.exclusive
+          ? 25
+          : 5,
+      creditCostReason:
+        lead.creditCostReason?.trim() ||
+        (!lead.phone && !lead.hasPhone
+          ? 'FIELD_VISIT_DISCOUNT'
+          : lead.exclusive
+          ? 'EXCLUSIVE_LEAD'
+          : 'SHARED_LEAD'),
+    };
+    const pricing = calculateLeadCreditCost(effectivePricingSubject, pricingConfigRow);
     const accessPolicy = resolveLeadAccessPolicy(
       {
         ...lead,
@@ -151,7 +169,7 @@ export async function GET(
           : lead.phone
           ? `${lead.phone.slice(0, 4)}****${lead.phone.slice(-3)}`
           : null,
-        hasPhone: lead.hasPhone,
+        hasPhone: Boolean(lead.hasPhone && lead.phone),
         email: isUnlocked
           ? lead.email
           : lead.email

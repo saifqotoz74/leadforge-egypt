@@ -79,6 +79,7 @@ export async function GET(req: NextRequest) {
       '';
     const minMatchStrengthStr = searchParams.get('minMatchStrength')?.trim() || '';
     const hasPhone = searchParams.get('hasPhone') === 'true';
+    const fieldVisitOnly = searchParams.get('fieldVisitOnly') === 'true';
     const hasEmail = searchParams.get('hasEmail') === 'true';
     const hasSocial = searchParams.get('hasSocial') === 'true';
     const temperature = searchParams.get('temperature')?.trim() || '';
@@ -177,6 +178,9 @@ export async function GET(req: NextRequest) {
 
     if (hasPhone) {
       where.hasPhone = true;
+    }
+    if (fieldVisitOnly) {
+      where.hasPhone = false;
     }
     if (hasEmail) {
       where.hasEmail = true;
@@ -342,7 +346,25 @@ export async function GET(req: NextRequest) {
         const resolvedServices = resolveLeadRequiredServices(matchableLead);
         const resolvedProjectType = resolveLeadProjectType(matchableLead);
         const effectiveAccessType = resolveEffectiveAccessType(lead);
-        const pricing = calculateLeadCreditCost(lead, pricingConfigRow);
+        const effectivePricingSubject = {
+          ...lead,
+          creditCost:
+            typeof lead.creditCost === 'number' && lead.creditCost > 0
+              ? lead.creditCost
+              : !lead.phone && !lead.hasPhone
+              ? 1
+              : lead.exclusive
+              ? 25
+              : 5,
+          creditCostReason:
+            lead.creditCostReason?.trim() ||
+            (!lead.phone && !lead.hasPhone
+              ? 'FIELD_VISIT_DISCOUNT'
+              : lead.exclusive
+              ? 'EXCLUSIVE_LEAD'
+              : 'SHARED_LEAD'),
+        };
+        const pricing = calculateLeadCreditCost(effectivePricingSubject, pricingConfigRow);
         const accessPolicy = resolveLeadAccessPolicy(
           {
             ...lead,
@@ -360,7 +382,7 @@ export async function GET(req: NextRequest) {
           area: lead.area,
           address: isUnlocked ? lead.address : null,
           phone: isUnlocked ? lead.phone : maskPhone(lead.phone),
-          hasPhone: lead.hasPhone,
+          hasPhone: Boolean(lead.hasPhone && lead.phone),
           email: isUnlocked ? lead.email : maskEmail(lead.email),
           hasEmail: lead.hasEmail,
           website: lead.website,
