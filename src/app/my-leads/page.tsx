@@ -36,7 +36,9 @@ import {
   ThumbsUp,
   ThumbsDown,
   ArrowRight,
+  MessageCircle,
 } from 'lucide-react';
+import { WhatsAppOutreachModal } from '@/components/domain/WhatsAppOutreachModal';
 
 interface ClaimedLeadItem {
   id: string;
@@ -118,6 +120,9 @@ export default function MyLeadsPage() {
     leadId: string;
     newStatus: PipelineStage;
   } | null>(null);
+
+  // WhatsApp Outreach Dialog state
+  const [outreachModalLead, setOutreachModalLead] = useState<ClaimedLeadItem | null>(null);
 
   const loadMyLeads = useCallback(async () => {
     setLoading(true);
@@ -478,6 +483,18 @@ export default function MyLeadsPage() {
                             {lead.myFeedback ? t('feedbackDone') : t('giveFeedback')}
                           </Button>
 
+                          {lead.phone && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => setOutreachModalLead(lead)}
+                              startIcon={<MessageCircle className="w-3.5 h-3.5 text-emerald-600" />}
+                              title="تواصل عبر واتساب"
+                            >
+                              واتساب 💬
+                            </Button>
+                          )}
+
                           <Link href={`/leads/${lead.id}`}>
                             <Button
                               variant="ghost"
@@ -606,6 +623,20 @@ export default function MyLeadsPage() {
             {t('confirmInvalidDescription')}
           </p>
         </Dialog>
+
+        {/* WhatsApp Outreach Modal */}
+        {outreachModalLead && (
+          <WhatsAppOutreachModal
+            isOpen={outreachModalLead !== null}
+            onClose={() => setOutreachModalLead(null)}
+            leadId={outreachModalLead.id}
+            businessName={outreachModalLead.businessName}
+            phone={outreachModalLead.phone}
+            category={outreachModalLead.category}
+            city={outreachModalLead.city}
+            onContactLogged={loadMyLeads}
+          />
+        )}
       </div>
     </AppShell>
   );

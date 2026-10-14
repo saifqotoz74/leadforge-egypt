@@ -13,6 +13,8 @@ import { prisma as defaultPrisma } from '../db';
 import { CollectorRegistry } from '../collectors/registry';
 import { recordLatencyMetric, incrementCounter } from '../observability/metrics';
 import { isFeatureFlagEnabled } from './feature-flags';
+import { crawlLiveEgyptianLeads } from '../collectors/egypt-crawler';
+import { runIngestionPipeline } from '../collectors/orchestrator';
 
 export type WorkerJobKey =
   | 'ingestion_scheduled_sync'
@@ -351,33 +353,80 @@ async function runBuiltInJobHandler(
         return { recordsProcessed: 0, nextCursor: null };
       }
       const now = new Date();
-      const dueSources = await db.leadSource.findMany({
+
+      // 1. Locate or create canonical Egyptian Business Directory source
+      let source = await db.leadSource.findFirst({
         where: {
-          isActive: true,
-          enabled: true,
-          circuitState: { not: 'OPEN' },
-          OR: [{ nextRunAt: null }, { nextRunAt: { lte: now } }],
-          ...(cursor ? { id: { gt: cursor } } : {}),
+          type: 'DIRECTORY',
+          name: { contains: 'Egyptian Business Directory' },
         },
-        orderBy: { id: 'asc' },
-        take: batchLimit,
-        select: { id: true, scheduleIntervalMinutes: true },
       });
 
-      for (const source of dueSources) {
-        const intervalMin = source.scheduleIntervalMinutes ?? 60;
-        await db.leadSource.update({
-          where: { id: source.id },
+      if (!source) {
+        source = await db.leadSource.findFirst({
+          where: { type: 'DIRECTORY' },
+        });
+      }
+
+      if (!source) {
+        source = await db.leadSource.create({
           data: {
-            lastSeenAt: now,
-            nextRunAt: new Date(now.getTime() + intervalMin * 60 * 1000),
+            name: 'Egyptian Business Directory',
+            type: 'DIRECTORY',
+            collectorKey: 'directory-feed',
+            collectorVersion: 'directory-v1',
+            contractVersion: 'ingestion-contract-v1',
+            enabled: true,
+            isActive: true,
+            configurationStatus: 'CONFIGURED',
+            healthStatus: 'HEALTHY',
+            circuitState: 'CLOSED',
           },
         });
       }
 
+      // 2. Perform live multi-sector crawl for Cairo, Giza, Alexandria
+      let totalInserted = 0;
+      try {
+        const systemAdmin = await db.user.findFirst({
+          where: { role: 'ADMIN' },
+          select: { id: true },
+        });
+        const schedulerUserId = systemAdmin?.id || (await db.user.findFirst({ select: { id: true } }))?.id;
+
+        if (schedulerUserId) {
+          const rawLeads = await crawlLiveEgyptianLeads({ targetCount: 20 });
+          if (rawLeads.length > 0) {
+            const report = await runIngestionPipeline({
+              prisma: db,
+              userId: schedulerUserId,
+              sourceId: source.id,
+              sourceName: source.name,
+              sourceType: source.type,
+              rawRecords: rawLeads,
+              conflictPolicy: 'SAFE_PHONE_PRIORITY',
+              triggerType: 'SCHEDULED',
+              forceReprocess: false,
+            });
+            totalInserted = report.inserted ?? 0;
+          }
+        }
+      } catch (crawlErr) {
+        console.error('[Scheduled Ingestion] Crawl failed:', crawlErr);
+      }
+
+      // 3. Update source timestamps
+      await db.leadSource.update({
+        where: { id: source.id },
+        data: {
+          lastSeenAt: now,
+          nextRunAt: new Date(now.getTime() + 24 * 60 * 60 * 1000),
+        },
+      });
+
       return {
-        recordsProcessed: dueSources.length,
-        nextCursor: dueSources.length > 0 ? dueSources[dueSources.length - 1].id : null,
+        recordsProcessed: totalInserted,
+        nextCursor: null,
       };
     }
 

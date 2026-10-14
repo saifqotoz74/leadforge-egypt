@@ -37,7 +37,7 @@ export const FEATURE_FLAG_DEFINITIONS: Record<FeatureFlagKey, FeatureFlagDefinit
   collector_scheduled_runs: {
     key: 'collector_scheduled_runs',
     description: 'Controls whether automated external collector jobs execute on schedule.',
-    defaultEnabled: false,
+    defaultEnabled: true,
     riskLevel: 'HIGH',
     owner: 'Data Ingestion Engineering',
   },
@@ -79,7 +79,7 @@ export const FEATURE_FLAG_DEFINITIONS: Record<FeatureFlagKey, FeatureFlagDefinit
   transactional_email_dispatch: {
     key: 'transactional_email_dispatch',
     description: 'Controls outbound email dispatch via configured SMTP/API provider.',
-    defaultEnabled: false,
+    defaultEnabled: true,
     riskLevel: 'MEDIUM',
     owner: 'Platform Operations',
   },

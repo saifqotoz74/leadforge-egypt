@@ -32,7 +32,9 @@ import {
   ThumbsUp,
   ThumbsDown,
   ArrowRight,
+  MessageCircle,
 } from 'lucide-react';
+import { WhatsAppOutreachModal } from '@/components/domain/WhatsAppOutreachModal';
 
 interface LeadDetailData {
   id: string;
@@ -177,6 +179,7 @@ export default function LeadDetailPage() {
     null
   );
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(true);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -494,20 +497,32 @@ export default function LeadDetailPage() {
                 <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-subtle border border-line">
                   <span className="text-caption text-fg-secondary">{t('phoneNumber')}</span>
                   {lead.isClaimedByMe && lead.phone ? (
-                    <div className="flex items-center justify-between">
-                      <a
-                        href={`tel:${lead.phone}`}
-                        className="ltr-iso font-semibold tabular-nums text-fg-brand hover:underline"
-                      >
-                        {lead.phone}
-                      </a>
+                    <div className="flex flex-col gap-2.5">
+                      <div className="flex items-center justify-between">
+                        <a
+                          href={`tel:${lead.phone}`}
+                          className="ltr-iso font-semibold tabular-nums text-fg-brand hover:underline"
+                        >
+                          {lead.phone}
+                        </a>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCopy(lead.phone!, 'phone')}
+                          startIcon={<Copy className="w-3.5 h-3.5" />}
+                        >
+                          {copiedField === 'phone' ? t('copied') : t('copy')}
+                        </Button>
+                      </div>
+
                       <Button
-                        variant="ghost"
+                        variant="primary"
                         size="sm"
-                        onClick={() => handleCopy(lead.phone!, 'phone')}
-                        startIcon={<Copy className="w-3.5 h-3.5" />}
+                        onClick={() => setIsWhatsAppModalOpen(true)}
+                        startIcon={<MessageCircle className="w-4 h-4" />}
+                        className="w-full justify-center"
                       >
-                        {copiedField === 'phone' ? t('copied') : t('copy')}
+                        بدء محادثة واتساب مع العميل 💬
                       </Button>
                     </div>
                   ) : (
@@ -941,6 +956,23 @@ export default function LeadDetailPage() {
             {t('confirmInvalidDescription')}
           </p>
         </Dialog>
+
+        {/* WhatsApp Outreach Modal */}
+        {lead && (
+          <WhatsAppOutreachModal
+            isOpen={isWhatsAppModalOpen}
+            onClose={() => setIsWhatsAppModalOpen(false)}
+            leadId={lead.id}
+            businessName={lead.businessName}
+            phone={lead.phone}
+            category={lead.category}
+            city={lead.city}
+            governorate={lead.governorate}
+            website={lead.website}
+            websiteStatus={lead.websiteStatus}
+            onContactLogged={loadLead}
+          />
+        )}
       </div>
     </AppShell>
   );
