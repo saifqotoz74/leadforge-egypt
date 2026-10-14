@@ -43,7 +43,7 @@ async function getCachedFreshnessConfig() {
     return cachedFreshnessConfig.data;
   }
   const data = await prisma.freshnessConfig.findUnique({ where: { id: 'default' } });
-  cachedFreshnessConfig = { data, expiresAt: now + 60_000 };
+  cachedFreshnessConfig = { data, expiresAt: now + 15 * 60_000 };
   return data;
 }
 
@@ -53,7 +53,7 @@ async function getCachedPricingConfig() {
     return cachedPricingConfig.data;
   }
   const data = await prisma.creditPricingConfig.findUnique({ where: { id: 'default' } });
-  cachedPricingConfig = { data, expiresAt: now + 60_000 };
+  cachedPricingConfig = { data, expiresAt: now + 15 * 60_000 };
   return data;
 }
 

@@ -1443,7 +1443,6 @@ export async function ensureDbReady(): Promise<void> {
     const { prisma: activePrisma, pglite: activePg } = getOrCreateDefaultInstance();
     try {
       if (shouldUseExternalPg()) {
-        await activePrisma.user.count();
         globalForPrisma.schemaInitialized = true;
         return;
       }

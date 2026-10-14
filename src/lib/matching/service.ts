@@ -104,8 +104,12 @@ export async function getActiveMatchingConfigAndRules(): Promise<{
   }
 
   if (!isMatchingRulesSeededChecked) {
-    await ensureMatchingRulesSeeded();
-    isMatchingRulesSeededChecked = true;
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+      isMatchingRulesSeededChecked = true;
+    } else {
+      await ensureMatchingRulesSeeded();
+      isMatchingRulesSeededChecked = true;
+    }
   }
 
   const [dbConfig, dbRules] = await Promise.all([
@@ -155,7 +159,7 @@ export async function getActiveMatchingConfigAndRules(): Promise<{
       : DEFAULT_MATCHING_RULES;
 
   const result = { config, rules };
-  cachedMatchingBundle = { data: result, expiresAt: now + 60_000 };
+  cachedMatchingBundle = { data: result, expiresAt: now + 15 * 60_000 };
   return result;
 }
 
