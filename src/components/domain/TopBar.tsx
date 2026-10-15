@@ -4,9 +4,39 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Menu, Bell, Settings, LogOut } from 'lucide-react';
+import { Menu, Bell, Settings, LogOut, CheckCircle2, ExternalLink } from 'lucide-react';
 import { CreditChip } from './CreditChip';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+  type?: string;
+  link?: string | null;
+}
+
+function formatRelativeTimeAr(dateInput: string | Date): string {
+  try {
+    const d = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (diffSec < 60) return 'الآن';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `منذ ${diffMin} د`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `منذ ${diffHours} س`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `منذ ${diffDays} ي`;
+    return new Intl.DateTimeFormat('ar-EG-u-nu-latn', {
+      month: 'short',
+      day: 'numeric',
+    }).format(d);
+  } catch {
+    return '';
+  }
+}
 
 export interface TopBarProps {
   onToggleSidebar?: () => void;
@@ -41,9 +71,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(notificationCount);
-  const [notifications, setNotifications] = useState<
-    Array<{ id: string; title: string; message: string; createdAt: string; isRead: boolean }>
-  >([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoadingNotifs, setIsLoadingNotifs] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -100,6 +128,48 @@ export const TopBar: React.FC<TopBarProps> = ({
       // silent
     }
   };
+
+  const handleNotificationClick = async (n: NotificationItem) => {
+    if (!n.isRead) {
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === n.id ? { ...item, isRead: true } : item))
+      );
+      try {
+        await fetch('/api/notifications', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notificationId: n.id }),
+        });
+      } catch {
+        // silent
+      }
+    }
+    setIsNotifOpen(false);
+    if (n.link) {
+      router.push(n.link);
+    }
+  };
+
+  // Light polling every 2 minutes for fresh unread badge
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/notifications');
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadCount(data.unreadCount ?? 0);
+          if (isNotifOpen) {
+            setNotifications(data.notifications || []);
+          }
+        }
+      } catch {
+        // silent
+      }
+    }, 120_000);
+
+    return () => clearInterval(interval);
+  }, [isNotifOpen]);
 
   const displayName = userName || tCommon('defaultUser');
   const displayInitials = userInitials || displayName.slice(0, 2).toUpperCase();
@@ -189,38 +259,85 @@ export const TopBar: React.FC<TopBarProps> = ({
 
           {isNotifOpen && (
             <div
-              className="absolute end-0 top-full mt-2 w-80 sm:w-96 rounded-lg border border-line bg-surface p-3 shadow-lg z-50 text-start"
+              className="absolute end-0 top-full mt-2 w-80 sm:w-96 rounded-xl border border-line bg-surface shadow-xl z-50 text-start overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
             >
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-line">
-                <span className="font-semibold text-body-sm text-fg-primary">
-                  {tCommon('notifications')}
-                </span>
+              <div className="px-4 py-3 border-b border-line flex items-center justify-between bg-surface-subtle/40">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-body-sm text-fg-primary">
+                    {tCommon('notifications')}
+                  </span>
+                  {unreadCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-brand/10 text-brand text-xs font-semibold tabular-nums ltr-iso">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
                 {unreadCount > 0 && (
                   <button
                     type="button"
                     onClick={handleMarkAllRead}
-                    className="text-caption text-brand hover:underline font-medium"
+                    className="text-caption text-brand hover:underline font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand rounded px-1"
                   >
                     تحديد الكل كمقروء
                   </button>
                 )}
               </div>
-              <div className="max-h-72 overflow-y-auto space-y-2">
+              <div className="max-h-80 overflow-y-auto divide-y divide-line/60">
                 {isLoadingNotifs ? (
-                  <div className="py-6 text-center text-fg-muted text-caption">جاري التحميل...</div>
+                  <div className="py-8 flex flex-col items-center justify-center text-center text-fg-muted text-caption space-y-2">
+                    <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                    <p>جاري تحميل الإشعارات...</p>
+                  </div>
                 ) : notifications.length === 0 ? (
-                  <div className="py-6 text-center text-fg-muted text-caption">لا توجد إشعارات حالياً</div>
+                  <div className="py-8 px-4 flex flex-col items-center justify-center text-center">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-2">
+                      <CheckCircle2 className="w-5 h-5" />
+                    </div>
+                    <p className="text-body-sm font-semibold text-fg-primary">لا توجد إشعارات جديدة</p>
+                    <p className="text-caption text-fg-muted mt-0.5">أنت على اطلاع تام بكافة التحديثات والفرص.</p>
+                  </div>
                 ) : (
                   notifications.map((n) => (
-                    <div
+                    <button
                       key={n.id}
-                      className={`p-2 rounded-md text-caption transition-colors ${
-                        n.isRead ? 'bg-surface text-fg-secondary' : 'bg-brand-soft/40 text-fg-primary font-medium'
+                      type="button"
+                      onClick={() => handleNotificationClick(n)}
+                      className={`w-full p-3.5 text-start transition-colors flex items-start gap-3 hover:bg-surface-subtle focus-visible:outline-none focus-visible:bg-surface-subtle ${
+                        n.isRead ? 'bg-surface opacity-80' : 'bg-brand/5'
                       }`}
                     >
-                      <div className="font-semibold text-fg-primary mb-0.5">{n.title}</div>
-                      <div className="text-fg-secondary text-caption leading-relaxed">{n.message}</div>
-                    </div>
+                      <div className="shrink-0 mt-1.5">
+                        {n.isRead ? (
+                          <span className="w-2 h-2 rounded-full bg-transparent block" />
+                        ) : (
+                          <span className="w-2 h-2 rounded-full bg-brand block shadow-xs" />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span
+                            className={`text-body-sm line-clamp-1 ${
+                              n.isRead ? 'text-fg-secondary font-medium' : 'text-fg-primary font-semibold'
+                            }`}
+                          >
+                            {n.title}
+                          </span>
+                          <span className="text-caption text-fg-muted shrink-0 tabular-nums ltr-iso">
+                            {formatRelativeTimeAr(n.createdAt)}
+                          </span>
+                        </div>
+                        <p className="text-caption text-fg-secondary leading-relaxed line-clamp-2">
+                          {n.message}
+                        </p>
+                        {n.link && (
+                          <div className="mt-1.5 flex items-center gap-1 text-xs text-brand font-medium">
+                            <span>عرض التفاصيل</span>
+                            <ExternalLink className="w-3 h-3 rtl:-scale-x-100" />
+                          </div>
+                        )}
+                      </div>
+                    </button>
                   ))
                 )}
               </div>
