@@ -4,24 +4,25 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { PublicNavbar, PublicFooter } from '@/components/domain/PublicNavbar';
 import { AlertTriangle, Mail } from 'lucide-react';
 
+import { SITE_URL } from '@/lib/site-config';
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('privacy');
   const locale = await getLocale();
-  const baseUrl = 'https://leads4dev.com';
 
   const title = t('metaTitle');
   const description = t('metaDescription');
-  const canonicalUrl = `${baseUrl}/privacy${locale === 'en' ? '?locale=en' : ''}`;
+  const canonicalUrl = `${SITE_URL}/privacy${locale === 'en' ? '?locale=en' : ''}`;
 
   return {
-    title: `${title} | Leads4dev`,
+    title,
     description,
     alternates: {
       canonical: canonicalUrl,
       languages: {
-        'ar-EG': `${baseUrl}/privacy`,
-        'en': `${baseUrl}/privacy?locale=en`,
-        'x-default': `${baseUrl}/privacy`,
+        'ar-EG': `${SITE_URL}/privacy`,
+        'en': `${SITE_URL}/privacy?locale=en`,
+        'x-default': `${SITE_URL}/privacy`,
       },
     },
     openGraph: {
@@ -136,6 +137,39 @@ export default async function PrivacyPage() {
                   <Mail className="h-4 w-4" />
                   <span className="ltr-iso">privacy@leads4dev.com</span>
                 </a>
+              </div>
+            </section>
+
+            {/* Section 5: User & Subscriber Data Protection */}
+            <section className="rounded-xl border border-line bg-surface p-6 sm:p-8 flex flex-col gap-5 shadow-xs">
+              <h2 className="text-h2 font-bold text-fg-primary">
+                {t('section5Title')}
+              </h2>
+              <div className="flex flex-col gap-4 text-body text-fg-secondary leading-relaxed">
+                <div>
+                  <h3 className="font-bold text-fg-primary mb-1">
+                    {t('section5AccountTitle')}
+                  </h3>
+                  <p>{t('section5AccountText')}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-fg-primary mb-1">
+                    {t('section5PaymentTitle')}
+                  </h3>
+                  <p>{t('section5PaymentText')}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-fg-primary mb-1">
+                    {t('section5CookiesTitle')}
+                  </h3>
+                  <p>{t('section5CookiesText')}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-fg-primary mb-1">
+                    {t('section5RetentionTitle')}
+                  </h3>
+                  <p>{t('section5RetentionText')}</p>
+                </div>
               </div>
             </section>
           </div>

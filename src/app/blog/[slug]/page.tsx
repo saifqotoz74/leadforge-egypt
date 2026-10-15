@@ -8,6 +8,8 @@ import { ArticleContent } from '@/components/domain/ArticleContent';
 import { BLOG_POSTS } from '@/data/blog-posts';
 import { ArrowLeft, Clock, Calendar, User, CheckCircle2 } from 'lucide-react';
 
+import { SITE_URL } from '@/lib/site-config';
+
 interface BlogPostPageProps {
   params: {
     slug: string;
@@ -26,21 +28,20 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
   const locale = await getLocale();
   const isAr = locale !== 'en';
-  const baseUrl = 'https://leads4dev.com';
 
   const title = isAr ? post.titleAr : post.titleEn;
   const description = isAr ? post.excerptAr : post.excerptEn;
-  const canonicalUrl = `${baseUrl}/blog/${post.slug}${locale === 'en' ? '?locale=en' : ''}`;
+  const canonicalUrl = `${SITE_URL}/blog/${post.slug}${locale === 'en' ? '?locale=en' : ''}`;
 
   return {
-    title: `${title} | Leads4dev`,
+    title,
     description,
     alternates: {
       canonical: canonicalUrl,
       languages: {
-        'ar-EG': `${baseUrl}/blog/${post.slug}`,
-        'en': `${baseUrl}/blog/${post.slug}?locale=en`,
-        'x-default': `${baseUrl}/blog/${post.slug}`,
+        'ar-EG': `${SITE_URL}/blog/${post.slug}`,
+        'en': `${SITE_URL}/blog/${post.slug}?locale=en`,
+        'x-default': `${SITE_URL}/blog/${post.slug}`,
       },
     },
     openGraph: {
@@ -52,6 +53,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       alternateLocale: [locale === 'en' ? 'ar_EG' : 'en_US'],
       type: 'article',
       publishedTime: post.publishedAt,
+      modifiedTime: post.publishedAt,
       authors: [post.author.name],
     },
     twitter: {
@@ -74,8 +76,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const title = isAr ? post.titleAr : post.titleEn;
   const content = isAr ? post.contentAr : post.contentEn;
-  const baseUrl = 'https://leads4dev.com';
-  const canonicalUrl = `${baseUrl}/blog/${post.slug}${locale === 'en' ? '?locale=en' : ''}`;
+  const category = isAr ? post.categoryAr : post.categoryEn;
+  const canonicalUrl = `${SITE_URL}/blog/${post.slug}${locale === 'en' ? '?locale=en' : ''}`;
 
   const formattedDate = new Date(post.publishedAt).toLocaleDateString(
     isAr ? 'ar-EG-u-nu-latn' : 'en-US',
@@ -84,10 +86,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
+    '@type': 'Article',
     headline: title,
     description: isAr ? post.excerptAr : post.excerptEn,
     datePublished: post.publishedAt,
+    dateModified: post.publishedAt,
     author: {
       '@type': 'Person',
       name: post.author.name,
@@ -96,8 +99,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     publisher: {
       '@type': 'Organization',
       name: 'Leads4dev',
-      url: baseUrl,
+      url: SITE_URL,
+      logo: `${SITE_URL}/logo.png`,
     },
+    image: `${SITE_URL}/logo.png`,
     inLanguage: isAr ? 'ar-EG' : 'en',
     mainEntityOfPage: canonicalUrl,
   };
@@ -127,7 +132,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <header className="pb-8 border-b border-line flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center px-3 py-1 rounded text-caption font-semibold bg-brand-soft text-fg-brand">
-                {post.category}
+                {category}
               </span>
             </div>
 
@@ -174,8 +179,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </div>
               <p className="text-body-sm text-fg-secondary">
                 {isAr
-                  ? 'سجل مجاناً واستكشف أنشطة تجارية بميزانيات موثقة واحتياج فعلي لمواقع إلكترونية.'
-                  : 'Register free to discover high-intent businesses ready for professional web solutions.'}
+                  ? 'سجل مجاناً واستكشف أنشطة تجارية بميزانيات تقديرية واحتياج فعلي لمواقع إلكترونية.'
+                  : 'Register free to discover high-intent businesses with estimated budgets ready for professional web solutions.'}
               </p>
             </div>
 

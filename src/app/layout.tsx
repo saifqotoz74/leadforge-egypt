@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import { i18nFormats } from '@/i18n/request';
 import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker';
+import { SITE_URL } from '@/lib/site-config';
 import './globals.css';
 
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
@@ -23,9 +24,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 export async function generateMetadata(): Promise<Metadata> {
   const tCommon = await getTranslations('common');
   const locale = await getLocale();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://leads4dev.com';
-  const siteUrl = process.env.NODE_ENV === 'production' ? 'https://leads4dev.com' : appUrl;
-  const metadataBase = new URL(siteUrl);
+  const metadataBase = new URL(SITE_URL);
 
   const title = tCommon('metaTitle');
   const description = tCommon('metaDescription');
@@ -41,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: 'https://leads4dev.com',
+      url: SITE_URL,
       siteName: 'Leads4dev',
       locale: locale === 'en' ? 'en_US' : 'ar_EG',
       alternateLocale: [locale === 'en' ? 'ar_EG' : 'en_US'],
@@ -67,8 +66,8 @@ export default async function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'Leads4dev',
-    url: 'https://leads4dev.com',
-    logo: 'https://leads4dev.com/icon.svg',
+    url: SITE_URL,
+    logo: `${SITE_URL}/icon.svg`,
     description:
       locale === 'ar'
         ? 'منصة مصرية لتقييم ومطابقة فرص العملاء لمطوري ومصممي الويب بقواعد ثابتة وشفافة.'
@@ -88,13 +87,13 @@ export default async function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Leads4dev',
-    url: 'https://leads4dev.com',
+    url: SITE_URL,
     inLanguage: ['ar-EG', 'en'],
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://leads4dev.com/leads?search={search_term_string}',
+        urlTemplate: `${SITE_URL}/leads?search={search_term_string}`,
       },
       'query-input': 'required name=search_term_string',
     },

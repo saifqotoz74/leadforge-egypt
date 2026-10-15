@@ -34,6 +34,10 @@ function maskBusinessName(name: string): string {
   return parts[0] + ' ' + '••••••••';
 }
 
+import { SITE_URL } from '@/lib/site-config';
+import { isProgrammaticPageEligible } from '@/lib/seo-config';
+import { getProgrammaticPageAggregates, generateUniqueIntro } from '@/lib/aggregates';
+
 export async function generateMetadata({ params }: ProgrammaticPageProps): Promise<Metadata> {
   const cityParam = params.city || params.id || '';
   const { city, category } = resolveProgrammaticParams(cityParam, params.category);
@@ -43,7 +47,6 @@ export async function generateMetadata({ params }: ProgrammaticPageProps): Promi
 
   const locale = await getLocale();
   const isAr = locale !== 'en';
-  const baseUrl = 'https://leads4dev.com';
 
   const leadCount = await prisma.lead.count({
     where: {
@@ -54,40 +57,41 @@ export async function generateMetadata({ params }: ProgrammaticPageProps): Promi
     },
   });
 
-  // Threshold >= 5 to prevent thin content indexing
-  if (leadCount < 5) {
-    return {
-      title: `${category.nameAr} - ${city.nameAr} | Leads4dev`,
-      robots: { index: false, follow: false },
-    };
-  }
+  const isEligible = isProgrammaticPageEligible({
+    leadCount,
+    categorySlug: category.slug,
+  });
 
   const cityName = isAr ? city.nameAr : city.nameEn;
   const catName = isAr ? category.nameAr : category.nameEn;
 
   const title = isAr
-    ? `فرص عملاء ${catName} في ${cityName} | Leads4dev`
-    : `${catName} Leads in ${cityName} | Leads4dev`;
+    ? `فرص عملاء ${catName} في ${cityName}`
+    : `${catName} Leads in ${cityName}`;
 
   const description = isAr
     ? `استكشف ${leadCount} فرصة نشاط تجاري مؤهل في قطاع ${catName} بمدينة ${cityName} مع تقييم هندسي للاحتياج لموقع إلكتروني وحلول رقمية.`
     : `Discover ${leadCount} qualified business leads in ${catName} across ${cityName} with deterministic scoring for web development opportunities.`;
 
-  const canonicalUrl = `${baseUrl}/leads/${city.slug}/${category.slug}${locale === 'en' ? '?locale=en' : ''}`;
+  const canonicalUrl = `${SITE_URL}/leads/${city.slug}/${category.slug}${locale === 'en' ? '?locale=en' : ''}`;
 
   return {
     title,
     description,
+    robots: {
+      index: isEligible,
+      follow: isEligible,
+    },
     alternates: {
       canonical: canonicalUrl,
       languages: {
-        'ar-EG': `${baseUrl}/leads/${city.slug}/${category.slug}`,
-        'en': `${baseUrl}/leads/${city.slug}/${category.slug}?locale=en`,
-        'x-default': `${baseUrl}/leads/${city.slug}/${category.slug}`,
+        'ar-EG': `${SITE_URL}/leads/${city.slug}/${category.slug}`,
+        'en': `${SITE_URL}/leads/${city.slug}/${category.slug}?locale=en`,
+        'x-default': `${SITE_URL}/leads/${city.slug}/${category.slug}`,
       },
     },
     openGraph: {
-      title,
+      title: `${title} | Leads4dev`,
       description,
       url: canonicalUrl,
       siteName: 'Leads4dev',
@@ -97,7 +101,7 @@ export async function generateMetadata({ params }: ProgrammaticPageProps): Promi
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: `${title} | Leads4dev`,
       description,
     },
   };
@@ -113,6 +117,15 @@ export default async function ProgrammaticLeadsPage({ params }: ProgrammaticPage
   const locale = await getLocale();
   const isAr = locale !== 'en';
 
+  const totalCount = await prisma.lead.count({
+    where: {
+      isCanonical: true,
+      status: 'AVAILABLE',
+      city: { in: city.dbValues },
+      category: { in: category.dbValues },
+    },
+  });
+
   const leads = await prisma.lead.findMany({
     where: {
       isCanonical: true,
@@ -125,33 +138,61 @@ export default async function ProgrammaticLeadsPage({ params }: ProgrammaticPage
   });
 
   // Enforce threshold: 404 if fewer than 5 leads to prevent thin SEO content
-  if (leads.length < 5) {
+  if (totalCount < 5) {
     notFound();
   }
 
   const cityName = isAr ? city.nameAr : city.nameEn;
   const catName = isAr ? category.nameAr : category.nameEn;
-  const baseUrl = 'https://leads4dev.com';
-  const canonicalUrl = `${baseUrl}/leads/${city.slug}/${category.slug}${locale === 'en' ? '?locale=en' : ''}`;
+  const canonicalUrl = `${SITE_URL}/leads/${city.slug}/${category.slug}${locale === 'en' ? '?locale=en' : ''}`;
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    name: isAr ? `فرص ${catName} في ${cityName}` : `${catName} Leads in ${cityName}`,
-    description: isAr
-      ? `قائمة بالفرص والأنشطة التجارية في قطاع ${catName} بمدينة ${cityName}`
-      : `Directory of qualified web development leads in ${catName}, ${cityName}`,
-    url: canonicalUrl,
-    mainEntity: {
-      '@type': 'ItemList',
-      numberOfItems: leads.length,
-      itemListElement: leads.map((l, index) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        name: maskBusinessName(l.businessName),
-      })),
+  const aggregates = await getProgrammaticPageAggregates(city.dbValues, category.dbValues);
+  const uniqueIntro = generateUniqueIntro({ cityName, catName, aggregates, isAr });
+
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: isAr ? `فرص ${catName} في ${cityName}` : `${catName} Leads in ${cityName}`,
+      description: isAr
+        ? `قائمة بالفرص والأنشطة التجارية في قطاع ${catName} بمدينة ${cityName}`
+        : `Directory of qualified web development leads in ${catName}, ${cityName}`,
+      url: canonicalUrl,
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: leads.length,
+        itemListElement: leads.map((l, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: maskBusinessName(l.businessName),
+        })),
+      },
     },
-  };
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: isAr ? 'الرئيسية' : 'Home',
+          item: SITE_URL,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: isAr ? 'دليل الفرص' : 'Leads Directory',
+          item: `${SITE_URL}/leads`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: isAr ? `فرص ${catName} في ${cityName}` : `${catName} Leads in ${cityName}`,
+          item: canonicalUrl,
+        },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-page flex flex-col">
@@ -164,7 +205,7 @@ export default async function ProgrammaticLeadsPage({ params }: ProgrammaticPage
       <main className="flex-1 py-12">
         <div className="mx-auto max-w-public px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
-          <nav className="mb-6 flex items-center gap-2 text-caption text-fg-muted">
+          <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-caption text-fg-muted">
             <Link href="/" className="hover:text-fg-primary">
               {isAr ? 'الرئيسية' : 'Home'}
             </Link>
@@ -200,32 +241,35 @@ export default async function ProgrammaticLeadsPage({ params }: ProgrammaticPage
                 {isAr ? `فرص ${catName} في ${cityName}` : `${catName} Leads in ${cityName}`}
               </h1>
 
-              <p className="text-body-lg text-fg-secondary max-w-2xl">
-                {isAr
-                  ? `استكشف الأنشطة التجارية المسجلة في ${cityName} والمؤهلة هندسياً لتطوير مواقع وتطبيقات ويب.`
-                  : `Browse qualified businesses in ${cityName} vetted for website development and digital solutions.`}
+              <p className="text-body-lg text-fg-secondary max-w-3xl leading-relaxed">
+                {uniqueIntro}
               </p>
             </div>
 
-            <div className="p-4 rounded-xl border border-line bg-surface shadow-xs flex flex-col items-center justify-center shrink-0 min-w-40">
+            <div className="p-4 rounded-xl border border-line bg-surface shadow-xs flex flex-col items-center justify-center shrink-0 min-w-40 text-center">
               <span className="text-caption text-fg-muted">
                 {isAr ? 'إجمالي الفرص المؤهلة' : 'Verified Leads'}
               </span>
               <span className="ltr-iso text-display font-bold text-fg-brand tabular-nums">
-                {leads.length}
+                {totalCount}
               </span>
               <span className="text-caption text-fg-secondary">
-                {isAr ? 'فرصة نشطة' : 'Active opportunities'}
+                {isAr ? `عرض ${leads.length} من ${totalCount}` : `Showing ${leads.length} of ${totalCount}`}
               </span>
             </div>
           </header>
 
           {/* Masked Leads Grid */}
           <section className="py-10">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-h3 font-semibold text-fg-primary">
-                {isAr ? 'الفرص المتاحة للمطورين' : 'Available Leads for Developers'}
-              </h2>
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-baseline gap-3">
+                <h2 className="text-h3 font-semibold text-fg-primary">
+                  {isAr ? 'الفرص المتاحة للمطورين' : 'Available Leads for Developers'}
+                </h2>
+                <span className="text-caption text-fg-secondary font-medium">
+                  {isAr ? `(عرض ${leads.length} من ${totalCount})` : `(Showing ${leads.length} of ${totalCount})`}
+                </span>
+              </div>
               <span className="text-caption text-fg-muted">
                 {isAr
                   ? 'يتم إخفاء بيانات التواصل والاسم الكامل لحماية خصوصية الأنشطة'
@@ -311,7 +355,7 @@ export default async function ProgrammaticLeadsPage({ params }: ProgrammaticPage
                         )}
 
                         <div className="flex items-center justify-between">
-                          <span className="text-fg-muted">{isAr ? 'الميزانية المتوقعة:' : 'Est. Budget:'}</span>
+                          <span className="text-fg-muted">{isAr ? 'الميزانية التقديرية:' : 'Est. Budget:'}</span>
                           <span className="ltr-iso font-semibold text-fg-primary tabular-nums">
                             {lead.estimatedBudget.toLocaleString('en-US')} EGP
                           </span>
@@ -336,6 +380,78 @@ export default async function ProgrammaticLeadsPage({ params }: ProgrammaticPage
                   </div>
                 );
               })}
+            </div>
+          </section>
+
+          {/* Internal Cross-Linking: Related Sectors, Pricing, & Guides */}
+          <section className="mt-12 pt-8 border-t border-line">
+            <h3 className="text-h3 font-semibold text-fg-primary mb-6">
+              {isAr ? 'أدلة التطوير والقطاعات ذات الصلة' : 'Guides & Related Sectors'}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-5 rounded-lg border border-line bg-surface flex flex-col gap-2.5">
+                <span className="text-caption font-semibold text-fg-brand">
+                  {isAr ? 'أدلة تطوير الأعمال' : 'Business Guides'}
+                </span>
+                <ul className="flex flex-col gap-2 text-body-sm text-fg-secondary">
+                  <li>
+                    <Link href={isAr ? '/blog/finding-web-clients-egypt' : '/blog/finding-web-clients-egypt?locale=en'} className="hover:text-fg-primary hover:underline">
+                      {isAr ? 'دليل العثور على عملاء المواقع في مصر' : 'Finding Web Clients in Egypt'}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href={isAr ? '/blog/pricing-websites-egypt' : '/blog/pricing-websites-egypt?locale=en'} className="hover:text-fg-primary hover:underline">
+                      {isAr ? 'دليل تسعير المواقع الإلكترونية 2026' : 'Website Pricing Guide 2026'}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href={isAr ? '/blog/cold-outreach-egypt' : '/blog/cold-outreach-egypt?locale=en'} className="hover:text-fg-primary hover:underline">
+                      {isAr ? 'استراتيجيات التواصل عبر واتساب' : 'WhatsApp Outreach Strategies'}
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="p-5 rounded-lg border border-line bg-surface flex flex-col gap-2.5">
+                <span className="text-caption font-semibold text-fg-brand">
+                  {isAr ? 'قطاعات تجارية مؤهلة' : 'Verified Categories'}
+                </span>
+                <ul className="flex flex-col gap-2 text-body-sm text-fg-secondary">
+                  <li>
+                    <Link href={isAr ? '/leads/cairo/dental' : '/leads/cairo/dental?locale=en'} className="hover:text-fg-primary hover:underline">
+                      {isAr ? 'عيادات الأسنان في القاهرة' : 'Dental Clinics in Cairo'}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href={isAr ? '/leads/cairo/medical' : '/leads/cairo/medical?locale=en'} className="hover:text-fg-primary hover:underline">
+                      {isAr ? 'المراكز الطبية في القاهرة' : 'Medical Centers in Cairo'}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href={isAr ? '/leads/giza/medical' : '/leads/giza/medical?locale=en'} className="hover:text-fg-primary hover:underline">
+                      {isAr ? 'المراكز الطبية في الجيزة' : 'Medical Centers in Giza'}
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="p-5 rounded-lg border border-line bg-surface flex flex-col gap-2.5">
+                <span className="text-caption font-semibold text-fg-brand">
+                  {isAr ? 'نظام النقاط والباقات' : 'Credit Packages'}
+                </span>
+                <p className="text-caption text-fg-secondary leading-relaxed">
+                  {isAr
+                    ? 'اختر باقة شحن النقاط الأنسب لحجم أعمالك مع ضمان استرداد 100% لأي رقم غير صحيح.'
+                    : 'Choose the optimal points package for your agency with a full refund guarantee on invalid data.'}
+                </p>
+                <Link
+                  href={isAr ? '/pricing' : '/pricing?locale=en'}
+                  className="mt-auto inline-flex items-center gap-1 text-body-sm font-semibold text-fg-brand hover:underline"
+                >
+                  <span>{isAr ? 'استعراض خطط الأسعار' : 'View Pricing Plans'}</span>
+                  <ArrowRight className="w-3.5 h-3.5 rtl:-scale-x-100" />
+                </Link>
+              </div>
             </div>
           </section>
 

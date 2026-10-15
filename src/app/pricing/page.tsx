@@ -4,14 +4,15 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { getSessionFromRequest } from '@/lib/auth';
 import { PricingClient } from './PricingClient';
 
+import { SITE_URL } from '@/lib/site-config';
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('pricing');
   const locale = await getLocale();
-  const baseUrl = 'https://leads4dev.com';
 
   const title = t('metaTitle');
   const description = t('metaDescription');
-  const canonicalUrl = `${baseUrl}/pricing${locale === 'en' ? '?locale=en' : ''}`;
+  const canonicalUrl = `${SITE_URL}/pricing${locale === 'en' ? '?locale=en' : ''}`;
 
   return {
     title,
@@ -19,9 +20,9 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: canonicalUrl,
       languages: {
-        'ar-EG': `${baseUrl}/pricing`,
-        'en': `${baseUrl}/pricing?locale=en`,
-        'x-default': `${baseUrl}/pricing`,
+        'ar-EG': `${SITE_URL}/pricing`,
+        'en': `${SITE_URL}/pricing?locale=en`,
+        'x-default': `${SITE_URL}/pricing`,
       },
     },
     openGraph: {

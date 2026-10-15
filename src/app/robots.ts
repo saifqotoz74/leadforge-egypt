@@ -1,10 +1,7 @@
 import type { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/site-config';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = (process.env.NODE_ENV === 'production'
-    ? 'https://leads4dev.com'
-    : (process.env.NEXT_PUBLIC_APP_URL || 'https://leads4dev.com')).replace(/\/$/, '');
-
   return {
     rules: [
       {
@@ -37,7 +34,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: 'leads4dev.com',
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

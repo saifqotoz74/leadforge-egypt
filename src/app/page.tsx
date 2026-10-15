@@ -4,26 +4,29 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import LandingClient from './LandingClient';
 import { getCachedPlatformStats } from '@/lib/stats';
 
+import { SITE_URL } from '@/lib/site-config';
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('landing');
   const locale = await getLocale();
-  const baseUrl = 'https://leads4dev.com';
 
   const title = t('metaTitle');
   const description = t('metaDescription');
   const pageTitle = `${title} | Leads4dev`;
-  const canonicalUrl = locale === 'en' ? `${baseUrl}/?locale=en` : baseUrl;
+  const canonicalUrl = locale === 'en' ? `${SITE_URL}/?locale=en` : SITE_URL;
 
   return {
     metadataBase: null,
-    title: pageTitle,
+    title: {
+      absolute: pageTitle,
+    },
     description,
     alternates: {
       canonical: canonicalUrl,
       languages: {
-        'ar-EG': baseUrl,
-        'en': `${baseUrl}/?locale=en`,
-        'x-default': baseUrl,
+        'ar-EG': SITE_URL,
+        'en': `${SITE_URL}/?locale=en`,
+        'x-default': SITE_URL,
       },
     },
     openGraph: {
@@ -65,15 +68,15 @@ export default async function HomePage() {
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: 'Leads4dev',
-      url: 'https://leads4dev.com',
-      logo: 'https://leads4dev.com/logo.png',
+      url: SITE_URL,
+      logo: `${SITE_URL}/logo.png`,
       description: t('metaDescription'),
     },
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: 'Leads4dev',
-      url: 'https://leads4dev.com',
+      url: SITE_URL,
       inLanguage: locale === 'en' ? 'en' : 'ar',
     },
     {

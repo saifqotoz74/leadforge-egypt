@@ -137,7 +137,7 @@ export async function GET(
       <div><strong>رقم الهاتف:</strong> <span dir="ltr">${reportData.phone || 'غير متوفر (زيارة ميدانية)'}</span></div>
       <div><strong>البريد الإلكتروني:</strong> <span dir="ltr">${reportData.email || 'غير متوفر'}</span></div>
       <div><strong>الموقع الإلكتروني:</strong> <span dir="ltr">${reportData.website || 'لا يوجد موقع (حاجة مرتفعة)'}</span></div>
-      <div><strong>الميزانية المتوقعة:</strong> <span dir="ltr">${reportData.estimatedBudget} ج.م</span></div>
+      <div><strong>الميزانية التقديرية:</strong> <span dir="ltr">${reportData.estimatedBudget} ج.م</span></div>
     </div>
   </div>
 

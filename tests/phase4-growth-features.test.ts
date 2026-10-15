@@ -35,10 +35,10 @@ describe('Phase 4: Growth, Differentiation & Content Infrastructure', () => {
       expect(feed).toContain('<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">');
       expect(feed).toContain('<channel>');
       expect(feed).toContain('<title>Leads4dev Developer Blog</title>');
-      expect(feed).toContain('<link>https://leads4dev.com/blog</link>');
+      expect(feed).toContain('<link>https://www.leads4dev.com/blog</link>');
 
       BLOG_POSTS.forEach((post) => {
-        expect(feed).toContain(`<link>https://leads4dev.com/blog/${post.slug}</link>`);
+        expect(feed).toContain(`<link>https://www.leads4dev.com/blog/${post.slug}</link>`);
         expect(feed).toContain(`<![CDATA[${post.titleAr}]]>`);
       });
     });

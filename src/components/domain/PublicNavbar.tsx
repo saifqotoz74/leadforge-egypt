@@ -95,6 +95,9 @@ export function PublicFooter() {
           <Link href="/privacy" className="hover:text-brand transition-colors">
             {tNav('privacy')}
           </Link>
+          <Link href="/terms" className="hover:text-brand transition-colors">
+            {tNav('terms')}
+          </Link>
           <Link href="/login" className="hover:text-brand transition-colors">
             {tNav('login')}
           </Link>
@@ -103,7 +106,6 @@ export function PublicFooter() {
 
         <div className="text-caption text-fg-muted text-center md:text-end">
           <p><span dir="ltr" className="ltr-iso inline-block">© {new Date().getFullYear()} Leads4dev.</span></p>
-          <p className="mt-0.5 text-fg-muted">{tCommon('deterministicNotice')}</p>
         </div>
       </div>
     </footer>

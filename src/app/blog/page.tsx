@@ -6,24 +6,25 @@ import { PublicNavbar, PublicFooter } from '@/components/domain/PublicNavbar';
 import { BLOG_POSTS } from '@/data/blog-posts';
 import { Clock, Calendar, ArrowRight, BookOpen } from 'lucide-react';
 
+import { SITE_URL } from '@/lib/site-config';
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('blog');
   const locale = await getLocale();
-  const baseUrl = 'https://leads4dev.com';
 
   const title = t('metaTitle');
   const description = t('metaDescription');
-  const canonicalUrl = `${baseUrl}/blog${locale === 'en' ? '?locale=en' : ''}`;
+  const canonicalUrl = `${SITE_URL}/blog${locale === 'en' ? '?locale=en' : ''}`;
 
   return {
-    title: `${title} | Leads4dev`,
+    title,
     description,
     alternates: {
       canonical: canonicalUrl,
       languages: {
-        'ar-EG': `${baseUrl}/blog`,
-        'en': `${baseUrl}/blog?locale=en`,
-        'x-default': `${baseUrl}/blog`,
+        'ar-EG': `${SITE_URL}/blog`,
+        'en': `${SITE_URL}/blog?locale=en`,
+        'x-default': `${SITE_URL}/blog`,
       },
     },
     openGraph: {
@@ -73,6 +74,7 @@ export default async function BlogIndexPage() {
             {BLOG_POSTS.map((post) => {
               const title = isAr ? post.titleAr : post.titleEn;
               const excerpt = isAr ? post.excerptAr : post.excerptEn;
+              const category = isAr ? post.categoryAr : post.categoryEn;
               const postUrl = isAr ? `/blog/${post.slug}` : `/blog/${post.slug}?locale=en`;
               const formattedDate = new Date(post.publishedAt).toLocaleDateString(
                 isAr ? 'ar-EG-u-nu-latn' : 'en-US',
@@ -87,7 +89,7 @@ export default async function BlogIndexPage() {
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded text-caption font-medium bg-brand-soft text-fg-brand">
-                        {post.category}
+                        {category}
                       </span>
                       <div className="flex items-center gap-1.5 text-caption text-fg-muted">
                         <Clock className="w-3.5 h-3.5 text-fg-muted" />

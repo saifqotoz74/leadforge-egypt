@@ -14,10 +14,17 @@ export interface BlogPost {
   publishedAt: string;
   readingTimeMin: number;
   category: string;
+  categoryAr: string;
+  categoryEn: string;
   author: {
     name: string;
     role: string;
   };
+}
+
+export function calculateReadingTime(text: string): number {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 180));
 }
 
 export const BLOG_POSTS: BlogPost[] = [
@@ -28,8 +35,10 @@ export const BLOG_POSTS: BlogPost[] = [
     excerptAr: 'دليل عملي لاستكشاف وفحص الأنشطة التجارية في مصر وتحديد العملاء الذين يمتلكون ميزانية حقيقية واحتياجاً فعلياً لموقع إلكتروني.',
     excerptEn: 'A practical guide for discovering and qualifying Egyptian business leads with real budgets and verified website needs.',
     publishedAt: '2026-10-10T10:00:00.000Z',
-    readingTimeMin: 6,
+    readingTimeMin: 2,
     category: 'Business Development',
+    categoryAr: 'تطوير الأعمال',
+    categoryEn: 'Business Development',
     author: {
       name: 'فريق هندسة Leads4dev',
       role: 'استشارات تطوير الأعمال',
@@ -39,7 +48,7 @@ export const BLOG_POSTS: BlogPost[] = [
 
 يعاني معظم مطوري المواقع والوكالات البرمجية في مصر من مشكلة متكررة: شراء أو جمع أرقام هواتف عشوائية، ثم قضاء أيام كاملة في إجراء اتصالات باردة مع أنشطة إما مغلقة، أو أرقامها معطلة، أو تمتلك مواقع حديثة بالفعل ولا تحتاج إلى أي تطوير.
 
-النتيجة الحتمية هي هدر الوقت، الإحباط، ونسبة تحويل لا تتجاوز 1%. الحل ليس في الاتصال بأعداد أكبر، بل في **التأهيل المسبق للفرصة**.
+النتيجة الحتمية هي هدر الوقت، الإحباط، وتدني ملحوظ في معدلات التجاوب والتحويل. الحل ليس في الاتصال بأعداد أكبر، بل في **التأهيل المسبق للفرصة**.
 
 ---
 
@@ -114,8 +123,10 @@ Never sell generic "web development." Sell solutions to specific operational bot
     excerptAr: 'كيف تضع أسعاراً عادلة ومربحة لمشاريع تطوير المواقع بالجنيه المصري دون حرق الأسعار أو خسارة العملاء الجادين.',
     excerptEn: 'How to set profitable and realistic website development pricing in EGP without undercutting or losing serious clients.',
     publishedAt: '2026-10-05T12:00:00.000Z',
-    readingTimeMin: 7,
+    readingTimeMin: 3,
     category: 'Pricing & Finance',
+    categoryAr: 'التسعير والمالية',
+    categoryEn: 'Pricing & Finance',
     author: {
       name: 'فريق هندسة Leads4dev',
       role: 'استشارات تطوير الأعمال',
@@ -196,8 +207,10 @@ Never write code without confirmed upfront deposit:
     excerptAr: 'كيف تصيغ رسائل تواصل احترافية ومباشرة تجذب انتباه صاحب القرار وتفتح باب النقاش دون أن تبدو كرسائل مزعجة.',
     excerptEn: 'How to craft concise, high-converting WhatsApp outreach messages that reach business decision-makers without being spammy.',
     publishedAt: '2026-09-28T14:00:00.000Z',
-    readingTimeMin: 5,
+    readingTimeMin: 3,
     category: 'Sales & Outreach',
+    categoryAr: 'المبيعات والتواصل',
+    categoryEn: 'Sales & Outreach',
     author: {
       name: 'فريق هندسة Leads4dev',
       role: 'استشارات تطوير الأعمال',

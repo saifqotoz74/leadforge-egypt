@@ -807,6 +807,11 @@ export default function LandingPage({ stats }: LandingClientProps = {}) {
                     features={localized.features}
                     isRecommended={isRecommended}
                     recommendedReason={isRecommended ? tPricing('recommendedReason') : undefined}
+                    reassuranceText={
+                      plan.priceEgp === 0
+                        ? tPricing('freePlanNotice')
+                        : tPricing('paidPlanNotice')
+                    }
                   />
                 );
               })}

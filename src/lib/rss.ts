@@ -1,7 +1,8 @@
 import { BLOG_POSTS } from '@/data/blog-posts';
+import { SITE_URL } from '@/lib/site-config';
 
 export function generateRssFeed(): string {
-  const baseUrl = 'https://leads4dev.com';
+  const baseUrl = SITE_URL;
   const siteTitle = 'Leads4dev Developer Blog';
   const siteDescription = 'Practical guides, pricing benchmarks, and outreach strategies for Egyptian web developers.';
   const feedUrl = `${baseUrl}/feed.xml`;

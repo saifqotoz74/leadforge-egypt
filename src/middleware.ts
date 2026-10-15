@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
+  const host = request.headers.get('host') || '';
+
+  // Enforce canonical www host via 301 permanent redirect
+  if (host === 'leads4dev.com') {
+    const redirectUrl = new URL(request.url);
+    redirectUrl.host = 'www.leads4dev.com';
+    redirectUrl.protocol = 'https:';
+    return NextResponse.redirect(redirectUrl, { status: 301 });
+  }
+
   const url = request.nextUrl.clone();
 
   // Query param locale support (?locale=en or ?locale=ar)
