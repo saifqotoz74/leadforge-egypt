@@ -14,6 +14,10 @@ const CANDIDATE_PROGRAMMATIC_PAGES = [
   { city: 'giza', category: 'real-estate' },
 ];
 
+// Next.js route segment config: render dynamically on request so build doesn't fail when DB is unavailable in CI
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const contentLastMod = new Date('2026-10-15T12:00:00.000Z');
   const latestBlogPostDate = BLOG_POSTS.length > 0 ? new Date(BLOG_POSTS[0].publishedAt) : contentLastMod;
@@ -21,44 +25,53 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Filter programmatic pages dynamically against indexability rules (>= 10 canonical leads, not 'other')
   const eligibleProgrammaticEntries: MetadataRoute.Sitemap = [];
 
-  for (const page of CANDIDATE_PROGRAMMATIC_PAGES) {
-    const { city, category } = resolveProgrammaticParams(page.city, page.category);
-    if (!city || !category) continue;
+  try {
+    for (const page of CANDIDATE_PROGRAMMATIC_PAGES) {
+      const { city, category } = resolveProgrammaticParams(page.city, page.category);
+      if (!city || !category) continue;
 
-    const [leadCount, latestLead] = await Promise.all([
-      prisma.lead.count({
-        where: {
-          isCanonical: true,
-          status: 'AVAILABLE',
-          city: { in: city.dbValues },
-          category: { in: category.dbValues },
-        },
-      }),
-      prisma.lead.findFirst({
-        where: {
-          isCanonical: true,
-          status: 'AVAILABLE',
-          city: { in: city.dbValues },
-          category: { in: category.dbValues },
-        },
-        orderBy: { updatedAt: 'desc' },
-        select: { updatedAt: true },
-      }),
-    ]);
-
-    if (isProgrammaticPageEligible({ leadCount, categorySlug: category.slug })) {
-      eligibleProgrammaticEntries.push({
-        url: `${SITE_URL}/leads/${page.city}/${page.category}`,
-        lastModified: latestLead?.updatedAt || contentLastMod,
-        alternates: {
-          languages: {
-            'ar-EG': `${SITE_URL}/leads/${page.city}/${page.category}`,
-            'en': `${SITE_URL}/leads/${page.city}/${page.category}?locale=en`,
-            'x-default': `${SITE_URL}/leads/${page.city}/${page.category}`,
+      const [leadCount, latestLead] = await Promise.all([
+        prisma.lead.count({
+          where: {
+            isCanonical: true,
+            status: 'AVAILABLE',
+            city: { in: city.dbValues },
+            category: { in: category.dbValues },
           },
-        },
-      });
+        }),
+        prisma.lead.findFirst({
+          where: {
+            isCanonical: true,
+            status: 'AVAILABLE',
+            city: { in: city.dbValues },
+            category: { in: category.dbValues },
+          },
+          orderBy: { updatedAt: 'desc' },
+          select: { updatedAt: true },
+        }),
+      ]);
+
+      if (isProgrammaticPageEligible({ leadCount, categorySlug: category.slug })) {
+        eligibleProgrammaticEntries.push({
+          url: `${SITE_URL}/leads/${page.city}/${page.category}`,
+          lastModified: latestLead?.updatedAt || contentLastMod,
+          alternates: {
+            languages: {
+              'ar-EG': `${SITE_URL}/leads/${page.city}/${page.category}`,
+              'en': `${SITE_URL}/leads/${page.city}/${page.category}?locale=en`,
+              'x-default': `${SITE_URL}/leads/${page.city}/${page.category}`,
+            },
+          },
+        });
+      }
     }
+  } catch (error) {
+    // If the database is unreachable at build time (e.g. CI runner without a live DB),
+    // gracefully catch the error and return core static entries without failing the build.
+    console.warn(
+      '[sitemap] Database unreachable during programmatic sitemap generation. Falling back to static entries:',
+      error instanceof Error ? error.message : error
+    );
   }
 
   return [
