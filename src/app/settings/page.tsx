@@ -17,7 +17,7 @@ import {
 } from '@/lib/constants';
 import { localizeCity, localizeCategory, localizeService } from '@/lib/taxonomy';
 import { fmtNumber } from '@/lib/format';
-import { Save, Compass, Check } from 'lucide-react';
+import { Save, Compass, Check, Lock } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
 export default function SettingsPage() {
@@ -51,6 +51,13 @@ export default function SettingsPage() {
   const [previewing, setPreviewing] = useState(false);
   const [previewCount, setPreviewCount] = useState<number | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -162,6 +169,46 @@ export default function SettingsPage() {
       setMessage({ type: 'error', text: tSettings('networkError') });
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    setPasswordMessage(null);
+
+    if (!currentPassword) {
+      setPasswordMessage({ type: 'error', text: 'يرجى إدخال كلمة المرور الحالية.' });
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordMessage({ type: 'error', text: 'يجب ألا تقل كلمة المرور الجديدة عن 8 أحرف.' });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: 'error', text: 'كلمتا المرور غير متطابقتين.' });
+      return;
+    }
+
+    setPasswordSaving(true);
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordMessage({ type: 'error', text: data.error || 'فشل تحديث كلمة المرور.' });
+      } else {
+        setPasswordMessage({ type: 'success', text: data.message || 'تم تحديث كلمة المرور بنجاح.' });
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+    } catch {
+      setPasswordMessage({ type: 'error', text: 'تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.' });
+    } finally {
+      setPasswordSaving(false);
     }
   }
 
@@ -432,6 +479,82 @@ export default function SettingsPage() {
               </Button>
             </div>
           </form>
+
+          {/* Security & Password Card */}
+          <Card className="mt-8 border border-line bg-surface">
+            <CardHeader className="border-b border-line pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-soft text-fg-brand">
+                  <Lock className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-h3 font-bold text-fg-primary">
+                    الأمان وكلمة المرور
+                  </CardTitle>
+                  <p className="text-body-sm text-fg-secondary mt-1">
+                    تحديث كلمة المرور لحماية حسابك وتلقي إشعار أمان فوري عند التغيير.
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {passwordMessage && (
+                <div className="mb-6">
+                  <Banner
+                    variant={passwordMessage.type === 'success' ? 'info' : 'danger'}
+                  >
+                    {passwordMessage.text}
+                  </Banner>
+                </div>
+              )}
+
+              <form onSubmit={handlePasswordChange} className="space-y-5 max-w-lg">
+                <Input
+                  label="كلمة المرور الحالية"
+                  type="password"
+                  showPasswordToggle
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                />
+
+                <Input
+                  label="كلمة المرور الجديدة"
+                  type="password"
+                  showPasswordToggle
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  helperText="يجب أن تتكون من 8 أحرف على الأقل، وتحتوي على حرف واحد ورقم واحد على الأقل."
+                  placeholder="••••••••"
+                  required
+                />
+
+                <Input
+                  label="تأكيد كلمة المرور الجديدة"
+                  type="password"
+                  showPasswordToggle
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                />
+
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="md"
+                    isLoading={passwordSaving}
+                    className="gap-2"
+                  >
+                    <Lock className="h-4 w-4" />
+                    <span>تحديث كلمة المرور</span>
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       )}
     </AppShell>

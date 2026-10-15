@@ -43,7 +43,7 @@ export class ApiEmailNotificationProvider implements EmailNotificationProvider {
 
   async sendEmail(message: EmailMessage): Promise<{ delivered: boolean; messageId: string }> {
     const apiKey = process.env.EMAIL_API_KEY?.trim();
-    const fromAddress = process.env.EMAIL_FROM?.trim() || 'LeadForge Egypt <notifications@leads4dev.com>';
+    const fromAddress = process.env.EMAIL_FROM?.trim() || 'LeadForge Egypt <no-reply@leads4dev.com>';
 
     if (!apiKey) {
       throw new Error('EMAIL_API_KEY is not configured for API email provider.');

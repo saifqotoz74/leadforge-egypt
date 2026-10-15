@@ -328,3 +328,60 @@ export async function sendMatchingLeadsAlertEmailSafe(params: {
     console.error('[Email Dispatch] Failed to send matching leads alert email:', err);
   }
 }
+
+/**
+ * 5. Password Changed Security Notification Email
+ */
+export async function sendSecurityPasswordChangedEmailSafe(params: {
+  email: string;
+  name?: string | null;
+  changedAt?: Date;
+}): Promise<void> {
+  const appUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.leads4dev.com').replace(/\/$/, '');
+  const resetUrl = `${appUrl}/forgot-password`;
+  const formattedDate = (params.changedAt || new Date()).toLocaleString('ar-EG-u-nu-latn', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+
+  const recipientName = params.name?.trim() || 'مطورنا العزيز';
+
+  const html = wrapBrandedEmailLayout({
+    title: 'تنبيه أمان: تم تغيير كلمة المرور',
+    preheader: 'تم تغيير كلمة المرور لحسابك في LeadForge Egypt بنجاح',
+    contentHtml: `
+      <h2 style="margin-top:0; color:#1C1917; font-size:18px;">تنبيه أمان: تم تغيير كلمة المرور 🔒</h2>
+      <p>مرحباً ${recipientName}،</p>
+      <p>نود إخطارك بأنه تم تغيير كلمة المرور الخاصة بحسابك على منصة <strong>LeadForge Egypt</strong> بنجاح في <span class="ltr-text" style="font-weight:600;">${formattedDate}</span>.</p>
+      <div class="info-card">
+        <div class="info-row"><span class="info-label">الحساب: </span><span class="info-value ltr-text">${params.email}</span></div>
+        <div class="info-row"><span class="info-label">وقت التعديل: </span><span class="info-value ltr-text">${formattedDate}</span></div>
+        <div class="info-row"><span class="info-label">الحالة: </span><span class="info-value">تم التحديث بنجاح</span></div>
+      </div>
+      <p>إذا كنت أنت من قام بهذا الإجراء، فلا داعي لأي تصرف إضافي، حسابك الآن مؤمن بكلمة المرور الجديدة.</p>
+      <p style="color:#B91C1C; font-weight:600; margin-top:16px;">⚠️ إذا لم تكن أنت من قام بتغيير كلمة المرور، يرجى استعادة حسابك فوراً أو التواصل مع الدعم الفني لتأمين الحساب.</p>
+    `,
+    ctaText: 'استعادة وتأمين الحساب فوراً',
+    ctaUrl: resetUrl,
+    footerNote: 'هذا البريد تم إرساله تلقائياً كإشعار أمان من منصة LeadForge Egypt لحماية بياناتك.',
+  });
+
+  const text = `تنبيه أمان: تم تغيير كلمة المرور الخاصة بحسابك في LeadForge Egypt في ${formattedDate}.\nإذا لم تقم بهذا الإجراء، يرجى استعادة حسابك فوراً عبر: ${resetUrl}`;
+
+  try {
+    const res = await dispatchTransactionalEmailSafe({
+      message: {
+        to: params.email,
+        subject: '🔒 تنبيه أمان: تم تغيير كلمة المرور - LeadForge Egypt',
+        bodyText: text,
+        bodyHtml: html,
+      },
+    });
+    if (!res.delivered) {
+      console.warn('[Email Dispatch] Security password changed email not delivered:', res.errorMessage);
+    }
+  } catch (err) {
+    console.error('[Email Dispatch] Failed to send password changed email:', err);
+  }
+}
+
