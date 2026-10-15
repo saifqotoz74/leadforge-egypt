@@ -6,6 +6,7 @@ import {
   generateEgyptianPitchTemplates,
   normalizeEgyptianPhone,
   buildWhatsAppDirectUrl,
+  OutreachMode,
 } from '@/lib/outreach/whatsapp';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +31,7 @@ export async function GET(
         websiteStatus: true,
         claims: {
           where: { userId: user.id },
-          select: { id: true, status: true, pipelineStatus: true },
+          select: { id: true, status: true, pipelineStatus: true, nextFollowUpAt: true },
         },
       },
     });
@@ -56,6 +57,9 @@ export async function GET(
       select: { companyName: true },
     });
 
+    const mode = (req.nextUrl.searchParams.get('mode') as OutreachMode) || 'PERMISSION_BASED';
+    const portfolioUrl = req.nextUrl.searchParams.get('portfolioUrl') || undefined;
+
     const normPhone = normalizeEgyptianPhone(lead.phone);
     const { recommendedId, templates } = generateEgyptianPitchTemplates({
       businessName: lead.businessName,
@@ -66,6 +70,8 @@ export async function GET(
       websiteStatus: lead.websiteStatus,
       developerName: user.name,
       companyName: devProfile?.companyName || undefined,
+      portfolioUrl,
+      mode,
     });
 
     const defaultTemplate = templates.find((t) => t.id === recommendedId) || templates[0];
@@ -83,6 +89,7 @@ export async function GET(
           rawPhone: lead.phone,
           waPhone: normPhone.waPhone,
           isValidPhone: normPhone.isValidEgyptianMobile,
+          nextFollowUpAt: lead.claims[0]?.nextFollowUpAt || null,
         },
         recommendedId,
         templates,
@@ -117,6 +124,9 @@ export async function POST(
     const body = await req.json().catch(() => ({}));
     const message = typeof body.message === 'string' ? body.message.trim() : '';
     const templateId = typeof body.templateId === 'string' ? body.templateId : 'CUSTOM';
+    const mode: OutreachMode = body.mode === 'DIRECT_LINK' ? 'DIRECT_LINK' : 'PERMISSION_BASED';
+    const pitchType = body.pitchType === 'FOLLOW_UP' ? 'FOLLOW_UP' : 'INITIAL';
+    const followUpHours = Math.max(12, Math.min(Number(body.followUpHours) || 48, 168)); // 12h to 7 days, default 48h
 
     const claim = await prisma.leadClaim.findFirst({
       where: {
@@ -147,9 +157,10 @@ export async function POST(
     const normPhone = normalizeEgyptianPhone(lead.phone);
     const finalUrl = buildWhatsAppDirectUrl(normPhone.waPhone, message);
 
-    // If claim exists, log ContactAttempt and progress pipeline
+    // If claim exists, log ContactAttempt, advance pipeline, and schedule 48h follow-up
     if (claim) {
       const now = new Date();
+      const nextFollowUpAt = new Date(now.getTime() + followUpHours * 60 * 60 * 1000);
 
       // Ensure Engagement exists
       let engagement = await prisma.leadEngagement.findUnique({
@@ -176,16 +187,23 @@ export async function POST(
           claimId: claim.id,
           channel: 'WHATSAPP',
           result: 'MESSAGE_SENT',
-          note: `تواصل عبر واتساب باستخدام قالب: ${templateId}`,
+          note:
+            pitchType === 'FOLLOW_UP'
+              ? `متابعة عبر واتساب (بعد ${followUpHours} ساعة) باستخدام قالب: ${templateId}`
+              : `تواصل أولي عبر واتساب (${mode === 'PERMISSION_BASED' ? 'استئذان ذكي بدون روابط' : 'عرض مباشر مع رابط'}) باستخدام قالب: ${templateId}`,
           metadata: {
             templateId,
+            mode,
+            pitchType,
+            followUpHours,
+            nextFollowUpAt: nextFollowUpAt.toISOString(),
             messagePreview: message.substring(0, 100),
             phone: normPhone.displayFormatted,
           },
         },
       });
 
-      // Update Claim contact timestamps and advance status if at initial stage
+      // Update Claim contact timestamps, next follow-up date, and advance pipeline status
       const newPipelineStatus =
         claim.pipelineStatus === 'NEW' || claim.pipelineStatus === 'CLAIMED'
           ? 'CONTACTED'
@@ -195,6 +213,7 @@ export async function POST(
         where: { id: claim.id },
         data: {
           lastContactedAt: now,
+          nextFollowUpAt,
           pipelineStatus: newPipelineStatus,
         },
       });

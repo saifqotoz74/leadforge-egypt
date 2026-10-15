@@ -492,10 +492,10 @@ export default function MyLeadsPage() {
                               variant="secondary"
                               size="sm"
                               onClick={() => setOutreachModalLead(lead)}
-                              startIcon={<MessageCircle className="w-3.5 h-3.5 text-emerald-600" />}
+                              startIcon={<MessageCircle className="w-3.5 h-3.5 text-brand" />}
                               title="تواصل عبر واتساب"
                             >
-                              واتساب 💬
+                              تواصل عبر واتساب
                             </Button>
                           ) : (
                             <a
@@ -649,6 +649,7 @@ export default function MyLeadsPage() {
             phone={outreachModalLead.phone}
             category={outreachModalLead.category}
             city={outreachModalLead.city}
+            nextFollowUpAt={outreachModalLead.myClaim?.nextFollowUpAt}
             onContactLogged={loadMyLeads}
           />
         )}

@@ -4,6 +4,9 @@
  * Complies with LeadForge Design System:
  * - Western digits formatted in ltr-iso
  * - Explainable Egyptian Arabic business communication
+ * - Sector-specific Egyptian market pitches (Dentistry, Medical, Restaurants, Real Estate, Contracting, Retail, Auto, Law)
+ * - Anti-spam dual modes: Permission-Based (no links) vs. Direct Link (with portfolio)
+ * - 48h Follow-up cadences
  * - Clean international normalization (+20)
  */
 
@@ -66,11 +69,15 @@ export function normalizeEgyptianPhone(rawPhone?: string | null): NormalizedPhon
   };
 }
 
+export type OutreachMode = 'PERMISSION_BASED' | 'DIRECT_LINK';
+
 export interface PitchTemplate {
   id: string;
   title: string;
+  sector: string;
   description: string;
   text: string;
+  isFollowUp?: boolean;
 }
 
 export interface LeadPitchContext {
@@ -82,6 +89,8 @@ export interface LeadPitchContext {
   websiteStatus?: string | null;
   developerName?: string;
   companyName?: string;
+  portfolioUrl?: string;
+  mode?: OutreachMode;
 }
 
 export function generateEgyptianPitchTemplates(context: LeadPitchContext): {
@@ -90,91 +99,311 @@ export function generateEgyptianPitchTemplates(context: LeadPitchContext): {
 } {
   const name = context.businessName.trim();
   const city = context.city?.trim() || 'مصر';
-  const devTitle = context.companyName ? `فريق ${context.companyName}` : 'مهندس برمجيات وتطبيقات ويب';
+  const mode = context.mode || 'PERMISSION_BASED';
+  const devTitle = context.companyName
+    ? `فريق ${context.companyName}`
+    : context.developerName
+    ? `المهندس ${context.developerName}`
+    : 'مهندس برمجيات وتطبيقات ويب';
 
-  const isRestaurant = context.category === 'Restaurants' || context.category === 'مطاعم' || name.includes('مطعم') || name.includes('كافيه');
-  const isClinic = context.category === 'Clinics' || context.category === 'Medical' || context.category === 'عيادات' || name.includes('عيادة') || name.includes('دكتور');
+  const portfolioSuffix =
+    mode === 'DIRECT_LINK' && context.portfolioUrl?.trim()
+      ? `\n\nتقدر حضرتك تطلع على نماذج أعمالنا ومشاريع مماثلة من هنا:\n${context.portfolioUrl.trim()}`
+      : '';
+
+  const ctaPermission =
+    mode === 'PERMISSION_BASED'
+      ? 'لو وقت حضرتك يسمح بدقيقة، يشرفني أشارك مع حضرتك سابقة أعمالنا وتفاصيل المقترح؟'
+      : 'يسعدني جداً معرفة رأي حضرتك وتنسيق اتصال أو جلسة سريعة لمناقشة التفاصيل.';
+
+  const categoryLower = (context.category || '').toLowerCase();
+  const nameLower = name.toLowerCase();
+
+  const isDental =
+    categoryLower.includes('dent') ||
+    categoryLower.includes('أسنان') ||
+    nameLower.includes('أسنان') ||
+    nameLower.includes('dental');
+
+  const isMedical =
+    !isDental &&
+    (categoryLower.includes('clinic') ||
+      categoryLower.includes('medical') ||
+      categoryLower.includes('doctor') ||
+      categoryLower.includes('عياد') ||
+      categoryLower.includes('طب') ||
+      nameLower.includes('عيادة') ||
+      nameLower.includes('دكتور'));
+
+  const isRestaurant =
+    categoryLower.includes('rest') ||
+    categoryLower.includes('cafe') ||
+    categoryLower.includes('مطعم') ||
+    categoryLower.includes('كافيه') ||
+    nameLower.includes('مطعم') ||
+    nameLower.includes('كافيه') ||
+    nameLower.includes('burger') ||
+    nameLower.includes('pizza');
+
+  const isRealEstate =
+    categoryLower.includes('real') ||
+    categoryLower.includes('estate') ||
+    categoryLower.includes('عقار') ||
+    nameLower.includes('عقارات') ||
+    nameLower.includes('استثمار عقاري') ||
+    nameLower.includes('broker');
+
+  const isContracting =
+    categoryLower.includes('contract') ||
+    categoryLower.includes('decor') ||
+    categoryLower.includes('interior') ||
+    categoryLower.includes('مقاول') ||
+    categoryLower.includes('تشطيب') ||
+    categoryLower.includes('ديكور') ||
+    nameLower.includes('تشطيبات') ||
+    nameLower.includes('ديكور');
+
+  const isRetail =
+    categoryLower.includes('retail') ||
+    categoryLower.includes('boutique') ||
+    categoryLower.includes('store') ||
+    categoryLower.includes('محل') ||
+    categoryLower.includes('ملابس') ||
+    categoryLower.includes('تجزئة');
+
+  const isAuto =
+    categoryLower.includes('auto') ||
+    categoryLower.includes('car') ||
+    categoryLower.includes('سيارات') ||
+    nameLower.includes('موتورز') ||
+    nameLower.includes('صيانة سيارات');
+
+  const isLaw =
+    categoryLower.includes('law') ||
+    categoryLower.includes('legal') ||
+    categoryLower.includes('محام') ||
+    categoryLower.includes('استشارات') ||
+    nameLower.includes('محامي') ||
+    nameLower.includes('قانون');
+
   const hasNoWebsite = !context.website || context.websiteStatus === 'NO_WEBSITE';
 
-  // 1. New Website Proposal
+  // 1. Dental Clinics
+  const dentalText = `مساء الخير يا دكتور، بتشرف بالتواصل مع إدارة ${name}.
+
+أنا ${devTitle}، متخصص في تطوير الأنظمة والمواقع الطبية لعيادات الأسنان في ${city}.
+لاحظت تميزكم ما شاء الله، وحبينا نقترح حل رقمي مخصص لعيادات الأسنان يساعدكم في:
+• صفحة كشوفات احترافية لعرض خدمات زراعة، تقويم، وتجميل الأسنان وحالات (قبل/بعد).
+• نظام حجز مواعيد إلكتروني منظم مع تنبيهات واتساب تلقائية لتأكيد الموعد وتقليل غياب المرضى (No-Show).
+• الظهور في أول نتائج بحث جوجل لمرضى ${city} الباحثين عن دكتور أسنان.${portfolioSuffix}
+
+${ctaPermission}`;
+
+  // 2. Specialty Medical Clinics & Doctors
+  const medicalText = `مرحباً بحضرتك يا فندم، تحياتي لإدارة ومكتب الدكتور في ${name}.
+
+أنا ${devTitle}، بنساعد الأطباء والمراكز الطبية في ${city} في رقمنة حجز الكشوفات وبناء تواجد رقمي موثوق:
+• موقع طبي رسمي متوافق 100% مع الموبايل يوضح مواعيد العيادة وموقع الفروع.
+• نظام حجز أونلاين ذكي ينظم كشوفات العيادة ويستقبل بيانات المريض على واتساب العيادة مباشرة.
+• توثيق سمعة العيادة وظهورها القوي على خرائط وبحث جوجل.${portfolioSuffix}
+
+${ctaPermission}`;
+
+  // 3. Restaurants & Cafes
+  const restaurantText = `مساء الخير يا فندم، تحياتي لإدارة ${name} الكرام.
+
+أنا ${devTitle}، بنوفر حل تقني مخصص للمطاعم والكافيهات في ${city}:
+• منيو ديجيتال QR تفاعلي فائق السرعة بدون أي عمولات لتطبيقات التوصيل.
+• استلام الأوردرات بتفاصيل الأصناف والإضافات مع لوكيشن العميل تلقائياً ومباشرة على واتساب الفرع.
+• لوحة تحكم سهلة جداً لتعديل الأسعار والعروض اللحظية من الموبايل.${portfolioSuffix}
+
+${ctaPermission}`;
+
+  // 4. Real Estate & Brokers
+  const realEstateText = `أهلاً بحضرتك يا فندم، بتشرف بالتواصل مع مسؤولي المبيعات في ${name}.
+
+أنا ${devTitle}، بنبني منصات تسويق وصفحات هبوط (Landing Pages) مخصصة لشركات وبروكرز العقارات في ${city}:
+• صفحات سريعة لعرض المشروعات والوحدات (سكني، تجاري، ساحلي) مع خطط السداد وتفاصيل المطورين.
+• ربط فوري لاستقبال طلبات وليدز المشترين المهتمين مباشرة على واتساب فريق المبيعات.
+• تكامل مباشر مع الحملات الإعلانية ومحركات البحث لتعظيم معدل التحويل.${portfolioSuffix}
+
+${ctaPermission}`;
+
+  // 5. Contracting, Decor & Interior Design
+  const contractingText = `مساء الخير يا فندم، بتشرف بالتواصل مع إدارة ${name}.
+
+أنا ${devTitle}، بنساعد شركات التشطيبات والديكور في ${city} في تحويل استفسارات السوشيال ميديا لتعاقدات فعلية:
+• بورتفوليو رقمي فاخر لعرض سابقة الأعمال، صور وفيديوهات المشروعات قبل وبعد التشطيب بجودة عالية.
+• حاسبة تكلفة تشطيب مبدئية تفاعلية للعملاء تساعد في تصفية واستقبال العملاء الجادين فقط.
+• بناء ثقة ومصداقية كاملة تبرز هوية وتراخيص شركتكم.${portfolioSuffix}
+
+${ctaPermission}`;
+
+  // 6. Boutiques & Retail
+  const retailText = `أهلاً بحضرتك يا فندم، بتواصل مع القائمين على ${name}.
+
+أنا ${devTitle}، بنوفر حلولاً للمتاجر والبراندات في ${city} لتسهيل البيع وزيادة المبيعات:
+• كتالوج منتجات رقمي تفاعلي سريع يعرض المقاسات والألوان والأسعار بوضوح.
+• طلب مباشر وسريع بنقرة واحدة على واتساب المحل بدون تعقيدات سلة الشراء الطويلة.
+• تقليل الاستفسارات المتكررة حول الأسعار والمقاسات المتاحة.${portfolioSuffix}
+
+${ctaPermission}`;
+
+  // 7. Automotive Services
+  const autoText = `مساء الخير يا فندم، تحياتي لإدارة مركز ${name}.
+
+أنا ${devTitle}، متخصص في تطوير حلول الويب لمراكز وخدمات السيارات في ${city}:
+• صفحة رسمية لخدمات الفحص، الصيانة الدورية، وقطع الغيار.
+• نظام طلب وتسجيل موعد صيانة مسبق يرسل تفاصيل السيارة والمشكلة على واتساب المركز.
+• التواجد في أول نتائج خرائط جوجل وسهولة وصول أصحاب السيارات لكم في حالات الطوارئ.${portfolioSuffix}
+
+${ctaPermission}`;
+
+  // 8. Law & Consulting
+  const lawText = `مرحباً بحضرتك يا فندم، بتشرف بالتواصل مع مكتب ${name}.
+
+أنا ${devTitle}، بنساعد المكاتب القانونية والاستشارية في بناء واجهة رقمية تعكس الرصانة والاحتراف:
+• موقع رسمي يبرز مجالات التخصص، الخبرات، وسوابق الاستشارات مع الحفاظ على سرية وخصوصية العملاء.
+• نموذج حجز استشارات قانونية مسبقة ينظم مواعيد المكتب وتفاصيل الموكلين.
+• توثيق الهوية المهنية وبناء ثقة العملاء والشركات الجديدة.${portfolioSuffix}
+
+${ctaPermission}`;
+
+  // 9. General - New Official Website
   const newWebsiteText = `مساء الخير يا فندم، بتشرف بالتواصل مع إدارة ${name}.
 
-أنا ${devTitle}، لاحظت إن نشاطكم في ${city} متميز وله تواجد طيب ما شاء الله، لكن مفيش موقع إلكتروني رسمي يظهر لعملاء ${city} على بحث جوجل وخرائط جوجل.
+أنا ${devTitle}، لاحظت إن نشاطكم في ${city} متميز وله تواجد طيب ما شاء الله، لكن مفيش موقع إلكتروني رسمي يظهر لعملاء ${city} على بحث وخرائط جوجل.
 
 إحنا بنصمم مواقع رسمية سريعة ومتوافقة 100% مع الموبايل بتساعدكم في:
-• الظهور في أول نتائج بحث جوجل للعملاء الباحثين عن خدماتكم.
-• توثيق هويتكم وبناء مصداقية كاملة أمام العملاء الجدد.
-• استقبال طلبات واستفسارات العملاء مباشرة على واتساب.
+• الظهور في أول نتائج بحث جوجل للعملاء الباحثين عن خدماتكم في ${city}.
+• توثيق هويتكم وبناء مصداقية كاملة تزيد من تعاقدات العملاء الجدد.
+• استقبال طلبات واستفسارات العملاء مباشرة على واتساب النشاط.${portfolioSuffix}
 
-لو وقت حضرتك يسمح بدقيقة، يشرفني أشارك مع حضرتك سابقة أعمالنا وتفاصيل العرض المخصص لكم؟`;
+${ctaPermission}`;
 
-  // 2. Website Redesign & Modernization Proposal
+  // 10. General - Redesign & Optimization
   const redesignText = `أهلاً بحضرتك يا فندم، بتواصل مع القائمين على ${name} بخصوص موقعكم الإلكتروني.
 
-أنا ${devTitle}، وأثناء فحص سريع لموقع ${name}، لاحظت بعض النقاط التقنية التي قد تؤثر على سرعة التصفح وتجربة المستخدم من الموبايل، وهو ما قد يقلل من تحويل الزوار لعملاء فعليين.
+أنا ${devTitle}، وأثناء فحص سريع لموقع ${name}، لاحظت بعض النقاط التقنية التي قد تؤثر على سرعة التصفح وتجربة العميل من الموبايل، مما قد يقلل من تحويل الزوار لعملاء فعليين.
 
-يسرنا أن نقدم لحضرتكم تقريراً فنياً مجانياً ومقترحاً لتطوير الموقع:
+يسرنا أن نقدم لحضرتكم مقترحاً لتطوير الموقع:
 • تسريع تحميل الصفحات وتوافق تام مع كافة الهواتف الذكية.
-• تحسين تجربة المستخدم ورفع ترتيب الموقع في محركات البحث (SEO).
-• ربط مباشر بنظام حجز وتواصل فوري.
+• تحسين تجربة المستخدم ورفع ترتيب الموقع في بحث جوجل (SEO).
+• ربط مباشر بنظام حجز وتواصل فوري عبر واتساب.${portfolioSuffix}
 
-هل يناسب حضرتك ننسق اتصالاً قصيراً أو أرسل لحضرتك المقترح الفني؟`;
+${ctaPermission}`;
 
-  // 3. Online Menu & Orders (Restaurants & Retail)
-  const ecommerceText = `مساء الخير يا فندم، تحياتي لإدارة ${name} الكرام.
+  // 11. 48-Hour Polite Follow-Up Pitch
+  const followUpText = `مساء الخير يا فندم، بتمنى لحضرتك يوماً طيباً وموفقاً.
 
-أنا ${devTitle}، بنوفر حلولاً تقنية متخصصة للأنشطة التجارية والمطاعم في ${city}:
-• قائمة طعام / متجر إلكتروني تفاعلي سريع بدون عمولات لتطبيقات التوصيل.
-• نظام استلام الطلبات وحساب الفاتورة تلقائياً ومباشرة على واتساب فرعكم.
-• لوحة تحكم سهلة لإدارة المنتجات والأسعار والعروض اللحظية.
+بتواصل مع حضرتك للمتابعة بخصوص مقترح تطوير الواجهة الرقمية لنشاط ${name} اللي شاركته مع حضرتك من يومين.
 
-يسعدنا أن نرسل لحضرتك نموذجاً تجريبياً حياً (Demo) لتجربة النظام بنفسك. هل متاح لحضرتك دقيقة للاطلاع عليه؟`;
+حبيت أتأكد إذا كان وقت حضرتك يسمح حالياً بنقاش سريع، أو لو تفضل ننسق في وقت لاحق يكون أنسب لحضرتك؟
 
-  // 4. Booking & Lead Capture System (Clinics & Real Estate)
-  const bookingText = `مرحباً بحضرتك يا فندم، بتواصل مع إدارة ${name}.
-
-أنا ${devTitle}، بنساعد المؤسسات والعيادات الرائدة في ${city} في رقمنة وأتمتة استقبال العملاء:
-• موقع احترافي مجهز بنظام حجز مواعيد إلكتروني منظم.
-• إشعارات فورية عبر واتساب لتأكيد المواعيد وتذكير العملاء لتقليل التخلف عن الحضور.
-• صفحة مخصصة لعرض التخصصات وسوابق الأعمال وتقييمات العملاء.
-
-هل تحب حضرتك أشارك معك نموذجاً لحلول الحجز والمتابعة الرقمية التي نفذناها لمشاريع مماثلة؟`;
+خالص تحياتي وتقديري.`;
 
   const templates: PitchTemplate[] = [
     {
+      id: 'DENTAL_CLINIC',
+      title: 'عيادات الأسنان (حجوزات وتجميل)',
+      sector: 'طب الأسنان',
+      description: 'مخصص لأطباء وعيادات الأسنان: تنظيم الحجوزات، عرض الحالات، وتقليل التخلف عن المواعيد.',
+      text: dentalText,
+    },
+    {
+      id: 'MEDICAL_SPECIALTY',
+      title: 'العيادات والمراكز الطبية التخصصية',
+      sector: 'القطاع الطبي',
+      description: 'للأطباء والمراكز المتخصصة: توثيق الهوية الطبية، أوقات الكشوفات، والحجز الفوري.',
+      text: medicalText,
+    },
+    {
+      id: 'RESTAURANT_CAFE',
+      title: 'المطاعم والكافيهات (منيو QR بدون عمولة)',
+      sector: 'مطاعم وأغذية',
+      description: 'منيو ديجيتال واستقبال الأوردر واللوكيشن على واتساب الفرع مباشرة لتوفير عمولات التطبيقات.',
+      text: restaurantText,
+    },
+    {
+      id: 'REAL_ESTATE',
+      title: 'العقارات والبروكرز (ليدز المشروعات)',
+      sector: 'التطوير العقاري',
+      description: 'صفحات هبوط لمشروعات التجمع وزايد والساحل، وجلب ليدز المشترين مباشرة لواتساب المبيعات.',
+      text: realEstateText,
+    },
+    {
+      id: 'CONTRACTING_DECOR',
+      title: 'المقاولات والتشطيبات والديكور',
+      sector: 'مقاولات وديكور',
+      description: 'بورتفوليو احترافي لسابقة الأعمال قبل وبعد التشطيب مع حاسبة تكلفة تفرز العملاء الجادين.',
+      text: contractingText,
+    },
+    {
+      id: 'RETAIL_BOUTIQUE',
+      title: 'المتاجر والبوتيكات (كتالوج مبيعات)',
+      sector: 'تجزئة وتجارة',
+      description: 'عرض الكتالوج والأسعار والمقاسات مع زر شراء مباشر على واتساب بدون تعقيدات السلة.',
+      text: retailText,
+    },
+    {
+      id: 'AUTO_SERVICES',
+      title: 'مراكز صيانة وخدمات السيارات',
+      sector: 'خدمات سيارات',
+      description: 'حجز مواعيد الصيانة والفحص وتسهيل وصول العملاء من خرائط جوجل في حالات الطوارئ.',
+      text: autoText,
+    },
+    {
+      id: 'LAW_CONSULTING',
+      title: 'المحاماة والاستشارات المهنية',
+      sector: 'استشارات وقانون',
+      description: 'واجهة رصينة تبرز سوابق الخبرة والاستشارات وحجز المواعيد مع الحفاظ على السرية.',
+      text: lawText,
+    },
+    {
       id: 'NEW_WEBSITE',
-      title: 'إنشاء موقع رسمي جديد',
-      description: 'مثالي للأنشطة التي لا تمتلك موقعاً وتريد الظهور في جوجل وبناء ثقة العملاء.',
+      title: 'إنشاء موقع رسمي جديد (عام)',
+      sector: 'عام',
+      description: 'للأنشطة التي لا تمتلك موقعاً وتريد الظهور في جوجل وبناء ثقة العملاء.',
       text: newWebsiteText,
     },
     {
       id: 'REDESIGN',
-      title: 'تطوير وتسريع الموقع الحالي',
-      description: 'مثالي للأنشطة التي لديها موقع قديم أو بطيء يحتاج توافقاً مع الموبايل والـ SEO.',
+      title: 'تطوير وتسريع الموقع الحالي (عام)',
+      sector: 'عام',
+      description: 'للأنشطة التي لديها موقع قديم أو بطيء يحتاج توافقاً مع الموبايل ومحركات البحث.',
       text: redesignText,
     },
     {
-      id: 'ECOMMERCE_MENU',
-      title: 'قائمة تفاعلية وطلبات أونلاين',
-      description: 'مخصص للمطاعم والكافيهات ومحلات التجزئة لاستقبال الطلبات وتوفير العمولات.',
-      text: ecommerceText,
-    },
-    {
-      id: 'BOOKING_SYSTEM',
-      title: 'نظام حجز وإدارة مواعيد',
-      description: 'مخصص للعيادات والمراكز الطبية والمكاتب الهندسية والعقارية.',
-      text: bookingText,
+      id: 'FOLLOW_UP_48H',
+      title: 'متابعة مهذبة بعد 48 ساعة (Follow-up)',
+      sector: 'متابعة المبيعات',
+      description: 'رسالة متابعة ذكية مهذبة للتذكير بعد يومين من المحادثة الأولى دون إزعاج.',
+      text: followUpText,
+      isFollowUp: true,
     },
   ];
 
-  // Determine recommendation
+  // Determine intelligent recommendation
   let recommendedId = 'NEW_WEBSITE';
-  if (!hasNoWebsite) {
-    recommendedId = 'REDESIGN';
+
+  if (isDental) {
+    recommendedId = 'DENTAL_CLINIC';
+  } else if (isMedical) {
+    recommendedId = 'MEDICAL_SPECIALTY';
   } else if (isRestaurant) {
-    recommendedId = 'ECOMMERCE_MENU';
-  } else if (isClinic) {
-    recommendedId = 'BOOKING_SYSTEM';
+    recommendedId = 'RESTAURANT_CAFE';
+  } else if (isRealEstate) {
+    recommendedId = 'REAL_ESTATE';
+  } else if (isContracting) {
+    recommendedId = 'CONTRACTING_DECOR';
+  } else if (isRetail) {
+    recommendedId = 'RETAIL_BOUTIQUE';
+  } else if (isAuto) {
+    recommendedId = 'AUTO_SERVICES';
+  } else if (isLaw) {
+    recommendedId = 'LAW_CONSULTING';
+  } else if (!hasNoWebsite) {
+    recommendedId = 'REDESIGN';
   }
 
   return {

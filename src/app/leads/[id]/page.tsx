@@ -544,7 +544,7 @@ export default function LeadDetailPage() {
                         startIcon={<MessageCircle className="w-4 h-4" />}
                         className="w-full justify-center"
                       >
-                        بدء محادثة واتساب مع العميل 💬
+                        بدء محادثة واتساب وعرض المقترح
                       </Button>
                     </div>
                   ) : isFieldVisit ? (
@@ -1048,6 +1048,7 @@ export default function LeadDetailPage() {
             governorate={lead.governorate}
             website={lead.website}
             websiteStatus={lead.websiteStatus}
+            nextFollowUpAt={lead.myClaim?.nextFollowUpAt || null}
             onContactLogged={loadLead}
           />
         )}
