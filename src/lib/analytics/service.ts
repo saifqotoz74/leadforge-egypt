@@ -255,7 +255,12 @@ async function queryRawAnalyticsDataset() {
       orderBy: { calculatedAt: 'desc' },
     }),
     prisma.user.findMany({
-      where: { role: 'DEVELOPER' },
+      where: {
+        OR: [
+          { role: 'DEVELOPER' },
+          { claims: { some: {} } },
+        ],
+      },
       select: {
         id: true,
         name: true,
@@ -2617,6 +2622,24 @@ export async function getDeveloperAnalyticsForAdmin(
   };
 }
 
+interface DeveloperAnalyticsCacheEntry {
+  data: any;
+  expiresAt: number;
+}
+const devAnalyticsCache = new Map<string, DeveloperAnalyticsCacheEntry>();
+
+export function clearDeveloperAnalyticsCache(developerId?: string): void {
+  if (developerId) {
+    for (const key of devAnalyticsCache.keys()) {
+      if (key.startsWith(`${developerId}:`)) {
+        devAnalyticsCache.delete(key);
+      }
+    }
+  } else {
+    devAnalyticsCache.clear();
+  }
+}
+
 /**
  * Developer-scoped analytics (Section 23, 24, 42, 49).
  * Strictly enforces developer ownership: a developer can ONLY access their own analytics.
@@ -2652,6 +2675,16 @@ export async function getDeveloperOwnAnalytics(
     ...rawFilters,
     developerId: authenticatedDeveloperId,
   };
+
+  const cacheKey = `${authenticatedDeveloperId}:${JSON.stringify(scopedFilters)}`;
+  const now = Date.now();
+  const isTest = process.env.NODE_ENV === 'test' || Boolean(process.env.VITEST);
+  if (!isTest) {
+    const cached = devAnalyticsCache.get(cacheKey);
+    if (cached && cached.expiresAt > now) {
+      return cached.data;
+    }
+  }
 
   const adminDevData = await getDeveloperAnalyticsForAdmin(scopedFilters);
   const mySummary = adminDevData.allDevelopersSummary.find(
@@ -2712,7 +2745,7 @@ export async function getDeveloperOwnAnalytics(
     byCity[city] = cEntry;
   }
 
-  return {
+  const resultData = {
     generatedAt: new Date().toISOString(),
     developerId: authenticatedDeveloperId,
     dateRange: adminDevData.dateRange,
@@ -2752,6 +2785,15 @@ export async function getDeveloperOwnAnalytics(
     byNiche: Object.values(byNiche).sort((a, b) => b.claimed - a.claimed),
     byCity: Object.values(byCity).sort((a, b) => b.claimed - a.claimed),
   };
+
+  if (!isTest) {
+    devAnalyticsCache.set(cacheKey, {
+      data: resultData,
+      expiresAt: Date.now() + 30_000,
+    });
+  }
+
+  return resultData;
 }
 
 // ============================================================================

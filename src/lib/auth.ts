@@ -186,7 +186,6 @@ export function invalidateUserSessionCache(userId?: string): void {
 }
 
 export async function getCurrentUser(req?: NextRequest) {
-  await ensureDbReady();
   const session = await getSessionFromRequest(req);
   if (!session) return null;
 
@@ -196,6 +195,7 @@ export async function getCurrentUser(req?: NextRequest) {
     return cached.user;
   }
 
+  await ensureDbReady();
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
     include: {

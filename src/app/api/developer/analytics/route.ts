@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AuthError, requireAuth } from "@/lib/auth";
 import {
+  clearDeveloperAnalyticsCache,
   getDeveloperOwnAnalytics,
   handleAnalyticsApiError,
   parseAnalyticsFilters,
@@ -33,6 +34,10 @@ export async function GET(req: NextRequest) {
       user.role === "ADMIN" && requestedDeveloperId
         ? requestedDeveloperId
         : user.id;
+
+    if (req.nextUrl.searchParams.get("refresh") === "true") {
+      clearDeveloperAnalyticsCache(targetDeveloperId);
+    }
 
     const result = await getDeveloperOwnAnalytics(targetDeveloperId, {
       ...filters,

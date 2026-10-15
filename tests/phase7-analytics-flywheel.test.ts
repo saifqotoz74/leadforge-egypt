@@ -103,8 +103,13 @@ describe('Phase 7 — Production-Grade Analytics & Deterministic Data Flywheel',
       role: 'ADMIN',
     });
 
-    const devs = await prisma.user.findMany({
+    await prisma.user.updateMany({
       where: { role: 'DEVELOPER' },
+      data: { status: 'ACTIVE' },
+    });
+
+    const devs = await prisma.user.findMany({
+      where: { role: 'DEVELOPER', status: 'ACTIVE' },
       orderBy: { createdAt: 'asc' },
       take: 3,
     });
