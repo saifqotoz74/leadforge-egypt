@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PublicNavbar, PublicFooter } from '@/components/domain';
+import { trackFunnelEvent } from '@/lib/analytics/funnel-client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Banner } from '@/components/ui/Banner';
@@ -31,6 +32,10 @@ export default function RegisterPage() {
   const [locations, setLocations] = useState<string[]>(['القاهرة', 'الجيزة']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    trackFunnelEvent('register_start');
+  }, []);
 
   function toggleItem(list: string[], item: string, setter: (val: string[]) => void) {
     if (list.includes(item)) {
@@ -73,6 +78,7 @@ export default function RegisterPage() {
       if (!res.ok) {
         setError(data.error || tAuth('networkError'));
       } else {
+        trackFunnelEvent('register_complete', { email });
         router.push('/onboarding');
       }
     } catch {

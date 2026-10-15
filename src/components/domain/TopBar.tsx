@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { Menu, Bell, Settings, LogOut, CheckCircle2, ExternalLink } from 'lucide-react';
 import { CreditChip } from './CreditChip';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { Button } from '@/components/ui/Button';
 
 export interface NotificationItem {
   id: string;
@@ -54,7 +55,7 @@ export interface TopBarProps {
 export const TopBar: React.FC<TopBarProps> = ({
   onToggleSidebar,
   pageTitle,
-  userCredits = 150,
+  userCredits,
   userInitials,
   userName,
   userEmail,
@@ -171,8 +172,9 @@ export const TopBar: React.FC<TopBarProps> = ({
     return () => clearInterval(interval);
   }, [isNotifOpen]);
 
-  const displayName = userName || tCommon('defaultUser');
-  const displayInitials = userInitials || displayName.slice(0, 2).toUpperCase();
+  const isAuthenticated = Boolean(userName || userEmail || userInitials);
+  const displayName = userName || (isAuthenticated ? tCommon('defaultUser') : '');
+  const displayInitials = userInitials || (displayName ? displayName.slice(0, 2).toUpperCase() : '');
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -234,16 +236,17 @@ export const TopBar: React.FC<TopBarProps> = ({
 
       {/* Inline-End: CreditChip (developers), LanguageSwitcher, Notifications, User Menu */}
       <div className="flex items-center gap-2 sm:gap-3 md:gap-2 lg:gap-4">
-        {/* CreditChip for developers only per Spec 7.16 */}
-        {!isAdmin && typeof userCredits === 'number' && (
+        {/* CreditChip for authenticated developers only */}
+        {isAuthenticated && !isAdmin && typeof userCredits === 'number' && (
           <CreditChip balance={userCredits} />
         )}
 
         {/* LanguageSwitcher per Spec 3.8 */}
         <LanguageSwitcher size="sm" />
 
-        {/* Notifications Icon & Dropdown */}
-        <div className="relative" ref={notifRef}>
+        {/* Notifications Icon & Dropdown - authenticated only */}
+        {isAuthenticated && (
+          <div className="relative" ref={notifRef}>
           <button
             type="button"
             onClick={handleToggleNotifs}
@@ -259,15 +262,15 @@ export const TopBar: React.FC<TopBarProps> = ({
 
           {isNotifOpen && (
             <div
-              className="absolute end-0 top-full mt-2 w-80 sm:w-96 rounded-xl border border-line bg-surface shadow-xl z-50 text-start overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
+              className="absolute end-0 top-full mt-2 w-80 sm:w-96 rounded-xl border border-line bg-surface shadow-md z-50 text-start overflow-hidden"
             >
-              <div className="px-4 py-3 border-b border-line flex items-center justify-between bg-surface-subtle/40">
+              <div className="px-4 py-3 border-b border-line flex items-center justify-between bg-subtle">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-body-sm text-fg-primary">
                     {tCommon('notifications')}
                   </span>
                   {unreadCount > 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-brand/10 text-brand text-xs font-semibold tabular-nums ltr-iso">
+                    <span className="px-2 py-0.5 rounded-full bg-brand-soft text-brand text-xs font-semibold tabular-nums ltr-iso">
                       {unreadCount}
                     </span>
                   )}
@@ -282,15 +285,15 @@ export const TopBar: React.FC<TopBarProps> = ({
                   </button>
                 )}
               </div>
-              <div className="max-h-80 overflow-y-auto divide-y divide-line/60">
+              <div className="max-h-80 overflow-y-auto divide-y divide-line">
                 {isLoadingNotifs ? (
                   <div className="py-8 flex flex-col items-center justify-center text-center text-fg-muted text-caption space-y-2">
-                    <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-line-brand rounded-full animate-spin" />
                     <p>جاري تحميل الإشعارات...</p>
                   </div>
                 ) : notifications.length === 0 ? (
                   <div className="py-8 px-4 flex flex-col items-center justify-center text-center">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-2">
+                    <div className="h-10 w-10 rounded-full bg-brand-soft text-brand flex items-center justify-center mb-2">
                       <CheckCircle2 className="w-5 h-5" />
                     </div>
                     <p className="text-body-sm font-semibold text-fg-primary">لا توجد إشعارات جديدة</p>
@@ -302,8 +305,8 @@ export const TopBar: React.FC<TopBarProps> = ({
                       key={n.id}
                       type="button"
                       onClick={() => handleNotificationClick(n)}
-                      className={`w-full p-3.5 text-start transition-colors flex items-start gap-3 hover:bg-surface-subtle focus-visible:outline-none focus-visible:bg-surface-subtle ${
-                        n.isRead ? 'bg-surface opacity-80' : 'bg-brand/5'
+                      className={`w-full p-3.5 text-start transition-colors flex items-start gap-3 hover:bg-subtle focus-visible:outline-none focus-visible:bg-subtle ${
+                        n.isRead ? 'bg-surface opacity-80' : 'bg-subtle'
                       }`}
                     >
                       <div className="shrink-0 mt-1.5">
@@ -344,60 +347,76 @@ export const TopBar: React.FC<TopBarProps> = ({
             </div>
           )}
         </div>
+        )}
 
-        {/* User Menu Dropdown */}
-        <div className="relative" ref={menuRef}>
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="h-10 w-10 sm:h-9 sm:w-9 rounded-full bg-brand-soft text-brand flex items-center justify-center font-semibold text-caption select-none border border-line-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-            title={displayName}
-            aria-label={tNav('userMenu')}
-            aria-haspopup="menu"
-            aria-expanded={isMenuOpen}
-          >
-            <bdi dir="auto">{displayInitials}</bdi>
-          </button>
-
-          {isMenuOpen && (
-            <div
-              role="menu"
+        {/* User Menu Dropdown (authenticated) or Login/Register (unauthenticated) */}
+        {isAuthenticated ? (
+          <div className="relative" ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              className="h-10 w-10 sm:h-9 sm:w-9 rounded-full bg-brand-soft text-brand flex items-center justify-center font-semibold text-caption select-none border border-line-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              title={displayName}
               aria-label={tNav('userMenu')}
-              className="absolute end-0 top-full mt-2 w-60 rounded-lg border border-line bg-surface p-1.5 shadow-md z-50"
+              aria-haspopup="menu"
+              aria-expanded={isMenuOpen}
             >
-              <div className="px-3 py-2 border-b border-line mb-1">
-                <p className="text-body-sm font-semibold text-fg-primary break-words">
-                  <bdi dir="auto">{displayName}</bdi>
-                </p>
-                {userEmail && (
-                  <p className="text-caption text-fg-secondary break-all mt-0.5">
-                    <span className="ltr-iso">{userEmail}</span>
+              <bdi dir="auto">{displayInitials}</bdi>
+            </button>
+
+            {isMenuOpen && (
+              <div
+                role="menu"
+                aria-label={tNav('userMenu')}
+                className="absolute end-0 top-full mt-2 w-60 rounded-lg border border-line bg-surface p-1.5 shadow-md z-50"
+              >
+                <div className="px-3 py-2 border-b border-line mb-1">
+                  <p className="text-body-sm font-semibold text-fg-primary break-words">
+                    <bdi dir="auto">{displayName}</bdi>
                   </p>
-                )}
+                  {userEmail && (
+                    <p className="text-caption text-fg-secondary break-all mt-0.5">
+                      <span className="ltr-iso">{userEmail}</span>
+                    </p>
+                  )}
+                </div>
+
+                <Link
+                  href="/settings"
+                  role="menuitem"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-2.5 w-full rounded-md px-3 py-2 text-body-sm font-medium text-fg-secondary hover:bg-subtle hover:text-fg-primary transition-colors"
+                >
+                  <Settings className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>{tNav('settings')}</span>
+                </Link>
+
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={handleLogoutClick}
+                  className="flex items-center gap-2.5 w-full rounded-md px-3 py-2 text-body-sm font-medium text-danger-text hover:bg-danger-bg transition-colors text-start"
+                >
+                  <LogOut className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+                  <span>{tNav('logout')}</span>
+                </button>
               </div>
-
-              <Link
-                href="/settings"
-                role="menuitem"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-2.5 w-full rounded-md px-3 py-2 text-body-sm font-medium text-fg-secondary hover:bg-subtle hover:text-fg-primary transition-colors"
-              >
-                <Settings className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span>{tNav('settings')}</span>
-              </Link>
-
-              <button
-                type="button"
-                role="menuitem"
-                onClick={handleLogoutClick}
-                className="flex items-center gap-2.5 w-full rounded-md px-3 py-2 text-body-sm font-medium text-danger-text hover:bg-danger-bg transition-colors text-start"
-              >
-                <LogOut className="h-4 w-4 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
-                <span>{tNav('logout')}</span>
-              </button>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Link href="/login">
+              <Button variant="secondary" size="sm">
+                {tNav('login')}
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button variant="primary" size="sm">
+                {tNav('register')}
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );

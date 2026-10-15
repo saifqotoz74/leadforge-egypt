@@ -5,3 +5,4 @@ export * from "./metric-dictionary";
 export * from "./helpers";
 export * from "./service";
 export * from "./api-utils";
+export * from "./funnel";

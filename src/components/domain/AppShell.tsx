@@ -87,16 +87,17 @@ export const AppShell: React.FC<AppShellProps> = ({
     }
   }, [router]);
 
-  const resolvedName = userName || sessionUser?.name || tCommon('defaultUser');
+  const isAuth = Boolean(userName || userEmail || sessionUser);
+  const resolvedName = userName || sessionUser?.name || (isAuth ? tCommon('defaultUser') : '');
   const resolvedEmail = userEmail || sessionUser?.email || '';
   const resolvedInitials =
-    userInitials || computeInitials(sessionUser?.name || userName, resolvedEmail);
+    userInitials || (isAuth ? computeInitials(sessionUser?.name || userName, resolvedEmail) : undefined);
   const resolvedCredits =
     typeof userCredits === 'number'
       ? userCredits
       : typeof sessionUser?.credits === 'number'
       ? sessionUser.credits
-      : 150;
+      : undefined;
   const resolvedNotifications =
     typeof notificationCount === 'number'
       ? notificationCount

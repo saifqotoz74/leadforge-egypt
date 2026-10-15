@@ -89,6 +89,12 @@ export function PublicFooter() {
           <Link href="/leads" className="hover:text-brand transition-colors">
             {tNav('exploreLeads')}
           </Link>
+          <Link href="/blog" className="hover:text-brand transition-colors">
+            {tNav('blog')}
+          </Link>
+          <Link href="/privacy" className="hover:text-brand transition-colors">
+            {tNav('privacy')}
+          </Link>
           <Link href="/login" className="hover:text-brand transition-colors">
             {tNav('login')}
           </Link>

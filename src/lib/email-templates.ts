@@ -179,7 +179,7 @@ export async function sendWelcomeEmailSafe(params: {
   email: string;
   name: string;
 }): Promise<void> {
-  const leadsUrl = `${process.env.APP_URL || 'https://www.leads4dev.com'}/leads`;
+  const leadsUrl = `${process.env.APP_URL || 'https://leads4dev.com'}/leads`;
 
   const html = wrapBrandedEmailLayout({
     title: 'مرحباً بك في LeadForge Egypt',
@@ -189,7 +189,7 @@ export async function sendWelcomeEmailSafe(params: {
       <p>يسعدنا انضمامك إلى <strong>LeadForge Egypt</strong>، المنصة الأولى في مصر المخصصة لمطوري الويب ووكالات البرمجة للحصول على فرص حقيقية ومؤهلة للأنشطة والشركات المصرية.</p>
       <div class="info-card">
         <div class="info-row"><span class="info-label">حسابك: </span><span class="info-value ltr-text">${params.email}</span></div>
-        <div class="info-row"><span class="info-label">الرصيد المبدئي: </span><span class="info-value">150 نقطة مجانية لاختيار الفرص</span></div>
+        <div class="info-row"><span class="info-label">الرصيد المبدئي: </span><span class="info-value">3 نقاط رصيد مجانية للتجربة والاستكشاف</span></div>
         <div class="info-row"><span class="info-label">الفرص المتاحة: </span><span class="info-value">أنشطة موثقة بدون مواقع أو تحتاج تطوير وتطبيقات</span></div>
       </div>
       <p>يمكنك الآن تصفح قائمة الفرص المتاحة، فحص تفاصيل الأنشطة في محافظتك، والبدء في التواصل مع العملاء.</p>
@@ -229,7 +229,7 @@ export async function sendLeadClaimedEmailSafe(params: {
   estimatedBudget?: number | null;
   leadId: string;
 }): Promise<void> {
-  const leadDetailsUrl = `${process.env.APP_URL || 'https://www.leads4dev.com'}/leads/${params.leadId}`;
+  const leadDetailsUrl = `${process.env.APP_URL || 'https://leads4dev.com'}/leads/${params.leadId}`;
 
   const html = wrapBrandedEmailLayout({
     title: 'تأكيد حجز الفرصة',
@@ -282,8 +282,8 @@ export async function sendMatchingLeadsAlertEmailSafe(params: {
   leadId?: string;
 }): Promise<void> {
   const leadsUrl = params.leadId
-    ? `${process.env.APP_URL || 'https://www.leads4dev.com'}/leads/${params.leadId}`
-    : `${process.env.APP_URL || 'https://www.leads4dev.com'}/leads`;
+    ? `${process.env.APP_URL || 'https://leads4dev.com'}/leads/${params.leadId}`
+    : `${process.env.APP_URL || 'https://leads4dev.com'}/leads`;
 
   const leadName = params.businessName || 'نشاط تجاري مؤهل';
   const preheaderText = params.count > 1
@@ -337,7 +337,7 @@ export async function sendSecurityPasswordChangedEmailSafe(params: {
   name?: string | null;
   changedAt?: Date;
 }): Promise<void> {
-  const appUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.leads4dev.com').replace(/\/$/, '');
+  const appUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://leads4dev.com').replace(/\/$/, '');
   const resetUrl = `${appUrl}/forgot-password`;
   const formattedDate = (params.changedAt || new Date()).toLocaleString('ar-EG-u-nu-latn', {
     dateStyle: 'medium',

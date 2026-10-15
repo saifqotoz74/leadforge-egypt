@@ -3,6 +3,7 @@ import { IBM_Plex_Sans_Arabic, IBM_Plex_Mono } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import { i18nFormats } from '@/i18n/request';
+import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker';
 import './globals.css';
 
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
@@ -21,6 +22,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const tCommon = await getTranslations('common');
+  const locale = await getLocale();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://leads4dev.com';
   const siteUrl = process.env.NODE_ENV === 'production' ? 'https://leads4dev.com' : appUrl;
   const metadataBase = new URL(siteUrl);
@@ -36,20 +38,13 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
     applicationName: 'Leads4dev',
-    alternates: {
-      canonical: '/',
-      languages: {
-        'ar': '/?locale=ar',
-        'en': '/?locale=en',
-      },
-    },
     openGraph: {
       title,
       description,
       url: 'https://leads4dev.com',
       siteName: 'Leads4dev',
-      locale: 'ar_EG',
-      alternateLocale: ['en_US'],
+      locale: locale === 'en' ? 'en_US' : 'ar_EG',
+      alternateLocale: [locale === 'en' ? 'ar_EG' : 'en_US'],
       type: 'website',
     },
     twitter: {
@@ -68,6 +63,43 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
 
+  const orgStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Leads4dev',
+    url: 'https://leads4dev.com',
+    logo: 'https://leads4dev.com/icon.svg',
+    description:
+      locale === 'ar'
+        ? 'منصة مصرية لتقييم ومطابقة فرص العملاء لمطوري ومصممي الويب بقواعد ثابتة وشفافة.'
+        : 'Egyptian B2B platform for web developers and agencies to evaluate and match business leads using transparent, deterministic rules.',
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'EG',
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: 'contact@leads4dev.com',
+    },
+  };
+
+  const webSiteStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Leads4dev',
+    url: 'https://leads4dev.com',
+    inLanguage: ['ar-EG', 'en'],
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://leads4dev.com/leads?search={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <html
       lang={locale}
@@ -75,8 +107,19 @@ export default async function RootLayout({
       data-density="comfortable"
       className={`${ibmPlexSansArabic.variable} ${ibmPlexMono.variable}`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgStructuredData) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteStructuredData) }}
+        />
+      </head>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages} formats={i18nFormats}>
+          <AnalyticsTracker />
           {children}
         </NextIntlClientProvider>
       </body>

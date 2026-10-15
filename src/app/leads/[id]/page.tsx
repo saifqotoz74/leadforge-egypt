@@ -36,7 +36,10 @@ import {
   MapPin,
   Navigation,
   ExternalLink,
+  FileText,
+  Printer,
 } from 'lucide-react';
+import { trackFunnelEvent } from '@/lib/analytics/funnel-client';
 import { WhatsAppOutreachModal } from '@/components/domain/WhatsAppOutreachModal';
 
 interface LeadDetailData {
@@ -203,7 +206,7 @@ export default function LeadDetailPage() {
   const [feedbackRating, setFeedbackRating] = useState<number>(5);
   const [feedbackComment, setFeedbackComment] = useState('');
   const [savingFeedback, setSavingFeedback] = useState(false);
-  const [userCredits, setUserCredits] = useState<number>(150);
+  const [userCredits, setUserCredits] = useState<number | undefined>(undefined);
 
   const loadLead = useCallback(async () => {
     setLoading(true);
@@ -240,6 +243,7 @@ export default function LeadDetailPage() {
           if (l.myFeedback.rating) setFeedbackRating(l.myFeedback.rating);
           setFeedbackComment(l.myFeedback.comment || '');
         }
+        trackFunnelEvent('first_free_lead_viewed', { leadId: l.id });
       }
     } finally {
       setLoading(false);
@@ -420,7 +424,9 @@ export default function LeadDetailPage() {
   const locationSubtitle = `${localizedCategory} • ${localizedCity}${
     localizedArea ? `${areaSep}${localizedArea}` : ''
   }`;
-  const fullAddressDisplay = lead.address || `${localizedGov} • ${localizedCity}`;
+  const fullAddressDisplay = lead.isClaimedByMe
+    ? (lead.address || `${localizedGov} • ${localizedCity}`)
+    : `${localizedGov} • ${localizedCity}`;
 
   return (
     <AppShell
@@ -439,15 +445,49 @@ export default function LeadDetailPage() {
             { label: lead.businessName },
           ]}
           actions={
-            <Link href="/leads">
-              <Button
-                variant="ghost"
-                size="sm"
-                startIcon={<ArrowRight className="w-4 h-4 rtl:-scale-x-100" />}
-              >
-                {t('breadcrumbsLeads')}
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              {lead.isClaimedByMe && (
+                <>
+                  <a
+                    href={`/api/leads/${lead.id}/pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center"
+                  >
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      startIcon={<FileText className="w-4 h-4" />}
+                    >
+                      {t('downloadPdfReport')}
+                    </Button>
+                  </a>
+                  <a
+                    href={`/api/leads/${lead.id}/pdf?format=html`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center"
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      startIcon={<Printer className="w-4 h-4" />}
+                    >
+                      {t('printArabicReport')}
+                    </Button>
+                  </a>
+                </>
+              )}
+              <Link href="/leads">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  startIcon={<ArrowRight className="w-4 h-4 rtl:-scale-x-100" />}
+                >
+                  {t('breadcrumbsLeads')}
+                </Button>
+              </Link>
+            </div>
           }
         />
 
@@ -460,16 +500,16 @@ export default function LeadDetailPage() {
 
         {/* Field Visit Notice Callout */}
         {isFieldVisit && (
-          <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50/70 dark:bg-amber-950/20 dark:border-amber-800/40 text-amber-900 dark:text-amber-200">
-            <MapPin className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-warning-border bg-warning-bg text-warning-text">
+            <MapPin className="w-5 h-5 text-warning-icon shrink-0 mt-0.5" />
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold text-body">فرصة زيارة ميدانية / تواصل سوشيال ميديا 📍</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-caption font-semibold bg-amber-200/60 text-amber-900 dark:bg-amber-800/60 dark:text-amber-100">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-caption font-semibold bg-surface text-warning-text border border-warning-border">
                   سعر مخفض: 1 نقطة فقط
                 </span>
               </div>
-              <p className="text-body-sm text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
+              <p className="text-body-sm text-warning-text leading-relaxed">
                 هذا النشاط التجاري متاح للزيارة الميدانية المباشرة أو التواصل عبر منصات التواصل الاجتماعي. نظراً لعدم توفر رقم هاتف مباشر، تم تخفيض تكلفة الحصول على بياناته إلى نقطة واحدة فقط بدلاً من 5 نقاط.
               </p>
             </div>
@@ -620,7 +660,9 @@ export default function LeadDetailPage() {
                   <div className="flex flex-wrap items-center gap-2 pt-1">
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        `${lead.businessName} ${lead.address || `${localizedGov} ${localizedCity}`}`
+                        lead.isClaimedByMe
+                          ? `${lead.businessName} ${lead.address || `${localizedGov} ${localizedCity}`}`
+                          : `${lead.businessName} ${localizedGov} ${localizedCity}`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -876,7 +918,7 @@ export default function LeadDetailPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-caption text-fg-secondary">{t('costUnlock')}</span>
                   {isFieldVisit && (
-                    <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+                    <span className="px-2 py-0.5 rounded text-caption font-semibold bg-warning-bg text-warning-text border border-warning-border">
                       خصم زيارة ميدانية (1 نقطة)
                     </span>
                   )}
@@ -998,7 +1040,7 @@ export default function LeadDetailPage() {
             phone: lead.phone || undefined,
             email: lead.email || undefined,
           }}
-          userBalance={userCredits}
+          userBalance={userCredits ?? 0}
           onConfirmPurchase={handleClaim}
         />
 

@@ -269,7 +269,6 @@ export function ScoreLab() {
                 title={tLanding('scoreLabBreakdownTitle')}
                 rules={rulesList}
                 totalScore={result.opportunityScore}
-                footnote={tLanding('scoreLabDeterministicNote')}
               />
             </div>
 

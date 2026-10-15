@@ -262,6 +262,8 @@
     "winCount": "Won: {count}"
   },
   "leads": {
+    "metaTitle": "Browse Available Leads",
+    "metaDescription": "Explore verified Egyptian business leads filtered by city, industry, website status, and opportunity score.",
     "title": "Explore Leads",
     "description": "Real verified business leads imported, validated, and matched deterministically.",
     "searchPlaceholder": "Search by business name, city, district, or category...",
@@ -337,7 +339,15 @@
     "tempPremium": "Premium Opportunity",
     "tempHot": "Hot Opportunity",
     "tempWarm": "Warm Opportunity",
-    "tempCold": "Cold Opportunity"
+    "tempCold": "Cold Opportunity",
+    "publicPreviewBadge": "Public Preview for Visitors",
+    "publicPreviewBannerTitle": "Live Preview of Available Business Leads",
+    "publicPreviewBannerDesc": "A sample of verified leads is shown here with contact details, street addresses, and full business names masked to protect privacy. Create a free account to view full lead details and use your credits to unlock contact info.",
+    "publicPreviewCta": "Create Free Account",
+    "publicPreviewLoginCta": "Sign In",
+    "publicPreviewEmptyTitle": "No preview leads are currently available",
+    "publicPreviewEmptyDesc": "Leads are regularly refreshed and verified. Create an account to receive alerts when new leads matching your specialty are added.",
+    "lockedUntilClaim": "Locked until purchase"
   },
   "lead": {
     "pageTitle": "Lead Details",
@@ -410,7 +420,9 @@
     "emptyDesc": "Unable to find data for this lead, it may have been deleted or is invalid.",
     "confirmInvalidTitle": "Confirm Invalid Status",
     "confirmInvalidDescription": "Marking this lead as \"Invalid\" will end pipeline tracking and submit a dispute review for credit refund if contact information is verified as invalid. Are you sure you want to proceed?",
-    "confirmInvalidAction": "Confirm & Mark Invalid"
+    "confirmInvalidAction": "Confirm & Mark Invalid",
+    "downloadPdfReport": "Download PDF Report",
+    "printArabicReport": "Print Report (Arabic)"
   },
   "pipeline": {
     "pageTitle": "My Deals",
@@ -493,7 +505,9 @@
     "adminReports": "Reports",
     "adminAnalytics": "Analytics",
     "adminEngines": "Engines & Rules",
-    "adminManagement": "Management & Reports"
+    "adminManagement": "Management & Reports",
+    "privacy": "Privacy & Data Sources",
+    "blog": "Blog"
   },
   "auth": {
     "loginTitle": "Sign In",
@@ -1292,6 +1306,8 @@
     "emptyDesc": "Please adjust filters or expand the date range to display indicators."
   },
   "pricing": {
+    "metaTitle": "Pricing and Credit Packages",
+    "metaDescription": "Flexible point packages for web developers. Buy verified business leads on demand with no forced lock-in and a clear refund policy.",
     "badge": "Clear and transparent pricing • 1 credit = 1 qualified lead",
     "title": "Subscription plans designed for web developers in Egypt",
     "subtitle": "Start claiming qualified opportunities, and upgrade anytime to get additional credits and access exclusive leads.",
@@ -1304,7 +1320,47 @@
     "freePlanNotice": "No credit card required, instant activation",
     "paidPlanNotice": "Credits added immediately upon payment",
     "emptyPlansTitle": "No plans currently available",
-    "emptyPlansSubtitle": "Please check with system administrators to enable subscription plans."
+    "emptyPlansSubtitle": "Please check with system administrators to enable subscription plans.",
+    "detailsTitle": "Pricing Details and Policies",
+    "detailsSubtitle": "Everything you need to know about credit usage, payment methods, and quality guarantees",
+    "exclusiveLeadTitle": "Exclusive Leads (25 credits)",
+    "exclusiveLeadDesc": "Sold to exactly one developer and immediately locked from the platform to guarantee zero competition.",
+    "fieldVisitTitle": "Field Visit Leads (1 credit)",
+    "fieldVisitDesc": "Verified businesses in Egypt without a published phone number. Costs only 1 credit, ideal for direct in-person visits or social outreach.",
+    "refundPolicyTitle": "100% Points Refund Guarantee",
+    "refundPolicyDesc": "If a phone number is invalid, out of service, or the business is permanently closed, your credits are refunded automatically upon reporting.",
+    "paymentMethodsTitle": "Accepted Payment Methods",
+    "paymentMethodsDesc": "We accept InstaPay, mobile cash wallets (Vodafone Cash, Orange, Etisalat, WE Pay), Fawry, and debit/credit cards (Visa / Mastercard).",
+    "taxPolicyTitle": "Taxes & Invoicing",
+    "taxPolicyDesc": "All prices shown in EGP are inclusive of taxes [TODO: real value - confirm 14% VAT inclusion with accounting].",
+    "pointsRolloverTitle": "Credit Validity & Rollover",
+    "pointsRolloverDesc": "Points remain valid while your subscription is active, and unused credits roll over to the next billing cycle as long as your plan is maintained [TODO: real value - confirm rollover expiration limit].",
+    "cancellationPolicyTitle": "Easy Cancellation Anytime",
+    "cancellationPolicyDesc": "Cancel or upgrade anytime with one click from your account settings with no penalties. Remaining credits stay accessible until the end of your billing cycle.",
+    "faqSectionTitle": "Frequently Asked Questions",
+    "faqSectionSubtitle": "Direct answers to common questions about plans, pricing, refunds, and cancellations",
+    "faqQ1": "What is a lead on Leads4dev?",
+    "faqA1": "A lead is a verified business in Egypt that has been checked for an active need for a new or modernized website, complete with contact details and qualification metrics.",
+    "faqQ2": "What is the difference between shared and exclusive leads?",
+    "faqA2": "A shared lead can be claimed by up to 3 developers for 5 credits each. An exclusive lead is sold to exactly one developer for 25 credits and permanently locked.",
+    "faqQ3": "How does the points system work?",
+    "faqA3": "Each subscription grants monthly credits. Claiming a shared lead costs 5 credits, an exclusive lead costs 25 credits, and a field visit lead costs 1 credit.",
+    "faqQ4": "What happens if a phone number is wrong?",
+    "faqA4": "Submit feedback with one click from your dashboard. The system automatically verifies the issue and refunds your credits back to your balance.",
+    "faqQ5": "How is data quality verified?",
+    "faqA5": "Every lead passes through a multi-stage verification engine checking domains, servers, business activity, and freshness with zero random guesses.",
+    "faqQ6": "Who can use the platform?",
+    "faqA6": "Freelance web developers, design studios, and software agencies in Egypt looking to build a reliable pipeline of qualified website clients.",
+    "faqQ7": "How do I get started?",
+    "faqA7": "Register a free account, browse available opportunities, and use your starter balance or upgrade to a plan to start reaching prospective clients.",
+    "faqQ8": "What is the refund and guarantee policy?",
+    "faqA8": "We provide a 100% credit refund guarantee for any lead with an invalid phone number or closed business, instantly restored upon submission.",
+    "faqQ9": "How do I cancel my subscription?",
+    "faqA9": "You can cancel anytime in one click from your Settings page without penalty. Remaining credits and plan access remain valid until the end of the billing period.",
+    "dataSourcesPrivacyTitle": "Data Sources & Privacy",
+    "dataSourcesPrivacyDesc": "We transparently document our data collection, verification engine, and business removal rights under Egyptian Law No. 151 of 2020.",
+    "dataSourcesPrivacyLink": "Read Data Sources & Privacy Policy",
+    "transferReceiptSuccess": "Transfer receipt submitted successfully! We are reviewing it and will activate your plan shortly."
   },
   "onboarding": {
     "step1Title": "Web services & consulting",
@@ -1368,6 +1424,8 @@
     "emptyStateTitle": "No saved matching preferences"
   },
   "landing": {
+    "metaTitle": "Qualified Business Leads for Web Developers in Egypt",
+    "metaDescription": "Egyptian platform for web developers and agencies to discover verified, deduplicated business leads with transparent rule-based scoring.",
     "navHowItWorks": "How it works",
     "navScores": "Scores",
     "navPackages": "Packages",
@@ -1409,8 +1467,8 @@
     "heroReason3": "3 branches <iso>+14</iso>",
     "heroReason3Label": "3 branches",
     "heroReason3Points": "<iso>+14</iso>",
-    "heroReason4": "Verified, recent data <iso>+5</iso>",
-    "heroReason4Label": "Verified, recent data",
+    "heroReason4": "Sector and geography match <iso>+5</iso>",
+    "heroReason4Label": "Sector and geography match",
     "heroReason4Points": "<iso>+5</iso>",
     "heroCardPrice": "5 points",
     "heroCardCta": "View lead",
@@ -1563,11 +1621,23 @@
     "faqA6": "Freelance web developers, agencies, and software houses in Egypt offering website design and digital solutions.",
     "faqQ7": "How do I get started?",
     "faqA7": "Create an account in one minute, complete onboarding with your target cities and skills, and access matched leads right away.",
+    "faqQ8": "What is the refund and guarantee policy?",
+    "faqA8": "We provide a 100% credit refund guarantee for any lead with an invalid phone number or closed business, instantly restored upon submission.",
+    "faqQ9": "How do I cancel my subscription?",
+    "faqA9": "You can cancel anytime in one click from your Settings page without penalty. Remaining credits and plan access remain valid until the end of the billing period.",
     "finalCtaTitle": "Access qualified Egyptian business leads today",
     "finalCtaSubtitle": "Join web developers across Egypt leveraging deterministic, verified opportunities.",
     "finalCtaBtnRegister": "Create account",
     "finalCtaBtnPricing": "View Pricing & Plans",
-    "footerAllRights": "All rights reserved."
+    "footerAllRights": "All rights reserved.",
+    "testimonialsTitle": "Developer Experiences & Feedback",
+    "testimonialsSubtitle": "Real feedback from Egyptian web developers using the platform",
+    "statsStripAria": "Live platform statistics",
+    "statsBusinesses": "Verified businesses",
+    "statsCities": "Governorates & cities",
+    "statsCategories": "Business categories",
+    "statsLastRefresh": "Last database refresh:",
+    "statsLiveBadge": "Live verified metrics"
   },
   "categories": {
     "Dental": "Dental clinics",
@@ -1771,5 +1841,43 @@
     "BOOKING_SYSTEM": "Booking System",
     "CUSTOM_SOFTWARE": "Custom Web Software",
     "SEO": "Search Engine Optimization"
+  },
+  "privacy": {
+    "metaTitle": "Privacy Policy & Data Sources",
+    "metaDescription": "Transparent information on how business data across Egypt is collected, verified, and updated, and business owner rights.",
+    "legalDraftBanner": "OPERATIONAL DRAFT: Requires specialized legal review under Egyptian Personal Data Protection Law No. 151 of 2020. This document does not constitute formal compliance advice or legal certification.",
+    "title": "Data Sources & Privacy Policy",
+    "subtitle": "Engineering commitment to transparency, data accuracy, and business owner rights across Egypt",
+    "lastUpdated": "Last updated: October 15, 2026",
+    "section1Title": "1. Data Collection Sources",
+    "section1Text": "Leads4dev collects business data exclusively from publicly accessible sources, including public Egyptian business directories, Google Maps listings, open public registries, and official public business social media profiles. We do not purchase or utilize leaked or unauthorized private databases.",
+    "section2Title": "2. Technical Verification & Deduplication",
+    "section2Text": "All data undergoes deterministic engineering verification. We technically verify domain validity (SSL), check phone number validity using Egyptian numbering standards, and merge duplicate records belonging to the same entity to prevent repetition and ensure high data quality.",
+    "section3Title": "3. Data Freshness & Retention Policy",
+    "section3Text": "Lead records are re-verified on a regular schedule (30, 90, 180 days). Any record identified as inactive, permanently closed, or unreachable is immediately withdrawn from active circulation and archived.",
+    "section4Title": "4. Business Owner Rights & Free Removal Requests",
+    "section4Text": "Any business owner or authorized representative has the right to request correction, update, or permanent and immediate removal of their listing free of charge, with no fees or hurdles. To submit a request, contact our dedicated privacy email: privacy@leads4dev.com, and requests are processed within 48 business hours."
+  },
+  "blog": {
+    "metaTitle": "Developer Blog & Business Growth Articles",
+    "metaDescription": "Practical guides and specialized articles for web developers in Egypt on pricing strategies, finding clients, and effective outreach.",
+    "title": "Leads4dev Developer Blog",
+    "subtitle": "Practical guides and realistic strategies for growth and sales in the Egyptian tech market",
+    "readMore": "Read article",
+    "backToBlog": "Back to Blog",
+    "publishedAt": "Published: {date}",
+    "readingTime": "{min} min read",
+    "tableOfContents": "Table of Contents",
+    "share": "Share"
+  },
+  "programmatic": {
+    "metaTitle": "{category} Leads in {city}",
+    "metaDescription": "Discover qualified business leads in {category} in {city} for web development services.",
+    "heading": "{category} Leads in {city}",
+    "subtitle": "Verified businesses evaluated for website development and digital solutions",
+    "leadCountBanner": "Found {count} qualified leads in {city}",
+    "ctaRegister": "Register Free to Access Leads",
+    "noLeadsTitle": "Insufficient leads in this criteria currently",
+    "noLeadsDesc": "Category pages require at least 5 verified leads to ensure data quality and avoid thin content."
   }
 }

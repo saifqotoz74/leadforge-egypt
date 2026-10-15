@@ -1,5 +1,5 @@
 import { getRequestConfig } from 'next-intl/server';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 export const locales = ['ar', 'en'] as const;
 export type Locale = (typeof locales)[number];
@@ -27,8 +27,13 @@ export const i18nFormats = {
 
 export default getRequestConfig(async () => {
   const cookieStore = cookies();
+  const headersList = headers();
+
+  const localeHeader = headersList.get('x-lf-locale');
   const localeCookie = cookieStore.get('lf_locale')?.value;
-  const locale: Locale = localeCookie === 'en' ? 'en' : defaultLocale;
+
+  const rawLocale = localeHeader || localeCookie;
+  const locale: Locale = rawLocale === 'en' ? 'en' : defaultLocale;
 
   return {
     locale,

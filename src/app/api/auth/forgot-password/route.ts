@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     if (user && user.status !== 'SUSPENDED') {
       const token = await generatePasswordResetToken(user);
-      const appUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.leads4dev.com').replace(/\/$/, '');
+      const appUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://leads4dev.com').replace(/\/$/, '');
       const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(token)}`;
 
       await sendPasswordResetEmailSafe({

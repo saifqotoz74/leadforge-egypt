@@ -24,4 +24,5 @@ export * from './StatTile';
 export * from './PublicNavbar';
 export * from './MatchRow';
 export * from './PlanSummary';
+export * from './Testimonials';
 export * from '@/components/ui/BrandWordmark';
