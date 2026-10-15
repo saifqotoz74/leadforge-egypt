@@ -10,17 +10,6 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.leads4dev.com',
-          },
-        ],
-        destination: 'https://leads4dev.com/:path*',
-        statusCode: 301,
-      },
-      {
         source: '/data-sources-and-privacy',
         destination: '/privacy',
         permanent: true,

@@ -43,10 +43,9 @@ async function verify() {
 
   // Evaluate redirects if function
   const redirects = typeof nextConfig.redirects === 'function' ? await nextConfig.redirects() : [];
-  console.log('[next.config redirects]:', JSON.stringify(redirects, null, 2));
-  const hasWwwRedirect = redirects.some(r => r.has?.some(h => h.value === 'www.leads4dev.com') && (r.permanent === true || r.statusCode === 301));
-  if (!hasWwwRedirect) {
-    throw new Error('301 redirect for www.leads4dev.com is missing in next.config.mjs');
+  const privacyRedirect = redirects.some(r => r.source === '/data-sources-and-privacy' && r.destination === '/privacy');
+  if (!privacyRedirect) {
+    throw new Error('Redirect for /data-sources-and-privacy to /privacy is missing in next.config.mjs');
   }
 
   // Evaluate headers

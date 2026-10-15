@@ -3,17 +3,8 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
-  const host = request.headers.get('host') || '';
 
-  // 1. Host canonicalization: 301 redirect www to non-www
-  if (host.startsWith('www.leads4dev.com')) {
-    url.host = 'leads4dev.com';
-    url.port = '';
-    url.protocol = 'https:';
-    return NextResponse.redirect(url, 301);
-  }
-
-  // 2. Query param locale support (?locale=en or ?locale=ar)
+  // Query param locale support (?locale=en or ?locale=ar)
   const localeParam = url.searchParams.get('locale');
   const requestHeaders = new Headers(request.headers);
 
