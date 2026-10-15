@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Banner } from '@/components/ui/Banner';
 import { BrandWordmark } from '@/components/ui/BrandWordmark';
-import { LogIn, KeyRound, UserCheck } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export default function LoginPage() {
@@ -53,18 +53,6 @@ export default function LoginPage() {
     }
   }
 
-  function fillDemoDeveloper() {
-    setEmail('dev@leadforge.eg');
-    setPassword('Dev@12345');
-    setError(null);
-  }
-
-  function fillDemoAdmin() {
-    setEmail('admin@leadforge.eg');
-    setPassword('Admin@12345');
-    setError(null);
-  }
-
   return (
     <div data-density="comfortable" className="min-h-screen flex flex-col bg-page">
       <PublicNavbar />
@@ -82,35 +70,6 @@ export default function LoginPage() {
               {tAuth('welcomeBack')}{' '}
               <span className="font-semibold text-fg-primary ltr-iso" dir="ltr">Leads4dev</span>
             </p>
-          </div>
-
-          {/* Quick Demo Credentials Box */}
-          <div className="mb-6 rounded-xl border border-line bg-subtle p-3.5">
-            <p className="text-caption font-semibold text-fg-primary">
-              {tAuth('demoAccountsTitle')}:
-            </p>
-            <div className="mt-2.5 grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={fillDemoDeveloper}
-                className="w-full text-caption gap-1.5"
-              >
-                <UserCheck className="h-3.5 w-3.5 text-brand shrink-0" />
-                <span>{tAuth('demoDeveloper')}</span>
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={fillDemoAdmin}
-                className="w-full text-caption gap-1.5"
-              >
-                <KeyRound className="h-3.5 w-3.5 text-brand shrink-0" />
-                <span>{tAuth('demoAdmin')}</span>
-              </Button>
-            </div>
           </div>
 
           {error && (

@@ -372,7 +372,7 @@ export function WhatsAppOutreachModal({
                       dir="ltr"
                       value={portfolioUrl}
                       onChange={(e) => setPortfolioUrl(e.target.value)}
-                      placeholder="https://yourportfolio.com or https://demo.leadforge.eg"
+                      placeholder="https://yourportfolio.com"
                       className="w-full ps-9 pe-3 py-1.5 rounded-lg border border-line bg-surface text-caption text-fg-primary focus:outline-none focus:ring-1 focus:ring-brand font-mono"
                     />
                   </div>
