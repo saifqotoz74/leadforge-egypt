@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AuthError, requireAdmin, verifyCsrfOrigin } from '@/lib/auth';
+import { AuthError, requireAdmin, revokeAllSessionsForUser, verifyCsrfOrigin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { createAuditLog } from '@/lib/audit';
 import { invalidateAndRecalculateDeveloperMatches } from '@/lib/matching/service';
@@ -111,10 +111,18 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (body.status && ['ACTIVE', 'SUSPENDED'].includes(body.status)) {
+      const isSuspension = body.status === 'SUSPENDED';
+      const now = new Date();
       await prisma.user.update({
         where: { id: userId },
-        data: { status: body.status },
+        data: {
+          status: body.status,
+          ...(isSuspension ? { sessionsRevokedBefore: now } : {}),
+        },
       });
+      if (isSuspension) {
+        await revokeAllSessionsForUser(userId);
+      }
     }
 
     if (body.credits !== undefined && targetUser.subscription && !body.planId) {

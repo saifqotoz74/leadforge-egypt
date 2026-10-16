@@ -88,7 +88,8 @@ export default function DeveloperDashboardPage() {
   const tCat = useTranslations('categories');
   const searchParams = useSearchParams();
 
-  const isFixturesMode = searchParams.get('fixtures') === 'true';
+  const isFixturesMode =
+    process.env.NODE_ENV !== 'production' && searchParams.get('fixtures') === 'true';
 
   const [data, setData] = useState<DashboardData | null>(
     isFixturesMode ? DASHBOARD_FIXTURES : null

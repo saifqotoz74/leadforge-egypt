@@ -11,6 +11,7 @@ import {
   PHASE6_SCHEMA_UPGRADE_SQL,
   PHASE7_SCHEMA_UPGRADE_SQL,
   PHASE8_SCHEMA_UPGRADE_SQL,
+  SECURITY_HARDENING_SCHEMA_UPGRADE_SQL,
   prisma,
 } from '../src/lib/db';
 
@@ -58,6 +59,7 @@ async function main() {
       await pgliteInstance.exec(PHASE6_SCHEMA_UPGRADE_SQL);
       await pgliteInstance.exec(PHASE7_SCHEMA_UPGRADE_SQL);
       await pgliteInstance.exec(PHASE8_SCHEMA_UPGRADE_SQL);
+      await pgliteInstance.exec(SECURITY_HARDENING_SCHEMA_UPGRADE_SQL);
       console.log('Migration applied successfully!');
     } else {
       console.log('Applying Phase 1–8 incremental schema upgrades to embedded PostgreSQL (PGlite)...');
@@ -69,6 +71,7 @@ async function main() {
       await pgliteInstance.exec(PHASE6_SCHEMA_UPGRADE_SQL);
       await pgliteInstance.exec(PHASE7_SCHEMA_UPGRADE_SQL);
       await pgliteInstance.exec(PHASE8_SCHEMA_UPGRADE_SQL);
+      await pgliteInstance.exec(SECURITY_HARDENING_SCHEMA_UPGRADE_SQL);
       console.log('Phase 1–8 incremental schema upgrades applied successfully!');
     }
   } else {

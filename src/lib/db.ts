@@ -1428,6 +1428,12 @@ EXCEPTION
 END $$;
 `;
 
+export const SECURITY_HARDENING_SCHEMA_UPGRADE_SQL = `
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "sessionsRevokedBefore" TIMESTAMP(3);
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "failedLoginAttempts" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "lockedUntil" TIMESTAMP(3);
+`;
+
 /**
  * Ensures the PostgreSQL schema is applied to the active PGlite instance if tables do not exist yet,
  * and applies incremental Phase 1–8 schema upgrades if tables already exist.
@@ -1457,6 +1463,7 @@ export async function ensureDbReady(): Promise<void> {
         await activePg.exec(PHASE6_SCHEMA_UPGRADE_SQL);
         await activePg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
         await activePg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(SECURITY_HARDENING_SCHEMA_UPGRADE_SQL);
       }
     } catch (err: any) {
       if (activePg) {
@@ -1468,6 +1475,7 @@ export async function ensureDbReady(): Promise<void> {
           await activePg.exec(PHASE6_SCHEMA_UPGRADE_SQL);
           await activePg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
           await activePg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
+          await activePg.exec(SECURITY_HARDENING_SCHEMA_UPGRADE_SQL);
         }
       } else {
         console.error('[DB] ensureDbReady connection probe error:', err?.message || err);
@@ -1498,6 +1506,7 @@ export async function createInMemoryTestDb(): Promise<{
   await memPg.exec(PHASE6_SCHEMA_UPGRADE_SQL);
   await memPg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
   await memPg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
+  await memPg.exec(SECURITY_HARDENING_SCHEMA_UPGRADE_SQL);
 
   const adapter = new PrismaPGlite(memPg) as unknown as Prisma.PrismaClientOptions['adapter'];
   const testPrisma = new PrismaClient({ adapter });

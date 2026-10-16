@@ -12,18 +12,35 @@ export const DEFAULT_DEV_AUTH_SECRET =
 export function resolveConfiguredAuthSecret(): string {
   const authSecret = process.env.AUTH_SECRET?.trim();
   const jwtSecret = process.env.JWT_SECRET?.trim();
-  if (authSecret && authSecret !== DEFAULT_DEV_AUTH_SECRET) {
-    return authSecret;
+  const candidate =
+    authSecret && authSecret !== DEFAULT_DEV_AUTH_SECRET
+      ? authSecret
+      : jwtSecret && jwtSecret !== DEFAULT_DEV_AUTH_SECRET
+      ? jwtSecret
+      : authSecret || jwtSecret;
+
+  if (process.env.NODE_ENV === 'production') {
+    if (!candidate || candidate === DEFAULT_DEV_AUTH_SECRET || candidate.length < 32) {
+      throw new Error(
+        'Production AUTH_SECRET must be configured with a strong secret (at least 32 characters) and cannot use default dev secret.'
+      );
+    }
+    return candidate;
   }
-  if (jwtSecret && jwtSecret !== DEFAULT_DEV_AUTH_SECRET) {
-    return jwtSecret;
-  }
-  return authSecret || jwtSecret || DEFAULT_DEV_AUTH_SECRET;
+
+  return candidate || DEFAULT_DEV_AUTH_SECRET;
 }
 
 export function isProductionAuthSecretConfigured(): boolean {
-  const secret = resolveConfiguredAuthSecret();
-  return Boolean(secret && secret !== DEFAULT_DEV_AUTH_SECRET);
+  const authSecret = process.env.AUTH_SECRET?.trim();
+  const jwtSecret = process.env.JWT_SECRET?.trim();
+  const secret =
+    authSecret && authSecret !== DEFAULT_DEV_AUTH_SECRET
+      ? authSecret
+      : jwtSecret && jwtSecret !== DEFAULT_DEV_AUTH_SECRET
+      ? jwtSecret
+      : '';
+  return Boolean(secret && secret.length >= 32);
 }
 
 function getSecretKey(): Uint8Array {
@@ -35,6 +52,7 @@ export interface SessionPayload {
   email: string;
   name: string;
   role: 'DEVELOPER' | 'ADMIN';
+  iatMs?: number;
   exp?: number;
 }
 
@@ -84,9 +102,22 @@ export function revokeSessionToken(token: string): void {
   }
 }
 
-export function revokeAllSessionsForUser(userId: string): void {
+export async function revokeAllSessionsForUser(userId: string): Promise<void> {
   if (userId) {
-    userSessionRevokedBeforeMs.set(userId.trim(), nextAuthSequenceMs());
+    const trimmed = userId.trim();
+    const nowMs = nextAuthSequenceMs();
+    userSessionRevokedBeforeMs.set(trimmed, nowMs);
+    invalidateUserSessionCache(trimmed);
+    try {
+      if (prisma && typeof prisma.user?.update === 'function') {
+        await prisma.user.update({
+          where: { id: trimmed },
+          data: { sessionsRevokedBefore: new Date(nowMs) },
+        });
+      }
+    } catch {
+      // Ignore if DB not ready
+    }
   }
 }
 
@@ -123,11 +154,29 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
       return null;
     }
 
+    try {
+      if (prisma && typeof prisma.user?.findUnique === 'function') {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { sessionsRevokedBefore: true, status: true },
+        });
+        if (dbUser?.sessionsRevokedBefore) {
+          const dbRevokedBeforeMs = new Date(dbUser.sessionsRevokedBefore).getTime();
+          if (tokenIatMs <= dbRevokedBeforeMs) {
+            return null;
+          }
+        }
+      }
+    } catch {
+      // In-memory fallback if DB is not ready or during test bootstrapping
+    }
+
     return {
       userId,
       email: String(payload.email || ''),
       name: String(payload.name || ''),
       role: payload.role as 'DEVELOPER' | 'ADMIN',
+      iatMs: tokenIatMs,
       exp: payload.exp,
     };
   } catch {
@@ -211,6 +260,15 @@ export async function getCurrentUser(req?: NextRequest) {
     return null;
   }
 
+  if (user.sessionsRevokedBefore) {
+    const revokedMs = new Date(user.sessionsRevokedBefore).getTime();
+    const tokenIatMs = session.iatMs ?? 0;
+    if (tokenIatMs <= revokedMs) {
+      userSessionCache.delete(session.userId);
+      return null;
+    }
+  }
+
   userSessionCache.set(session.userId, { user, expiresAt: now + 15_000 });
   return user;
 }
@@ -286,11 +344,19 @@ export function verifyCsrfOrigin(req: NextRequest): boolean {
 
 export function getClientIp(req?: NextRequest | Request): string {
   if (!req) return 'unknown';
+  const cfConnectingIp = req.headers.get('cf-connecting-ip')?.trim();
+  if (cfConnectingIp) {
+    return cfConnectingIp.split(',')[0].trim();
+  }
+  const realIp = req.headers.get('x-real-ip')?.trim();
+  if (realIp) {
+    return realIp.split(',')[0].trim();
+  }
   const forwarded = req.headers.get('x-forwarded-for');
   if (forwarded) {
     return forwarded.split(',')[0].trim();
   }
-  return req.headers.get('x-real-ip') || 'unknown';
+  return 'unknown';
 }
 
 export async function generatePasswordResetToken(user: {

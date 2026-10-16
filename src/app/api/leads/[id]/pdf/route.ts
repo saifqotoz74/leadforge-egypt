@@ -13,6 +13,29 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { name: true, email: true, status: true, sessionsRevokedBefore: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (user.status === 'SUSPENDED') {
+      return NextResponse.json(
+        { error: 'Forbidden: Account suspended', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+    }
+
+    if (
+      user.sessionsRevokedBefore &&
+      (session.iatMs ?? 0) <= new Date(user.sessionsRevokedBefore).getTime()
+    ) {
+      return NextResponse.json({ error: 'Unauthorized: Session revoked' }, { status: 401 });
+    }
+
     const leadId = params.id;
     const lead = await prisma.lead.findUnique({
       where: { id: leadId },
@@ -41,11 +64,6 @@ export async function GET(
 
     const devProfile = await prisma.developerProfile.findUnique({
       where: { userId: session.userId },
-    });
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: { name: true, email: true },
     });
 
     const websiteAnalysis = lead.websiteAnalysis as any;

@@ -52,10 +52,18 @@ export function resetRateLimits() {
 }
 
 export function getClientIp(headers: Headers): string {
+  const cfConnectingIp = headers.get('cf-connecting-ip')?.trim();
+  if (cfConnectingIp) {
+    return cfConnectingIp.split(',')[0].trim() || '127.0.0.1';
+  }
+  const realIp = headers.get('x-real-ip')?.trim();
+  if (realIp) {
+    return realIp.split(',')[0].trim() || '127.0.0.1';
+  }
   const forwarded = headers.get('x-forwarded-for');
   if (forwarded) {
     return forwarded.split(',')[0].trim() || '127.0.0.1';
   }
-  return headers.get('x-real-ip')?.trim() || '127.0.0.1';
+  return '127.0.0.1';
 }
 
