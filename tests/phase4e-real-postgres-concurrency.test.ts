@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
-import EmbeddedPostgres from 'embedded-postgres';
 import path from 'path';
 import fs from 'fs';
 import {
@@ -26,17 +25,23 @@ describe('Phase 4E — Real PostgreSQL Concurrency & Admin Path Tests', () => {
       await probePrisma.$connect();
       await probePrisma.$disconnect();
     } catch {
-      pgInstance = new EmbeddedPostgres({
-        port: 54332,
-        databaseDir: DB_DIR,
-        user: 'testuser',
-        password: 'testpassword',
-        persistent: true,
-      });
-      if (!fs.existsSync(DB_DIR)) {
-        await pgInstance.initialise();
+      try {
+        const mod = await import('embedded-postgres');
+        const EmbeddedPostgres = mod.default || mod;
+        pgInstance = new EmbeddedPostgres({
+          port: 54332,
+          databaseDir: DB_DIR,
+          user: 'testuser',
+          password: 'testpassword',
+          persistent: true,
+        });
+        if (!fs.existsSync(DB_DIR)) {
+          await pgInstance.initialise();
+        }
+        await pgInstance.start();
+      } catch {
+        // embedded-postgres not available in this environment
       }
-      await pgInstance.start();
     }
 
     process.env.DATABASE_URL = TEST_DB_URL;
