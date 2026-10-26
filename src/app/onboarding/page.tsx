@@ -6,7 +6,7 @@ import { PublicNavbar, PublicFooter, Stepper, StepItem } from '@/components/doma
 import { Banner } from '@/components/ui/Banner';
 import { Input } from '@/components/ui/Input';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Check } from 'lucide-react';
+import { Check, AlertCircle } from 'lucide-react';
 import {
   ALL_CITIES,
   BUSINESS_CATEGORIES,
@@ -19,6 +19,7 @@ import { useLocale, useTranslations } from 'next-intl';
 export default function OnboardingPage() {
   const router = useRouter();
   const tOnboard = useTranslations('onboarding');
+  const tCommon = useTranslations('common');
   const tGeo = useTranslations('geo');
   const tCat = useTranslations('categories');
   const tServices = useTranslations('services');
@@ -28,6 +29,13 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Email Verification State
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean>(true);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Form State
   const [companyName, setCompanyName] = useState('');
@@ -46,11 +54,44 @@ export default function OnboardingPage() {
   const [leadType, setLeadType] = useState<'BOTH' | 'EXCLUSIVE' | 'SHARED'>('BOTH');
 
   useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    try {
+      const res = await fetch('/api/auth/verify-email/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResendSent(true);
+        setResendCooldown(60);
+      } else if (res.status === 429 && data.retryAfterSeconds) {
+        setResendCooldown(data.retryAfterSeconds);
+      }
+    } catch {
+      // Offline fallback
+    } finally {
+      setResendingVerification(false);
+    }
+  };
+
+  useEffect(() => {
     async function loadCurrentProfile() {
       try {
-        const res = await fetch('/api/developer/profile');
-        if (res.ok) {
-          const data = await res.json();
+        const [profRes, meRes] = await Promise.all([
+          fetch('/api/developer/profile'),
+          fetch('/api/auth/me'),
+        ]);
+
+        if (profRes.ok) {
+          const data = await profRes.json();
           if (data.profile) {
             if (data.profile.companyName) setCompanyName(data.profile.companyName);
             if (data.profile.phone) setPhone(data.profile.phone);
@@ -59,6 +100,14 @@ export default function OnboardingPage() {
             if (data.profile.niches?.length) setNiches(data.profile.niches);
             if (data.profile.minBudget) setMinBudget(data.profile.minBudget);
             if (data.profile.leadType) setLeadType(data.profile.leadType);
+          }
+        }
+
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData?.user) {
+            setUserEmail(meData.user.email);
+            setIsEmailVerified(Boolean(meData.user.emailVerified));
           }
         }
       } catch {
@@ -287,6 +336,40 @@ export default function OnboardingPage() {
           {error && (
             <div className="mb-6">
               <Banner variant="danger">{error}</Banner>
+            </div>
+          )}
+
+          {!loading && userEmail && !isEmailVerified && (
+            <div className="mb-6 p-4 rounded-xl border border-warning-border bg-warning-bg text-warning-text flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-body-sm">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="h-5 w-5 text-warning-icon shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-fg-primary">
+                    {tCommon('verificationReminderTitle')}
+                  </p>
+                  <p className="text-body-sm text-fg-secondary mt-0.5">
+                    {tCommon('verificationReminderDesc', { email: userEmail })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resendingVerification || resendCooldown > 0}
+                  className="text-caption font-semibold text-brand hover:underline disabled:opacity-60 cursor-pointer"
+                >
+                  {resendCooldown > 0 ? (
+                    <span className="ltr-iso tabular-nums">
+                      {tCommon('resendCooldownAction', { seconds: resendCooldown })}
+                    </span>
+                  ) : resendSent ? (
+                    tCommon('resendSuccessAction')
+                  ) : (
+                    tCommon('resendVerificationAction')
+                  )}
+                </button>
+              </div>
             </div>
           )}
 

@@ -135,11 +135,11 @@ export function TransferPaymentModal({
       size="md"
       title={
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-brand-soft text-brand flex items-center justify-center">
             <CreditCard className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-title font-semibold text-fg-primary">
+            <h3 className="text-h3 font-semibold text-fg-primary">
               تفعيل الاشتراك والدفع
             </h3>
             <p className="text-caption text-fg-secondary">
@@ -166,7 +166,7 @@ export function TransferPaymentModal({
     >
       <div className="space-y-4 py-1 text-start">
         {/* Plan summary badge */}
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface-subtle border border-line">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-subtle border border-line">
           <div>
             <span className="text-caption text-fg-secondary font-medium">الباقة المختارة:</span>
             <h4 className="text-body font-bold text-fg-primary">{plan.name}</h4>
@@ -183,25 +183,25 @@ export function TransferPaymentModal({
         </div>
 
         {/* Transfer Destination Card */}
-        <div className="p-4 rounded-xl border border-teal-200 bg-teal-50/50">
+        <div className="p-4 rounded-xl border border-line-brand bg-brand-soft">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-caption font-bold text-teal-900">
+            <span className="text-caption font-bold text-fg-primary">
               بيانات التحويل المعتمدة:
             </span>
-            <div className="flex items-center gap-1.5 text-caption font-medium text-teal-800">
-              <span className="px-2 py-0.5 rounded bg-teal-100 text-teal-900 text-caption-xs font-semibold">
+            <div className="flex items-center gap-1.5 text-caption font-medium text-fg-secondary">
+              <span className="px-2 py-0.5 rounded bg-surface text-brand text-caption font-semibold border border-line-brand">
                 إنستاباي (InstaPay)
               </span>
-              <span className="px-2 py-0.5 rounded bg-teal-100 text-teal-900 text-caption-xs font-semibold">
+              <span className="px-2 py-0.5 rounded bg-surface text-brand text-caption font-semibold border border-line-brand">
                 محافظ كاش
               </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-2.5 rounded-lg bg-surface border border-teal-200">
+          <div className="flex items-center justify-between p-2.5 rounded-lg bg-surface border border-line-brand">
             <div>
-              <span className="block text-caption-xs text-fg-secondary">رقم التحويل:</span>
-              <span className="ltr-iso font-mono text-body font-bold text-fg-primary tracking-wide">
+              <span className="block text-caption text-fg-secondary">رقم التحويل:</span>
+              <span className="ltr-iso tabular-nums text-body font-bold text-fg-primary tracking-wide">
                 {transferNumber}
               </span>
             </div>
@@ -209,28 +209,28 @@ export function TransferPaymentModal({
               variant="secondary"
               size="sm"
               onClick={handleCopyNumber}
-              startIcon={copied ? <Check className="w-3.5 h-3.5 text-teal-600" /> : <Copy className="w-3.5 h-3.5" />}
+              startIcon={copied ? <Check className="w-3.5 h-3.5 text-brand" /> : <Copy className="w-3.5 h-3.5" />}
             >
               {copied ? 'تم النسخ' : 'نسخ الرقم'}
             </Button>
           </div>
 
-          <p className="mt-2.5 text-caption text-teal-900 leading-relaxed">
-            يرجى تحويل مبلغ <strong className="tabular-nums font-bold">{formatEGP(plan.priceEgp)}</strong> إلى الرقم أعلاه عبر تطبيق <strong>إنستاباي</strong> أو أي <strong>محفظة هاتف ذكية</strong> (فودافون كاش / أورنج / اتصالات / وي كاش)، ثم إرفاق صورة الإيصال أدناه.
+          <p className="mt-2.5 text-caption text-fg-secondary leading-relaxed">
+            يرجى تحويل مبلغ <strong className="tabular-nums font-bold text-fg-brand">{formatEGP(plan.priceEgp)}</strong> إلى الرقم أعلاه عبر تطبيق <strong>إنستاباي</strong> أو أي <strong>محفظة هاتف ذكية</strong> (فودافون كاش / أورنج / اتصالات / وي كاش)، ثم إرفاق صورة الإيصال أدناه.
           </p>
         </div>
 
         {/* Success or Error Banners */}
         {successMsg && (
-          <div className="p-3 rounded-lg bg-emerald-50 text-emerald-800 text-caption font-medium border border-emerald-200 flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+          <div className="p-3 rounded-lg bg-brand-soft text-brand text-caption font-medium border border-line-brand flex items-center gap-2">
+            <Check className="w-4 h-4 text-brand shrink-0" />
             <span>{successMsg}</span>
           </div>
         )}
 
         {errorMsg && (
-          <div className="p-3 rounded-lg bg-rose-50 text-rose-800 text-caption border border-rose-200 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <div className="p-3 rounded-lg bg-danger-bg text-danger-text text-caption border border-danger-border flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-danger-text shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
@@ -242,7 +242,7 @@ export function TransferPaymentModal({
           </label>
 
           {!receiptImage ? (
-            <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-line rounded-xl hover:bg-surface-subtle cursor-pointer transition-colors text-center">
+            <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-line rounded-xl hover:bg-subtle cursor-pointer transition-colors text-center">
               <UploadCloud className="w-8 h-8 text-fg-muted mb-2" />
               <span className="text-body-sm font-semibold text-fg-primary">
                 اضغط هنا لاختيار صورة الإيصال
@@ -258,7 +258,7 @@ export function TransferPaymentModal({
               />
             </label>
           ) : (
-            <div className="relative p-3 rounded-xl border border-line bg-surface-subtle flex items-center justify-between">
+            <div className="relative p-3 rounded-xl border border-line bg-subtle flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-lg overflow-hidden border border-line bg-surface shrink-0">
                   <img
@@ -268,10 +268,13 @@ export function TransferPaymentModal({
                   />
                 </div>
                 <div>
-                  <span className="text-body-sm font-semibold text-fg-primary block truncate max-w-xs">
+                  <span
+                    title={fileName || 'إيصال التحويل'}
+                    className="text-body-sm font-semibold text-fg-primary block truncate max-w-xs" /* design-allow: truncate */
+                  >
                     {fileName || 'إيصال التحويل'}
                   </span>
-                  <span className="text-caption text-teal-700 flex items-center gap-1 font-medium">
+                  <span className="text-caption text-brand flex items-center gap-1 font-medium">
                     <FileCheck className="w-3.5 h-3.5" />
                     جاهز للإرسال
                   </span>
@@ -282,8 +285,8 @@ export function TransferPaymentModal({
                 variant="ghost"
                 size="sm"
                 onClick={handleRemoveImage}
-                startIcon={<X className="w-4 h-4 text-rose-600" />}
-                className="text-rose-600 hover:bg-rose-50"
+                startIcon={<X className="w-4 h-4 text-danger-text" />}
+                className="text-danger-text hover:bg-danger-bg"
               >
                 حذف وتغيير
               </Button>
@@ -302,8 +305,8 @@ export function TransferPaymentModal({
         </div>
 
         {/* Privacy Note */}
-        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-surface-subtle text-caption text-fg-secondary">
-          <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-subtle text-caption text-fg-secondary">
+          <ShieldCheck className="w-4 h-4 text-brand shrink-0 mt-0.5" />
           <span>
             <strong>خصوصية تامة:</strong> سيتم حذف صورة الإيصال نهائياً وتلقائياً من النظام فور مراجعة العملية والموافقة عليها أو رفضها.
           </span>

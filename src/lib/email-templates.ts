@@ -1,4 +1,5 @@
 import { dispatchTransactionalEmailSafe } from './notifications';
+import { getApplicationBaseUrl } from './email-verification';
 
 interface BaseTemplateParams {
   title: string;
@@ -9,7 +10,7 @@ interface BaseTemplateParams {
   footerNote?: string;
 }
 
-function wrapBrandedEmailLayout(params: BaseTemplateParams): string {
+export function wrapBrandedEmailLayout(params: BaseTemplateParams): string {
   const currentYear = new Date().getFullYear();
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -109,7 +110,7 @@ function wrapBrandedEmailLayout(params: BaseTemplateParams): string {
   <div class="wrapper">
     <div class="header">
       <h1>LeadForge Egypt</h1>
-      <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">leads4dev.com</div>
+      <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">leadforge.eg</div>
     </div>
     <div class="content">
       ${params.contentHtml}
@@ -179,7 +180,7 @@ export async function sendWelcomeEmailSafe(params: {
   email: string;
   name: string;
 }): Promise<void> {
-  const leadsUrl = `${process.env.APP_URL || 'https://leads4dev.com'}/leads`;
+  const leadsUrl = `${getApplicationBaseUrl()}/leads`;
 
   const html = wrapBrandedEmailLayout({
     title: 'مرحباً بك في LeadForge Egypt',
@@ -229,7 +230,7 @@ export async function sendLeadClaimedEmailSafe(params: {
   estimatedBudget?: number | null;
   leadId: string;
 }): Promise<void> {
-  const leadDetailsUrl = `${process.env.APP_URL || 'https://leads4dev.com'}/leads/${params.leadId}`;
+  const leadDetailsUrl = `${getApplicationBaseUrl()}/leads/${params.leadId}`;
 
   const html = wrapBrandedEmailLayout({
     title: 'تأكيد حجز الفرصة',
@@ -282,8 +283,8 @@ export async function sendMatchingLeadsAlertEmailSafe(params: {
   leadId?: string;
 }): Promise<void> {
   const leadsUrl = params.leadId
-    ? `${process.env.APP_URL || 'https://leads4dev.com'}/leads/${params.leadId}`
-    : `${process.env.APP_URL || 'https://leads4dev.com'}/leads`;
+    ? `${getApplicationBaseUrl()}/leads/${params.leadId}`
+    : `${getApplicationBaseUrl()}/leads`;
 
   const leadName = params.businessName || 'نشاط تجاري مؤهل';
   const preheaderText = params.count > 1
@@ -337,7 +338,7 @@ export async function sendSecurityPasswordChangedEmailSafe(params: {
   name?: string | null;
   changedAt?: Date;
 }): Promise<void> {
-  const appUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://leads4dev.com').replace(/\/$/, '');
+  const appUrl = getApplicationBaseUrl();
   const resetUrl = `${appUrl}/forgot-password`;
   const formattedDate = (params.changedAt || new Date()).toLocaleString('ar-EG-u-nu-latn', {
     dateStyle: 'medium',

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { prisma } from '../db';
 import { createAuditLog } from '../audit';
 import { ensureDeveloperCreditAccount } from './credit-service';
@@ -235,15 +235,23 @@ export async function refundClaim(input: RefundClaimInput): Promise<RefundClaimR
           );
         }
 
-        // If the claim is now REFUNDED, release its slot on the Lead
+        // If the claim is now REFUNDED, release its slot on the Lead (SEC-04)
         if (isFullyRefunded && claim.lead) {
-          const activeClaimsCount = await tx.leadClaim.count({
+          const activePaidClaimsCount = await tx.leadClaim.count({
             where: {
               leadId: claim.leadId,
               status: 'ACTIVE',
+              user: {
+                subscription: {
+                  plan: {
+                    priceEgp: { gt: 0 },
+                    slug: { not: 'free' },
+                  },
+                },
+              },
             },
           });
-          const newPurchasers = activeClaimsCount;
+          const newPurchasers = activePaidClaimsCount;
           const leadStillSaleable =
             claim.lead.isCanonical !== false &&
             !claim.lead.mergedIntoLeadId &&
@@ -580,3 +588,245 @@ export async function expireStaleClaims(now: Date = new Date()): Promise<number>
     });
   });
 }
+
+export const MIN_REFUND_REPORT_WAIT_MS = 30 * 60 * 1000; // 30 minutes
+export const MAX_TRIAL_REFUND_REPORTS_PER_MONTH = 2;
+
+export interface SubmitRefundReportInput {
+  claimId: string;
+  developerId: string;
+  reason: string;
+  comment?: string | null;
+  now?: Date;
+  ipAddress?: string;
+  idempotencyKey?: string | null;
+}
+
+export interface RefundReportResult {
+  success: true;
+  feedbackId: string;
+  claimId: string;
+  leadId: string;
+  developerId: string;
+  status: 'PENDING_MANUAL_REVIEW';
+  targetReviewHours: 24;
+  reason: string;
+  comment: string | null;
+  submittedAt: Date;
+}
+
+/**
+ * Validates the Section 15 / FIN-04 refund dispute guardrails:
+ * 1. Minimum 30-minute wait after claim before a refund report can be submitted.
+ * 2. Monthly refund report cap for trial/free users (max 2 reports per rolling 30 days).
+ */
+export async function validateRefundReportGuardrails(params: {
+  claim: { id: string; claimedAt: Date; userId: string; status: string };
+  user: {
+    id: string;
+    subscription?: { plan?: { slug?: string; priceEgp?: number } | null } | null;
+  };
+  now?: Date;
+  prismaClient?: any;
+}) {
+  const { claim, user, now = new Date(), prismaClient = prisma } = params;
+
+  if (claim.status !== 'ACTIVE') {
+    throw new ClaimEngineError(
+      'CLAIM_NOT_FOUND',
+      `Cannot report on a claim with status ${claim.status}`,
+      422
+    );
+  }
+
+  // 1. Enforce minimum 30-minute wait after claiming before a report can be submitted
+  const claimAgeMs = now.getTime() - new Date(claim.claimedAt).getTime();
+  if (claimAgeMs < MIN_REFUND_REPORT_WAIT_MS) {
+    const remainingMinutes = Math.max(1, Math.ceil((MIN_REFUND_REPORT_WAIT_MS - claimAgeMs) / (60 * 1000)));
+    throw new ClaimEngineError(
+      'WAIT_PERIOD_REQUIRED',
+      `يجب الانتظار لمدة 30 دقيقة على الأقل بعد استلام الفرصة ومحاولة التواصل قبل تقديم تقرير استرداد. يرجى المحاولة بعد ${remainingMinutes} دقيقة.`,
+      422,
+      {
+        claimId: claim.id,
+        claimedAt: claim.claimedAt,
+        claimAgeMs,
+        minWaitMs: MIN_REFUND_REPORT_WAIT_MS,
+        remainingMinutes,
+      }
+    );
+  }
+
+  // 2. Enforce trial user monthly cap (max 2 reports per rolling 30 days)
+  const isTrialUser =
+    !user.subscription?.plan ||
+    user.subscription.plan.slug === 'free' ||
+    user.subscription.plan.priceEgp === 0;
+
+  if (isTrialUser) {
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const existingReportsCount = await prismaClient.leadFeedback.count({
+      where: {
+        userId: user.id,
+        useful: false,
+        createdAt: { gte: thirtyDaysAgo },
+      },
+    });
+
+    if (existingReportsCount >= MAX_TRIAL_REFUND_REPORTS_PER_MONTH) {
+      throw new ClaimEngineError(
+        'TRIAL_REFUND_LIMIT_EXCEEDED',
+        `تم استنفاد الحد الأقصى لتقارير الاسترداد المتاحة للباقة المجانية (${MAX_TRIAL_REFUND_REPORTS_PER_MONTH} تقارير شهريًا).`,
+        422,
+        {
+          userId: user.id,
+          reportsSubmittedLast30Days: existingReportsCount,
+          maxAllowedPerMonth: MAX_TRIAL_REFUND_REPORTS_PER_MONTH,
+        }
+      );
+    }
+  }
+
+  // 3. Enforce only ONE active refund report per claim
+  const existingActiveReport = await prismaClient.leadFeedback.findFirst({
+    where: {
+      claimId: claim.id,
+      type: 'REFUND_REPORT',
+    },
+  });
+
+  if (existingActiveReport) {
+    throw new ClaimEngineError(
+      'REFUND_REPORT_ALREADY_EXISTS',
+      'يوجد بالفعل تقرير استرداد مسجل لهذه الفرصة قيد المراجعة.',
+      409,
+      {
+        claimId: claim.id,
+        existingReportId: existingActiveReport.id,
+        createdAt: existingActiveReport.createdAt,
+      }
+    );
+  }
+}
+
+/**
+ * Submits a developer refund report for manual review (target 24 hours).
+ * Enforces minimum 30 minutes claim age and trial monthly cap.
+ * Does NOT auto-refund credits — keeps dispute pending for admin review.
+ */
+export async function submitClaimRefundReport(
+  input: SubmitRefundReportInput
+): Promise<RefundReportResult> {
+  const { claimId, developerId, reason, comment, now = new Date(), ipAddress, idempotencyKey } = input;
+
+  if (!claimId || typeof claimId !== 'string') {
+    throw new ClaimEngineError('CLAIM_NOT_FOUND', 'claimId is required', 404);
+  }
+  if (!reason || reason.trim().length === 0) {
+    throw new ClaimEngineError('INVALID_REFUND_REQUEST', 'A valid report reason is required', 422);
+  }
+
+  return withResourceLocks([`developer:${developerId}`, `claim:${claimId}`], async () => {
+    return prisma.$transaction(async (tx) => {
+      const claim = await tx.leadClaim.findUnique({
+        where: { id: claimId },
+        include: {
+          lead: true,
+          user: {
+            include: {
+              subscription: { include: { plan: true } },
+            },
+          },
+        },
+      });
+
+      if (!claim || (claim.developerId !== developerId && claim.userId !== developerId)) {
+        throw new ClaimEngineError('CLAIM_NOT_FOUND', 'Claim not found or unauthorized', 404);
+      }
+
+      await validateRefundReportGuardrails({
+        claim,
+        user: claim.user,
+        now,
+        prismaClient: tx,
+      });
+
+      // Create a pending review feedback/report entry (no auto-refund, manual review target 24h)
+      let feedback;
+      try {
+        feedback = await tx.leadFeedback.create({
+          data: {
+            leadId: claim.leadId,
+            userId: developerId,
+            developerId,
+            claimId: claim.id,
+            useful: false,
+            reasonCode: reason.trim(),
+            category: 'LEAD_QUALITY',
+            type: 'REFUND_REPORT',
+            comment: comment?.trim() || null,
+            note: comment?.trim() || null,
+            metadata: {
+              refundRequested: true,
+              status: 'PENDING_MANUAL_REVIEW',
+              targetReviewHours: 24,
+              reportSubmittedAt: now.toISOString(),
+              ipAddress: ipAddress ?? null,
+              idempotencyKey: idempotencyKey ?? null,
+            },
+          },
+        });
+      } catch (err: any) {
+        if (
+          err?.code === 'P2002' ||
+          err?.message?.includes('Unique constraint failed') ||
+          err?.message?.includes('idx_lead_feedback_unique_claim_refund_report')
+        ) {
+          throw new ClaimEngineError(
+            'REFUND_REPORT_ALREADY_EXISTS',
+            'يوجد بالفعل تقرير استرداد مسجل لهذه الفرصة قيد المراجعة.',
+            409,
+            {
+              claimId: claim.id,
+              error: 'UNIQUE_CONSTRAINT_VIOLATION',
+            }
+          );
+        }
+        throw err;
+      }
+
+      await createAuditLog(
+        {
+          userId: developerId,
+          action: 'CLAIM_REFUND_REPORTED',
+          entityType: 'LeadClaim',
+          entityId: claim.id,
+          details: {
+            claimId: claim.id,
+            leadId: claim.leadId,
+            developerId,
+            reason: reason.trim(),
+            status: 'PENDING_MANUAL_REVIEW',
+            targetReviewHours: 24,
+          },
+          ipAddress,
+        },
+        tx as unknown as PrismaClient
+      );
+
+      return {
+        success: true as const,
+        feedbackId: feedback.id,
+        claimId: claim.id,
+        leadId: claim.leadId,
+        developerId,
+        status: 'PENDING_MANUAL_REVIEW' as const,
+        targetReviewHours: 24 as const,
+        reason: reason.trim(),
+        comment: comment?.trim() || null,
+        submittedAt: now,
+      };
+    });
+  });
+}
+

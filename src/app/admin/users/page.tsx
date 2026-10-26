@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { localizePlanName } from '@/lib/taxonomy';
+import { getCachedAdminData, setCachedAdminData, invalidateAdminCache } from '@/lib/admin-cache';
 import { Search, ShieldBan, CheckCircle, Coins, ArrowRight } from 'lucide-react';
 
 interface AdminUserItem {
@@ -62,7 +63,17 @@ export default function AdminUsersPage() {
   const [saving, setSaving] = useState(false);
 
   const loadUsers = useCallback(async () => {
-    setLoading(true);
+    const cacheKey = `admin_users_${search.trim()}_${statusFilter}`;
+    const cached = getCachedAdminData<{ users: AdminUserItem[]; plans: PlanOption[] }>(cacheKey);
+    if (cached) {
+      setUsers(cached.users);
+      setPlans(cached.plans);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    const requestStartedAt = Date.now();
     try {
       const params = new URLSearchParams();
       if (search.trim()) params.set('search', search.trim());
@@ -71,8 +82,11 @@ export default function AdminUsersPage() {
       const res = await fetch(`/api/admin/users?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        setUsers(data.users || []);
-        setPlans(data.plans || []);
+        const freshUsers = data.users || [];
+        const freshPlans = data.plans || [];
+        setUsers(freshUsers);
+        setPlans(freshPlans);
+        setCachedAdminData(cacheKey, { users: freshUsers, plans: freshPlans }, { requestStartedAt });
       }
     } finally {
       setLoading(false);
@@ -91,6 +105,7 @@ export default function AdminUsersPage() {
       body: JSON.stringify({ userId: u.id, status: nextStatus }),
     });
     if (res.ok) {
+      invalidateAdminCache('admin_users');
       await loadUsers();
     }
   }
@@ -111,6 +126,7 @@ export default function AdminUsersPage() {
       });
       if (res.ok) {
         setEditUser(null);
+        invalidateAdminCache('admin_users');
         await loadUsers();
       }
     } finally {
@@ -152,7 +168,7 @@ export default function AdminUsersPage() {
         </Card>
 
         <Card className="rounded-xl border border-line bg-surface shadow-xs overflow-hidden">
-          {loading ? (
+          {loading && users.length === 0 ? (
             <div className="p-6 space-y-4">
               <Skeleton className="h-12 w-full rounded-xl" />
               <Skeleton className="h-48 w-full rounded-xl" />

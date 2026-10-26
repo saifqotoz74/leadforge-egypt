@@ -72,7 +72,7 @@ export const LeadRow: React.FC<LeadRowProps> = ({
               <bdi dir="auto">{companyName}</bdi>
             </Link>
             {(isFieldVisit || hasPhone === false) && (
-              <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[11px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-caption font-medium bg-warning-bg text-warning-text border border-warning-border whitespace-nowrap">
                 📍 زيارة ميدانية / سوشيال
               </span>
             )}

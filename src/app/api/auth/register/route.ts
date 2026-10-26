@@ -2,13 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ensureDbReady, prisma } from '@/lib/db';
 import { hashPassword, signSessionToken, verifyCsrfOrigin } from '@/lib/auth';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 import { createAuditLog } from '@/lib/audit';
 import { createInAppNotification } from '@/lib/notifications';
 import { DEFAULT_PLANS } from '@/lib/payment/provider';
 import { ensureDeveloperCreditAccount } from '@/lib/claims/credit-service';
 import { isFeatureFlagEnabled } from '@/lib/production/feature-flags';
 import { sendWelcomeEmailSafe } from '@/lib/email-templates';
+import {
+  createEmailVerificationToken,
+  sendVerificationEmailSafe,
+} from '@/lib/email-verification';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'الاسم الكامل مطلوب (حرفين على الأقل)'),
@@ -40,12 +44,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
-    const rl = checkRateLimit({ key: `register:${ip}`, limit: 15, windowMs: 60_000 });
+    const ip = getClientIp(req.headers);
+    const rl = checkRateLimit({ key: `register:${ip}`, limit: 5, windowMs: 10 * 60_000 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'تم تجاوز الحد المسموح به لإنشاء الحسابات. يرجى المحاولة لاحقًا.' },
-        { status: 429 }
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rl),
+        }
       );
     }
 
@@ -92,6 +99,7 @@ export async function POST(req: NextRequest) {
         passwordHash,
         role: 'DEVELOPER',
         status: 'ACTIVE',
+        emailVerified: null,
         developerProfile: {
           create: {
             companyName: data.companyName?.trim() || null,
@@ -155,6 +163,21 @@ export async function POST(req: NextRequest) {
     }).catch((err) => {
       console.error('[Welcome Email Error]:', err);
     });
+
+    try {
+      const { rawToken } = await createEmailVerificationToken(user.id, {
+        ipAddress: ip,
+        userAgent: req.headers.get('user-agent'),
+      });
+      await sendVerificationEmailSafe({
+        email: user.email,
+        name: user.name,
+        rawToken,
+        origin: req.headers.get('origin') || undefined,
+      });
+    } catch (vErr) {
+      console.error('[Registration Verification Email Error]:', vErr);
+    }
 
     await createAuditLog(
       {

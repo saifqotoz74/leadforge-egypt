@@ -20,20 +20,21 @@ export async function getCachedPlatformStats(): Promise<PlatformStats> {
     const [businessesCount, citiesGroup, categoriesGroup, latestLead] = await Promise.all([
       prisma.lead.count({
         where: {
+          isMock: false,
           isCanonical: true,
           status: { notIn: ['INVALID', 'DUPLICATE', 'NOT_SALEABLE', 'ARCHIVED'] },
         },
       }),
       prisma.lead.groupBy({
         by: ['city'],
-        where: { isCanonical: true, city: { not: '' } },
+        where: { isMock: false, isCanonical: true, city: { not: '' } },
       }),
       prisma.lead.groupBy({
         by: ['category'],
-        where: { isCanonical: true, category: { not: '' } },
+        where: { isMock: false, isCanonical: true, category: { not: '' } },
       }),
       prisma.lead.findFirst({
-        where: { isCanonical: true },
+        where: { isMock: false, isCanonical: true },
         orderBy: { updatedAt: 'desc' },
         select: { updatedAt: true, lastVerifiedAt: true },
       }),

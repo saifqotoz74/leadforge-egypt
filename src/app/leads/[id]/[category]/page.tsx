@@ -45,11 +45,17 @@ export async function generateMetadata({ params }: ProgrammaticPageProps): Promi
     return { robots: { index: false, follow: false } };
   }
 
-  const locale = await getLocale();
+  let locale = 'ar';
+  try {
+    locale = await getLocale();
+  } catch {
+    locale = 'ar';
+  }
   const isAr = locale !== 'en';
 
   const leadCount = await prisma.lead.count({
     where: {
+      isMock: false,
       isCanonical: true,
       status: 'AVAILABLE',
       city: { in: city.dbValues },
@@ -119,6 +125,7 @@ export default async function ProgrammaticLeadsPage({ params }: ProgrammaticPage
 
   const totalCount = await prisma.lead.count({
     where: {
+      isMock: false,
       isCanonical: true,
       status: 'AVAILABLE',
       city: { in: city.dbValues },
@@ -128,6 +135,7 @@ export default async function ProgrammaticLeadsPage({ params }: ProgrammaticPage
 
   const leads = await prisma.lead.findMany({
     where: {
+      isMock: false,
       isCanonical: true,
       status: 'AVAILABLE',
       city: { in: city.dbValues },

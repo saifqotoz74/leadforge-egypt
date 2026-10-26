@@ -414,7 +414,7 @@ export default function MyLeadsPage() {
                                 <span className="ltr-iso tabular-nums">{lead.phone}</span>
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400 font-medium">
+                              <span className="inline-flex items-center gap-1 text-warning-text font-medium">
                                 📍 زيارة ميدانية / سوشيال
                               </span>
                             )}

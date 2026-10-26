@@ -185,6 +185,32 @@ export default function SubscriptionPage() {
           {/* Feedback Message Banner */}
           {msg && <Banner variant={msg.type}>{msg.text}</Banner>}
 
+          {/* Pending Transfer Review Notice (GAP-02 / UX) */}
+          {payments.some((p) => p.status === 'PENDING') && (() => {
+            const pendingPayment = payments.find((p) => p.status === 'PENDING')!;
+            return (
+              <Banner variant="info">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 w-full text-start">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-semibold text-body-sm">
+                      {locale === 'en'
+                        ? 'Bank Transfer Under Review'
+                        : 'طلب التحويل البنكي قيد المراجعة اليدوية'}
+                    </span>
+                    <span className="text-caption text-fg-secondary">
+                      {locale === 'en'
+                        ? `Your transfer request (${pendingPayment.providerRef}) for ${fmtNumber(pendingPayment.amountEgp, locale)} EGP is currently under review. Credits will be added once confirmed.`
+                        : `طلب التحويل الخاص بك (${pendingPayment.providerRef}) بمبلغ ${fmtNumber(pendingPayment.amountEgp, locale)} ج.م قيد المراجعة حالياً. ستتم إضافة النقاط وتفعيل الباقة فور التأكيد.`}
+                    </span>
+                  </div>
+                  <Badge variant="warning" size="sm" className="shrink-0 self-start sm:self-auto">
+                    {locale === 'en' ? 'Under Review' : 'قيد المراجعة'}
+                  </Badge>
+                </div>
+              </Banner>
+            );
+          })()}
+
           {/* Active Balance and Subscription Summary (StatTiles per Spec 7.11) */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatTile
@@ -286,6 +312,16 @@ export default function SubscriptionPage() {
               </div>
             </CardHeader>
 
+            {payments.some((p) => p.status === 'PENDING') && (
+              <div className="px-6 pt-2 pb-0">
+                <Banner variant="info">
+                  {locale === 'en'
+                    ? 'You have a bank transfer / InstaPay request currently under manual verification. Your package and credits will be activated immediately upon review.'
+                    : 'يوجد لديك طلب تحويل بنكي / إنستاباي قيد المراجعة والتدقيق اليدوي حالياً. سيتم تفعيل الباقة وإضافة النقاط فور اكتمال التحقق.'}
+                </Banner>
+              </div>
+            )}
+
             {payments.length === 0 ? (
               <div className="py-6">
                 <EmptyState
@@ -321,9 +357,21 @@ export default function SubscriptionPage() {
                         +{fmtNumber(p.creditsGranted, locale)} {t('pointsUnit')}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="brand">
+                        <Badge
+                          variant={
+                            p.status === 'COMPLETED'
+                              ? 'brand'
+                              : p.status === 'PENDING'
+                              ? 'warning'
+                              : 'neutral'
+                          }
+                        >
                           {p.status === 'COMPLETED'
                             ? t('paymentCompleted')
+                            : p.status === 'PENDING'
+                            ? locale === 'en'
+                              ? 'Under Review'
+                              : 'قيد المراجعة اليدوية'
                             : tEnums.has(`SubscriptionStatus.${p.status}` as any)
                               ? tEnums(`SubscriptionStatus.${p.status}` as any)
                               : p.status}

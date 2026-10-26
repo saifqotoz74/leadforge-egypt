@@ -108,6 +108,7 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "role" "UserRole" NOT NULL DEFAULT 'DEVELOPER',
     "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
+    "emailVerified" TIMESTAMP(3),
     "sessionsRevokedBefore" TIMESTAMP(3),
     "failedLoginAttempts" INTEGER NOT NULL DEFAULT 0,
     "lockedUntil" TIMESTAMP(3),
@@ -267,6 +268,7 @@ CREATE TABLE "Lead" (
     "fieldProvenance" JSONB,
     "fieldConflicts" JSONB,
     "isCanonical" BOOLEAN NOT NULL DEFAULT true,
+    "isMock" BOOLEAN NOT NULL DEFAULT false,
     "mergedIntoLeadId" TEXT,
     "qualityScore" INTEGER NOT NULL DEFAULT 50,
     "qualityStatus" "QualityStatus" NOT NULL DEFAULT 'MEDIUM',
@@ -1035,6 +1037,20 @@ CREATE TABLE "DailyMetricSnapshot" (
     CONSTRAINT "DailyMetricSnapshot_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "EmailVerificationToken" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "consumedAt" TIMESTAMP(3),
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "EmailVerificationToken_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -1181,6 +1197,21 @@ CREATE INDEX "Lead_availableForClaim_idx" ON "Lead"("availableForClaim");
 
 -- CreateIndex
 CREATE INDEX "Lead_exclusiveClaimedAt_idx" ON "Lead"("exclusiveClaimedAt");
+
+-- CreateIndex
+CREATE INDEX "Lead_score_createdAt_idx" ON "Lead"("score" DESC, "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "Lead_status_score_idx" ON "Lead"("status", "score" DESC);
+
+-- CreateIndex
+CREATE INDEX "Lead_saleabilityStatus_isCanonical_score_idx" ON "Lead"("saleabilityStatus", "isCanonical", "score" DESC);
+
+-- CreateIndex
+CREATE INDEX "Lead_isMock_idx" ON "Lead"("isMock");
+
+-- CreateIndex
+CREATE INDEX "Lead_isMock_saleabilityStatus_idx" ON "Lead"("isMock", "saleabilityStatus");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "LeadSource_name_key" ON "LeadSource"("name");
@@ -1716,6 +1747,18 @@ CREATE INDEX "DailyMetricSnapshot_createdAt_idx" ON "DailyMetricSnapshot"("creat
 -- CreateIndex
 CREATE UNIQUE INDEX "DailyMetricSnapshot_dateKey_metric_dimension_dimensionValue_key" ON "DailyMetricSnapshot"("dateKey", "metric", "dimension", "dimensionValue", "version");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "EmailVerificationToken_tokenHash_key" ON "EmailVerificationToken"("tokenHash");
+
+-- CreateIndex
+CREATE INDEX "EmailVerificationToken_userId_idx" ON "EmailVerificationToken"("userId");
+
+-- CreateIndex
+CREATE INDEX "EmailVerificationToken_expiresAt_idx" ON "EmailVerificationToken"("expiresAt");
+
+-- CreateIndex
+CREATE INDEX "EmailVerificationToken_tokenHash_expiresAt_consumedAt_idx" ON "EmailVerificationToken"("tokenHash", "expiresAt", "consumedAt");
+
 -- AddForeignKey
 ALTER TABLE "DeveloperProfile" ADD CONSTRAINT "DeveloperProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -1862,4 +1905,7 @@ ALTER TABLE "CreditTransaction" ADD CONSTRAINT "CreditTransaction_claimId_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "RuleReviewCandidate" ADD CONSTRAINT "RuleReviewCandidate_reviewedBy_fkey" FOREIGN KEY ("reviewedBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EmailVerificationToken" ADD CONSTRAINT "EmailVerificationToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

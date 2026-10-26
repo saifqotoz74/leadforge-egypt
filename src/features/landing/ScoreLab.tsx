@@ -75,6 +75,7 @@ export function ScoreLab() {
             </span>
             <button
               type="button"
+              aria-pressed={inputs.preset === 'dental'}
               onClick={() => handlePreset('dental')}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-caption font-medium border transition-colors ${
                 inputs.preset === 'dental'
@@ -87,6 +88,7 @@ export function ScoreLab() {
             </button>
             <button
               type="button"
+              aria-pressed={inputs.preset === 'restaurant'}
               onClick={() => handlePreset('restaurant')}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-caption font-medium border transition-colors ${
                 inputs.preset === 'restaurant'
@@ -99,6 +101,7 @@ export function ScoreLab() {
             </button>
             <button
               type="button"
+              aria-pressed={inputs.preset === 'training'}
               onClick={() => handlePreset('training')}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-caption font-medium border transition-colors ${
                 inputs.preset === 'training'
@@ -123,7 +126,7 @@ export function ScoreLab() {
             {/* Switch: Has Website */}
             <div className="flex items-center justify-between gap-4">
               <div>
-                <label htmlFor="lab-has-website" className="text-body font-medium text-fg-primary block">
+                <label id="lab-has-website-label" htmlFor="lab-has-website" className="text-body font-medium text-fg-primary block">
                   {tLanding('scoreLabSwitchWebsite')}
                 </label>
                 <span className="text-caption text-fg-secondary">
@@ -135,6 +138,7 @@ export function ScoreLab() {
                 type="button"
                 role="switch"
                 aria-checked={inputs.hasWebsite}
+                aria-labelledby="lab-has-website-label"
                 aria-label={tLanding('scoreLabSwitchWebsite')}
                 onClick={() =>
                   setInputs((prev) => ({
@@ -238,6 +242,10 @@ export function ScoreLab() {
                 max="120"
                 value={inputs.daysSinceVerification}
                 aria-label={tLanding('scoreLabVerification')}
+                aria-valuemin={1}
+                aria-valuemax={120}
+                aria-valuenow={inputs.daysSinceVerification}
+                aria-valuetext={`${fmtNumber(inputs.daysSinceVerification, locale)} ${tLanding('scoreLabDays')}`}
                 onChange={(e) =>
                   setInputs((prev) => ({
                     ...prev,

@@ -81,6 +81,7 @@ describe('Phase 6 — Production-Grade Feedback & Outcome Engine', () => {
         passwordHash: 'hashed',
         role: 'DEVELOPER',
         status: 'ACTIVE',
+        emailVerified: new Date(),
         developerProfile: {
           create: {
             companyName: `Studio ${emailPrefix}`,

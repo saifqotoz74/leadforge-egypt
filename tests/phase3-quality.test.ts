@@ -588,6 +588,7 @@ describe('PHASE 3 — Lead Quality + Freshness + Verification Engine', () => {
           name: 'Dev Quality Tester',
           email: 'dev-quality@leadforge.eg',
           passwordHash,
+          emailVerified: new Date(),
           role: 'DEVELOPER',
           developerProfile: {
             create: {

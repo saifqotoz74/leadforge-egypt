@@ -17,9 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: null,
-    title: {
-      absolute: pageTitle,
-    },
+    title,
     description,
     alternates: {
       canonical: canonicalUrl,

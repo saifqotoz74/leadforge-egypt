@@ -219,11 +219,11 @@ export function WhatsAppOutreachModal({
       size="lg"
       title={
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-brand-soft text-brand flex items-center justify-center shrink-0">
             <MessageCircle className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-title font-semibold text-fg-primary">
+            <h3 className="text-h3 font-semibold text-fg-primary">
               مركز التواصل عبر واتساب والمتابعة
             </h3>
             <p className="text-caption text-fg-secondary">
@@ -262,7 +262,7 @@ export function WhatsAppOutreachModal({
     >
       <div className="space-y-4 py-1 text-start">
         {/* Contact info & follow-up status bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg bg-surface-subtle border border-line">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg bg-subtle border border-line">
           <div className="flex items-center gap-2">
             <Phone className="w-4 h-4 text-fg-secondary" />
             <span className="text-caption text-fg-secondary">رقم الهاتف:</span>
@@ -286,7 +286,7 @@ export function WhatsAppOutreachModal({
         </div>
 
         {errorMsg && (
-          <div className="p-3 rounded-lg bg-danger/10 text-danger-text text-caption border border-danger/20">
+          <div className="p-3 rounded-lg bg-danger-bg text-danger-text text-caption border border-danger-border">
             {errorMsg}
           </div>
         )}
@@ -296,9 +296,9 @@ export function WhatsAppOutreachModal({
           <button
             type="button"
             onClick={() => handleStageChange('INITIAL')}
-            className={`pb-2.5 px-3 text-caption font-semibold transition-colors border-b-2 ${
+            className={`pb-2.5 px-3 text-caption font-semibold transition-colors border-b-2 border-line ${
               pitchStage === 'INITIAL'
-                ? 'border-brand text-brand'
+                ? 'border-line-brand text-brand'
                 : 'border-transparent text-fg-muted hover:text-fg-secondary'
             }`}
           >
@@ -307,9 +307,9 @@ export function WhatsAppOutreachModal({
           <button
             type="button"
             onClick={() => handleStageChange('FOLLOW_UP')}
-            className={`pb-2.5 px-3 text-caption font-semibold transition-colors border-b-2 flex items-center gap-1.5 ${
+            className={`pb-2.5 px-3 text-caption font-semibold transition-colors border-b-2 border-line flex items-center gap-1.5 ${
               pitchStage === 'FOLLOW_UP'
-                ? 'border-brand text-brand'
+                ? 'border-line-brand text-brand'
                 : 'border-transparent text-fg-muted hover:text-fg-secondary'
             }`}
           >
@@ -329,7 +329,7 @@ export function WhatsAppOutreachModal({
                 </span>
               </div>
 
-              <div className="inline-flex rounded-lg border border-line p-0.5 bg-surface-subtle">
+              <div className="inline-flex rounded-lg border border-line p-0.5 bg-subtle">
                 <button
                   type="button"
                   onClick={() => setOutreachMode('PERMISSION_BASED')}
@@ -373,7 +373,7 @@ export function WhatsAppOutreachModal({
                       value={portfolioUrl}
                       onChange={(e) => setPortfolioUrl(e.target.value)}
                       placeholder="https://yourportfolio.com"
-                      className="w-full ps-9 pe-3 py-1.5 rounded-lg border border-line bg-surface text-caption text-fg-primary focus:outline-none focus:ring-1 focus:ring-brand font-mono"
+                      className="w-full ps-9 pe-3 py-1.5 rounded-lg border border-line bg-surface text-caption text-fg-primary focus:outline-none focus:ring-1 focus:ring-brand"
                     />
                   </div>
                 </div>
@@ -398,8 +398,8 @@ export function WhatsAppOutreachModal({
                     onClick={() => handleSelectTemplate(tmpl)}
                     className={`p-2.5 rounded-lg border text-start transition-colors ${
                       isSelected
-                        ? 'border-brand bg-brand/5 text-fg-primary font-semibold shadow-xs'
-                        : 'border-line bg-surface hover:bg-surface-subtle text-fg-secondary'
+                        ? 'border-brand bg-brand-soft text-fg-primary font-semibold shadow-xs'
+                        : 'border-line bg-surface hover:bg-subtle text-fg-secondary'
                     }`}
                   >
                     <div className="text-caption font-medium line-clamp-1">{tmpl.title}</div>
@@ -413,7 +413,7 @@ export function WhatsAppOutreachModal({
 
         {/* Selected Template Description */}
         {selectedTemplate && (
-          <div className="p-2.5 rounded-md bg-surface-subtle border border-line text-caption text-fg-secondary leading-relaxed">
+          <div className="p-2.5 rounded-md bg-subtle border border-line text-caption text-fg-secondary leading-relaxed">
             {selectedTemplate.description}
           </div>
         )}

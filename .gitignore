@@ -7,8 +7,10 @@ build
 .env.production
 .env.staging
 .vercel
-.pgdata
-.pgdata-test*
+.pgdata*
+test-results/
+playwright-report/
+.agents/teamwork/
 *.tsbuildinfo
 next-env.d.ts
 coverage

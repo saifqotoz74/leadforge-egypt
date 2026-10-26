@@ -17,6 +17,7 @@ import {
   TableCell,
 } from '@/components/ui/Table';
 import { fmtNumber, formatEGP, fmtDate, formatRelativeTime } from '@/lib/format';
+import { getCachedAdminData, setCachedAdminData, invalidateAdminCache } from '@/lib/admin-cache';
 import {
   CheckCircle2,
   XCircle,
@@ -74,13 +75,26 @@ export default function AdminPaymentsPage() {
   const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const loadPayments = useCallback(async () => {
-    setLoading(true);
+    const cacheKey = 'admin_payments';
+    const cached = getCachedAdminData<{ pendingPayments: PaymentItem[]; recentPayments: PaymentItem[] }>(cacheKey);
+    if (cached) {
+      setPendingPayments(cached.pendingPayments);
+      setRecentPayments(cached.recentPayments);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    const requestStartedAt = Date.now();
     try {
       const res = await fetch('/api/admin/payments');
       if (res.ok) {
         const data = await res.json();
-        setPendingPayments(data.pendingPayments || []);
-        setRecentPayments(data.recentPayments || []);
+        const freshPending = data.pendingPayments || [];
+        const freshRecent = data.recentPayments || [];
+        setPendingPayments(freshPending);
+        setRecentPayments(freshRecent);
+        setCachedAdminData(cacheKey, { pendingPayments: freshPending, recentPayments: freshRecent }, { requestStartedAt });
       }
     } finally {
       setLoading(false);
@@ -103,6 +117,7 @@ export default function AdminPaymentsPage() {
       if (!res.ok) throw new Error(data.error || 'تعذر تأكيد الدفع.');
 
       setActionMsg({ type: 'success', text: data.message || 'تمت الموافقة وتفعيل الباقة ومسح الإيصال بنجاح.' });
+      invalidateAdminCache('admin_payments');
       loadPayments();
     } catch (err: any) {
       setActionMsg({ type: 'error', text: err.message || 'حدث خطأ أثناء الموافقة.' });
@@ -124,6 +139,7 @@ export default function AdminPaymentsPage() {
       if (!res.ok) throw new Error(data.error || 'تعذر رفض المعاملة.');
 
       setActionMsg({ type: 'success', text: data.message || 'تم رفض المعاملة ومسح الإيصال بنجاح.' });
+      invalidateAdminCache('admin_payments');
       loadPayments();
     } catch (err: any) {
       setActionMsg({ type: 'error', text: err.message || 'حدث خطأ أثناء الرفض.' });
@@ -150,14 +166,14 @@ export default function AdminPaymentsPage() {
           <div
             className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-body-sm font-medium ${
               actionMsg.type === 'success'
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                : 'bg-rose-50 border-rose-200 text-rose-800'
+                ? 'bg-brand-soft border-line-brand text-brand'
+                : 'bg-danger-bg border-danger-border text-danger-text'
             }`}
           >
             {actionMsg.type === 'success' ? (
-              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <Check className="w-4 h-4 text-brand shrink-0" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <AlertCircle className="w-4 h-4 text-danger-text shrink-0" />
             )}
             <span>{actionMsg.text}</span>
           </div>
@@ -170,7 +186,7 @@ export default function AdminPaymentsPage() {
               الطلبات المعلقة قيد المراجعة
             </span>
             <div className="mt-1 flex items-baseline gap-2">
-              <span className="text-h2 font-bold tabular-nums text-amber-600">
+              <span className="text-h2 font-bold tabular-nums text-warning-text">
                 {fmtNumber(pendingPayments.length)}
               </span>
               <span className="text-caption text-fg-muted">طلب تحويل</span>
@@ -182,7 +198,7 @@ export default function AdminPaymentsPage() {
               رقم استقبال التحويلات
             </span>
             <div className="mt-1 flex items-baseline gap-2">
-              <span className="text-h3 font-bold font-mono text-fg-brand ltr-iso">
+              <span className="text-h3 font-bold text-fg-brand ltr-iso tabular-nums">
                 01229105279
               </span>
               <span className="text-caption text-fg-muted">(إنستاباي ومحافظ كاش)</span>
@@ -193,8 +209,8 @@ export default function AdminPaymentsPage() {
             <span className="text-caption text-fg-secondary font-medium block">
               سياسة الخصوصية والتخزين
             </span>
-            <div className="mt-1 flex items-center gap-2 text-teal-700 text-body-sm font-semibold">
-              <ShieldCheck className="w-5 h-5 text-teal-600" />
+            <div className="mt-1 flex items-center gap-2 text-fg-brand text-body-sm font-semibold">
+              <ShieldCheck className="w-5 h-5 text-fg-brand" />
               <span>مسح تلقائي فوري للإيصال فور البت في الطلب</span>
             </div>
           </Card>
@@ -205,13 +221,13 @@ export default function AdminPaymentsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-h3 text-fg-primary">
-                <Clock className="w-5 h-5 text-amber-500" />
+                <Clock className="w-5 h-5 text-warning-text" />
                 <span>طلبات التحويل المعلقة ({fmtNumber(pendingPayments.length)})</span>
               </CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {loading && pendingPayments.length === 0 ? (
               <div className="space-y-3 p-4">
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-10 w-full" />
@@ -265,7 +281,7 @@ export default function AdminPaymentsPage() {
                           <span className="text-caption text-fg-secondary block">
                             {formatRelativeTime(p.createdAt)}
                           </span>
-                          <span className="text-caption-xs text-fg-muted">
+                          <span className="text-caption text-fg-muted">
                             {fmtDate(p.createdAt)}
                           </span>
                         </TableCell>
@@ -289,7 +305,7 @@ export default function AdminPaymentsPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <span className="text-caption font-mono ltr-iso">
+                          <span className="text-caption tabular-nums ltr-iso">
                             {p.metadata?.senderPhone || 'غير محدد'}
                           </span>
                         </TableCell>
@@ -309,7 +325,7 @@ export default function AdminPaymentsPage() {
                               size="sm"
                               disabled={isProcessing}
                               onClick={() => handleReject(p.id)}
-                              className="text-rose-600 hover:bg-rose-50"
+                              className="text-danger-text hover:bg-danger-bg"
                               startIcon={<XCircle className="w-4 h-4" />}
                             >
                               رفض ❌
@@ -364,8 +380,8 @@ export default function AdminPaymentsPage() {
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-caption font-semibold ${
                               isSuccess
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-rose-100 text-rose-800'
+                                ? 'bg-brand-soft text-brand'
+                                : 'bg-danger-bg text-danger-text'
                             }`}
                           >
                             {isSuccess ? 'تم التفعيل بنجاح' : 'مرفوض'}
@@ -375,7 +391,7 @@ export default function AdminPaymentsPage() {
                           {fmtDate(p.createdAt)}
                         </TableCell>
                         <TableCell>
-                          <span className="text-caption text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                          <span className="text-caption text-fg-brand bg-brand-soft px-2 py-0.5 rounded border border-line-brand">
                             🔒 تم مسح الإيصال لحماية الخصوصية
                           </span>
                         </TableCell>
@@ -401,11 +417,15 @@ export default function AdminPaymentsPage() {
           }
         >
           {selectedReceipt && (
-            <div className="flex flex-col items-center justify-center p-2 bg-stone-900 rounded-xl overflow-hidden max-h-[70vh]">
+            <div
+              className="flex flex-col items-center justify-center p-2 bg-inverse rounded-xl overflow-hidden"
+              style={{ maxHeight: '70vh' }} /* design-allow: clamp-display */
+            >
               <img
                 src={selectedReceipt.image}
                 alt="إيصال التحويل الكامل"
-                className="max-h-[65vh] w-auto object-contain rounded-lg shadow-lg"
+                className="w-auto object-contain rounded-lg shadow-lg"
+                style={{ maxHeight: '65vh' }} /* design-allow: clamp-display */
               />
             </div>
           )}

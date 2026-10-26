@@ -5,6 +5,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { createInMemoryTestDb, setPrismaClientForTesting } from '@/lib/db';
 import {
   hashPassword,
+  invalidateUserSessionCache,
   resetRevokedSessionsForTesting,
   revokeAllSessions,
   revokeAllSessionsForUser,
@@ -185,6 +186,7 @@ describe('PHASE 10 — PRODUCTION HARDENING, DEPLOYMENT & LAUNCH VERIFICATION SU
         email: 'dev.alpha@agency-eg.com',
         name: 'Alpha Web Studio',
         passwordHash,
+        emailVerified: new Date(),
         role: 'DEVELOPER',
         status: 'ACTIVE',
         developerProfile: {
@@ -253,6 +255,7 @@ describe('PHASE 10 — PRODUCTION HARDENING, DEPLOYMENT & LAUNCH VERIFICATION SU
         email: 'dev.beta@agency-eg.com',
         name: 'Beta Digital Lab',
         passwordHash,
+        emailVerified: new Date(),
         role: 'DEVELOPER',
         status: 'ACTIVE',
         developerProfile: {
@@ -1333,7 +1336,7 @@ describe('PHASE 10 — PRODUCTION HARDENING, DEPLOYMENT & LAUNCH VERIFICATION SU
       );
       expect(subRes.status).toBe(200);
       const subData = await subRes.json();
-      expect(subData.subscription.credits).toBe(50);
+      expect(subData.subscription.credits).toBe(53); // FIN-03: preserves 3 registration credits + 50 new credits
 
       // Ingest a fresh high-quality Dental lead in Cairo
       await runIngestionPipeline({
@@ -1385,6 +1388,13 @@ describe('PHASE 10 — PRODUCTION HARDENING, DEPLOYMENT & LAUNCH VERIFICATION SU
       expect(detailBefore.lead.isClaimedByMe).toBe(false);
       expect(detailBefore.lead.phone).toContain('****');
 
+      // Verifies email address before claiming leads (SEC-03)
+      await prisma.user.update({
+        where: { id: e2eUserId },
+        data: { emailVerified: new Date() },
+      });
+      invalidateUserSessionCache(e2eUserId);
+
       // Steps 12 & 13: Claims lead & spends credits
       const claimRes = await claimLeadRoute(
         makeRequest(`http://localhost:3000/api/leads/${targetLead.id}/claim`, {
@@ -1401,7 +1411,7 @@ describe('PHASE 10 — PRODUCTION HARDENING, DEPLOYMENT & LAUNCH VERIFICATION SU
       const claimData = await claimRes.json();
       expect(claimData.success).toBe(true);
       expect(claimData.lead.phone).toContain('1022334455');
-      expect(claimData.remainingBalance).toBeLessThan(50);
+      expect(claimData.remainingBalance).toBeLessThan(53);
 
       // Steps 14 & 15: Contacts business & records contact attempt
       const attemptRes = await contactAttemptPost(
@@ -1639,6 +1649,7 @@ describe('PHASE 10 — PRODUCTION HARDENING, DEPLOYMENT & LAUNCH VERIFICATION SU
           email: 'suspended.dev@agency-eg.com',
           name: 'Suspended Dev',
           passwordHash: await hashPassword('Pass@12345'),
+          emailVerified: new Date(),
           role: 'DEVELOPER',
           status: 'SUSPENDED',
           creditAccount: { create: { balance: 100 } },
@@ -1669,6 +1680,7 @@ describe('PHASE 10 — PRODUCTION HARDENING, DEPLOYMENT & LAUNCH VERIFICATION SU
           email: 'expired.sub@agency-eg.com',
           name: 'Expired Sub Dev',
           passwordHash: await hashPassword('Pass@12345'),
+          emailVerified: new Date(),
           role: 'DEVELOPER',
           status: 'ACTIVE',
           developerProfile: {
@@ -1704,6 +1716,7 @@ describe('PHASE 10 — PRODUCTION HARDENING, DEPLOYMENT & LAUNCH VERIFICATION SU
           email: 'broke.dev@agency-eg.com',
           name: 'Zero Credit Dev',
           passwordHash: await hashPassword('Pass@12345'),
+          emailVerified: new Date(),
           role: 'DEVELOPER',
           status: 'ACTIVE',
           developerProfile: {
@@ -2057,6 +2070,7 @@ describe('PHASE 10 — PRODUCTION HARDENING, DEPLOYMENT & LAUNCH VERIFICATION SU
             email: `load.dev.${i}@agency-eg.com`,
             name: `Load Tester ${i}`,
             passwordHash: 'hash',
+            emailVerified: new Date(),
             role: 'DEVELOPER',
             status: 'ACTIVE',
             developerProfile: {

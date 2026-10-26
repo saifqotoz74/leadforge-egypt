@@ -1,10 +1,21 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { spawnSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
+
+// If executed via node without tsx, respawn with tsx to support TypeScript imports
+if (!process.env.TSX_ACTIVE && !process.execArgv.some(arg => arg.includes('tsx'))) {
+  const result = spawnSync('npx', ['tsx', `"${__filename}"`], {
+    stdio: 'inherit',
+    env: { ...process.env, TSX_ACTIVE: '1' },
+    shell: true,
+  });
+  process.exit(result.status ?? 0);
+}
 
 async function verify() {
   console.log('--- Verifying Phase 1 Technical SEO ---');
@@ -15,26 +26,29 @@ async function verify() {
   const robotsData = robotsFn();
   console.log('[robots.txt Check]:', JSON.stringify(robotsData, null, 2));
 
-  if (!robotsData.sitemap?.includes('https://leads4dev.com/sitemap.xml')) {
+  if (!robotsData.sitemap?.includes('https://www.leads4dev.com/sitemap.xml')) {
     throw new Error('robots.txt sitemap reference missing or incorrect');
   }
-  if (robotsData.host !== 'leads4dev.com') {
-    throw new Error('robots.txt host directive should be hostname leads4dev.com');
+  if (robotsData.host !== 'www.leads4dev.com') {
+    throw new Error('robots.txt host directive should be hostname www.leads4dev.com');
   }
 
   // 2. Verify sitemap.ts
   const sitemapModule = await import('../src/app/sitemap.ts');
   const sitemapFn = sitemapModule.default;
-  const sitemapData = sitemapFn();
+  const sitemapData = await sitemapFn();
   console.log('[sitemap.xml Check count]:', sitemapData.length);
   console.log('[sitemap.xml Entries]:', JSON.stringify(sitemapData, null, 2));
 
   if (sitemapData.length < 3) {
     throw new Error('Expected at least 3 public pages in sitemap');
   }
-  const rootEntry = sitemapData.find(e => e.url === 'https://leads4dev.com');
-  if (rootEntry?.alternates?.languages?.['en'] !== 'https://leads4dev.com/?locale=en') {
-    throw new Error('sitemap root English alternate must be https://leads4dev.com/?locale=en');
+  const rootEntry = sitemapData.find(e => e.url === 'https://www.leads4dev.com');
+  if (!rootEntry) {
+    throw new Error('sitemap root entry https://www.leads4dev.com missing');
+  }
+  if (rootEntry?.alternates?.languages?.['en'] !== 'https://www.leads4dev.com/?locale=en') {
+    throw new Error('sitemap root English alternate must be https://www.leads4dev.com/?locale=en');
   }
 
   // 3. Verify next.config.mjs redirects and headers
@@ -57,15 +71,21 @@ async function verify() {
     throw new Error('X-Robots-Tag noindex headers missing in next.config.mjs');
   }
 
-  // 4. Verify no www occurrences
+  // 4. Verify www occurrences and no apex https://leads4dev.com
   const emailTemplates = fs.readFileSync(path.join(root, 'src/lib/email-templates.ts'), 'utf8');
-  if (emailTemplates.includes('www.leads4dev.com')) {
-    throw new Error('Found www.leads4dev.com in email-templates.ts');
+  if (!emailTemplates.includes('www.leads4dev.com')) {
+    throw new Error('Expected www.leads4dev.com in email-templates.ts');
+  }
+  if (emailTemplates.includes('https://leads4dev.com')) {
+    throw new Error('Found non-www https://leads4dev.com in email-templates.ts');
   }
 
   const forgotPassword = fs.readFileSync(path.join(root, 'src/app/api/auth/forgot-password/route.ts'), 'utf8');
-  if (forgotPassword.includes('www.leads4dev.com')) {
-    throw new Error('Found www.leads4dev.com in forgot-password/route.ts');
+  if (!forgotPassword.includes('www.leads4dev.com')) {
+    throw new Error('Expected www.leads4dev.com in forgot-password/route.ts');
+  }
+  if (forgotPassword.includes('https://leads4dev.com')) {
+    throw new Error('Found non-www https://leads4dev.com in forgot-password/route.ts');
   }
 
   // 5. Verify i18n
@@ -109,6 +129,25 @@ async function verify() {
   if (!homePageContent.includes('metadataBase: null')) {
     throw new Error('HomePage metadataBase must be null to prevent Next.js from dropping ?locale=en on root hreflang');
   }
+
+  // 9. Verify every public page defines its own canonical in alternates
+  const publicPages = [
+    'src/app/page.tsx',
+    'src/app/pricing/page.tsx',
+    'src/app/leads/page.tsx',
+    'src/app/blog/page.tsx',
+    'src/app/terms/page.tsx',
+    'src/app/privacy/page.tsx',
+    'src/app/blog/[slug]/page.tsx',
+    'src/app/leads/[id]/[category]/page.tsx',
+  ];
+  for (const pageFile of publicPages) {
+    const pageContent = fs.readFileSync(path.join(root, pageFile), 'utf8');
+    if (!pageContent.includes('alternates:') || !pageContent.includes('canonical:')) {
+      throw new Error(`Public page ${pageFile} must define its own canonical in alternates`);
+    }
+  }
+  console.log('[Public Pages Canonical Check]: All public pages define distinct canonical alternates');
 
   console.log('\n--- ALL PHASE 1 CHECKS PASSED SUCCESSFULLY ---');
 }

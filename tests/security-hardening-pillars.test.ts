@@ -136,8 +136,16 @@ describe('Security Hardening Pillars Suite', () => {
         );
       } finally {
         (process.env as Record<string, string | undefined>).NODE_ENV = origEnv;
-        process.env.AUTH_SECRET = origAuth;
-        process.env.JWT_SECRET = origJwt;
+        if (origAuth === undefined) {
+          delete process.env.AUTH_SECRET;
+        } else {
+          process.env.AUTH_SECRET = origAuth;
+        }
+        if (origJwt === undefined) {
+          delete process.env.JWT_SECRET;
+        } else {
+          process.env.JWT_SECRET = origJwt;
+        }
       }
     });
 

@@ -1434,6 +1434,55 @@ ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "failedLoginAttempts" INTEGER NOT NU
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "lockedUntil" TIMESTAMP(3);
 `;
 
+export const LEAD_MOCK_SEPARATION_SCHEMA_UPGRADE_SQL = `
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE (table_name = 'Lead' OR table_name = 'lead') AND (column_name = 'isMock' OR column_name = 'ismock')
+  ) THEN
+    ALTER TABLE "Lead" ADD COLUMN "isMock" BOOLEAN NOT NULL DEFAULT true;
+    ALTER TABLE "Lead" ALTER COLUMN "isMock" SET DEFAULT false;
+  END IF;
+EXCEPTION
+  WHEN others THEN null;
+END $$;
+ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "isMock" BOOLEAN NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS "Lead_isMock_idx" ON "Lead"("isMock");
+CREATE INDEX IF NOT EXISTS "Lead_isMock_saleabilityStatus_idx" ON "Lead"("isMock", "saleabilityStatus");
+`;
+
+export const USER_EMAIL_VERIFIED_SCHEMA_UPGRADE_SQL = `
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "emailVerified" TIMESTAMP(3);
+ALTER TABLE "User" ALTER COLUMN "emailVerified" DROP DEFAULT;
+`;
+
+export const REFUND_REPORT_UNIQUE_SCHEMA_UPGRADE_SQL = `
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_lead_feedback_unique_claim_refund_report"
+ON "LeadFeedback" ("claimId")
+WHERE "type" = 'REFUND_REPORT' AND "claimId" IS NOT NULL;
+`;
+
+export const EMAIL_VERIFICATION_TOKENS_SCHEMA_UPGRADE_SQL = `
+CREATE TABLE IF NOT EXISTS "EmailVerificationToken" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "consumedAt" TIMESTAMP(3),
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "EmailVerificationToken_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "EmailVerificationToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "EmailVerificationToken_tokenHash_key" ON "EmailVerificationToken"("tokenHash");
+CREATE INDEX IF NOT EXISTS "EmailVerificationToken_userId_idx" ON "EmailVerificationToken"("userId");
+CREATE INDEX IF NOT EXISTS "EmailVerificationToken_expiresAt_idx" ON "EmailVerificationToken"("expiresAt");
+CREATE INDEX IF NOT EXISTS "EmailVerificationToken_lookup_idx" ON "EmailVerificationToken"("tokenHash", "expiresAt", "consumedAt");
+`;
+
 /**
  * Ensures the PostgreSQL schema is applied to the active PGlite instance if tables do not exist yet,
  * and applies incremental Phase 1–8 schema upgrades if tables already exist.
@@ -1464,6 +1513,10 @@ export async function ensureDbReady(): Promise<void> {
         await activePg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
         await activePg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
         await activePg.exec(SECURITY_HARDENING_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(LEAD_MOCK_SEPARATION_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(USER_EMAIL_VERIFIED_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(REFUND_REPORT_UNIQUE_SCHEMA_UPGRADE_SQL);
+        await activePg.exec(EMAIL_VERIFICATION_TOKENS_SCHEMA_UPGRADE_SQL);
       }
     } catch (err: any) {
       if (activePg) {
@@ -1476,6 +1529,10 @@ export async function ensureDbReady(): Promise<void> {
           await activePg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
           await activePg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
           await activePg.exec(SECURITY_HARDENING_SCHEMA_UPGRADE_SQL);
+          await activePg.exec(LEAD_MOCK_SEPARATION_SCHEMA_UPGRADE_SQL);
+          await activePg.exec(USER_EMAIL_VERIFIED_SCHEMA_UPGRADE_SQL);
+          await activePg.exec(REFUND_REPORT_UNIQUE_SCHEMA_UPGRADE_SQL);
+          await activePg.exec(EMAIL_VERIFICATION_TOKENS_SCHEMA_UPGRADE_SQL);
         }
       } else {
         console.error('[DB] ensureDbReady connection probe error:', err?.message || err);
@@ -1507,6 +1564,10 @@ export async function createInMemoryTestDb(): Promise<{
   await memPg.exec(PHASE7_SCHEMA_UPGRADE_SQL);
   await memPg.exec(PHASE8_SCHEMA_UPGRADE_SQL);
   await memPg.exec(SECURITY_HARDENING_SCHEMA_UPGRADE_SQL);
+  await memPg.exec(LEAD_MOCK_SEPARATION_SCHEMA_UPGRADE_SQL);
+  await memPg.exec(USER_EMAIL_VERIFIED_SCHEMA_UPGRADE_SQL);
+  await memPg.exec(REFUND_REPORT_UNIQUE_SCHEMA_UPGRADE_SQL);
+  await memPg.exec(EMAIL_VERIFICATION_TOKENS_SCHEMA_UPGRADE_SQL);
 
   const adapter = new PrismaPGlite(memPg) as unknown as Prisma.PrismaClientOptions['adapter'];
   const testPrisma = new PrismaClient({ adapter });

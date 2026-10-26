@@ -10,6 +10,7 @@ export interface QuickFilter {
   id: string;
   label: string;
   isActive: boolean;
+  icon?: React.ReactNode;
 }
 
 export interface FilterBarProps {
@@ -83,6 +84,7 @@ export function FilterBar({
                 : 'bg-surface text-fg-secondary border-line hover:border-line-strong hover:text-fg-primary'
             }`}
           >
+            {qf.icon}
             <span>{qf.label}</span>
             {qf.isActive && <X className="w-3 h-3" />}
           </button>

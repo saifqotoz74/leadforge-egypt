@@ -18,6 +18,8 @@ export type EngagementErrorCode =
   | 'FORBIDDEN'
   | 'TERMINAL_STATUS'
   | 'INVALID_TIMESTAMP'
+  | 'WAIT_PERIOD_REQUIRED'
+  | 'TRIAL_REFUND_LIMIT_EXCEEDED'
   | 'RATE_LIMITED';
 
 export class EngagementEngineError extends Error {

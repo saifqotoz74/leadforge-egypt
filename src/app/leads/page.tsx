@@ -86,6 +86,7 @@ export default async function LeadDiscoveryPage({
     getCachedPlatformStats(),
     prisma.lead.findMany({
       where: {
+        isMock: false,
         isCanonical: true,
         status: 'AVAILABLE',
       },
@@ -102,6 +103,7 @@ export default async function LeadDiscoveryPage({
 
     const count = await prisma.lead.count({
       where: {
+        isMock: false,
         isCanonical: true,
         status: 'AVAILABLE',
         city: { in: city.dbValues },

@@ -3,6 +3,7 @@ import { FeedbackCategory, FeedbackReason } from '@prisma/client';
 import { z } from 'zod';
 import { AuthError, getClientIp, requireAuth, verifyCsrfOrigin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { ClaimEngineError, validateRefundReportGuardrails } from '@/lib/claims';
 import { EngagementEngineError, submitLeadFeedback } from '@/lib/feedback';
 import { LeadServiceError, submitDeveloperLeadFeedback } from '@/lib/lead-service';
 
@@ -83,6 +84,37 @@ export async function POST(
       body.sourceType !== undefined ||
       Boolean(idempotencyKey);
 
+    // If client is explicitly requesting a refund dispute / report, enforce FIN-04 guardrails
+    if (body.requestRefund === true || body.type === 'REFUND_REPORT') {
+      const claim = await prisma.leadClaim.findUnique({
+        where: {
+          leadId_userId: {
+            leadId: params.id,
+            userId: user.id,
+          },
+        },
+        include: {
+          user: {
+            include: { subscription: { include: { plan: true } } },
+          },
+        },
+      });
+
+      if (!claim) {
+        return NextResponse.json(
+          { error: 'يجب الحصول على الفرصة أولاً قبل تقديم طلب استرداد.', code: 'CLAIM_REQUIRED' },
+          { status: 403 }
+        );
+      }
+
+      await validateRefundReportGuardrails({
+        claim,
+        user: claim.user,
+        now: new Date(),
+        prismaClient: prisma,
+      });
+    }
+
     if (isStructuredPhase6Payload) {
       const result = await submitLeadFeedback({
         leadId: params.id,
@@ -134,6 +166,12 @@ export async function POST(
       );
     }
     if (err instanceof EngagementEngineError) {
+      return NextResponse.json(
+        { error: err.message, code: err.code, details: err.details },
+        { status: err.statusCode }
+      );
+    }
+    if (err instanceof ClaimEngineError) {
       return NextResponse.json(
         { error: err.message, code: err.code, details: err.details },
         { status: err.statusCode }

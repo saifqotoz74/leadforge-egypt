@@ -47,6 +47,7 @@ export interface EvaluateDeveloperLeadMatchOptions {
   subscription?: DeveloperSubscriptionInput | null;
   userStatus?: string;
   activeClaimsCount?: number;
+  locale?: string;
 }
 
 /**
@@ -103,6 +104,8 @@ export function evaluateDeveloperLeadMatch(
       evalOpts
     );
 
+    const isEn = options?.locale === 'en';
+
     if (!defaultResult.eligible) {
       return {
         isMatch: false,
@@ -111,7 +114,9 @@ export function evaluateDeveloperLeadMatch(
         matchStrength: 0,
         matchVersion: defaultResult.matchVersion,
         matchedCriteria: [],
-        unmatchedCriteria: defaultResult.hardFailures.map((hf) => hf.reasonAr || hf.reason),
+        unmatchedCriteria: defaultResult.hardFailures.map((hf) =>
+          isEn ? hf.reason || hf.reasonAr : hf.reasonAr || hf.reason
+        ),
         matchedCriteriaDetails: [],
         failedCriteriaDetails: defaultResult.failedCriteria,
         hardFailures: defaultResult.hardFailures,
@@ -127,7 +132,11 @@ export function evaluateDeveloperLeadMatch(
       matchPercentage: 100,
       matchStrength: 100,
       matchVersion: defaultResult.matchVersion,
-      matchedCriteria: ['الوضع الافتراضي (لم يتم تخصيص تفضيلات محددة)'],
+      matchedCriteria: [
+        isEn
+          ? 'Default mode (no specific preferences defined)'
+          : 'الوضع الافتراضي (لم يتم تخصيص تفضيلات محددة)',
+      ],
       unmatchedCriteria: [],
       matchedCriteriaDetails: defaultResult.matchedCriteria,
       failedCriteriaDetails: defaultResult.failedCriteria,
@@ -137,6 +146,8 @@ export function evaluateDeveloperLeadMatch(
       fullMatchResult: defaultResult,
     };
   }
+
+  const isEn = options?.locale === 'en';
 
   // Check if lead has a governorate/city contradiction in Egypt taxonomy
   const locValidation =
@@ -168,7 +179,9 @@ export function evaluateDeveloperLeadMatch(
 
   if (locValidation.hasLocationMismatch && result.eligible) {
     // Ensure location contradiction is surfaced
-    const mismatchMsg = `عدم تطابق الموقع الجغرافي (${lead.city} / ${lead.governorate})`;
+    const mismatchMsg = isEn
+      ? `Location mismatch (${lead.city} / ${lead.governorate})`
+      : `عدم تطابق الموقع الجغرافي (${lead.city} / ${lead.governorate})`;
     return {
       isMatch: false,
       eligible: false,
@@ -185,7 +198,7 @@ export function evaluateDeveloperLeadMatch(
           subCode: 'LOCATION_NOT_SUPPORTED',
           category: 'LOCATION',
           reason: `Lead location has governorate/city contradiction (${lead.city} / ${lead.governorate}).`,
-          reasonAr: mismatchMsg,
+          reasonAr: `عدم تطابق الموقع الجغرافي (${lead.city} / ${lead.governorate})`,
         },
       ],
       warnings: result.warnings,
@@ -206,8 +219,12 @@ export function evaluateDeveloperLeadMatch(
     matchPercentage: result.matchStrength,
     matchStrength: result.matchStrength,
     matchVersion: result.matchVersion,
-    matchedCriteria: result.matchedCriteria.map((c) => c.reasonAr || c.reason),
-    unmatchedCriteria: result.hardFailures.map((hf) => hf.reasonAr || hf.reason),
+    matchedCriteria: result.matchedCriteria.map((c) =>
+      isEn ? c.reason || c.reasonAr : c.reasonAr || c.reason
+    ),
+    unmatchedCriteria: result.hardFailures.map((hf) =>
+      isEn ? hf.reason || hf.reasonAr : hf.reasonAr || hf.reason
+    ),
     matchedCriteriaDetails: result.matchedCriteria,
     failedCriteriaDetails: result.failedCriteria,
     hardFailures: result.hardFailures,

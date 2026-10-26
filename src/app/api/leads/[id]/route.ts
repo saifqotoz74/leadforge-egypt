@@ -98,6 +98,10 @@ export async function GET(
         config: matchingConfig,
         rules: matchingRules,
         matchVersion: matchingConfig.currentVersion,
+        locale:
+          req.headers.get('x-next-intl-locale') ||
+          req.cookies.get('NEXT_LOCALE')?.value ||
+          (req.headers.get('accept-language')?.startsWith('en') ? 'en' : 'ar'),
         subscription: user.subscription
           ? {
               id: user.subscription.id,

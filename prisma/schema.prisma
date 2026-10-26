@@ -231,6 +231,7 @@ model User {
   name             String
   role             UserRole           @default(DEVELOPER)
   status           UserStatus         @default(ACTIVE)
+  emailVerified    DateTime?
   sessionsRevokedBefore DateTime?
   failedLoginAttempts   Int                @default(0)
   lockedUntil           DateTime?
@@ -251,6 +252,7 @@ model User {
   auditLogs              AuditLog[]
   importJobs             ImportJob[]
   reviewedRuleCandidates RuleReviewCandidate[] @relation("RuleReviewCandidateReviewer")
+  emailVerificationTokens EmailVerificationToken[]
 
   @@index([email])
   @@index([role])
@@ -423,6 +425,7 @@ model Lead {
   fieldProvenance          Json?
   fieldConflicts           Json?
   isCanonical              Boolean                   @default(true)
+  isMock                   Boolean                   @default(false)
   mergedIntoLeadId         String?
   qualityScore             Int                       @default(50)
   qualityStatus            QualityStatus             @default(MEDIUM)
@@ -498,6 +501,8 @@ model Lead {
   @@index([score(sort: Desc), createdAt(sort: Desc)])
   @@index([status, score(sort: Desc)])
   @@index([saleabilityStatus, isCanonical, score(sort: Desc)])
+  @@index([isMock])
+  @@index([isMock, saleabilityStatus])
 }
 
 model LeadSource {
@@ -1497,4 +1502,21 @@ model DailyMetricSnapshot {
   @@index([metric, dimension, date])
   @@index([version])
   @@index([createdAt])
+}
+
+model EmailVerificationToken {
+  id           String    @id @default(cuid())
+  userId       String
+  tokenHash    String    @unique
+  expiresAt    DateTime
+  consumedAt   DateTime?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([tokenHash, expiresAt, consumedAt])
 }

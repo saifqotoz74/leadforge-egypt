@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
       name: user.name,
       role: user.role,
       status: user.status,
+      emailVerified: user.emailVerified,
       developerProfile: user.developerProfile,
       subscription: user.subscription,
       unreadNotifications,

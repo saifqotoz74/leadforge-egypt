@@ -28,7 +28,8 @@ export type PurchaseState =
   | 'insufficient_balance'
   | 'lost_race'
   | 'success'
-  | 'error';
+  | 'error'
+  | 'unverified';
 
 export interface PurchaseConfirmProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export interface PurchaseConfirmProps {
   onTopUpRedirect?: () => void;
   onGoToDeal?: (leadId: string) => void;
   onViewSimilar?: () => void;
+  onVerifyEmailRedirect?: () => void;
   state?: PurchaseState;
   errorMessage?: string;
 }
@@ -52,6 +54,7 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
   onTopUpRedirect,
   onGoToDeal,
   onViewSimilar,
+  onVerifyEmailRedirect,
   state: controlledState,
   errorMessage,
 }) => {
@@ -59,8 +62,9 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
   const locale = useLocale();
   const [internalState, setInternalState] = useState<PurchaseState>('idle');
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [customError, setCustomError] = useState<string | null>(null);
 
-  const resolvedErrorMessage = errorMessage || tCommon('purchaseErrorFallback');
+  const resolvedErrorMessage = customError || errorMessage || tCommon('purchaseErrorFallback');
 
   // Derive active state
   const isBalanceInsufficient = userBalance < lead.price;
@@ -75,11 +79,28 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
 
   const handleConfirm = async () => {
     setInternalState('submitting');
+    setCustomError(null);
     try {
       await onConfirmPurchase();
       setInternalState('success');
-    } catch {
-      setInternalState('error');
+    } catch (err: any) {
+      const code = err?.code;
+      if (code === 'EMAIL_NOT_VERIFIED') {
+        setInternalState('unverified');
+      } else if (code === 'INSUFFICIENT_CREDITS') {
+        setInternalState('insufficient_balance');
+      } else if (
+        code === 'CONFLICT' ||
+        code === 'ALREADY_CLAIMED' ||
+        code === 'MAX_PURCHASERS'
+      ) {
+        setInternalState('lost_race');
+      } else {
+        setInternalState('error');
+      }
+      if (err?.message && typeof err.message === 'string') {
+        setCustomError(err.message);
+      }
     }
   };
 
@@ -198,6 +219,16 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
           </Banner>
         )}
 
+        {/* Unverified email banner */}
+        {activeState === 'unverified' && (
+          <Banner variant="warning">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span>{tCommon('emailVerificationRequired')}</span>
+            </div>
+          </Banner>
+        )}
+
         {/* Lost race banner if sold meanwhile per Spec 7.10 */}
         {activeState === 'lost_race' && (
           <Banner variant="info">
@@ -271,7 +302,21 @@ export const PurchaseConfirm: React.FC<PurchaseConfirmProps> = ({
               {tCommon('cancel')}
             </Button>
 
-            {activeState === 'insufficient_balance' ? (
+            {activeState === 'unverified' ? (
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => {
+                  if (onVerifyEmailRedirect) {
+                    onVerifyEmailRedirect();
+                  } else if (typeof window !== 'undefined') {
+                    window.location.href = '/verify-email';
+                  }
+                }}
+              >
+                {tCommon('verifyEmailCta')}
+              </Button>
+            ) : activeState === 'insufficient_balance' ? (
               <Button
                 variant="primary"
                 size="lg"

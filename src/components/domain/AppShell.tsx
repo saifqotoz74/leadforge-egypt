@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { AlertCircle } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 
@@ -51,7 +52,42 @@ export const AppShell: React.FC<AppShellProps> = ({
     email?: string;
     credits?: number;
     unreadNotifications?: number;
+    emailVerified?: string | Date | null;
   } | null>(null);
+
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
+  const handleSendVerificationEmail = async () => {
+    setResendingVerification(true);
+    try {
+      const res = await fetch('/api/auth/verify-email/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResendSent(true);
+        setResendCooldown(60);
+      } else if (res.status === 429 && data.retryAfterSeconds) {
+        setResendCooldown(data.retryAfterSeconds);
+      }
+    } catch {
+      // Ignored in offline/preview
+    } finally {
+      setResendingVerification(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -66,6 +102,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             email: data.user.email,
             credits: data.user.subscription?.credits,
             unreadNotifications: data.user.unreadNotifications,
+            emailVerified: data.user.emailVerified,
           });
         }
       } catch {
@@ -132,6 +169,43 @@ export const AppShell: React.FC<AppShellProps> = ({
           onLogout={handleLogout}
           onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         />
+
+        {sessionUser && sessionUser.emailVerified === null && !bannerDismissed && (
+          <div className="bg-warning-bg border-b border-warning-border px-4 py-2.5 text-body-sm text-warning-text flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-warning-icon shrink-0" />
+              <span>
+                {tCommon('emailBannerUnverified')}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleSendVerificationEmail}
+                disabled={resendingVerification || resendCooldown > 0}
+                className="text-caption font-semibold text-brand hover:underline disabled:opacity-60 cursor-pointer"
+              >
+                {resendCooldown > 0 ? (
+                  <span className="ltr-iso tabular-nums">
+                    {tCommon('resendCooldownAction', { seconds: resendCooldown })}
+                  </span>
+                ) : resendSent ? (
+                  tCommon('resendSuccessAction')
+                ) : (
+                  tCommon('resendVerificationAction')
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setBannerDismissed(true)}
+                className="text-caption text-fg-muted hover:text-fg-primary ps-2 cursor-pointer"
+                aria-label={tCommon('closeBannerAria')}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {children}

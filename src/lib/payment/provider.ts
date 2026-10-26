@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { createAuditLog } from '../audit';
 import { createInAppNotification } from '../notifications';
 import { syncSubscriptionCreditsToLedgerInTx } from '../claims/credit-service';
+import { AppSecurityError } from '../security/error-taxonomy';
 
 export interface PaymentChargeRequest {
   userId: string;
@@ -29,6 +30,21 @@ export interface PaymentProvider {
   processSubscriptionCharge(req: PaymentChargeRequest): Promise<PaymentChargeResult>;
 }
 
+/**
+ * Detects whether a payment provider is a sandbox / simulation provider.
+ */
+export function isSandboxPaymentProvider(provider?: PaymentProvider | string | null): boolean {
+  if (!provider) return true;
+  if (typeof provider === 'string') {
+    return provider.toUpperCase().includes('SANDBOX');
+  }
+  return (
+    provider instanceof SandboxPaymentProvider ||
+    (typeof provider.providerName === 'string' &&
+      provider.providerName.toUpperCase().includes('SANDBOX'))
+  );
+}
+
 export class SandboxPaymentProvider implements PaymentProvider {
   readonly providerName = 'SANDBOX_LOCAL_PROVIDER';
 
@@ -40,6 +56,17 @@ export class SandboxPaymentProvider implements PaymentProvider {
         providerRef: '',
         status: 'FAILED',
         errorMessage: 'قيمة الدفع غير صالحة.',
+      };
+    }
+
+    // Phase 1A: Sandbox charges for paid amounts are forbidden in production
+    if (process.env.NODE_ENV === 'production' && req.amountEgp > 0) {
+      return {
+        success: false,
+        provider: this.providerName,
+        providerRef: '',
+        status: 'FAILED',
+        errorMessage: 'بوابة الدفع التجريبية (Sandbox) غير مسموح بها لتفعيل الباقات المدفوعة في بيئة الإنتاج.',
       };
     }
 
@@ -141,6 +168,20 @@ export async function subscribeUserToPlan(params: {
     throw new Error('الباقة المختارة غير متاحة حاليًا.');
   }
 
+  // Phase 1A: Reject sandbox payments in production for paid plans before mutating any records
+  if (
+    process.env.NODE_ENV === 'production' &&
+    plan.priceEgp > 0 &&
+    isSandboxPaymentProvider(paymentProvider)
+  ) {
+    throw new AppSecurityError(
+      'FORBIDDEN',
+      'لا يمكن تفعيل الباقات المدفوعة عبر بوابة الدفع التجريبية في بيئة الإنتاج.',
+      403,
+      { planId: plan.id, planSlug: plan.slug, priceEgp: plan.priceEgp }
+    );
+  }
+
   const chargeResult = await paymentProvider.processSubscriptionCharge({
     userId,
     planId: plan.id,
@@ -157,26 +198,89 @@ export async function subscribeUserToPlan(params: {
   const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
   const result = await prisma.$transaction(async (tx) => {
+    // 1. Deduplication / Idempotency check by providerRef (FIN-03)
+    if (chargeResult.providerRef && chargeResult.providerRef.trim().length > 0) {
+      const existingPayment = await tx.payment.findFirst({
+        where: { providerRef: chargeResult.providerRef.trim() },
+      });
+      if (existingPayment && existingPayment.status === 'COMPLETED') {
+        const existingSub = await tx.subscription.findUnique({
+          where: { userId },
+          include: { plan: true },
+        });
+        if (existingSub) {
+          return { payment: existingPayment, subscription: existingSub };
+        }
+      }
+    }
+
+    const existingSub = await tx.subscription.findUnique({
+      where: { userId },
+      include: { plan: true },
+    });
+
+    const isFreePlan = plan.priceEgp === 0 || plan.slug === 'free';
+    // If switching to Free plan, do not grant extra points if developer already had a subscription;
+    // for paid plans, grant the plan's monthly credits.
+    const creditsToGrant = isFreePlan
+      ? (existingSub ? 0 : plan.monthlyCredits)
+      : plan.monthlyCredits;
+
+    // Load or initialize credit account to preserve existing unused points
+    const account = await ensureDeveloperCreditAccount(tx, userId);
+    const balanceBefore = account.balance;
+    const newBalance = balanceBefore + creditsToGrant;
+
     const payment = await tx.payment.create({
       data: {
         userId,
         planId: plan.id,
         amountEgp: plan.priceEgp,
-        creditsGranted: plan.monthlyCredits,
+        creditsGranted: creditsToGrant,
         provider: chargeResult.provider,
         providerRef: chargeResult.providerRef,
         status: chargeResult.status,
         metadata: {
           planSlug: plan.slug,
           planName: plan.name,
-          mode: 'SANDBOX_SIMULATION',
+          mode: isSandboxPaymentProvider(chargeResult.provider)
+            ? 'SANDBOX_SIMULATION'
+            : 'LIVE_PAYMENT',
+          balanceBefore,
+          balanceAfter: newBalance,
+          creditsToGrant,
         },
       },
     });
 
-    const existingSub = await tx.subscription.findUnique({
-      where: { userId },
-    });
+    // Atomically increment credit account and append immutable ledger entry
+    if (creditsToGrant > 0) {
+      await tx.developerCreditAccount.update({
+        where: { id: account.id },
+        data: {
+          balance: newBalance,
+          lifetimePurchased: { increment: creditsToGrant },
+          totalGranted: { increment: creditsToGrant },
+          version: { increment: 1 },
+        },
+      });
+
+      await tx.creditTransaction.create({
+        data: {
+          accountId: account.id,
+          developerId: userId,
+          type: 'PURCHASE',
+          amount: creditsToGrant,
+          balanceBefore,
+          balanceAfter: newBalance,
+          referenceType: 'PAYMENT',
+          referenceId: payment.id,
+          reason: `Subscription purchase: ${plan.nameEn} (${plan.slug})`,
+          idempotencyKey: `payment-${payment.id}`,
+          performedById: userId,
+        },
+      });
+    }
 
     const subscription = existingSub
       ? await tx.subscription.update({
@@ -184,9 +288,8 @@ export async function subscribeUserToPlan(params: {
           data: {
             planId: plan.id,
             status: 'ACTIVE',
-            credits: plan.monthlyCredits,
-            totalCreditsGranted: plan.monthlyCredits,
-            creditsUsed: 0,
+            credits: newBalance,
+            totalCreditsGranted: { increment: creditsToGrant },
             currentPeriodStart: now,
             currentPeriodEnd: periodEnd,
           },
@@ -197,24 +300,14 @@ export async function subscribeUserToPlan(params: {
             userId,
             planId: plan.id,
             status: 'ACTIVE',
-            credits: plan.monthlyCredits,
-            totalCreditsGranted: plan.monthlyCredits,
+            credits: newBalance,
+            totalCreditsGranted: creditsToGrant,
             creditsUsed: 0,
             currentPeriodStart: now,
             currentPeriodEnd: periodEnd,
           },
           include: { plan: true },
         });
-
-    await syncSubscriptionCreditsToLedgerInTx(tx, {
-      developerId: userId,
-      targetBalance: plan.monthlyCredits,
-      type: 'PURCHASE',
-      reason: `Subscription purchase: ${plan.nameEn} (${plan.slug})`,
-      referenceType: 'PAYMENT',
-      referenceId: payment.id,
-      performedById: userId,
-    });
 
     return { payment, subscription };
   });
@@ -358,9 +451,12 @@ export async function approveTransferPayment(params: {
   const { receiptImage: _purged, ...cleanMeta } = existingMeta;
 
   const result = await prisma.$transaction(async (tx) => {
-    // 1. Update Payment to COMPLETED and PURGE receipt image
-    const updatedPayment = await tx.payment.update({
-      where: { id: paymentId },
+    // 1. Atomic compare-and-set: update Payment WHERE id = paymentId AND status = PENDING
+    const updateResult = await tx.payment.updateMany({
+      where: {
+        id: paymentId,
+        status: 'PENDING',
+      },
       data: {
         status: 'COMPLETED',
         metadata: {
@@ -370,13 +466,29 @@ export async function approveTransferPayment(params: {
           receiptPurged: true,
         },
       },
+    });
+
+    if (updateResult.count !== 1) {
+      const conflictErr = new Error('حالة المعاملة الحالية لا تسمح بالموافقة.');
+      (conflictErr as any).statusCode = 409;
+      (conflictErr as any).code = 'CONFLICT';
+      throw conflictErr;
+    }
+
+    const updatedPayment = await tx.payment.findUniqueOrThrow({
+      where: { id: paymentId },
       include: { plan: true, user: true },
     });
 
-    // 2. Update or create subscription
-    const subscription = user.subscription
+    // 2. Fetch latest subscription state inside the transaction
+    const currentSubscription = await tx.subscription.findUnique({
+      where: { userId: user.id },
+      include: { plan: true },
+    });
+
+    const subscription = currentSubscription
       ? await tx.subscription.update({
-          where: { id: user.subscription.id },
+          where: { id: currentSubscription.id },
           data: {
             planId: plan.id,
             status: 'ACTIVE',
@@ -474,19 +586,36 @@ export async function rejectTransferPayment(params: {
   // CRITICAL: Permanently purge the receipt image per privacy policy
   const { receiptImage: _purged, ...cleanMeta } = existingMeta;
 
-  const updatedPayment = await prisma.payment.update({
-    where: { id: paymentId },
-    data: {
-      status: 'REJECTED',
-      metadata: {
-        ...cleanMeta,
-        rejectedAt: now.toISOString(),
-        rejectedBy: adminId,
-        rejectionReason: reason,
-        receiptPurged: true,
+  const updatedPayment = await prisma.$transaction(async (tx) => {
+    // Atomic compare-and-set: update Payment WHERE id = paymentId AND status = PENDING
+    const updateResult = await tx.payment.updateMany({
+      where: {
+        id: paymentId,
+        status: 'PENDING',
       },
-    },
-    include: { plan: true, user: true },
+      data: {
+        status: 'REJECTED',
+        metadata: {
+          ...cleanMeta,
+          rejectedAt: now.toISOString(),
+          rejectedBy: adminId,
+          rejectionReason: reason,
+          receiptPurged: true,
+        },
+      },
+    });
+
+    if (updateResult.count !== 1) {
+      const conflictErr = new Error('حالة المعاملة الحالية لا تسمح بالرفض.');
+      (conflictErr as any).statusCode = 409;
+      (conflictErr as any).code = 'CONFLICT';
+      throw conflictErr;
+    }
+
+    return tx.payment.findUniqueOrThrow({
+      where: { id: paymentId },
+      include: { plan: true, user: true },
+    });
   });
 
   await createInAppNotification(
@@ -893,24 +1022,34 @@ export async function processPaymentWebhookEvent(params: {
         const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
         const txIdempotencyKey = `webhook-grant-${providerRef}-${eventType === 'subscription.renewed' ? payload.eventId : 'initial'}`;
 
+        let isIdempotentDuplicate = false;
         await prisma.$transaction(async (tx) => {
-          const payment = existingPayment
-            ? await tx.payment.update({
-                where: { id: existingPayment.id },
-                data: { status: 'COMPLETED', creditsGranted: creditsToGrant },
-              })
-            : await tx.payment.create({
-                data: {
-                  userId: user.id,
-                  planId: plan.id,
-                  amountEgp,
-                  creditsGranted: creditsToGrant,
-                  provider: providerName,
-                  providerRef,
-                  status: 'COMPLETED',
-                  metadata: { eventId: payload.eventId, eventType },
-                },
-              });
+          let paymentId: string;
+          if (existingPayment) {
+            const updateResult = await tx.payment.updateMany({
+              where: { id: existingPayment.id, status: 'PENDING' },
+              data: { status: 'COMPLETED', creditsGranted: creditsToGrant },
+            });
+            if (updateResult.count === 0) {
+              isIdempotentDuplicate = true;
+              return;
+            }
+            paymentId = existingPayment.id;
+          } else {
+            const payment = await tx.payment.create({
+              data: {
+                userId: user.id,
+                planId: plan.id,
+                amountEgp,
+                creditsGranted: creditsToGrant,
+                provider: providerName,
+                providerRef,
+                status: 'COMPLETED',
+                metadata: { eventId: payload.eventId, eventType },
+              },
+            });
+            paymentId = payment.id;
+          }
 
           const account = await ensureDeveloperCreditAccount(tx, user.id);
 
@@ -921,7 +1060,12 @@ export async function processPaymentWebhookEvent(params: {
             },
           });
 
-          if (!existingCreditTx && creditsToGrant > 0) {
+          if (existingCreditTx) {
+            isIdempotentDuplicate = true;
+            return;
+          }
+
+          if (creditsToGrant > 0) {
             const balanceBefore = account.balance;
             const balanceAfter = balanceBefore + creditsToGrant;
 
@@ -944,7 +1088,7 @@ export async function processPaymentWebhookEvent(params: {
                 balanceBefore,
                 balanceAfter,
                 referenceType: 'PAYMENT_WEBHOOK',
-                referenceId: payment.id,
+                referenceId: paymentId,
                 idempotencyKey: txIdempotencyKey,
                 reason: `Webhook ${eventType} (${providerRef})`,
               },
@@ -996,6 +1140,20 @@ export async function processPaymentWebhookEvent(params: {
         });
 
         processedWebhookEventIds.add(payload.eventId);
+        if (isIdempotentDuplicate) {
+          return {
+            ok: true,
+            httpStatus: 200,
+            code: 'IDEMPOTENT_DUPLICATE',
+            eventId: payload.eventId,
+            eventType,
+            idempotentReplay: true,
+            creditsGranted: 0,
+            paymentStatus: 'COMPLETED',
+            message: `Payment ${providerRef} was already completed; credits not granted twice.`,
+          };
+        }
+
         incrementCounter('payment_webhook_success_total');
         return {
           ok: true,
@@ -1017,19 +1175,22 @@ export async function processPaymentWebhookEvent(params: {
           orderBy: { createdAt: 'desc' },
         });
 
-        if (existingPayment && existingPayment.status === 'COMPLETED') {
-          processedWebhookEventIds.add(payload.eventId);
-          return {
-            ok: true,
-            httpStatus: 200,
-            code: 'OUT_OF_ORDER_IGNORED',
-            eventId: payload.eventId,
-            eventType,
-            idempotentReplay: true,
-            creditsGranted: 0,
-            paymentStatus: 'COMPLETED',
-            message: `Ignored out-of-order ${eventType} because payment ${providerRef} is already COMPLETED.`,
-          };
+        if (existingPayment) {
+          const terminalStates = ['COMPLETED', 'REFUNDED', 'FAILED', 'CANCELLED'];
+          if (terminalStates.includes(existingPayment.status)) {
+            processedWebhookEventIds.add(payload.eventId);
+            return {
+              ok: true,
+              httpStatus: 200,
+              code: 'OUT_OF_ORDER_IGNORED',
+              eventId: payload.eventId,
+              eventType,
+              idempotentReplay: true,
+              creditsGranted: 0,
+              paymentStatus: existingPayment.status,
+              message: `Ignored out-of-order ${eventType} because payment ${providerRef} is already in terminal state ${existingPayment.status}.`,
+            };
+          }
         }
 
         if (payload.userId) {
@@ -1040,10 +1201,24 @@ export async function processPaymentWebhookEvent(params: {
 
           if (user && plan) {
             if (existingPayment) {
-              await prisma.payment.update({
-                where: { id: existingPayment.id },
+              const updateRes = await prisma.payment.updateMany({
+                where: { id: existingPayment.id, status: 'PENDING' },
                 data: { status: targetStatus, creditsGranted: 0 },
               });
+              if (updateRes.count === 0) {
+                processedWebhookEventIds.add(payload.eventId);
+                return {
+                  ok: true,
+                  httpStatus: 200,
+                  code: 'OUT_OF_ORDER_IGNORED',
+                  eventId: payload.eventId,
+                  eventType,
+                  idempotentReplay: true,
+                  creditsGranted: 0,
+                  paymentStatus: existingPayment.status,
+                  message: `Ignored out-of-order ${eventType} because payment ${providerRef} is no longer PENDING.`,
+                };
+              }
             } else {
               await prisma.payment.create({
                 data: {

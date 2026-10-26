@@ -27,6 +27,9 @@ async function acquireSingleLock(key: string): Promise<() => void> {
  * to prevent race conditions and PGlite single-connection interleaved transaction collisions.
  */
 export async function withResourceLocks<T>(keys: string[], fn: () => Promise<T>): Promise<T> {
+  if (process.env.DISABLE_RESOURCE_LOCKS === 'true') {
+    return await fn();
+  }
   const uniqueSortedKeys = Array.from(new Set(['__pglite_tx__', ...keys])).sort();
   const releases: Array<() => void> = [];
 

@@ -164,7 +164,19 @@
     "stepperRegionAria": "Setup steps",
     "stepperStepWord": "Step",
     "stepperOfWord": "of",
-    "next": "Next"
+    "next": "Next",
+    "emailVerificationRequired": "Email verification is required before unlocking leads to receive customer notifications.",
+    "verifyEmailCta": "Verify Email",
+    "emailBannerUnverified": "Your email is unverified. You can browse leads freely, but unlocking contact details requires email verification.",
+    "resendVerificationAction": "Send verification link",
+    "resendCooldownAction": "Please wait {seconds}s",
+    "resendSuccessAction": "Verification link sent ✓",
+    "closeBannerAria": "Dismiss alert",
+    "verificationReminderTitle": "Verify your email to unlock leads",
+    "verificationReminderDesc": "We sent a verification link to {email}. You can freely customize your preferences and browse qualified leads, but claiming contact details requires a verified email address.",
+    "accountSuspendedTitle": "Account Suspended",
+    "accountSuspendedDesc": "Your account has been suspended by administration. If you believe this is an error, please reach out to our support team.",
+    "contactSupport": "Contact Support"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -295,6 +307,7 @@
     "exclusiveLeads": "Exclusive Leads",
     "hotLeads": "Hot Leads",
     "phoneAvailable": "Phone Available",
+    "fieldVisit": "Field visit (1 point)",
     "emailAvailable": "Email Available",
     "socialAvailable": "Social Link Available",
     "thBusiness": "Business Name",
@@ -422,7 +435,13 @@
     "confirmInvalidDescription": "Marking this lead as \"Invalid\" will end pipeline tracking and submit a dispute review for credit refund if contact information is verified as invalid. Are you sure you want to proceed?",
     "confirmInvalidAction": "Confirm & Mark Invalid",
     "downloadPdfReport": "Download PDF Report",
-    "printArabicReport": "Print Report (Arabic)"
+    "printArabicReport": "Print Report (Arabic)",
+    "timelineSystemAuthor": "System",
+    "timelineClaimedContent": "Lead claimed and assigned to developer.",
+    "timelineDeveloperAuthor": "Developer",
+    "timelineOutreachPhone": "Phone Call",
+    "timelineOutreachWhatsApp": "WhatsApp Chat",
+    "timelineOutreachGeneric": "Outreach Attempt"
   },
   "pipeline": {
     "pageTitle": "My Deals",
@@ -1309,7 +1328,7 @@
   "pricing": {
     "metaTitle": "Pricing and Credit Packages",
     "metaDescription": "Flexible point packages for web developers. Buy verified business leads on demand with no forced lock-in and a clear refund policy.",
-    "badge": "Clear and transparent pricing • 1 credit = 1 qualified lead",
+    "badge": "Clear and transparent pricing • 5 credits per shared lead, 25 for exclusive",
     "title": "Subscription plans designed for web developers in Egypt",
     "subtitle": "Start claiming qualified opportunities, and upgrade anytime to get additional credits and access exclusive leads.",
     "exploreLeadsAction": "Explore leads now",
@@ -1518,7 +1537,7 @@
     "howStep2FrameNote": "Every score is backed by inspectable rule contributions that you can verify before purchasing.",
     "howStep3FrameLabel": "Stage 3 — Contact unlock & pipeline progression",
     "howStep3ClaimStatusLabel": "Ownership status",
-    "howStep3ClaimStatusVal": "Unlocked (1 point)",
+    "howStep3ClaimStatusVal": "Unlocked (5 points)",
     "howStep3StageLabel": "Current deal stage",
     "howStep3NextActionLabel": "Next action",
     "howStep3NextActionVal": "Send technical proposal",
@@ -1586,8 +1605,8 @@
     "ownershipExclusiveDesc": "Sold to one developer only and closed immediately from the marketplace.",
     "ownershipSharedDesc": "Available to a limited pool of developers (max 3) at lower credit cost.",
     "ownershipCost": "Purchase cost:",
-    "ownershipCostExclusive": "5 points",
-    "ownershipCostShared": "1 point",
+    "ownershipCostExclusive": "25 points",
+    "ownershipCostShared": "5 points",
     "ownershipSeats": "Available seats:",
     "ownershipSeatsExclusive": "1 developer only",
     "ownershipSeatsShared": "Up to 3 developers",
@@ -1638,7 +1657,7 @@
     "statsCities": "Governorates & cities",
     "statsCategories": "Business categories",
     "statsLastRefresh": "Last database refresh:",
-    "statsLiveBadge": "Live verified metrics"
+    "statsLiveBadge": "Beta Early Access — Verified Records"
   },
   "categories": {
     "Dental": "Dental clinics",
@@ -1887,6 +1906,7 @@
     "section5Text": "These terms are governed by and construed in accordance with the laws of the Arab Republic of Egypt. The platform disclaims liability for any business or contractual outcomes between the developer and the target business, as our service is strictly limited to providing verified technical lead data."
   },
   "blog": {
+    "eyebrow": "Leads4dev Engineering & Growth",
     "metaTitle": "Developer Blog & Business Growth Articles",
     "metaDescription": "Practical guides and specialized articles for web developers in Egypt on pricing strategies, finding clients, and effective outreach.",
     "title": "Leads4dev Developer Blog",
@@ -1907,5 +1927,28 @@
     "ctaRegister": "Register Free to Access Leads",
     "noLeadsTitle": "Insufficient leads in this criteria currently",
     "noLeadsDesc": "Category pages require at least 5 verified leads to ensure data quality and avoid thin content."
+  },
+  "verifyEmail": {
+    "metaTitle": "Email Verification",
+    "metaDescription": "Verify your email address to enable lead unlocking and contact access.",
+    "verifyingTitle": "Verifying your email...",
+    "verifyingDesc": "Please wait a moment while we validate your link and activate your account.",
+    "successTitle": "Email verified successfully!",
+    "successDesc": "Your account is now fully active. You can claim leads and inspect full business contact details immediately.",
+    "exploreLeadsCta": "Explore leads",
+    "goToDashboardCta": "Go to dashboard",
+    "errorTitle": "Verification link invalid",
+    "errorFallback": "Unable to verify email link.",
+    "networkError": "Connection error. Please try again later.",
+    "requiredTitle": "Email verification required",
+    "requiredDesc": "To protect your account and maintain lead integrity, unlocking contact details requires email ownership verification. You can browse all qualified opportunities freely.",
+    "requestNewLinkTitle": "Request a new verification link",
+    "requestNewLinkDesc": "If you did not receive the email or the link expired (valid for 24 hours), you can request a new one:",
+    "resendSuccess": "A new verification link has been sent to your email. Please check your inbox.",
+    "resendPlaceholder": "Your email address (optional if signed in)",
+    "resendCooldown": "Please wait {seconds}s",
+    "resendAction": "Send verification link now",
+    "resendFailed": "Unable to send verification link.",
+    "backToLeads": "Back to leads directory"
   }
 }

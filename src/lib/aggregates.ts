@@ -12,6 +12,7 @@ export async function getProgrammaticPageAggregates(
   categoryDbValues: string[]
 ): Promise<PageAggregates> {
   const where = {
+    isMock: false,
     isCanonical: true,
     status: 'AVAILABLE' as const,
     city: { in: cityDbValues },

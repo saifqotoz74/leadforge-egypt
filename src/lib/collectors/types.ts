@@ -416,4 +416,5 @@ export interface IngestionRunOptions {
   } | null;
   simulateCrashAfterCount?: number;
   recordFailureSimulator?: (rowNumber: number, raw: RawLeadInput) => Error | null;
+  isMock?: boolean;
 }

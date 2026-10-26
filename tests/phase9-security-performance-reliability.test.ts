@@ -168,6 +168,7 @@ describe('Phase 9 — Production-Grade Security, Performance, Concurrency & Reli
         name: 'Developer Alpha',
         email: 'deva-p9@leadforge.eg',
         passwordHash,
+        emailVerified: new Date(),
         role: 'DEVELOPER',
         status: 'ACTIVE',
         developerProfile: {
@@ -208,6 +209,7 @@ describe('Phase 9 — Production-Grade Security, Performance, Concurrency & Reli
         name: 'Developer Beta',
         email: 'devb-p9@leadforge.eg',
         passwordHash,
+        emailVerified: new Date(),
         role: 'DEVELOPER',
         status: 'ACTIVE',
         developerProfile: {
@@ -984,6 +986,7 @@ describe('Phase 9 — Production-Grade Security, Performance, Concurrency & Reli
               name: `Racer Exclusive ${idx}`,
               email: `racer-excl-${idx}-${Date.now()}@leadforge.eg`,
               passwordHash,
+              emailVerified: new Date(),
               role: 'DEVELOPER',
               status: 'ACTIVE',
               developerProfile: {
@@ -1079,6 +1082,7 @@ describe('Phase 9 — Production-Grade Security, Performance, Concurrency & Reli
               name: `Racer Shared ${idx}`,
               email: `racer-shared-${idx}-${Date.now()}@leadforge.eg`,
               passwordHash,
+              emailVerified: new Date(),
               role: 'DEVELOPER',
               status: 'ACTIVE',
               developerProfile: {
@@ -1139,6 +1143,7 @@ describe('Phase 9 — Production-Grade Security, Performance, Concurrency & Reli
           name: 'Low Balance Dev',
           email: `low-balance-${Date.now()}@leadforge.eg`,
           passwordHash,
+          emailVerified: new Date(),
           role: 'DEVELOPER',
           status: 'ACTIVE',
           developerProfile: {

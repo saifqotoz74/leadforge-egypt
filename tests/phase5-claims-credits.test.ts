@@ -104,6 +104,7 @@ describe('Phase 5 — Production-Grade Claim, Credits & Shared / Exclusive Leads
         passwordHash,
         role: 'DEVELOPER',
         status: params.status ?? 'ACTIVE',
+        emailVerified: new Date(),
         ...(params.withProfile !== false
           ? {
               developerProfile: {

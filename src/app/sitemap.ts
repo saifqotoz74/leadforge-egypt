@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const [leadCount, latestLead] = await Promise.all([
         prisma.lead.count({
           where: {
+            isMock: false,
             isCanonical: true,
             status: 'AVAILABLE',
             city: { in: city.dbValues },
@@ -41,6 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }),
         prisma.lead.findFirst({
           where: {
+            isMock: false,
             isCanonical: true,
             status: 'AVAILABLE',
             city: { in: city.dbValues },

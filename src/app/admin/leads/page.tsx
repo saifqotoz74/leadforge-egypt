@@ -23,6 +23,7 @@ import {
 import { ALL_CITIES, BUSINESS_CATEGORIES } from '@/lib/constants';
 import { fmtNumber } from '@/lib/format';
 import { localizeCategory, localizeCity, localizeWebsiteStatus } from '@/lib/taxonomy';
+import { getCachedAdminData, setCachedAdminData, invalidateAdminCache } from '@/lib/admin-cache';
 import {
   Plus,
   Upload,
@@ -112,7 +113,18 @@ export default function AdminLeadsPage() {
   const [importReport, setImportReport] = useState<ImportReportSummary | null>(null);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    const cacheKey = `admin_leads_${search.trim()}`;
+    const cached = getCachedAdminData<{ leads: AdminLeadRow[]; developers: { id: string; name: string; email: string }[] }>(cacheKey);
+    if (cached) {
+      setLeads(cached.leads);
+      setDevelopers(cached.developers);
+      if (cached.developers[0] && !selectedDevId) setSelectedDevId(cached.developers[0].id);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    const requestStartedAt = Date.now();
     try {
       const params = new URLSearchParams();
       if (search.trim()) params.set('search', search.trim());
@@ -120,19 +132,27 @@ export default function AdminLeadsPage() {
         fetch(`/api/admin/leads?${params.toString()}`),
         fetch('/api/admin/users?role=DEVELOPER'),
       ]);
+      let freshLeads: AdminLeadRow[] = [];
+      let freshDevs: { id: string; name: string; email: string }[] = [];
+
       if (leadsRes.ok) {
         const d = await leadsRes.json();
-        setLeads(d.leads || []);
+        freshLeads = d.leads || [];
+        setLeads(freshLeads);
       }
       if (usersRes.ok) {
         const u = await usersRes.json();
-        setDevelopers(u.users || []);
-        if (u.users?.[0]) setSelectedDevId(u.users[0].id);
+        freshDevs = u.users || [];
+        setDevelopers(freshDevs);
+        if (freshDevs[0] && !selectedDevId) setSelectedDevId(freshDevs[0].id);
+      }
+      if (leadsRes.ok && usersRes.ok) {
+        setCachedAdminData(cacheKey, { leads: freshLeads, developers: freshDevs }, { requestStartedAt });
       }
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, selectedDevId]);
 
   useEffect(() => {
     loadData();
@@ -193,6 +213,7 @@ export default function AdminLeadsPage() {
       });
       if (res.ok) {
         setModalOpen(false);
+        invalidateAdminCache('admin_leads');
         await loadData();
       }
     } else {
@@ -208,6 +229,7 @@ export default function AdminLeadsPage() {
       });
       if (res.ok) {
         setModalOpen(false);
+        invalidateAdminCache('admin_leads');
         await loadData();
       }
     }
@@ -221,6 +243,7 @@ export default function AdminLeadsPage() {
     });
     if (res.ok) {
       setAssignLead(null);
+      invalidateAdminCache('admin_leads');
       await loadData();
     }
   }
@@ -230,6 +253,7 @@ export default function AdminLeadsPage() {
       method: 'DELETE',
     });
     if (res.ok) {
+      invalidateAdminCache('admin_leads');
       await loadData();
     }
   }
@@ -270,6 +294,7 @@ export default function AdminLeadsPage() {
       const data = await res.json();
       if (res.ok && data.report) {
         setImportReport(data.report);
+        invalidateAdminCache('admin_leads');
         await loadData();
       }
     } finally {
@@ -338,7 +363,7 @@ export default function AdminLeadsPage() {
         {/* Leads Table */}
         <Card>
           <CardContent className="p-0 overflow-x-auto">
-            {loading ? (
+            {loading && leads.length === 0 ? (
               <div className="flex flex-col gap-3 p-6">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Skeleton key={i} className="h-12 w-full rounded-lg" />

@@ -8,6 +8,7 @@ import { Menu, Bell, Settings, LogOut, CheckCircle2, ExternalLink } from 'lucide
 import { CreditChip } from './CreditChip';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { Button } from '@/components/ui/Button';
+import { invalidateAdminCache } from '@/lib/admin-cache';
 
 export interface NotificationItem {
   id: string;
@@ -152,7 +153,7 @@ export const TopBar: React.FC<TopBarProps> = ({
     }
   };
 
-  // Light polling every 2 minutes for fresh unread badge
+  // Background polling every 60 seconds for fresh unread badge (GAP-14)
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -167,7 +168,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       } catch {
         // silent
       }
-    }, 120_000);
+    }, 60_000);
 
     return () => clearInterval(interval);
   }, [isNotifOpen]);
@@ -198,6 +199,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   const handleLogoutClick = async () => {
     setIsMenuOpen(false);
+    invalidateAdminCache(); // Wipes all client-side cached data to prevent cross-account leakage
     if (onLogout) {
       await onLogout();
       return;

@@ -1342,6 +1342,7 @@ export async function unmergeLead(params: {
             ) as unknown as object,
             isCanonical: true,
             lastVerifiedAt: now,
+            isMock: Boolean((norm as any).isMock ?? false),
           },
         });
 

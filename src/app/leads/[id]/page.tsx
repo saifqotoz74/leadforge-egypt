@@ -80,6 +80,7 @@ interface LeadDetailData {
   completenessScore?: number;
   freshnessStatus?: string;
   verificationStatus?: string;
+  isVerified?: boolean;
   saleabilityStatus?: string;
   businessStatus?: string;
   status?: string;
@@ -129,7 +130,28 @@ interface LeadDetailData {
     lastContactedAt?: string | null;
     nextFollowUpAt?: string | null;
     claimedAt: string;
+    contactAttempts?: Array<{
+      id: string;
+      channel: string;
+      result: string;
+      note?: string | null;
+      attemptedAt: string;
+    }>;
+    statusHistories?: Array<{
+      id: string;
+      previousStatus?: string | null;
+      newStatus: string;
+      note?: string | null;
+      createdAt: string;
+    }>;
   };
+  myContactAttempts?: Array<{
+    id: string;
+    channel: string;
+    result: string;
+    note?: string | null;
+    attemptedAt: string;
+  }>;
   myEngagement?: {
     currentStatus: string;
   };
@@ -140,6 +162,15 @@ interface LeadDetailData {
     reason?: string;
     rating?: number;
     comment?: string;
+  } | null;
+  matchEvaluation?: {
+    isMatch: boolean;
+    eligible: boolean;
+    matchPercentage: number;
+    matchStrength: number;
+    matchVersion?: string;
+    matchedCriteria: string[];
+    unmatchedCriteria: string[];
   } | null;
 }
 
@@ -258,26 +289,45 @@ export default function LeadDetailPage() {
     setClaiming(true);
     setActionMsg(null);
     try {
+      const idempotencyKey =
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `claim-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
       const res = await fetch(`/api/leads/${leadId}/claim`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKey,
+        },
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionMsg({ type: 'danger', text: data.error || t('claimError') });
-      } else {
-        setActionMsg({
-          type: 'info',
-          text: t('claimSuccess', { remaining: fmtNumber(data.remainingCredits, locale) }),
-        });
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('leadforge:user-updated'));
-        }
-        setIsPurchaseModalOpen(false);
-        await loadLead();
+        const errorObj = {
+          message: data.error || t('claimError'),
+          code: data.code || 'CLAIM_ERROR',
+          status: res.status,
+        };
+        setActionMsg({ type: 'danger', text: errorObj.message });
+        throw errorObj;
       }
-    } catch {
+
+      setActionMsg({
+        type: 'info',
+        text: t('claimSuccess', { remaining: fmtNumber(data.remainingCredits, locale) }),
+      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('leadforge:user-updated'));
+      }
+      setIsPurchaseModalOpen(false);
+      await loadLead();
+    } catch (err: any) {
+      if (err?.code) {
+        // Re-throw so PurchaseConfirm catches and updates internal state (unverified/insufficient/lost_race)
+        throw err;
+      }
       setActionMsg({ type: 'danger', text: t('networkError') });
+      throw { message: t('networkError'), code: 'NETWORK_ERROR' };
     } finally {
       setClaiming(false);
     }
@@ -401,7 +451,8 @@ export default function LeadDetailPage() {
 
   const isFieldVisit = !lead.hasPhone && !lead.phone;
   const price = lead.creditCost ?? (isFieldVisit ? 1 : (lead.exclusive ? 25 : 5));
-  const derivedRules: ScoreRuleItem[] =
+
+  const rawRules: ScoreRuleItem[] =
     Array.isArray(lead.qualificationRules) && lead.qualificationRules.length > 0
       ? lead.qualificationRules.map((r) => ({
           id: r.code,
@@ -415,6 +466,64 @@ export default function LeadDetailPage() {
           points: op.points,
           maxWeight: 40,
         }));
+
+  // GAP-08: Ensure fallback rules exist if lead has high score but empty raw qualification rules
+  const derivedRules: ScoreRuleItem[] =
+    rawRules.length > 0
+      ? rawRules
+      : [
+          ...(lead.websiteStatus === 'NO_WEBSITE'
+            ? [
+                {
+                  id: 'no-website-opp',
+                  label:
+                    locale === 'en'
+                      ? 'No existing website (Direct digital presence & website building opportunity)'
+                      : 'لا يوجد موقع إلكتروني للنشاط (فرصة مباشرة لتطوير موقع وهوية رقمية)',
+                  points: 40,
+                  maxWeight: 40,
+                },
+              ]
+            : lead.websiteStatus === 'OLD_WEBSITE' || lead.websiteStatus === 'SLOW'
+            ? [
+                {
+                  id: 'website-redesign-opp',
+                  label:
+                    locale === 'en'
+                      ? 'Legacy website detected (High-value responsive overhaul opportunity)'
+                      : 'موقع إلكتروني قديم أو غير متجاوب (فرصة إعادة تصميم وتطوير شاملة)',
+                  points: 25,
+                  maxWeight: 40,
+                },
+              ]
+            : []),
+          ...(lead.hasFacebook || lead.facebook
+            ? [
+                {
+                  id: 'social-activity-opp',
+                  label:
+                    locale === 'en'
+                      ? 'Active commercial operations on social media'
+                      : 'نشاط تجاري قائم ومتفاعل على منصات التواصل الاجتماعي',
+                  points: 20,
+                  maxWeight: 40,
+                },
+              ]
+            : []),
+          ...(lead.isVerified
+            ? [
+                {
+                  id: 'verified-entity-opp',
+                  label:
+                    locale === 'en'
+                      ? 'Commercial entity verified by operational review'
+                      : 'نشاط تجاري مؤكد ومراجع تشغيلياً',
+                  points: 15,
+                  maxWeight: 40,
+                },
+              ]
+            : []),
+        ];
 
   const localizedCategory = localizeCategory(lead.category, tCat as any);
   const localizedCity = localizeCity(lead.city, tGeo as any);
@@ -537,6 +646,57 @@ export default function LeadDetailPage() {
                 rules={derivedRules}
                 totalScore={lead.score}
               />
+            )}
+
+            {/* 2b. Match Profile Alignment (GAP-04 / UX-012) */}
+            {lead.matchEvaluation && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between w-full">
+                    <CardTitle>
+                      {locale === 'en' ? 'Profile Match Analysis' : 'تحليل التوافق مع ملفك المهني'}
+                    </CardTitle>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-caption font-semibold bg-brand-soft text-brand border border-line-brand">
+                      <span className="ltr-iso font-bold tabular-nums">
+                        {fmtNumber(lead.matchEvaluation.matchPercentage, locale)}%
+                      </span>
+                      <span>{locale === 'en' ? 'Match' : 'تطابق'}</span>
+                    </span>
+                  </div>
+                </CardHeader>
+                <div className="flex flex-col gap-2.5 py-2">
+                  <p className="text-body-sm text-fg-secondary">
+                    {locale === 'en'
+                      ? 'Deterministic criteria matched between your target profile and this business lead:'
+                      : 'المعايير المحددة المتوافقة بين تخصصك وموقعك المستهدف وهذه الفرصة:'}
+                  </p>
+                  {lead.matchEvaluation.matchedCriteria && lead.matchEvaluation.matchedCriteria.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {lead.matchEvaluation.matchedCriteria.map((criterion, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-caption font-medium border border-line-brand bg-brand-soft text-brand"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-brand shrink-0" />
+                          <span>{criterion}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {lead.matchEvaluation.unmatchedCriteria && lead.matchEvaluation.unmatchedCriteria.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      {lead.matchEvaluation.unmatchedCriteria.map((criterion, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-caption font-medium border border-line bg-subtle text-fg-muted"
+                        >
+                          <span>{criterion}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Card>
             )}
 
             {/* 3. Business Details (Locked or Revealed per Spec 1.1, 7.4 & Template T4) */}
@@ -846,64 +1006,136 @@ export default function LeadDetailPage() {
                     <CardTitle>{t('timelineTitle')}</CardTitle>
                   </CardHeader>
                   <div className="p-4">
-                    <DealTimeline
-                      events={[
-                        ...(lead.myClaim?.notes
-                          ? [
-                              {
-                                id: 'note-claim',
-                                type: 'NOTE' as const,
-                                author: t('noteInitial'),
-                                content: lead.myClaim.notes,
-                                createdAt: lead.myClaim.claimedAt,
-                              },
-                            ]
-                          : []),
-                        ...(lead.myClaim?.lastContactedAt
-                          ? [
-                              {
-                                id: 'contact-claim',
-                                type: 'STATUS_CHANGE' as const,
-                                author: t('noteContact'),
-                                content: t('noteContactContent'),
-                                createdAt: lead.myClaim.lastContactedAt,
-                              },
-                            ]
-                          : []),
-                      ]}
-                      onAddNote={async (content) => {
-                        const res = await fetch(`/api/leads/${leadId}/engagement/status`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            status: pipelineStatus,
-                            note: content,
-                          }),
+                    {/* Unified Deal Timeline & Activity per GAP-05 / UX-012 */}
+                    {(() => {
+                      const timelineEvents: Array<{
+                        id: string;
+                        type: 'NOTE' | 'STATUS_CHANGE';
+                        author: string;
+                        content: string;
+                        createdAt: string;
+                      }> = [];
+
+                      // 1. Initial claim milestone
+                      if (lead.myClaim?.claimedAt) {
+                        timelineEvents.push({
+                          id: `claim-init-${lead.myClaim.id}`,
+                          type: 'STATUS_CHANGE',
+                          author: t('timelineSystemAuthor'),
+                          content: t('timelineClaimedContent'),
+                          createdAt: lead.myClaim.claimedAt,
                         });
-                        if (res.ok) {
-                          setActionMsg({ type: 'info', text: t('noteSuccess') });
-                          await loadLead();
-                        }
-                      }}
-                      onReportWrongNumber={async () => {
-                        const res = await fetch(`/api/leads/${leadId}/contact-attempts`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            channel: 'PHONE',
-                            result: 'WRONG_NUMBER',
-                            note: t('wrongNumberReport'),
-                          }),
+                      }
+
+                      // 2. Initial claim notes if present
+                      if (lead.myClaim?.notes) {
+                        timelineEvents.push({
+                          id: `note-init-${lead.myClaim.id}`,
+                          type: 'NOTE',
+                          author: t('noteInitial'),
+                          content: lead.myClaim.notes,
+                          createdAt: lead.myClaim.claimedAt,
                         });
-                        if (res.ok) {
-                          setActionMsg({
-                            type: 'info',
-                            text: t('wrongNumberSignal'),
+                      }
+
+                      // 3. Status change history
+                      if (Array.isArray(lead.myClaim?.statusHistories)) {
+                        lead.myClaim.statusHistories.forEach((sh) => {
+                          const prevCfg = sh.previousStatus
+                            ? PIPELINE_STATUS_LABELS[sh.previousStatus]
+                            : null;
+                          const newCfg = PIPELINE_STATUS_LABELS[sh.newStatus];
+                          const prevLabel = prevCfg
+                            ? locale === 'en'
+                              ? prevCfg.labelEn
+                              : prevCfg.labelAr
+                            : sh.previousStatus;
+                          const newLabel = newCfg
+                            ? locale === 'en'
+                              ? newCfg.labelEn
+                              : newCfg.labelAr
+                            : sh.newStatus;
+                          const transitionText = prevLabel ? `${prevLabel} ← ${newLabel}` : newLabel;
+                          timelineEvents.push({
+                            id: `sh-${sh.id}`,
+                            type: 'STATUS_CHANGE',
+                            author: t('timelineDeveloperAuthor'),
+                            content: sh.note ? `${transitionText} — ${sh.note}` : transitionText,
+                            createdAt: sh.createdAt,
                           });
-                          await loadLead();
-                        }
-                      }}
-                    />
+                        });
+                      }
+
+                      // 4. Contact / Outreach attempts
+                      const contactAttempts =
+                        lead.myClaim?.contactAttempts || lead.myContactAttempts || [];
+                      contactAttempts.forEach((ca) => {
+                        const channelLabel =
+                          ca.channel === 'WHATSAPP'
+                            ? t('timelineOutreachWhatsApp')
+                            : ca.channel === 'PHONE'
+                            ? t('timelineOutreachPhone')
+                            : t('timelineOutreachGeneric');
+                        const resultText =
+                          ca.result === 'ANSWERED'
+                            ? (locale === 'en' ? 'Answered' : 'تم الرد')
+                            : ca.result === 'NO_ANSWER'
+                            ? (locale === 'en' ? 'No Answer' : 'لم يتم الرد')
+                            : ca.result === 'WRONG_NUMBER'
+                            ? (locale === 'en' ? 'Wrong Number' : 'الرقم غير صحيح')
+                            : ca.result;
+                        timelineEvents.push({
+                          id: `ca-${ca.id}`,
+                          type: 'NOTE',
+                          author: channelLabel,
+                          content: ca.note ? `${resultText}: ${ca.note}` : resultText,
+                          createdAt: ca.attemptedAt,
+                        });
+                      });
+
+                      // Sort newest first
+                      timelineEvents.sort(
+                        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                      );
+
+                      return (
+                        <DealTimeline
+                          events={timelineEvents}
+                          onAddNote={async (content) => {
+                            const res = await fetch(`/api/leads/${leadId}/engagement/status`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                status: pipelineStatus,
+                                note: content,
+                              }),
+                            });
+                            if (res.ok) {
+                              setActionMsg({ type: 'info', text: t('noteSuccess') });
+                              await loadLead();
+                            }
+                          }}
+                          onReportWrongNumber={async () => {
+                            const res = await fetch(`/api/leads/${leadId}/contact-attempts`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                channel: 'PHONE',
+                                result: 'WRONG_NUMBER',
+                                note: t('wrongNumberReport'),
+                              }),
+                            });
+                            if (res.ok) {
+                              setActionMsg({
+                                type: 'info',
+                                text: t('wrongNumberSignal'),
+                              });
+                              await loadLead();
+                            }
+                          }}
+                        />
+                      );
+                    })()}
                   </div>
                 </Card>
               </div>
@@ -1042,6 +1274,10 @@ export default function LeadDetailPage() {
           }}
           userBalance={userCredits ?? 0}
           onConfirmPurchase={handleClaim}
+          onTopUpRedirect={() => router.push('/subscription')}
+          onGoToDeal={() => router.push('/my-leads')}
+          onViewSimilar={() => router.push('/leads')}
+          onVerifyEmailRedirect={() => router.push('/verify-email')}
         />
 
         {/* Confirmation Dialog for INVALID Status (UX-013) */}

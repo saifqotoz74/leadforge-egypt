@@ -28,6 +28,18 @@ export async function POST(
     const user = await requireAuth(req);
     activeUserId = user.id;
 
+    if (!user.emailVerified) {
+      return applySecurityHeaders(
+        NextResponse.json(
+          {
+            error: 'Email verification required to unlock leads — يجب تأكيد بريدك الإلكتروني لفتح بيانات الفرصة.',
+            code: 'EMAIL_NOT_VERIFIED',
+          },
+          { status: 403 }
+        )
+      );
+    }
+
     const rlUser = checkRateLimit({ key: `claim:user:${user.id}`, limit: 30, windowMs: 60_000 });
     const rlIp = checkRateLimit({ key: `claim:ip:${ipAddress}`, limit: 60, windowMs: 60_000 });
     if (!rlUser.allowed || !rlIp.allowed) {

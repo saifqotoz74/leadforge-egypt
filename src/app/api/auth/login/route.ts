@@ -83,7 +83,11 @@ export async function POST(req: NextRequest) {
       });
       return applySecurityHeaders(
         NextResponse.json(
-          { error: 'تم إيقاف هذا الحساب من قِبل إدارة المنصة.', code: 'FORBIDDEN' },
+          {
+            error: 'تم إيقاف هذا الحساب من قِبل إدارة المنصة. يرجى التواصل مع فريق الدعم الفني.',
+            code: 'ACCOUNT_SUSPENDED',
+            supportEmail: 'support@leadforge.eg',
+          },
           { status: 403 }
         )
       );

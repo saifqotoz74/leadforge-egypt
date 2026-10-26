@@ -115,6 +115,7 @@ export async function runIngestionPipeline(
     backfillRange,
     simulateCrashAfterCount,
     recordFailureSimulator,
+    isMock: explicitIsMock,
   } = params;
 
   const jobStartMs = Date.now();
@@ -1229,6 +1230,7 @@ export async function runIngestionPipeline(
                       websiteVerificationState: qualityEval.websiteVerificationState,
                       lastVerifiedAt: recordNow,
                       nextVerificationAt: qualityEval.nextVerificationAt,
+                      isMock: Boolean(explicitIsMock ?? normalized.isMock ?? false),
                     },
                   });
 

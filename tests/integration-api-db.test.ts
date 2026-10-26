@@ -91,6 +91,7 @@ describe('Integration, Database, Security & API Tests (PostgreSQL + Prisma)', ()
         email: 'dev1.test@leadforge.eg',
         name: 'Developer One',
         passwordHash,
+        emailVerified: now,
         role: 'DEVELOPER',
         developerProfile: {
           create: {
@@ -122,6 +123,7 @@ describe('Integration, Database, Security & API Tests (PostgreSQL + Prisma)', ()
         email: 'dev2.test@leadforge.eg',
         name: 'Developer Two',
         passwordHash,
+        emailVerified: now,
         role: 'DEVELOPER',
         developerProfile: {
           create: {
@@ -153,6 +155,7 @@ describe('Integration, Database, Security & API Tests (PostgreSQL + Prisma)', ()
         email: 'zero.test@leadforge.eg',
         name: 'Zero Credits Dev',
         passwordHash,
+        emailVerified: now,
         role: 'DEVELOPER',
         subscription: {
           create: {

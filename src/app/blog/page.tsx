@@ -59,7 +59,7 @@ export default async function BlogIndexPage() {
           <div className="flex flex-col gap-3 pb-8 border-b border-line">
             <div className="inline-flex items-center gap-2 text-caption font-semibold text-fg-brand">
               <BookOpen className="w-4 h-4 text-brand-accent" />
-              <span>Leads4dev Engineering & Growth</span>
+              <span>{t('eyebrow')}</span>
             </div>
             <h1 className="text-display font-bold text-fg-primary">
               {t('title')}

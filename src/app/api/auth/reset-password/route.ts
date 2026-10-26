@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
       data: {
         passwordHash: newPasswordHash,
         updatedAt: new Date(),
+        sessionsRevokedBefore: new Date(),
       },
     });
 

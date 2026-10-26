@@ -35,8 +35,9 @@ import {
   localizeService,
   localizeWebsiteStatus,
 } from '@/lib/taxonomy';
+import { getEffectiveLeadSignals } from '@/lib/lead-signals';
 import { fmtNumber } from '@/lib/format';
-import { LayoutGrid, Table as TableIcon, ArrowRight } from 'lucide-react';
+import { LayoutGrid, Table as TableIcon, ArrowRight, MapPin } from 'lucide-react';
 
 export interface LeadItem {
   id: string;
@@ -83,8 +84,11 @@ export interface LeadItem {
   };
   matchEvaluation?: {
     isMatch: boolean;
-    matchPercentage: number;
+    matchPercentage?: number;
     matchStrength?: number;
+    score?: number;
+    matchScore?: number;
+    reasons?: string[];
   };
 }
 
@@ -312,7 +316,12 @@ export default function LeadDiscoveryClient({
     { id: 'exclusive', label: t('exclusiveLeads'), isActive: ownershipType === 'EXCLUSIVE' },
     { id: 'hot', label: t('hotLeads'), isActive: temperature === 'HOT' || temperature === 'PREMIUM' },
     { id: 'hasPhone', label: t('phoneAvailable'), isActive: hasPhone },
-    { id: 'fieldVisit', label: '📍 زيارة ميدانية (1 نقطة)', isActive: fieldVisitOnly },
+    {
+      id: 'fieldVisit',
+      label: t('fieldVisit'),
+      icon: <MapPin className="w-3.5 h-3.5" />,
+      isActive: fieldVisitOnly,
+    },
   ];
 
   function handleToggleQuickFilter(id: string) {
@@ -481,9 +490,14 @@ export default function LeadDiscoveryClient({
                 price={lead.creditCost ?? (!lead.hasPhone && !lead.phone ? 1 : (lead.exclusive ? 25 : 5))}
                 hasPhone={lead.hasPhone}
                 isFieldVisit={!lead.hasPhone && !lead.phone}
-                signals={(lead.qualificationReasons || []).map((r) =>
-                  localizeQualificationReason(r, locale)
-                )}
+                signals={getEffectiveLeadSignals(lead, locale)}
+                matchScore={
+                  lead.matchEvaluation?.matchPercentage ??
+                  lead.matchEvaluation?.matchStrength ??
+                  lead.matchEvaluation?.score ??
+                  lead.matchEvaluation?.matchScore
+                }
+                matchReasons={lead.matchEvaluation?.reasons || []}
                 seatsRemaining={
                   lead.exclusive
                     ? undefined

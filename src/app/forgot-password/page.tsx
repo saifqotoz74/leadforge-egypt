@@ -61,9 +61,9 @@ export default function ForgotPasswordPage() {
 
           {success ? (
             <div className="space-y-4">
-              <div className="rounded-xl border border-line bg-brand-soft/40 p-5 text-center space-y-2">
+              <div className="rounded-xl border border-line bg-brand-soft p-5 text-center space-y-2">
                 <CheckCircle2 className="h-10 w-10 text-brand mx-auto mb-2" />
-                <h2 className="text-body-md font-bold text-fg-primary">
+                <h2 className="text-body font-bold text-fg-primary">
                   تم إرسال رابط الاستعادة
                 </h2>
                 <p className="text-body-sm text-fg-secondary leading-relaxed">
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="flex items-center gap-2 p-3 rounded-md bg-danger-bg border border-danger-line text-danger-text text-body-sm">
+                <div className="flex items-center gap-2 p-3 rounded-md bg-danger-bg border border-danger-border text-danger-text text-body-sm">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -106,7 +106,7 @@ export default function ForgotPasswordPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com"
                     dir="ltr"
-                    className="w-full h-11 ps-10 pe-3 rounded-md border border-line bg-surface text-fg-primary placeholder:text-fg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand font-mono text-body-sm"
+                    className="w-full h-11 ps-10 pe-3 rounded-md border border-line bg-surface text-fg-primary placeholder:text-fg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand text-body-sm"
                   />
                   <Mail className="absolute start-3 top-3 h-5 w-5 text-fg-muted pointer-events-none" />
                 </div>

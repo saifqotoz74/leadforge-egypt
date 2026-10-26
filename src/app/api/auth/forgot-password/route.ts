@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ensureDbReady, prisma } from '@/lib/db';
 import { generatePasswordResetToken, verifyCsrfOrigin } from '@/lib/auth';
+import { getApplicationBaseUrl } from '@/lib/email-verification';
 import { sendPasswordResetEmailSafe } from '@/lib/email-templates';
 
 export const dynamic = 'force-dynamic';
@@ -36,7 +37,8 @@ export async function POST(req: NextRequest) {
 
     if (user && user.status !== 'SUSPENDED') {
       const token = await generatePasswordResetToken(user);
-      const appUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://leads4dev.com').replace(/\/$/, '');
+      const origin = req.headers.get('origin') || undefined;
+      const appUrl = getApplicationBaseUrl(origin);
       const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(token)}`;
 
       await sendPasswordResetEmailSafe({

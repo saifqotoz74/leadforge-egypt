@@ -1044,6 +1044,7 @@ export async function rejectAdminDuplicateCandidate(params: {
             websiteVerificationState: sepQualityEval.websiteVerificationState,
             lastVerifiedAt: now,
             nextVerificationAt: sepQualityEval.nextVerificationAt,
+            isMock: Boolean((norm as any).isMock ?? false),
           },
         });
 

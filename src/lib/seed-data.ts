@@ -1250,6 +1250,7 @@ export async function seedDatabase(
       name: DEMO_CREDENTIALS.admin.name,
       role: 'ADMIN',
       status: 'ACTIVE',
+      emailVerified: new Date(),
     },
   });
 
@@ -1363,6 +1364,7 @@ export async function seedDatabase(
         name: dev.name,
         role: 'DEVELOPER',
         status: 'ACTIVE',
+        emailVerified: new Date(),
         developerProfile: {
           create: {
             companyName: dev.companyName,
@@ -1472,6 +1474,7 @@ export async function seedDatabase(
     sourceId: sourceMap['Google Business Profile Export'],
     fileName: 'egypt_qualified_businesses_seed.csv',
     rawRecords: SEED_BUSINESSES,
+    isMock: true,
   });
 
   // Also test multi-source deduplication during seed by ingesting 2 duplicate records from a second source
@@ -1488,6 +1491,7 @@ export async function seedDatabase(
         city: 'القاهرة',
         phone: '+20 100 234 5101',
         source: 'Egypt Business Directory Feed',
+        isMock: true,
       },
       {
         name: 'مركز سمايل كير لطب وتجميل الأسنان',
@@ -1496,8 +1500,10 @@ export async function seedDatabase(
         phone: '01002345102',
         email: 'contact@smilecare-heliopolis.eg',
         source: 'Egypt Business Directory Feed',
+        isMock: true,
       },
     ],
+    isMock: true,
   });
 
   // Update LeadSource counts and vary lastVerifiedAt across leads so Freshness badges cover Fresh, Recently Verified, Needs Verification, Stale
@@ -1517,6 +1523,7 @@ export async function seedDatabase(
     await prisma.lead.update({
       where: { id: lead.id },
       data: {
+        isMock: true,
         lastVerifiedAt: verifiedDate,
         sourceId: sourceMap[lead.source] || sourceMap['Google Business Profile Export'],
         accessType: isExclusive ? 'EXCLUSIVE' : 'SHARED',

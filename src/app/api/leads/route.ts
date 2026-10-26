@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthError, requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { checkRateLimit, getRateLimitHeaders } from '@/lib/rate-limit';
 import { evaluateLeadFreshness, DEFAULT_FRESHNESS_THRESHOLDS } from '@/lib/freshness';
 import { evaluateDeveloperLeadMatch } from '@/lib/matching-engine';
 import { getActiveMatchingConfigAndRules } from '@/lib/matching/service';
@@ -60,6 +61,22 @@ async function getCachedPricingConfig() {
 export async function GET(req: NextRequest) {
   try {
     const user = await requireAuth(req);
+
+    const rl = checkRateLimit({
+      key: `leads:${user.id}`,
+      limit: 60,
+      windowMs: 60_000,
+    });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'تم تجاوز حد الطلبات المسموح به. يرجى المحاولة لاحقًا.' },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rl),
+        }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
 
     const governorate = searchParams.get('governorate')?.trim() || '';
@@ -97,6 +114,10 @@ export async function GET(req: NextRequest) {
     const limitParam = searchParams.get('limit');
     const offsetParam = searchParams.get('offset');
 
+    const includeMockParam = searchParams.get('includeMock');
+    const allowMock =
+      (includeMockParam === 'true' || includeMockParam === '1') && user.role === 'ADMIN';
+
     const where: Prisma.LeadWhereInput = {
       status: claimedOnly
         ? undefined
@@ -117,6 +138,7 @@ export async function GET(req: NextRequest) {
             isCanonical: true,
             saleabilityStatus: { in: ['AVAILABLE', 'CLAIMED_FULL'] },
           }),
+      ...(allowMock ? {} : { isMock: false }),
     };
 
     if (
@@ -321,6 +343,10 @@ export async function GET(req: NextRequest) {
             config: matchingConfig,
             rules: matchingRules,
             matchVersion: matchingConfig.currentVersion,
+            locale:
+              req.headers.get('x-next-intl-locale') ||
+              req.cookies.get('NEXT_LOCALE')?.value ||
+              (req.headers.get('accept-language')?.startsWith('en') ? 'en' : 'ar'),
             subscription: user.subscription
               ? {
                   id: user.subscription.id,

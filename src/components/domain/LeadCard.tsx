@@ -22,6 +22,8 @@ export interface LeadCardProps {
   qualityTimestamp?: Date | string | null;
   price: number;
   signals?: string[];
+  matchScore?: number;
+  matchReasons?: string[];
   seatsRemaining?: number;
   maxSeats?: number;
   hasPhone?: boolean;
@@ -42,6 +44,8 @@ export const LeadCard: React.FC<LeadCardProps> = ({
   qualityTimestamp,
   price,
   signals = [],
+  matchScore,
+  matchReasons = [],
   seatsRemaining,
   maxSeats,
   hasPhone,
@@ -65,8 +69,17 @@ export const LeadCard: React.FC<LeadCardProps> = ({
             score={score}
             size="sm"
           />
+          {typeof matchScore === 'number' && matchScore > 0 && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-caption font-medium bg-brand-soft text-brand border border-line"
+              title={matchReasons && matchReasons.length > 0 ? matchReasons.join(' • ') : undefined}
+            >
+              <span className="ltr-iso font-semibold">{fmtNumber(matchScore, locale)}%</span>
+              <span>{locale === 'en' ? 'Match' : 'تطابق'}</span>
+            </span>
+          )}
           {(isFieldVisit || hasPhone === false) && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-caption font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-caption font-medium bg-warning-bg text-warning-text border border-warning-border">
               📍 زيارة ميدانية / سوشيال
             </span>
           )}

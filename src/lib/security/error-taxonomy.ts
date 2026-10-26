@@ -42,8 +42,8 @@ export class AppSecurityError extends Error {
   }
 }
 
-const SENSITIVE_KEY_PATTERN =
-  /password|passwd|secret|token|apikey|api_key|authorization|cookie|session|private_?key|webhook_?secret|client_?secret|jwt|credit_?card|cvv|passhash|passwordhash|database_url|connection_string/i;
+export const SENSITIVE_KEY_PATTERN =
+  /password|passwd|secret|token|apikey|api_key|authorization|cookie|session|private_?key|webhook_?secret|client_?secret|jwt|credit_?card|cvv|passhash|passwordhash|database_url|connection_string|phone|phones|mobile|telephone/i;
 
 const SQL_LEAK_PATTERN =
   /\b(SELECT\s+.+\s+FROM|INSERT\s+INTO|UPDATE\s+\S+\s+SET|DELETE\s+FROM|ALTER\s+TABLE|DROP\s+TABLE|CREATE\s+TABLE|PrismaClientKnownRequestError|PrismaClientUnknownRequestError|PrismaClientValidationError|Invalid\s+`prisma\.)\b/i;
@@ -54,8 +54,13 @@ const UNIX_PATH_PATTERN = /\/(?:Users|home|var|etc|opt|usr|tmp|app|workspace)\/[
 const CONNECTION_STRING_PATTERN = /\b(?:postgres|postgresql|mysql|mongodb|redis):\/\/[^\s"']+/gi;
 const JWT_TOKEN_PATTERN = /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g;
 
+export const EGYPTIAN_PHONE_PATTERN =
+  /(?:\b|\+)(?:20|0020)?[\s.-]?(?:0?1[0125](?:[\s.-]?[0-9]){8}|0?[23](?:[\s.-]?[0-9]){8})\b/g;
+
+export const EMAIL_PATTERN = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+
 /**
- * Scrubs raw strings to remove stack traces, SQL fragments, file paths, connection strings, and JWTs.
+ * Scrubs raw strings to remove stack traces, SQL fragments, file paths, connection strings, JWTs, phone numbers, and emails.
  */
 export function sanitizeErrorMessageString(input: string): string {
   if (!input || typeof input !== 'string') return '';
@@ -68,6 +73,8 @@ export function sanitizeErrorMessageString(input: string): string {
     .replace(JWT_TOKEN_PATTERN, '[REDACTED_TOKEN]')
     .replace(WINDOWS_PATH_PATTERN, '[REDACTED_PATH]')
     .replace(UNIX_PATH_PATTERN, '[REDACTED_PATH]')
+    .replace(EGYPTIAN_PHONE_PATTERN, '[REDACTED_PHONE]')
+    .replace(EMAIL_PATTERN, '[REDACTED_EMAIL]')
     .trim();
 }
 

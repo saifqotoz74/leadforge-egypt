@@ -46,6 +46,7 @@ export interface RawLeadInput {
   estimatedBudget?: number | string | null;
   creditCost?: number | null;
   creditCostReason?: string | null;
+  isMock?: boolean | null;
 }
 
 export interface NormalizedLeadData {
@@ -90,6 +91,7 @@ export interface NormalizedLeadData {
   externalId: string | null;
   creditCost?: number | null;
   creditCostReason?: string | null;
+  isMock?: boolean;
 }
 
 export interface ValidationResult {
@@ -285,6 +287,10 @@ export function validateAndNormalizeLead(raw: RawLeadInput): ValidationResult {
       source,
       sourceType,
       externalId,
+      isMock:
+        raw.isMock !== undefined && raw.isMock !== null
+          ? Boolean(raw.isMock)
+          : undefined,
       creditCost:
         typeof raw.creditCost === 'number' && raw.creditCost > 0
           ? raw.creditCost

@@ -209,6 +209,15 @@ export async function claimLead(input: ClaimLeadInput): Promise<ClaimLeadResult>
           throw new ClaimEngineError('UNAUTHENTICATED', 'Developer account not found', 401);
         }
 
+        // Email Verification Gate (SEC-03)
+        if (!user.emailVerified) {
+          throw new ClaimEngineError(
+            'EMAIL_NOT_VERIFIED',
+            'Email verification required to unlock leads — يجب تأكيد بريدك الإلكتروني لفتح بيانات الفرصة.',
+            403
+          );
+        }
+
         // 2. Check Suspended Status
         if (user.status === 'SUSPENDED') {
           throw new ClaimEngineError(
@@ -703,50 +712,76 @@ export async function claimLead(input: ClaimLeadInput): Promise<ClaimLeadResult>
           });
         }
 
-        // 14. Atomic Conditional Lead Purchaser Increment & Exclusive Lock
-        const willBeFull =
-          accessType === 'EXCLUSIVE' || lead.currentPurchasers + 1 >= effectiveMaxPurchasers;
+        // 14. Atomic Conditional Lead Purchaser Increment & Exclusive Lock (SEC-04)
+        const isPaidClaim = Boolean(
+          user.subscription?.plan &&
+          user.subscription.plan.slug !== 'free' &&
+          user.subscription.plan.priceEgp > 0
+        );
 
-        const leadUpdate = await tx.lead.updateMany({
-          where: {
-            id: lead.id,
-            status: 'AVAILABLE',
-            availableForClaim: true,
-            currentPurchasers: { lt: effectiveMaxPurchasers },
-          },
-          data: {
-            currentPurchasers: { increment: 1 },
-            ...(willBeFull
-              ? {
-                  status: 'CLAIMED_FULL',
-                  saleabilityStatus: 'CLAIMED_FULL',
-                  availableForClaim: false,
-                }
-              : {}),
-            ...(accessType === 'EXCLUSIVE'
-              ? {
-                  exclusiveClaimedAt: now,
-                  exclusiveClaimedById: developerId,
-                }
-              : {}),
-          },
-        });
+        if (isPaidClaim || accessType === 'EXCLUSIVE') {
+          const willBeFull =
+            accessType === 'EXCLUSIVE' || lead.currentPurchasers + 1 >= effectiveMaxPurchasers;
 
-        if (leadUpdate.count !== 1) {
-          logClaimEngineEvent('concurrency_conflict_detected', {
-            leadId,
-            developerId,
-            details: { stage: 'lead_purchaser_increment', accessType },
+          const leadUpdate = await tx.lead.updateMany({
+            where: {
+              id: lead.id,
+              status: 'AVAILABLE',
+              availableForClaim: true,
+              currentPurchasers: { lt: effectiveMaxPurchasers },
+            },
+            data: {
+              currentPurchasers: { increment: 1 },
+              ...(willBeFull
+                ? {
+                    status: 'CLAIMED_FULL',
+                    saleabilityStatus: 'CLAIMED_FULL',
+                    availableForClaim: false,
+                  }
+                : {}),
+              ...(accessType === 'EXCLUSIVE'
+                ? {
+                    exclusiveClaimedAt: now,
+                    exclusiveClaimedById: developerId,
+                  }
+                : {}),
+            },
           });
-          throw new ClaimEngineError(
-            accessType === 'EXCLUSIVE'
-              ? 'LEAD_EXCLUSIVE_ALREADY_CLAIMED'
-              : 'LEAD_SHARED_MAX_PURCHASERS_REACHED',
-            accessType === 'EXCLUSIVE'
-              ? 'هذه فرصة حصرية وقد تم شراؤها بالفعل من قِبل مطور آخر.'
-              : 'وصلت هذه الفرصة إلى الحد الأقصى لعدد المشترين المسموح به.',
-            409
-          );
+
+          if (leadUpdate.count !== 1) {
+            logClaimEngineEvent('concurrency_conflict_detected', {
+              leadId,
+              developerId,
+              details: { stage: 'lead_purchaser_increment', accessType },
+            });
+            throw new ClaimEngineError(
+              accessType === 'EXCLUSIVE'
+                ? 'LEAD_EXCLUSIVE_ALREADY_CLAIMED'
+                : 'LEAD_SHARED_MAX_PURCHASERS_REACHED',
+              accessType === 'EXCLUSIVE'
+                ? 'هذه فرصة حصرية وقد تم شراؤها بالفعل من قِبل مطور آخر.'
+                : 'وصلت هذه الفرصة إلى الحد الأقصى لعدد المشترين المسموح به.',
+              409
+            );
+          }
+        } else {
+          // Free/trial unlock: verify that lead is available and has capacity, but do NOT consume paid seats
+          const leadAvailable = await tx.lead.findFirst({
+            where: {
+              id: lead.id,
+              status: 'AVAILABLE',
+              availableForClaim: true,
+              currentPurchasers: { lt: effectiveMaxPurchasers },
+            },
+          });
+
+          if (!leadAvailable) {
+            throw new ClaimEngineError(
+              'LEAD_SHARED_MAX_PURCHASERS_REACHED',
+              'وصلت هذه الفرصة إلى الحد الأقصى لعدد المشترين المسموح به.',
+              409
+            );
+          }
         }
 
         const updatedLead = await tx.lead.findUniqueOrThrow({
